@@ -12,7 +12,7 @@ public class HandAction
     public int No { get; set; }
     public Street Street { get; set; }
     public Street NextStreet { get; set; }
-    public PlayActionType PlayAction { get; set; }
+    public PlayerActionType PlayAction { get; set; }
     public decimal Amount { get; set; }
     public decimal AddAmount { get; set; }
     public decimal Paid { get; set; }

@@ -9,5 +9,6 @@ public enum Street : byte
     Flop = 3,
     Turn = 4,
     River = 5,
-    Showdown = 6
+    Showdown = 6,
+    Finished = 7
 }

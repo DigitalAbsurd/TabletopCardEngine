@@ -1,6 +1,6 @@
 ﻿namespace OpenHoldemEngine.Primitives;
 
-public enum PlayActionType : byte
+public enum PlayerActionType : byte
 {
     SmallBlind = 1,
     BigBlind = 2,
