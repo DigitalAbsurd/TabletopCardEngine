@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using OpenHoldemEngine.Primitives;
 
-namespace OpenHoldemEngine.Data
+namespace OpenHoldemEngine.Data;
+
+public class HandDeckCard : Card
 {
-    internal class HandDeckCard : Card
-    {
-        public Guid GameId { get; set; }
-        public int HandNo { get; set; }
-        public Hand Hand { get; set; } = new();
-        public byte Sequence { get; set; }
-    }
+    public Guid GameId { get; set; }
+    public int HandNo { get; set; }
+    public Hand Hand { get; set; } = new();
+    public byte Sequence { get; set; }
 }
