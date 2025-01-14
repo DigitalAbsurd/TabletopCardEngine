@@ -11,12 +11,7 @@ public static class ServiceCollectionExtensions
         Action<HoldemEngineOptionsBuilder>? configure = null)
     {
         var optionsBuilder = new HoldemEngineOptionsBuilder();
-
-        Action<IServiceProvider, DbContextOptionsBuilder> dbContextFactoryConfigureAction = (servicesProvider, dbContextOptionsBuilder) =>
-        {
-            dbOptionsAction?.Invoke(dbContextOptionsBuilder);
-        };
-        services.AddDbContextFactory<HoldemDbContext>(dbContextFactoryConfigureAction);
+        services.AddDbContextFactory<HoldemDbContext>(dbOptionsAction);
         configure?.Invoke(optionsBuilder);
         services.AddSingleton<HoldemEngine>(servicesProvider =>
         {
