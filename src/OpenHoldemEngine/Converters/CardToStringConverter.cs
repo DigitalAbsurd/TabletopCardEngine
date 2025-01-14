@@ -20,7 +20,9 @@ internal class CardToStringConverter : ValueConverter<Card, string>
 
     private static Card CardFromString(string strValue)
     {
-        var cardType = strValue.First() switch
+        var cardTypeChar = strValue.ToLower().Last();
+        var cardSuitChar = strValue.ToLower().First();
+        var cardType = cardTypeChar switch
         {
             Char c when Char.IsDigit(c) => (CardType)byte.Parse(c.ToString()),
             'a' => CardType.Ace,
@@ -31,7 +33,7 @@ internal class CardToStringConverter : ValueConverter<Card, string>
             _ => throw new NotImplementedException()
         };
 
-        var cardSuit = strValue.Last() switch
+        var cardSuit = cardSuitChar switch
         {
             'c' => CardSuit.Club,
             'd' => CardSuit.Diamond,
