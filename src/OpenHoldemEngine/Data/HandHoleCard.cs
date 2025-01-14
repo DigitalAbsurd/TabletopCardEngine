@@ -2,7 +2,7 @@
 
 namespace OpenHoldemEngine.Data;
 
-public class HandPlayerCard
+public class HandHoleCard
 {
     public Guid GameId { get; set; }
     public int HandNo { get; set; }
