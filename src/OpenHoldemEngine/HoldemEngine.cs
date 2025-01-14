@@ -1,11 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine;
 
-public class HoldemEngine(IDbContextFactory<GameDbContext> _gameDbContextFactory)
+public class HoldemEngine(HoldemEngineOptions _options)
 {
-    public Guid GetGameContext(Guid gameId)
+    public Task<Guid> GetGameContextAsync(Guid gameId)
     {
         throw new NotImplementedException();
     }
