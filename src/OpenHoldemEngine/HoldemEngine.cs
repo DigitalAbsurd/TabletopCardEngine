@@ -1,11 +1,17 @@
-﻿using OpenHoldemEngine.Options;
+﻿using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine;
 
 public class HoldemEngine(HoldemEngineOptions _options)
 {
-    public Task<Guid> GetGameContextAsync(Guid gameId)
+    public async Task<GameContext> GetGameContextAsync(Guid gameId)
     {
-        throw new NotImplementedException();
+        using var dbContext = await _options.DbContextFactory.CreateDbContextAsync();
+        var game = dbContext.Games.SingleOrDefault(x => x.Id == gameId);
+
+        var gameContext = new GameContext(gameId, ActionDetail: new HoldemActionDetailStartGame());
+
+        return gameContext;
     }
 }

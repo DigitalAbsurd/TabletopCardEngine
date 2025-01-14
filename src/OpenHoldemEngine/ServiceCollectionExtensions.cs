@@ -6,7 +6,7 @@ using OpenHoldemEngine.Options;
 namespace OpenHoldemEngine;
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection UseHoldemEngine(this IServiceCollection services,
+    public static IServiceCollection AddHoldemEngine(this IServiceCollection services,
         Action<DbContextOptionsBuilder>? dbOptionsAction = null,
         Action<HoldemEngineOptionsBuilder>? configure = null)
     {
@@ -16,11 +16,11 @@ public static class ServiceCollectionExtensions
         {
             dbOptionsAction?.Invoke(dbContextOptionsBuilder);
         };
-        services.AddDbContextFactory<GameDbContext>(dbContextFactoryConfigureAction);
+        services.AddDbContextFactory<HoldemDbContext>(dbContextFactoryConfigureAction);
         configure?.Invoke(optionsBuilder);
         services.AddSingleton<HoldemEngine>(servicesProvider =>
         {
-            optionsBuilder.Options.DbContextFactory = servicesProvider.GetRequiredService<IDbContextFactory<GameDbContext>>();
+            optionsBuilder.Options.DbContextFactory = servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
             return new HoldemEngine(optionsBuilder.Options);
         });
         return services;

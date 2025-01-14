@@ -1,10 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenHoldemEngine.Primitives;
+using OpenHoldemEngine.Converters;
 
 namespace OpenHoldemEngine.Data;
 
-public class GameDbContext : DbContext
+public class HoldemDbContext : DbContext
 {
+    public HoldemDbContext(DbContextOptions dbContextOptions)
+        : base(dbContextOptions) { }
+
     public DbSet<Game> Games { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,13 +27,15 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<HandPlayerEndState>()
          .HasKey(e => new { e.GameId, e.HandNo, e.SeatNo });
 
-        modelBuilder.Entity<Card>()
-        .Property(card => card.CardType)
-        .HasConversion<string>();
+        modelBuilder.Entity<HandDeckCard>()
+            .Property(e => e.Card)
+            .HasMaxLength(2)
+            .HasConversion<CardToStringConverter>();
 
-        modelBuilder.Entity<Card>()
-        .Property(card => card.CardSuit)
-        .HasConversion<string>();
+        modelBuilder.Entity<HandPlayerCard>()
+            .Property(e => e.Card)
+            .HasMaxLength(2)
+            .HasConversion<CardToStringConverter>();
 
         modelBuilder.Entity<HandDeckCard>()
             .HasKey(e => new { e.GameId, e.HandNo, e.Sequence });

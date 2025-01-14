@@ -4,5 +4,5 @@ using OpenHoldemEngine.Data;
 namespace OpenHoldemEngine.Options;
 public class HoldemEngineOptions
 {
-    public IDbContextFactory<GameDbContext> DbContextFactory { get; internal set; } = null!;
+    public IDbContextFactory<HoldemDbContext> DbContextFactory { get; internal set; } = null!;
 }

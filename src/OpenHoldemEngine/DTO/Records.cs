@@ -38,7 +38,7 @@ public record GameContext(Guid GameId, HoldemActionDetail ActionDetail, GameOpti
 
 #region HOLDEM_ACTION_DETAILS
 public abstract record HoldemActionDetail;
-public record HoldemActionDetailStartGame(Guid gameId, int PlayersCountMin = 2, int PlayersCountMax = 6) : HoldemActionDetail;
+public record HoldemActionDetailStartGame(int PlayersCountMin = 2, int PlayersCountMax = 6) : HoldemActionDetail;
 public record HoldemActionDetailNewHand(int NextHandNo) : HoldemActionDetail;
 public record HoldemActionDetailPlayerAction(PlayerDefinition PlayerDefinition, ActionEvaluation[] Evaluations) : HoldemActionDetail;
 public record HoldemActionDetailFinishGame : HoldemActionDetail;
