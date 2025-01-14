@@ -3,15 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine.Tests;
 
 [TestClass]
 public sealed class HoldemEngineTests
 {
-    private ServiceProvider _serviceProvider = null!;
-    private HoldemEngine _holdemEngine = null!;
-
     [TestInitialize]
     public void TestInitialize()
     {
@@ -21,27 +19,40 @@ public sealed class HoldemEngineTests
             opt.IgnoringCyclicReferences();
             return opt;
         });
-        IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(dbOptionsAction: opts => opts.UseInMemoryDatabase(nameof(HoldemDbContext)));
-        _serviceProvider = services.BuildServiceProvider();
-        _holdemEngine = _serviceProvider.GetRequiredService<HoldemEngine>();
-    }
-
-    [TestCleanup]
-    public void TestCleanup()
-    {
-        _serviceProvider.Dispose();
-        _holdemEngine = null!;
     }
 
     [TestMethod]
     public async Task GetGameContextAsync_NewGameDetail()
     {
+        var minPlayersCount = 4;
+        var maxPlayersCount = 8;
         var gameId = Guid.NewGuid();
-        var expected = new GameContext(gameId, ActionDetail: new HoldemActionDetailStartGame());
+        using var holdemServices = SetupHoldemEngineServices(out var holdemEngine, 
+            configureSettings: settings =>
+            {
+                settings.GamePlayersMinCount = minPlayersCount;
+                settings.GamePlayersMaxCount = maxPlayersCount;
+            });
+        var expected = new GameContext(gameId, ActionDetail: new HoldemActionDetailStartGame(minPlayersCount, maxPlayersCount));
 
-        var actual = await _holdemEngine.GetGameContextAsync(gameId);
+        var actual = await holdemEngine.GetGameContextAsync(gameId);
 
         actual.Should().BeEquivalentTo(expected);
+    }
+
+    private IDisposable SetupHoldemEngineServices(out HoldemEngine holdemEngine, Action<HoldemEngineSettings> configureSettings = null!)
+    {
+        IServiceCollection services = new ServiceCollection();
+        services.AddHoldemEngine(
+            dbOptionsAction: opts => opts.UseInMemoryDatabase(nameof(HoldemDbContext)),
+            configure: opts =>
+            {
+                if (configureSettings != null)
+                    opts.WithSettings(configureSettings);
+            }
+            );
+        var serviceProvider = services.BuildServiceProvider();
+        holdemEngine = serviceProvider.GetRequiredService<HoldemEngine>();
+        return serviceProvider;
     }
 }

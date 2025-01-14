@@ -5,4 +5,5 @@ namespace OpenHoldemEngine.Options;
 public class HoldemEngineOptions
 {
     public IDbContextFactory<HoldemDbContext> DbContextFactory { get; internal set; } = null!;
+    public HoldemEngineSettings Settings { get; set; } = new();
 }

@@ -10,7 +10,8 @@ public class HoldemEngine(HoldemEngineOptions _options)
         using var dbContext = await _options.DbContextFactory.CreateDbContextAsync();
         var game = dbContext.Games.SingleOrDefault(x => x.Id == gameId);
 
-        var gameContext = new GameContext(gameId, ActionDetail: new HoldemActionDetailStartGame());
+        var gameContext = new GameContext(gameId, 
+            ActionDetail: new HoldemActionDetailStartGame(_options.Settings.GamePlayersMinCount, _options.Settings.GamePlayersMaxCount));
 
         return gameContext;
     }

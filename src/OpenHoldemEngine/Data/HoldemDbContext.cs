@@ -29,13 +29,13 @@ public class HoldemDbContext : DbContext
 
         modelBuilder.Entity<HandDeckCard>()
             .Property(e => e.Card)
-            .HasMaxLength(2)
-            .HasConversion<CardToStringConverter>();
+            .HasConversion<CardToStringConverter>()
+            .HasMaxLength(2);
 
         modelBuilder.Entity<HandPlayerCard>()
             .Property(e => e.Card)
-            .HasMaxLength(2)
-            .HasConversion<CardToStringConverter>();
+            .HasConversion<CardToStringConverter>()
+            .HasMaxLength(2);
 
         modelBuilder.Entity<HandDeckCard>()
             .HasKey(e => new { e.GameId, e.HandNo, e.Sequence });
