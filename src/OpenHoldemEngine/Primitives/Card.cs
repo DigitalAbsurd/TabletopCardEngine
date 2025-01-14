@@ -2,6 +2,6 @@
 
 public class Card
 {
-    public CardType CardType { get; set; }
-    public CardSuit CardSuit { get; set; }
+    public CardType CardType { get; init; }
+    public CardSuit CardSuit { get; init; }
 }
