@@ -64,9 +64,11 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
         game.Hands.Add(hand);
 
         var nPokerState = _nPokerStateConverter.ConvertTo<(NPokerState nState, NPokerEmulator nEmulator)>(game);
-        ShiftDealerButtonToPreviousHand();
+        
         if (HoldemEngineOptions.Instance.CardShuffler != default)
-            await DoHoleCardsCustomShuffle();
+            nPokerState = _nPokerStateConverter.ConvertToWithDeckCards(game, await GetCustomShuffledHoleCards());
+
+        ShiftDealerButtonToPreviousHand();
 
         var (handNState, messages) = nPokerState.nEmulator.StartNewRound(nPokerState.nState);
 
@@ -140,22 +142,16 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
             }
         }
 
-        async Task DoHoleCardsCustomShuffle()
+        async Task<IEnumerable<Card>> GetCustomShuffledHoleCards()
         {
             var shuffler = HoldemEngineOptions.Instance.CardShuffler!;
-            var sourceTable = nPokerState.nState.Table;
-
             var playerCards = new List<Card>();
 
-            for (int ix = 0; ix < sourceTable.Seats.Players.Count; ix++)
+            for (int ix = 0; ix < nPokerState.nState.Table.Seats.Players.Count; ix++)
             {
                 playerCards.AddRange(await shuffler.GetHoleCardsAsync(game.Id, nextHandNo, (byte)(ix + 1)));
             }
-
-            var cheatCardsIds = playerCards.Select(c => _cardToNCardConverter.ConvertTo<NCard>(c).ToId()).ToList();
-            var nDeck = new NPokerDeck(cheat: true, cheatCardIds: cheatCardsIds);
-            typeof(NPokerTable).GetField("_deck", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-                .SetValue(nPokerState.nState.Table, nDeck);
+            return playerCards;
         }
     }
 }

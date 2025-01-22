@@ -7,6 +7,7 @@ global using NPokerStreet = NPokerEngine.Types.StreetType;
 global using NPokerTable = NPokerEngine.Types.Table;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Primitives;
 
 namespace OpenHoldemEngine.Converters;
 internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nState, NPokerEmulator nEmulator)>
@@ -17,17 +18,24 @@ internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nS
     private static readonly HandActionTypeToNPokerTypeConverter _actionTypeConverter = new HandActionTypeToNPokerTypeConverter();
 
     public GameToNPokerStateConverter()
-        : base(game => GameContextToNPokerState(game),
+        : base(game => GameContextToNPokerState(game, null),
             nPokerState => null!)
     { }
 
-    private static (NPokerState nState, NPokerEmulator nEmulator) GameContextToNPokerState(Game game)
+    public (NPokerState nState, NPokerEmulator nEmulator) ConvertToWithDeckCards(Game game, IEnumerable<Card> cards)
+    {
+        var cheatCardsIds = cards.Select(c => _cardToNCardConverter.ConvertTo<NCard>(c).ToId()).ToList();
+        var nDeck = new NPokerDeck(cheatCardIds: cheatCardsIds, cheat: true);
+        return GameContextToNPokerState(game, nDeck);
+    }
+
+    private static (NPokerState nState, NPokerEmulator nEmulator) GameContextToNPokerState(Game game, NPokerDeck? nDeck = null)
     {
         var currentHand = game.GetCurrentHand();
         var nEmulator = new NPokerEmulator();
         nEmulator.SetupConfig(int.MaxValue, int.MaxValue, (float)game.InitialSmallBlind);
 
-        var deck = new NPokerDeck();
+        var deck = nDeck ?? new NPokerDeck();
         deck.Shuffle();
 
         var nState = new NPokerState()
