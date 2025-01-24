@@ -1,0 +1,4081 @@
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 6 players
+Hand#1
+
+Dummy ($200)
+Gus Xensen ($200)
+Jack Pott ($200)
+Kale ($200)
+Oliver Chips ($200)
+Daniel Xn ($200)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: Dummy is dealt 2&diams; 5&diams; (6 active)
+2 folds, Dummy calls $2, Gus Xensen calls $2, Jack Pott calls $1, Kale bets $8, Dummy calls $8, 2 folds.
+
+Flop: 7&hearts; K&diams; A&spades; ($24, 2 active)
+Kale bets $24, Dummy calls $24.
+
+Turn: 7&hearts; K&diams; A&spades; 3&spades; ($72, 2 active)
+Kale bets $36, Dummy calls $36.
+
+River: 7&hearts; K&diams; A&spades; 3&spades; Q&spades; ($144, 2 active)
+Kale bets $130 (all-in), Dummy calls $130 (all-in).
+
+Final Pot: $404
+Dummy, net: -$200, Lost at showdown, has 2&diams; 5&diams; (Ace High)
+Kale, net: $204, Won at showdown, has K&spades; 9&spades; (a Flush, Ace High)
+Gus Xensen, net: -$2, Folded Preflop, has 9&hearts; 4&hearts;
+Jack Pott, net: -$2, Folded Preflop, has 4&clubs; Q&hearts;
+Daniel Xn, Folded Preflop, has 5&hearts; T&spades;
+Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#2
+
+Gus Xensen ($198)
+Jack Pott ($198)
+Kale ($404)
+Oliver Chips ($200)
+Daniel Xn ($200)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn raises to $7, 4 folds.
+
+Final Pot: $5
+Daniel Xn, net: $3, Won uncontested Preflop, has 7&clubs; 8&clubs;
+Oliver Chips, net: -$2, Folded Preflop, has 8&hearts; J&clubs;
+Kale, net: -$1, Folded Preflop, has 4&spades; K&diams;
+Jack Pott, Folded Preflop, has J&diams; 9&spades;
+Gus Xensen, Folded Preflop, has Q&clubs; T&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#3
+
+Gus Xensen ($198)
+Jack Pott ($198)
+Kale ($403)
+Oliver Chips ($198)
+Daniel Xn ($203)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott calls $2, Kale folds, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: 2&diams; 4&spades; 2&clubs; ($8, 4 active)
+Oliver Chips checks, Daniel Xn checks, Gus Xensen checks, Jack Pott checks.
+
+Turn: 2&diams; 4&spades; 2&clubs; 3&spades; ($8, 4 active)
+Oliver Chips checks, Daniel Xn bets $2, Gus Xensen calls $2, Jack Pott calls $2, Oliver Chips raises to $18, Daniel Xn folds, Gus Xensen calls $16, Jack Pott folds.
+
+River: 2&diams; 4&spades; 2&clubs; 3&spades; Q&hearts; ($48, 2 active)
+Oliver Chips checks, Gus Xensen bets $178 (all-in), Oliver Chips folds.
+
+Final Pot: $48
+Gus Xensen, net: $28, Won uncontested River, has 5&hearts; A&spades; (a Five High Straight)
+Oliver Chips, net: -$20, Folded River, has 5&diams; 8&hearts; (a Pair of Twos)
+Jack Pott, net: -$4, Folded Turn, has 9&clubs; Q&clubs; (a Pair of Twos)
+Daniel Xn, net: -$4, Folded Turn, has K&hearts; J&diams; (a Pair of Twos)
+Kale, Folded Preflop, has 8&spades; Q&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#4
+
+Gus Xensen ($226)
+Jack Pott ($194)
+Kale ($403)
+Oliver Chips ($178)
+Daniel Xn ($199)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott folds, Kale calls $2, Oliver Chips folds, Daniel Xn raises to $8, Gus Xensen folds, Kale calls $6.
+
+Flop: T&diams; Q&clubs; K&diams; ($18, 2 active)
+Daniel Xn bets $18, Kale raises to $72, Daniel Xn raises to $191 (all-in), Kale calls $119.
+
+Turn: T&diams; Q&clubs; K&diams; 3&spades; ($400, 2 players)
+
+River: T&diams; Q&clubs; K&diams; 3&spades; 5&hearts; ($400, 2 players)
+
+Final Pot: $400
+Daniel Xn, net: $201, Won at showdown, has A&clubs; A&spades; (a Pair of Aces)
+Kale, net: -$199, Lost at showdown, has J&clubs; Q&hearts; (a Pair of Queens)
+Gus Xensen, net: -$2, Folded Preflop, has 2&spades; K&spades;
+Oliver Chips, Folded Preflop, has 3&diams; 7&clubs;
+Jack Pott, Folded Preflop, has 3&hearts; 8&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#5
+
+Gus Xensen ($224)
+Jack Pott ($194)
+Kale ($204)
+Oliver Chips ($178)
+Daniel Xn ($400)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Daniel Xn calls $2, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: 4&diams; 7&spades; 7&diams; ($6, 3 active)
+Gus Xensen checks, Jack Pott checks, Daniel Xn bets $3, 2 folds.
+
+Final Pot: $6
+Daniel Xn, net: $4, Won uncontested Flop, has 4&hearts; 2&spades; (Two Pair, Sevens and Fours)
+Jack Pott, net: -$2, Folded Flop, has J&hearts; 3&spades; (a Pair of Sevens)
+Gus Xensen, net: -$2, Folded Flop, has Q&diams; 6&hearts; (a Pair of Sevens)
+Oliver Chips, Folded Preflop, has 6&clubs; 9&spades;
+Kale, Folded Preflop, has 8&hearts; 5&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#6
+
+Gus Xensen ($222)
+Jack Pott ($192)
+Kale ($204)
+Oliver Chips ($178)
+Daniel Xn ($404)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen raises to $7, 2 folds.
+
+Final Pot: $5
+Gus Xensen, net: $3, Won uncontested Preflop, has 6&diams; 7&diams;
+Kale, net: -$2, Folded Preflop, has Q&clubs; 7&spades;
+Jack Pott, net: -$1, Folded Preflop, has Q&spades; 3&hearts;
+Daniel Xn, Folded Preflop, has K&clubs; 5&hearts;
+Oliver Chips, Folded Preflop, has 8&hearts; 6&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#7
+
+Gus Xensen ($225)
+Jack Pott ($191)
+Kale ($202)
+Oliver Chips ($178)
+Daniel Xn ($404)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott folds, Kale raises to $18, Oliver Chips calls $16, 2 folds.
+
+Flop: Q&clubs; T&clubs; 4&spades; ($40, 2 active)
+Kale bets $20, Oliver Chips folds.
+
+Final Pot: $40
+Kale, net: $22, Won uncontested Flop, has A&diams; A&spades; (a Pair of Aces)
+Oliver Chips, net: -$18, Folded Flop, has J&diams; A&clubs; (Ace High)
+Gus Xensen, net: -$2, Folded Preflop, has 4&diams; 8&spades;
+Daniel Xn, net: -$2, Folded Preflop, has 9&spades; 7&clubs;
+Jack Pott, Folded Preflop, has J&hearts; 5&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#8
+
+Gus Xensen ($223)
+Jack Pott ($191)
+Kale ($224)
+Oliver Chips ($160)
+Daniel Xn ($402)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+3 folds, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: 5&hearts; 6&spades; T&clubs; ($4, 2 active)
+Oliver Chips bets $4, Daniel Xn folds.
+
+Final Pot: $4
+Oliver Chips, net: $2, Won uncontested Flop, has 2&diams; T&diams; (a Pair of Tens)
+Daniel Xn, net: -$2, Folded Flop, has Q&diams; J&spades; (Queen High)
+Kale, Folded Preflop, has 5&diams; 2&clubs;
+Jack Pott, Folded Preflop, has 6&diams; K&clubs;
+Gus Xensen, Folded Preflop, has 4&spades; J&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#9
+
+Gus Xensen ($223)
+Jack Pott ($191)
+Kale ($224)
+Oliver Chips ($162)
+Daniel Xn ($400)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott calls $2, Kale folds, Oliver Chips calls $2, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: T&hearts; 2&clubs; J&diams; ($8, 4 active)
+Daniel Xn checks, Gus Xensen checks, Jack Pott bets $2, 2 folds, Gus Xensen calls $2.
+
+Turn: T&hearts; 2&clubs; J&diams; T&spades; ($12, 2 active)
+Gus Xensen checks, Jack Pott bets $4, Gus Xensen calls $4.
+
+River: T&hearts; 2&clubs; J&diams; T&spades; 7&clubs; ($20, 2 active)
+Gus Xensen checks, Jack Pott bets $40, Gus Xensen folds.
+
+Final Pot: $20
+Jack Pott, net: $12, Won uncontested River, has T&clubs; K&hearts; (Three of a Kind, Tens)
+Gus Xensen, net: -$8, Folded River, has Q&spades; A&diams; (a Pair of Tens)
+Oliver Chips, net: -$2, Folded Flop, has 5&diams; 5&spades; (a Pair of Fives)
+Daniel Xn, net: -$2, Folded Flop, has T&diams; Q&hearts; (a Pair of Tens)
+Kale, Folded Preflop, has 2&diams; 7&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#10
+
+Gus Xensen ($215)
+Jack Pott ($203)
+Kale ($224)
+Oliver Chips ($160)
+Daniel Xn ($398)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale folds, Oliver Chips calls $2, Daniel Xn calls $2, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: A&diams; A&spades; 8&diams; ($8, 4 active)
+Gus Xensen checks, Jack Pott checks, Oliver Chips checks, Daniel Xn bets $8, 3 folds.
+
+Final Pot: $8
+Daniel Xn, net: $6, Won uncontested Flop, has A&hearts; J&diams; (Three of a Kind, Aces)
+Oliver Chips, net: -$2, Folded Flop, has T&hearts; 9&spades; (a Pair of Aces)
+Jack Pott, net: -$2, Folded Flop, has 9&hearts; 8&clubs; (Two Pair, Aces and Eights)
+Gus Xensen, net: -$2, Folded Flop, has J&spades; 7&clubs; (a Pair of Aces)
+Kale, Folded Preflop, has 2&clubs; 4&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#11
+
+Gus Xensen ($213)
+Jack Pott ($201)
+Kale ($224)
+Oliver Chips ($158)
+Daniel Xn ($404)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen calls $2, Jack Pott calls $1, Kale bets $6, Gus Xensen calls $6, Jack Pott folds.
+
+Flop: K&diams; 9&clubs; Q&clubs; ($18, 2 active)
+Kale bets $5, Gus Xensen raises to $15, Kale raises to $63, Gus Xensen folds.
+
+Final Pot: $48
+Kale, net: $25, Won uncontested Flop, has A&clubs; Q&diams; (a Pair of Queens)
+Gus Xensen, net: -$23, Folded Flop, has 8&hearts; 3&hearts; (King High)
+Jack Pott, net: -$2, Folded Preflop, has A&diams; 2&diams;
+Daniel Xn, Folded Preflop, has 8&spades; 3&diams;
+Oliver Chips, Folded Preflop, has 7&hearts; 3&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#12
+
+Gus Xensen ($190)
+Jack Pott ($199)
+Kale ($249)
+Oliver Chips ($158)
+Daniel Xn ($404)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn raises to $7, 4 folds.
+
+Final Pot: $5
+Daniel Xn, net: $3, Won uncontested Preflop, has 7&clubs; 2&spades;
+Oliver Chips, net: -$2, Folded Preflop, has 6&diams; T&spades;
+Kale, net: -$1, Folded Preflop, has 7&hearts; T&hearts;
+Jack Pott, Folded Preflop, has 4&diams; 8&hearts;
+Gus Xensen, Folded Preflop, has 6&hearts; 3&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#13
+
+Gus Xensen ($190)
+Jack Pott ($199)
+Kale ($248)
+Oliver Chips ($156)
+Daniel Xn ($407)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen raises to $7, 2 folds, Oliver Chips raises to $23, 2 folds.
+
+Final Pot: $16
+Oliver Chips, net: $9, Won uncontested Preflop, has T&clubs; T&hearts;
+Gus Xensen, net: -$7, Folded Preflop, has 2&spades; 4&diams;
+Daniel Xn, net: -$2, Folded Preflop, has Q&spades; 3&spades;
+Kale, Folded Preflop, has 3&hearts; 5&spades;
+Jack Pott, Folded Preflop, has 6&diams; 3&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#14
+
+Gus Xensen ($183)
+Jack Pott ($199)
+Kale ($248)
+Oliver Chips ($165)
+Daniel Xn ($405)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott calls $2, 2 folds, Daniel Xn calls $1, Gus Xensen bets $6, Jack Pott calls $6, Daniel Xn folds.
+
+Flop: 2&clubs; J&diams; K&spades; ($18, 2 active)
+Gus Xensen checks, Jack Pott bets $6, Gus Xensen calls $6.
+
+Turn: 2&clubs; J&diams; K&spades; 2&hearts; ($30, 2 active)
+Gus Xensen checks, Jack Pott bets $15, Gus Xensen calls $15.
+
+River: 2&clubs; J&diams; K&spades; 2&hearts; 2&spades; ($60, 2 active)
+Gus Xensen checks, Jack Pott bets $30, Gus Xensen folds.
+
+Final Pot: $60
+Jack Pott, net: $31, Won uncontested River, has K&diams; 9&clubs; (a Full House, Twos over Kings)
+Gus Xensen, net: -$29, Folded River, has Q&hearts; A&hearts; (Three of a Kind, Twos)
+Daniel Xn, net: -$2, Folded Preflop, has T&diams; 7&clubs;
+Oliver Chips, Folded Preflop, has 9&diams; 4&hearts;
+Kale, Folded Preflop, has 3&spades; 9&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#15
+
+Gus Xensen ($154)
+Jack Pott ($230)
+Kale ($248)
+Oliver Chips ($165)
+Daniel Xn ($403)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale folds, Oliver Chips calls $2, Daniel Xn calls $2, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: 2&clubs; 4&hearts; 6&diams; ($8, 4 active)
+Gus Xensen checks, Jack Pott checks, Oliver Chips bets $4, Daniel Xn calls $4, 2 folds.
+
+Turn: 2&clubs; 4&hearts; 6&diams; 9&diams; ($16, 2 active)
+Oliver Chips bets $6, Daniel Xn calls $6.
+
+River: 2&clubs; 4&hearts; 6&diams; 9&diams; 2&hearts; ($28, 2 active)
+Oliver Chips checks, Daniel Xn bets $14, Oliver Chips calls $14.
+
+Final Pot: $56
+Oliver Chips, net: $30, Won at showdown, has T&clubs; 6&clubs; (Two Pair, Sixes and Twos)
+Daniel Xn, net: -$26, Lost at showdown, has 6&hearts; 5&diams; (Two Pair, Sixes and Twos)
+Jack Pott, net: -$2, Folded Flop, has J&spades; K&diams; (King High)
+Gus Xensen, net: -$2, Folded Flop, has K&spades; 9&hearts; (King High)
+Kale, Folded Preflop, has 2&spades; 5&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#16
+
+Gus Xensen ($152)
+Jack Pott ($228)
+Kale ($248)
+Oliver Chips ($195)
+Daniel Xn ($377)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips folds, Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott raises to $10, Kale folds, Daniel Xn calls $8, Gus Xensen folds.
+
+Flop: 5&diams; 4&clubs; 7&clubs; ($24, 2 active)
+Jack Pott bets $24, Daniel Xn folds.
+
+Final Pot: $24
+Jack Pott, net: $14, Won uncontested Flop, has 9&hearts; 9&clubs; (a Pair of Nines)
+Daniel Xn, net: -$10, Folded Flop, has T&clubs; Q&diams; (Queen High)
+Gus Xensen, net: -$2, Folded Preflop, has 4&spades; A&spades;
+Kale, net: -$2, Folded Preflop, has 5&hearts; K&hearts;
+Oliver Chips, Folded Preflop, has 2&hearts; 6&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#17
+
+Gus Xensen ($150)
+Jack Pott ($242)
+Kale ($246)
+Oliver Chips ($195)
+Daniel Xn ($367)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott calls $2, Kale calls $1, Oliver Chips checks.
+
+Flop: 8&spades; 2&diams; Q&spades; ($10, 5 active)
+Kale checks, Oliver Chips checks, Daniel Xn checks, Gus Xensen bets $10, Jack Pott folds, Kale raises to $40, 3 folds.
+
+Final Pot: $30
+Kale, net: $18, Won uncontested Flop, has T&spades; Q&diams; (a Pair of Queens)
+Gus Xensen, net: -$12, Folded Flop, has A&clubs; 5&spades; (Ace High)
+Jack Pott, net: -$2, Folded Flop, has T&hearts; 9&diams; (Queen High)
+Daniel Xn, net: -$2, Folded Flop, has 6&diams; 3&clubs; (Queen High)
+Oliver Chips, net: -$2, Folded Flop, has 3&spades; 8&clubs; (a Pair of Eights)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#18
+
+Gus Xensen ($138)
+Jack Pott ($240)
+Kale ($264)
+Oliver Chips ($193)
+Daniel Xn ($365)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott calls $2, Kale folds, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: 9&spades; 3&hearts; Q&spades; ($8, 4 active)
+Oliver Chips checks, Daniel Xn checks, Gus Xensen bets $8, 3 folds.
+
+Final Pot: $8
+Gus Xensen, net: $6, Won uncontested Flop, has 6&hearts; Q&diams; (a Pair of Queens)
+Jack Pott, net: -$2, Folded Flop, has A&hearts; J&clubs; (Ace High)
+Daniel Xn, net: -$2, Folded Flop, has 6&spades; 4&diams; (Queen High)
+Oliver Chips, net: -$2, Folded Flop, has 2&clubs; 4&clubs; (Queen High)
+Kale, Folded Preflop, has T&hearts; 3&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#19
+
+Gus Xensen ($144)
+Jack Pott ($238)
+Kale ($264)
+Oliver Chips ($191)
+Daniel Xn ($363)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott calls $2, 2 folds, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: Q&diams; 9&spades; 2&hearts; ($6, 3 active)
+Daniel Xn checks, Gus Xensen checks, Jack Pott checks.
+
+Turn: Q&diams; 9&spades; 2&hearts; T&clubs; ($6, 3 active)
+Daniel Xn bets $2, Gus Xensen raises to $12, Jack Pott folds, Daniel Xn raises to $22, Gus Xensen calls $10.
+
+River: Q&diams; 9&spades; 2&hearts; T&clubs; J&diams; ($50, 2 active)
+Daniel Xn checks, Gus Xensen bets $50, Daniel Xn folds.
+
+Final Pot: $50
+Gus Xensen, net: $26, Won uncontested River, has 8&hearts; 6&hearts; (a Queen High Straight)
+Daniel Xn, net: -$24, Folded River, has T&spades; 5&hearts; (a Pair of Tens)
+Jack Pott, net: -$2, Folded Turn, has 8&spades; A&diams; (Ace High)
+Oliver Chips, Folded Preflop, has 2&clubs; J&clubs;
+Kale, Folded Preflop, has 3&spades; J&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#20
+
+Gus Xensen ($170)
+Jack Pott ($236)
+Kale ($264)
+Oliver Chips ($191)
+Daniel Xn ($339)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale raises to $7, Oliver Chips calls $7, 3 folds.
+
+Flop: 6&hearts; 8&clubs; 7&diams; ($17, 2 active)
+Kale bets $9, Oliver Chips folds.
+
+Final Pot: $17
+Kale, net: $10, Won uncontested Flop, has J&diams; J&hearts; (a Pair of Jacks)
+Oliver Chips, net: -$7, Folded Flop, has A&clubs; Q&hearts; (Ace High)
+Jack Pott, net: -$2, Folded Preflop, has T&spades; 5&clubs;
+Gus Xensen, net: -$1, Folded Preflop, has 6&spades; T&clubs;
+Daniel Xn, Folded Preflop, has J&spades; 3&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#21
+
+Gus Xensen ($169)
+Jack Pott ($234)
+Kale ($274)
+Oliver Chips ($184)
+Daniel Xn ($339)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips calls $2, Daniel Xn folds, Gus Xensen calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: 9&hearts; J&clubs; 9&spades; ($8, 4 active)
+Jack Pott checks, Kale checks, Oliver Chips checks, Gus Xensen checks.
+
+Turn: 9&hearts; J&clubs; 9&spades; 6&diams; ($8, 4 active)
+Jack Pott bets $8, 2 folds, Gus Xensen raises to $32, Jack Pott raises to $104, Gus Xensen folds.
+
+Final Pot: $72
+Jack Pott, net: $38, Won uncontested Turn, has 4&clubs; 9&diams; (Three of a Kind, Nines)
+Gus Xensen, net: -$34, Folded Turn, has 8&clubs; A&spades; (a Pair of Nines)
+Oliver Chips, net: -$2, Folded Turn, has 6&hearts; A&hearts; (Two Pair, Nines and Sixes)
+Kale, net: -$2, Folded Turn, has T&clubs; J&hearts; (Two Pair, Jacks and Nines)
+Daniel Xn, Folded Preflop, has 5&hearts; Q&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#22
+
+Gus Xensen ($135)
+Jack Pott ($272)
+Kale ($272)
+Oliver Chips ($182)
+Daniel Xn ($339)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott folds, Kale calls $1, Oliver Chips checks.
+
+Flop: 4&spades; 7&hearts; 2&hearts; ($8, 4 active)
+Kale checks, Oliver Chips checks, Daniel Xn bets $16, 3 folds.
+
+Final Pot: $8
+Daniel Xn, net: $6, Won uncontested Flop, has 7&diams; K&spades; (a Pair of Sevens)
+Gus Xensen, net: -$2, Folded Flop, has 3&diams; Q&diams; (Queen High)
+Oliver Chips, net: -$2, Folded Flop, has 6&spades; J&hearts; (Jack High)
+Kale, net: -$2, Folded Flop, has T&spades; 6&diams; (Ten High)
+Jack Pott, Folded Preflop, has 2&diams; 9&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#23
+
+Gus Xensen ($133)
+Jack Pott ($272)
+Kale ($270)
+Oliver Chips ($180)
+Daniel Xn ($345)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott folds, Kale raises to $16, 2 folds, Gus Xensen calls $14.
+
+Flop: 5&hearts; Q&diams; A&spades; ($35, 2 active)
+Gus Xensen checks, Kale checks.
+
+Turn: 5&hearts; Q&diams; A&spades; T&clubs; ($35, 2 active)
+Gus Xensen checks, Kale bets $35, Gus Xensen folds.
+
+Final Pot: $35
+Kale, net: $19, Won uncontested Turn, has K&spades; A&diams; (a Pair of Aces)
+Gus Xensen, net: -$16, Folded Turn, has 8&clubs; 8&hearts; (a Pair of Eights)
+Daniel Xn, net: -$2, Folded Preflop, has 7&clubs; 8&spades;
+Oliver Chips, net: -$1, Folded Preflop, has 6&diams; 3&spades;
+Jack Pott, Folded Preflop, has 4&spades; 9&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#24
+
+Gus Xensen ($117)
+Jack Pott ($272)
+Kale ($289)
+Oliver Chips ($179)
+Daniel Xn ($343)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott folds, Kale calls $2, Oliver Chips raises to $9, Daniel Xn calls $8, 2 folds.
+
+Flop: 6&spades; T&spades; 5&diams; ($22, 2 active)
+Daniel Xn bets $6, Oliver Chips folds.
+
+Final Pot: $22
+Daniel Xn, net: $13, Won uncontested Flop, has 4&clubs; 7&clubs; (Ten High)
+Oliver Chips, net: -$9, Folded Flop, has 9&clubs; 2&spades; (Ten High)
+Kale, net: -$2, Folded Preflop, has A&spades; 4&diams;
+Gus Xensen, net: -$2, Folded Preflop, has 3&spades; 5&clubs;
+Jack Pott, Folded Preflop, has 3&hearts; 4&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#25
+
+Gus Xensen ($115)
+Jack Pott ($272)
+Kale ($287)
+Oliver Chips ($170)
+Daniel Xn ($356)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Daniel Xn calls $2, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: A&clubs; 2&diams; A&hearts; ($6, 3 active)
+Gus Xensen checks, Jack Pott bets $3, Daniel Xn folds, Gus Xensen raises to $15, Jack Pott folds.
+
+Final Pot: $12
+Gus Xensen, net: $7, Won uncontested Flop, has 3&hearts; K&diams; (a Pair of Aces)
+Jack Pott, net: -$5, Folded Flop, has J&hearts; 7&hearts; (a Pair of Aces)
+Daniel Xn, net: -$2, Folded Flop, has 3&diams; Q&diams; (a Pair of Aces)
+Oliver Chips, Folded Preflop, has 8&clubs; 6&diams;
+Kale, Folded Preflop, has 6&hearts; 9&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#26
+
+Gus Xensen ($122)
+Jack Pott ($267)
+Kale ($287)
+Oliver Chips ($170)
+Daniel Xn ($354)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips calls $2, Daniel Xn folds, Gus Xensen calls $2, Jack Pott raises to $10, Kale folds, Oliver Chips calls $8, Gus Xensen folds.
+
+Flop: 8&clubs; 9&clubs; T&hearts; ($24, 2 active)
+Jack Pott bets $24, Oliver Chips folds.
+
+Final Pot: $24
+Jack Pott, net: $14, Won uncontested Flop, has T&clubs; T&diams; (Three of a Kind, Tens)
+Oliver Chips, net: -$10, Folded Flop, has K&clubs; 8&spades; (a Pair of Eights)
+Gus Xensen, net: -$2, Folded Preflop, has T&spades; J&diams;
+Kale, net: -$2, Folded Preflop, has 3&diams; 6&hearts;
+Daniel Xn, Folded Preflop, has J&spades; 5&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#27
+
+Gus Xensen ($120)
+Jack Pott ($281)
+Kale ($285)
+Oliver Chips ($160)
+Daniel Xn ($354)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott raises to $11, 2 folds, Daniel Xn calls $9, Gus Xensen folds.
+
+Flop: T&hearts; 7&diams; 2&clubs; ($27, 2 active)
+Daniel Xn checks, Jack Pott checks.
+
+Turn: T&hearts; 7&diams; 2&clubs; 2&diams; ($27, 2 active)
+Daniel Xn bets $14, Jack Pott raises to $69, Daniel Xn calls $55.
+
+River: T&hearts; 7&diams; 2&clubs; 2&diams; 4&diams; ($165, 2 active)
+Daniel Xn bets $83, Jack Pott raises to $201 (all-in), Daniel Xn calls $118.
+
+Final Pot: $567
+Jack Pott, net: $286, Won at showdown, has Q&diams; T&diams; (a Flush, Queen High)
+Daniel Xn, net: -$281, Lost at showdown, has 3&diams; 8&diams; (a Flush, Eight High)
+Gus Xensen, net: -$2, Folded Preflop, has J&spades; 7&spades;
+Oliver Chips, net: -$2, Folded Preflop, has 3&clubs; 3&spades;
+Kale, net: -$1, Folded Preflop, has 2&hearts; A&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#28
+
+Gus Xensen ($118)
+Jack Pott ($567)
+Kale ($284)
+Oliver Chips ($158)
+Daniel Xn ($73)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen raises to $7, Jack Pott folds, Kale calls $7, Oliver Chips calls $6, Daniel Xn folds.
+
+Flop: 6&hearts; 3&hearts; 8&hearts; ($23, 3 active)
+Oliver Chips checks, Gus Xensen checks, Kale bets $12, Oliver Chips calls $12, Gus Xensen folds.
+
+Turn: 6&hearts; 3&hearts; 8&hearts; 5&diams; ($47, 2 active)
+Oliver Chips checks, Kale bets $47, Oliver Chips calls $47.
+
+River: 6&hearts; 3&hearts; 8&hearts; 5&diams; 8&spades; ($141, 2 active)
+Oliver Chips checks, Kale bets $71, Oliver Chips folds.
+
+Final Pot: $141
+Kale, net: $75, Won uncontested River, has T&spades; T&hearts; (Two Pair, Tens and Eights)
+Oliver Chips, net: -$66, Folded River, has Q&hearts; K&clubs; (a Pair of Eights)
+Gus Xensen, net: -$7, Folded Flop, has A&spades; J&spades; (Ace High)
+Daniel Xn, net: -$2, Folded Preflop, has 3&clubs; 2&clubs;
+Jack Pott, Folded Preflop, has 5&hearts; 6&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#29
+
+Gus Xensen ($111)
+Jack Pott ($567)
+Kale ($359)
+Oliver Chips ($92)
+Daniel Xn ($71)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott raises to $7, 3 folds, Gus Xensen calls $5.
+
+Flop: 7&diams; 3&spades; A&spades; ($15, 2 active)
+Gus Xensen checks, Jack Pott bets $8, Gus Xensen folds.
+
+Final Pot: $15
+Jack Pott, net: $8, Won uncontested Flop, has T&hearts; 7&clubs; (a Pair of Sevens)
+Gus Xensen, net: -$7, Folded Flop, has K&spades; Q&clubs; (Ace High)
+Daniel Xn, net: -$1, Folded Preflop, has 8&spades; 2&hearts;
+Oliver Chips, Folded Preflop, has 7&hearts; 9&hearts;
+Kale, Folded Preflop, has J&spades; 5&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#30
+
+Gus Xensen ($104)
+Jack Pott ($575)
+Kale ($359)
+Oliver Chips ($92)
+Daniel Xn ($70)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale calls $2, 2 folds, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: 7&diams; 3&hearts; 4&hearts; ($6, 3 active)
+Gus Xensen checks, Jack Pott checks, Kale checks.
+
+Turn: 7&diams; 3&hearts; 4&hearts; 5&clubs; ($6, 3 active)
+Gus Xensen bets $2, Jack Pott calls $2, Kale calls $2.
+
+River: 7&diams; 3&hearts; 4&hearts; 5&clubs; 5&diams; ($12, 3 active)
+Gus Xensen checks, Jack Pott bets $12, 2 folds.
+
+Final Pot: $12
+Jack Pott, net: $8, Won uncontested River, has A&hearts; 9&spades; (a Pair of Fives)
+Kale, net: -$4, Folded River, has T&spades; 9&hearts; (a Pair of Fives)
+Gus Xensen, net: -$4, Folded River, has 8&hearts; J&diams; (a Pair of Fives)
+Daniel Xn, Folded Preflop, has K&clubs; 6&diams;
+Oliver Chips, Folded Preflop, has 9&clubs; 3&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#31
+
+Gus Xensen ($100)
+Jack Pott ($583)
+Kale ($355)
+Oliver Chips ($92)
+Daniel Xn ($70)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips calls $2, 2 folds, Jack Pott calls $1, Kale checks.
+
+Flop: 7&diams; 2&clubs; 8&clubs; ($6, 3 active)
+Jack Pott checks, Kale bets $3, Oliver Chips raises to $9, Jack Pott folds, Kale raises to $21, Oliver Chips calls $12.
+
+Turn: 7&diams; 2&clubs; 8&clubs; 7&spades; ($48, 2 active)
+Kale checks, Oliver Chips checks.
+
+River: 7&diams; 2&clubs; 8&clubs; 7&spades; 4&hearts; ($48, 2 active)
+Kale checks, Oliver Chips checks.
+
+Final Pot: $48
+Oliver Chips, net: $25, Won at showdown, has 8&spades; J&clubs; (Two Pair, Eights and Sevens)
+Kale, net: -$23, Lost at showdown, has 9&clubs; 4&clubs; (Two Pair, Sevens and Fours)
+Jack Pott, net: -$2, Folded Flop, has 6&diams; 4&spades; (Eight High)
+Gus Xensen, Folded Preflop, has Q&spades; 5&diams;
+Daniel Xn, Folded Preflop, has 6&hearts; 3&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#32
+
+Gus Xensen ($100)
+Jack Pott ($581)
+Kale ($332)
+Oliver Chips ($117)
+Daniel Xn ($70)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott folds, Kale calls $1, Oliver Chips bets $6, 2 folds.
+
+Final Pot: $6
+Oliver Chips, net: $4, Won uncontested Preflop, has 6&diams; 3&diams;
+Gus Xensen, net: -$2, Folded Preflop, has 9&hearts; Q&clubs;
+Kale, net: -$2, Folded Preflop, has 4&clubs; 8&spades;
+Jack Pott, Folded Preflop, has 3&clubs; K&hearts;
+Daniel Xn, Folded Preflop, has 3&spades; A&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#33
+
+Gus Xensen ($98)
+Jack Pott ($581)
+Kale ($330)
+Oliver Chips ($121)
+Daniel Xn ($70)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, 2 folds, Oliver Chips calls $1, Daniel Xn bets $6, 2 folds.
+
+Final Pot: $6
+Daniel Xn, net: $4, Won uncontested Preflop, has 3&clubs; Q&hearts;
+Gus Xensen, net: -$2, Folded Preflop, has 8&hearts; J&hearts;
+Oliver Chips, net: -$2, Folded Preflop, has J&diams; 4&hearts;
+Kale, Folded Preflop, has 7&diams; 3&hearts;
+Jack Pott, Folded Preflop, has 6&spades; T&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#34
+
+Gus Xensen ($96)
+Jack Pott ($581)
+Kale ($330)
+Oliver Chips ($119)
+Daniel Xn ($74)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott folds, Kale calls $2, Oliver Chips folds, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: 7&clubs; 3&diams; 6&hearts; ($6, 3 active)
+Daniel Xn bets $3, Gus Xensen calls $3, Kale calls $3.
+
+Turn: 7&clubs; 3&diams; 6&hearts; 9&clubs; ($15, 3 active)
+Daniel Xn bets $8, Gus Xensen folds, Kale calls $8.
+
+River: 7&clubs; 3&diams; 6&hearts; 9&clubs; A&hearts; ($31, 2 active)
+Daniel Xn bets $61 (all-in), Kale calls $61.
+
+Final Pot: $153
+Daniel Xn, net: $79, Won at showdown, has 3&clubs; 9&spades; (Two Pair, Nines and Threes)
+Kale, net: -$74, Lost at showdown, has 9&hearts; T&diams; (a Pair of Nines)
+Gus Xensen, net: -$5, Folded Turn, has 4&clubs; K&spades; (King High)
+Oliver Chips, Folded Preflop, has Q&diams; 4&hearts;
+Jack Pott, Folded Preflop, has Q&spades; 4&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#35
+
+Gus Xensen ($91)
+Jack Pott ($581)
+Kale ($256)
+Oliver Chips ($119)
+Daniel Xn ($153)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale folds, Oliver Chips raises to $7, 3 folds.
+
+Final Pot: $5
+Oliver Chips, net: $3, Won uncontested Preflop, has Q&clubs; K&diams;
+Jack Pott, net: -$2, Folded Preflop, has 5&hearts; 3&clubs;
+Gus Xensen, net: -$1, Folded Preflop, has 6&spades; 9&hearts;
+Daniel Xn, Folded Preflop, has 4&spades; 2&clubs;
+Kale, Folded Preflop, has 6&diams; J&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#36
+
+Gus Xensen ($90)
+Jack Pott ($579)
+Kale ($256)
+Oliver Chips ($122)
+Daniel Xn ($153)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: 7&diams; 6&spades; 8&hearts; ($6, 3 active)
+Jack Pott checks, Kale bets $6, Gus Xensen calls $6, Jack Pott folds.
+
+Turn: 7&diams; 6&spades; 8&hearts; 7&clubs; ($18, 2 active)
+Kale checks, Gus Xensen checks.
+
+River: 7&diams; 6&spades; 8&hearts; 7&clubs; 3&hearts; ($18, 2 active)
+Kale checks, Gus Xensen checks.
+
+Final Pot: $18
+Gus Xensen, net: $10, Won at showdown, has 9&spades; Q&clubs; (a Pair of Sevens)
+Kale, net: -$8, Lost at showdown, has 5&diams; J&clubs; (a Pair of Sevens)
+Jack Pott, net: -$2, Folded Flop, has 4&spades; 2&clubs; (Eight High)
+Daniel Xn, Folded Preflop, has 3&diams; K&hearts;
+Oliver Chips, Folded Preflop, has 3&spades; K&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#37
+
+Gus Xensen ($100)
+Jack Pott ($577)
+Kale ($248)
+Oliver Chips ($122)
+Daniel Xn ($153)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott calls $2, Kale calls $1, Oliver Chips checks.
+
+Flop: 4&diams; 6&hearts; Q&hearts; ($8, 4 active)
+Kale checks, Oliver Chips checks, Gus Xensen checks, Jack Pott bets $4, Kale calls $4, Oliver Chips folds, Gus Xensen calls $4.
+
+Turn: 4&diams; 6&hearts; Q&hearts; 4&hearts; ($20, 3 active)
+Kale bets $10, Gus Xensen folds, Jack Pott raises to $24, Kale raises to $92, Jack Pott calls $68.
+
+River: 4&diams; 6&hearts; Q&hearts; 4&hearts; A&diams; ($204, 2 active)
+Kale bets $150 (all-in), Jack Pott calls $150.
+
+Final Pot: $504
+Kale, net: $256, Won at showdown, has 4&clubs; Q&clubs; (a Full House, Fours over Queens)
+Jack Pott, net: -$248, Lost at showdown, has 3&diams; A&hearts; (Two Pair, Aces and Fours)
+Gus Xensen, net: -$6, Folded Turn, has 9&diams; 6&spades; (Two Pair, Sixes and Fours)
+Oliver Chips, net: -$2, Folded Flop, has 7&hearts; K&clubs; (King High)
+Daniel Xn, Folded Preflop, has 9&clubs; 2&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#38
+
+Gus Xensen ($94)
+Jack Pott ($329)
+Kale ($504)
+Oliver Chips ($120)
+Daniel Xn ($153)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott calls $2, Kale calls $2, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: 5&hearts; A&spades; K&diams; ($10, 5 active)
+Oliver Chips checks, Daniel Xn checks, Gus Xensen checks, Jack Pott bets $20, 4 folds.
+
+Final Pot: $10
+Jack Pott, net: $8, Won uncontested Flop, has T&diams; A&hearts; (a Pair of Aces)
+Kale, net: -$2, Folded Flop, has 9&spades; K&clubs; (a Pair of Kings)
+Gus Xensen, net: -$2, Folded Flop, has T&spades; J&hearts; (Ace High)
+Daniel Xn, net: -$2, Folded Flop, has 5&diams; 8&spades; (a Pair of Fives)
+Oliver Chips, net: -$2, Folded Flop, has Q&clubs; 3&diams; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#39
+
+Gus Xensen ($92)
+Jack Pott ($337)
+Kale ($502)
+Oliver Chips ($118)
+Daniel Xn ($151)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Oliver Chips calls $2, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: 7&spades; 4&spades; 4&clubs; ($6, 3 active)
+Daniel Xn checks, Gus Xensen checks, Oliver Chips bets $6, Daniel Xn folds, Gus Xensen calls $6.
+
+Turn: 7&spades; 4&spades; 4&clubs; 6&hearts; ($18, 2 active)
+Gus Xensen bets $9, Oliver Chips folds.
+
+Final Pot: $18
+Gus Xensen, net: $10, Won uncontested Turn, has 5&hearts; 6&diams; (Two Pair, Sixes and Fours)
+Oliver Chips, net: -$8, Folded Turn, has A&hearts; 3&diams; (a Pair of Fours)
+Daniel Xn, net: -$2, Folded Flop, has J&diams; K&hearts; (a Pair of Fours)
+Kale, Folded Preflop, has 5&spades; Q&clubs;
+Jack Pott, Folded Preflop, has 2&spades; T&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#40
+
+Gus Xensen ($102)
+Jack Pott ($337)
+Kale ($502)
+Oliver Chips ($110)
+Daniel Xn ($149)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale folds, Oliver Chips raises to $7, 3 folds.
+
+Final Pot: $5
+Oliver Chips, net: $3, Won uncontested Preflop, has J&diams; J&spades;
+Jack Pott, net: -$2, Folded Preflop, has K&spades; 5&clubs;
+Gus Xensen, net: -$1, Folded Preflop, has 7&hearts; 9&clubs;
+Daniel Xn, Folded Preflop, has 7&diams; 9&hearts;
+Kale, Folded Preflop, has 2&clubs; K&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#41
+
+Gus Xensen ($101)
+Jack Pott ($335)
+Kale ($502)
+Oliver Chips ($113)
+Daniel Xn ($149)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips calls $2, Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: 7&clubs; J&clubs; Q&clubs; ($10, 5 active)
+Jack Pott checks, Kale checks, Oliver Chips checks, Daniel Xn bets $10, Gus Xensen folds, Jack Pott raises to $20, Kale calls $20, Oliver Chips calls $20, Daniel Xn raises to $65, Jack Pott raises to $110, 3 folds.
+
+Final Pot: $180
+Jack Pott, net: $113, Won uncontested Flop, has T&hearts; K&clubs; (King High)
+Daniel Xn, net: -$67, Folded Flop, has J&diams; Q&spades; (Two Pair, Queens and Jacks)
+Oliver Chips, net: -$22, Folded Flop, has K&hearts; 8&clubs; (King High)
+Kale, net: -$22, Folded Flop, has J&hearts; Q&hearts; (Two Pair, Queens and Jacks)
+Gus Xensen, net: -$2, Folded Flop, has 2&diams; A&hearts; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#42
+
+Gus Xensen ($99)
+Jack Pott ($448)
+Kale ($480)
+Oliver Chips ($91)
+Daniel Xn ($82)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn raises to $7, 4 folds.
+
+Final Pot: $5
+Daniel Xn, net: $3, Won uncontested Preflop, has 8&spades; 9&spades;
+Oliver Chips, net: -$2, Folded Preflop, has 2&hearts; 7&diams;
+Kale, net: -$1, Folded Preflop, has 5&diams; T&diams;
+Jack Pott, Folded Preflop, has 9&clubs; 5&hearts;
+Gus Xensen, Folded Preflop, has 2&spades; 4&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#43
+
+Gus Xensen ($99)
+Jack Pott ($448)
+Kale ($479)
+Oliver Chips ($89)
+Daniel Xn ($85)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott calls $2, Kale folds, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: Q&spades; 4&clubs; J&clubs; ($8, 4 active)
+Oliver Chips checks, Daniel Xn checks, Gus Xensen bets $8, 3 folds.
+
+Final Pot: $8
+Gus Xensen, net: $6, Won uncontested Flop, has 8&spades; Q&diams; (a Pair of Queens)
+Jack Pott, net: -$2, Folded Flop, has K&diams; 9&hearts; (King High)
+Daniel Xn, net: -$2, Folded Flop, has 3&hearts; T&diams; (Queen High)
+Oliver Chips, net: -$2, Folded Flop, has A&spades; 9&clubs; (Ace High)
+Kale, Folded Preflop, has 7&clubs; J&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#44
+
+Gus Xensen ($105)
+Jack Pott ($446)
+Kale ($479)
+Oliver Chips ($87)
+Daniel Xn ($83)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott folds, Kale raises to $12, 3 folds.
+
+Final Pot: $5
+Kale, net: $3, Won uncontested Preflop, has 5&clubs; 2&clubs;
+Gus Xensen, net: -$2, Folded Preflop, has 2&diams; 3&spades;
+Daniel Xn, net: -$1, Folded Preflop, has A&clubs; Q&spades;
+Oliver Chips, Folded Preflop, has K&diams; 4&spades;
+Jack Pott, Folded Preflop, has 3&hearts; K&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#45
+
+Gus Xensen ($103)
+Jack Pott ($446)
+Kale ($482)
+Oliver Chips ($87)
+Daniel Xn ($82)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Daniel Xn raises to $7, Gus Xensen calls $6, Jack Pott folds.
+
+Flop: 7&spades; K&spades; A&hearts; ($16, 2 active)
+Gus Xensen bets $6, Daniel Xn folds.
+
+Final Pot: $16
+Gus Xensen, net: $9, Won uncontested Flop, has A&diams; 8&diams; (a Pair of Aces)
+Daniel Xn, net: -$7, Folded Flop, has T&clubs; J&spades; (Ace High)
+Jack Pott, net: -$2, Folded Preflop, has 2&hearts; A&spades;
+Oliver Chips, Folded Preflop, has 9&diams; 6&clubs;
+Kale, Folded Preflop, has 6&diams; 4&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#46
+
+Gus Xensen ($112)
+Jack Pott ($444)
+Kale ($482)
+Oliver Chips ($87)
+Daniel Xn ($75)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips folds, Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: J&hearts; 4&diams; K&hearts; ($8, 4 active)
+Jack Pott checks, Kale checks, Daniel Xn bets $8, 3 folds.
+
+Final Pot: $8
+Daniel Xn, net: $6, Won uncontested Flop, has A&spades; J&clubs; (a Pair of Jacks)
+Gus Xensen, net: -$2, Folded Flop, has 8&hearts; 4&clubs; (a Pair of Fours)
+Kale, net: -$2, Folded Flop, has 3&clubs; 8&spades; (King High)
+Jack Pott, net: -$2, Folded Flop, has 5&spades; 2&hearts; (King High)
+Oliver Chips, Folded Preflop, has K&clubs; 7&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#47
+
+Gus Xensen ($110)
+Jack Pott ($442)
+Kale ($480)
+Oliver Chips ($87)
+Daniel Xn ($81)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott calls $2, Kale calls $1, Oliver Chips checks.
+
+Flop: 8&diams; 8&hearts; A&hearts; ($10, 5 active)
+Kale checks, Oliver Chips checks, Daniel Xn checks, Gus Xensen checks, Jack Pott checks.
+
+Turn: 8&diams; 8&hearts; A&hearts; T&spades; ($10, 5 active)
+Kale checks, Oliver Chips checks, Daniel Xn checks, Gus Xensen bets $10, 4 folds.
+
+Final Pot: $10
+Gus Xensen, net: $8, Won uncontested Turn, has 9&diams; 7&clubs; (a Pair of Eights)
+Jack Pott, net: -$2, Folded Turn, has T&diams; J&diams; (Two Pair, Tens and Eights)
+Daniel Xn, net: -$2, Folded Turn, has 4&spades; 6&clubs; (a Pair of Eights)
+Oliver Chips, net: -$2, Folded Turn, has 3&diams; 9&clubs; (a Pair of Eights)
+Kale, net: -$2, Folded Turn, has 3&clubs; Q&clubs; (a Pair of Eights)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#48
+
+Gus Xensen ($118)
+Jack Pott ($440)
+Kale ($478)
+Oliver Chips ($85)
+Daniel Xn ($79)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott calls $2, Kale folds, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: T&hearts; 8&spades; Q&diams; ($8, 4 active)
+Oliver Chips checks, Daniel Xn checks, Gus Xensen checks, Jack Pott bets $4, 3 folds.
+
+Final Pot: $8
+Jack Pott, net: $6, Won uncontested Flop, has J&spades; Q&clubs; (a Pair of Queens)
+Gus Xensen, net: -$2, Folded Flop, has 4&clubs; 6&hearts; (Queen High)
+Daniel Xn, net: -$2, Folded Flop, has 7&hearts; J&hearts; (Queen High)
+Oliver Chips, net: -$2, Folded Flop, has 3&clubs; T&diams; (a Pair of Tens)
+Kale, Folded Preflop, has T&spades; 5&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#49
+
+Gus Xensen ($116)
+Jack Pott ($446)
+Kale ($478)
+Oliver Chips ($83)
+Daniel Xn ($77)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Oliver Chips raises to $7, 2 folds.
+
+Final Pot: $5
+Oliver Chips, net: $3, Won uncontested Preflop, has T&diams; J&diams;
+Gus Xensen, net: -$2, Folded Preflop, has 6&spades; 5&clubs;
+Daniel Xn, net: -$1, Folded Preflop, has 5&diams; 5&spades;
+Kale, Folded Preflop, has 3&hearts; 6&hearts;
+Jack Pott, Folded Preflop, has 6&clubs; K&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#50
+
+Gus Xensen ($114)
+Jack Pott ($446)
+Kale ($478)
+Oliver Chips ($86)
+Daniel Xn ($76)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Daniel Xn raises to $7, Gus Xensen folds, Jack Pott calls $5.
+
+Flop: 6&diams; 9&hearts; 2&hearts; ($15, 2 active)
+Jack Pott checks, Daniel Xn bets $5, Jack Pott folds.
+
+Final Pot: $15
+Daniel Xn, net: $8, Won uncontested Flop, has 9&spades; K&spades; (a Pair of Nines)
+Jack Pott, net: -$7, Folded Flop, has A&hearts; 5&clubs; (Ace High)
+Gus Xensen, net: -$1, Folded Preflop, has 8&hearts; 3&clubs;
+Oliver Chips, Folded Preflop, has 6&spades; K&diams;
+Kale, Folded Preflop, has 4&diams; T&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#51
+
+Gus Xensen ($113)
+Jack Pott ($439)
+Kale ($478)
+Oliver Chips ($86)
+Daniel Xn ($84)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips folds, Daniel Xn calls $2, Gus Xensen calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: 8&hearts; A&clubs; 7&hearts; ($8, 4 active)
+Jack Pott checks, Kale checks, Daniel Xn bets $4, 2 folds, Kale calls $4.
+
+Turn: 8&hearts; A&clubs; 7&hearts; 4&diams; ($16, 2 active)
+Kale bets $4, Daniel Xn calls $4.
+
+River: 8&hearts; A&clubs; 7&hearts; 4&diams; 2&spades; ($24, 2 active)
+Kale bets $24, Daniel Xn calls $24.
+
+Final Pot: $72
+Kale, net: $38, Won at showdown, has A&diams; 6&hearts; (a Pair of Aces)
+Daniel Xn, net: -$34, Lost at showdown, has 9&diams; 8&clubs; (a Pair of Eights)
+Gus Xensen, net: -$2, Folded Flop, has 7&spades; Q&hearts; (a Pair of Sevens)
+Jack Pott, net: -$2, Folded Flop, has 5&hearts; T&diams; (Ace High)
+Oliver Chips, Folded Preflop, has 3&diams; 7&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#52
+
+Gus Xensen ($111)
+Jack Pott ($437)
+Kale ($516)
+Oliver Chips ($86)
+Daniel Xn ($50)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott folds, Kale calls $1, Oliver Chips checks.
+
+Flop: 3&diams; 4&diams; T&clubs; ($6, 3 active)
+Kale checks, Oliver Chips checks, Gus Xensen bets $6, Kale folds, Oliver Chips calls $6.
+
+Turn: 3&diams; 4&diams; T&clubs; 9&hearts; ($18, 2 active)
+Oliver Chips checks, Gus Xensen bets $18, Oliver Chips calls $18.
+
+River: 3&diams; 4&diams; T&clubs; 9&hearts; 4&clubs; ($54, 2 active)
+Oliver Chips checks, Gus Xensen checks.
+
+Final Pot: $54
+Gus Xensen, net: $28, Won at showdown, has 3&spades; 7&spades; (Two Pair, Fours and Threes)
+Oliver Chips, net: -$26, Lost at showdown, has 8&diams; Q&diams; (a Pair of Fours)
+Kale, net: -$2, Folded Flop, has J&hearts; Q&spades; (Queen High)
+Jack Pott, Folded Preflop, has 7&hearts; 2&spades;
+Daniel Xn, Folded Preflop, has J&clubs; 5&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#53
+
+Gus Xensen ($139)
+Jack Pott ($437)
+Kale ($514)
+Oliver Chips ($60)
+Daniel Xn ($50)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott raises to $9, 3 folds, Gus Xensen calls $7.
+
+Flop: Q&hearts; Q&diams; 4&diams; ($21, 2 active)
+Gus Xensen checks, Jack Pott bets $11, Gus Xensen folds.
+
+Final Pot: $21
+Jack Pott, net: $12, Won uncontested Flop, has 9&hearts; 9&diams; (Two Pair, Queens and Nines)
+Gus Xensen, net: -$9, Folded Flop, has 9&spades; K&clubs; (a Pair of Queens)
+Daniel Xn, net: -$2, Folded Preflop, has 7&clubs; 9&clubs;
+Oliver Chips, net: -$1, Folded Preflop, has K&hearts; T&spades;
+Kale, Folded Preflop, has 6&diams; J&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#54
+
+Gus Xensen ($130)
+Jack Pott ($449)
+Kale ($514)
+Oliver Chips ($59)
+Daniel Xn ($48)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Oliver Chips raises to $7, Daniel Xn folds, Gus Xensen raises to $22, Oliver Chips calls $15.
+
+Flop: 6&spades; 9&clubs; J&clubs; ($45, 2 active)
+Gus Xensen checks, Oliver Chips checks.
+
+Turn: 6&spades; 9&clubs; J&clubs; Q&hearts; ($45, 2 active)
+Gus Xensen checks, Oliver Chips checks.
+
+River: 6&spades; 9&clubs; J&clubs; Q&hearts; 4&clubs; ($45, 2 active)
+Gus Xensen bets $45, Oliver Chips folds.
+
+Final Pot: $45
+Gus Xensen, net: $23, Won uncontested River, has K&clubs; A&clubs; (a Flush, Ace High)
+Oliver Chips, net: -$22, Folded River, has K&diams; A&hearts; (Ace High)
+Daniel Xn, net: -$1, Folded Preflop, has 3&diams; T&spades;
+Kale, Folded Preflop, has T&diams; 2&clubs;
+Jack Pott, Folded Preflop, has 9&spades; 8&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#55
+
+Gus Xensen ($153)
+Jack Pott ($449)
+Kale ($514)
+Oliver Chips ($37)
+Daniel Xn ($47)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale raises to $7, Oliver Chips folds, Daniel Xn calls $7, 2 folds.
+
+Flop: 9&hearts; 6&clubs; 7&hearts; ($17, 2 active)
+Kale bets $17, Daniel Xn folds.
+
+Final Pot: $17
+Kale, net: $10, Won uncontested Flop, has T&spades; T&hearts; (a Pair of Tens)
+Daniel Xn, net: -$7, Folded Flop, has 5&diams; 6&diams; (a Pair of Sixes)
+Jack Pott, net: -$2, Folded Preflop, has 4&spades; 9&spades;
+Gus Xensen, net: -$1, Folded Preflop, has 9&clubs; 7&clubs;
+Oliver Chips, Folded Preflop, has A&spades; Q&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#56
+
+Gus Xensen ($152)
+Jack Pott ($447)
+Kale ($524)
+Oliver Chips ($37)
+Daniel Xn ($40)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen raises to $7, 2 folds.
+
+Final Pot: $5
+Gus Xensen, net: $3, Won uncontested Preflop, has 9&hearts; 2&spades;
+Kale, net: -$2, Folded Preflop, has 3&diams; J&diams;
+Jack Pott, net: -$1, Folded Preflop, has 2&clubs; J&spades;
+Daniel Xn, Folded Preflop, has 3&hearts; T&clubs;
+Oliver Chips, Folded Preflop, has 5&clubs; J&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#57
+
+Gus Xensen ($155)
+Jack Pott ($446)
+Kale ($522)
+Oliver Chips ($37)
+Daniel Xn ($40)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott folds, Kale calls $1, Oliver Chips checks.
+
+Flop: A&clubs; J&hearts; 3&clubs; ($6, 3 active)
+Kale checks, Oliver Chips checks, Gus Xensen bets $3, Kale calls $3, Oliver Chips folds.
+
+Turn: A&clubs; J&hearts; 3&clubs; 5&hearts; ($12, 2 active)
+Kale bets $12, Gus Xensen raises to $48, Kale folds.
+
+Final Pot: $36
+Gus Xensen, net: $19, Won uncontested Turn, has A&diams; 4&clubs; (a Pair of Aces)
+Kale, net: -$17, Folded Turn, has 7&diams; A&spades; (a Pair of Aces)
+Oliver Chips, net: -$2, Folded Flop, has 8&hearts; T&hearts; (Ace High)
+Jack Pott, Folded Preflop, has 5&spades; K&clubs;
+Daniel Xn, Folded Preflop, has 9&diams; 7&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#58
+
+Gus Xensen ($174)
+Jack Pott ($446)
+Kale ($505)
+Oliver Chips ($35)
+Daniel Xn ($40)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott folds, Kale raises to $9, 2 folds, Gus Xensen calls $7.
+
+Flop: 3&clubs; 2&hearts; 5&spades; ($21, 2 active)
+Gus Xensen bets $11, Kale raises to $54, Gus Xensen calls $43.
+
+Turn: 3&clubs; 2&hearts; 5&spades; Q&diams; ($129, 2 active)
+Gus Xensen checks, Kale bets $33, Gus Xensen calls $33.
+
+River: 3&clubs; 2&hearts; 5&spades; Q&diams; 8&diams; ($195, 2 active)
+Gus Xensen checks, Kale bets $98, Gus Xensen folds.
+
+Final Pot: $195
+Kale, net: $99, Won uncontested River, has K&diams; K&clubs; (a Pair of Kings)
+Gus Xensen, net: -$96, Folded River, has 9&spades; 4&hearts; (Queen High)
+Daniel Xn, net: -$2, Folded Preflop, has A&hearts; 6&spades;
+Oliver Chips, net: -$1, Folded Preflop, has Q&hearts; T&hearts;
+Jack Pott, Folded Preflop, has 7&diams; J&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#59
+
+Gus Xensen ($78)
+Jack Pott ($446)
+Kale ($604)
+Oliver Chips ($34)
+Daniel Xn ($38)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Oliver Chips calls $2, Daniel Xn calls $1, Gus Xensen bets $6, 2 folds.
+
+Final Pot: $6
+Gus Xensen, net: $4, Won uncontested Preflop, has Q&diams; J&diams;
+Oliver Chips, net: -$2, Folded Preflop, has 7&hearts; A&hearts;
+Daniel Xn, net: -$2, Folded Preflop, has 4&spades; 9&spades;
+Kale, Folded Preflop, has 8&diams; 3&hearts;
+Jack Pott, Folded Preflop, has 8&hearts; 5&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#60
+
+Gus Xensen ($82)
+Jack Pott ($446)
+Kale ($604)
+Oliver Chips ($32)
+Daniel Xn ($36)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+3 folds, Gus Xensen raises to $6, Jack Pott folds.
+
+Final Pot: $4
+Gus Xensen, net: $2, Won uncontested Preflop, has 9&diams; 9&hearts;
+Jack Pott, net: -$2, Folded Preflop, has 7&diams; K&spades;
+Daniel Xn, Folded Preflop, has 3&hearts; 5&clubs;
+Oliver Chips, Folded Preflop, has A&clubs; 4&diams;
+Kale, Folded Preflop, has 3&diams; 8&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#61
+
+Gus Xensen ($84)
+Jack Pott ($444)
+Kale ($604)
+Oliver Chips ($32)
+Daniel Xn ($36)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen calls $2, Jack Pott calls $1, Kale bets $6, 2 folds.
+
+Final Pot: $6
+Kale, net: $4, Won uncontested Preflop, has 9&clubs; 7&diams;
+Gus Xensen, net: -$2, Folded Preflop, has 3&diams; 8&diams;
+Jack Pott, net: -$2, Folded Preflop, has J&diams; 8&hearts;
+Daniel Xn, Folded Preflop, has 8&spades; 9&diams;
+Oliver Chips, Folded Preflop, has 3&spades; J&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#62
+
+Gus Xensen ($82)
+Jack Pott ($442)
+Kale ($608)
+Oliver Chips ($32)
+Daniel Xn ($36)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott raises to $9, Kale calls $8, 2 folds.
+
+Flop: 6&diams; 7&spades; J&spades; ($22, 2 active)
+Kale bets $8, Jack Pott folds.
+
+Final Pot: $22
+Kale, net: $13, Won uncontested Flop, has J&diams; Q&hearts; (a Pair of Jacks)
+Jack Pott, net: -$9, Folded Flop, has 3&diams; 2&diams; (Jack High)
+Gus Xensen, net: -$2, Folded Preflop, has 9&diams; 3&spades;
+Oliver Chips, net: -$2, Folded Preflop, has A&clubs; 2&hearts;
+Daniel Xn, Folded Preflop, has 6&spades; K&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#63
+
+Gus Xensen ($80)
+Jack Pott ($433)
+Kale ($621)
+Oliver Chips ($30)
+Daniel Xn ($36)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Kale raises to $7, 2 folds.
+
+Final Pot: $5
+Kale, net: $3, Won uncontested Preflop, has Q&diams; K&diams;
+Daniel Xn, net: -$2, Folded Preflop, has T&hearts; 6&clubs;
+Oliver Chips, net: -$1, Folded Preflop, has 3&diams; 4&hearts;
+Jack Pott, Folded Preflop, has K&spades; 4&clubs;
+Gus Xensen, Folded Preflop, has 2&spades; 7&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#64
+
+Gus Xensen ($80)
+Jack Pott ($433)
+Kale ($624)
+Oliver Chips ($29)
+Daniel Xn ($34)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott calls $2, Kale calls $2, Oliver Chips folds, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: 2&clubs; 6&clubs; T&spades; ($8, 4 active)
+Daniel Xn checks, Gus Xensen checks, Jack Pott checks, Kale checks.
+
+Turn: 2&clubs; 6&clubs; T&spades; J&spades; ($8, 4 active)
+Daniel Xn bets $4, 2 folds, Kale raises to $36, Daniel Xn calls $28 (all-in).
+
+River: 2&clubs; 6&clubs; T&spades; J&spades; 7&hearts; ($76, 2 players)
+
+Final Pot: $72
+Daniel Xn, net: $38, Won at showdown, has 3&hearts; J&diams; (a Pair of Jacks)
+Kale, net: -$34, Lost at showdown, has 9&spades; K&hearts; (King High)
+Jack Pott, net: -$2, Folded Turn, has 4&clubs; A&spades; (Ace High)
+Gus Xensen, net: -$2, Folded Turn, has 5&hearts; 2&hearts; (a Pair of Twos)
+Oliver Chips, Folded Preflop, has 9&clubs; 7&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#65
+
+Gus Xensen ($78)
+Jack Pott ($431)
+Kale ($590)
+Oliver Chips ($29)
+Daniel Xn ($72)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale folds, Oliver Chips calls $2, Daniel Xn calls $2, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: 9&hearts; T&hearts; 9&clubs; ($8, 4 active)
+Gus Xensen bets $4, Jack Pott raises to $20, 3 folds.
+
+Final Pot: $16
+Jack Pott, net: $10, Won uncontested Flop, has 2&diams; 4&spades; (a Pair of Nines)
+Gus Xensen, net: -$6, Folded Flop, has 9&diams; 3&diams; (Three of a Kind, Nines)
+Daniel Xn, net: -$2, Folded Flop, has 5&diams; 5&spades; (Two Pair, Nines and Fives)
+Oliver Chips, net: -$2, Folded Flop, has K&spades; J&clubs; (a Pair of Nines)
+Kale, Folded Preflop, has 6&spades; 8&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#66
+
+Gus Xensen ($72)
+Jack Pott ($441)
+Kale ($590)
+Oliver Chips ($27)
+Daniel Xn ($70)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen raises to $7, Jack Pott folds, Kale calls $5.
+
+Flop: 9&hearts; 4&diams; T&spades; ($15, 2 active)
+Kale bets $5, Gus Xensen raises to $30, Kale folds.
+
+Final Pot: $25
+Gus Xensen, net: $13, Won uncontested Flop, has T&diams; K&diams; (a Pair of Tens)
+Kale, net: -$12, Folded Flop, has 5&hearts; 4&hearts; (a Pair of Fours)
+Jack Pott, net: -$1, Folded Preflop, has 2&clubs; Q&hearts;
+Daniel Xn, Folded Preflop, has 2&spades; 5&clubs;
+Oliver Chips, Folded Preflop, has 7&clubs; 4&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#67
+
+Gus Xensen ($85)
+Jack Pott ($440)
+Kale ($578)
+Oliver Chips ($27)
+Daniel Xn ($70)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott calls $2, Kale calls $1, Oliver Chips checks.
+
+Flop: A&clubs; K&clubs; T&clubs; ($8, 4 active)
+Kale checks, Oliver Chips checks, Gus Xensen bets $8, 3 folds.
+
+Final Pot: $8
+Gus Xensen, net: $6, Won uncontested Flop, has 9&clubs; Q&clubs; (a Flush, Ace High)
+Jack Pott, net: -$2, Folded Flop, has 5&diams; A&spades; (a Pair of Aces)
+Oliver Chips, net: -$2, Folded Flop, has 5&spades; 6&clubs; (Ace High)
+Kale, net: -$2, Folded Flop, has 6&diams; 7&clubs; (Ace High)
+Daniel Xn, Folded Preflop, has Q&diams; 3&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#68
+
+Gus Xensen ($91)
+Jack Pott ($438)
+Kale ($576)
+Oliver Chips ($25)
+Daniel Xn ($70)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott folds, Kale calls $2, Oliver Chips calls $1, Daniel Xn checks.
+
+Flop: 5&diams; J&diams; T&clubs; ($8, 4 active)
+Oliver Chips checks, Daniel Xn checks, Gus Xensen checks, Kale bets $3, 2 folds, Gus Xensen calls $3.
+
+Turn: 5&diams; J&diams; T&clubs; J&spades; ($14, 2 active)
+Gus Xensen checks, Kale bets $7, Gus Xensen folds.
+
+Final Pot: $14
+Kale, net: $9, Won uncontested Turn, has T&diams; Q&spades; (Two Pair, Jacks and Tens)
+Gus Xensen, net: -$5, Folded Turn, has 5&hearts; A&hearts; (Two Pair, Jacks and Fives)
+Daniel Xn, net: -$2, Folded Flop, has 2&spades; 3&spades; (Jack High)
+Oliver Chips, net: -$2, Folded Flop, has 7&spades; 3&clubs; (Jack High)
+Jack Pott, Folded Preflop, has T&spades; 6&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#69
+
+Gus Xensen ($86)
+Jack Pott ($438)
+Kale ($585)
+Oliver Chips ($23)
+Daniel Xn ($68)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+3 folds, Daniel Xn raises to $6, Gus Xensen folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has K&spades; A&spades;
+Gus Xensen, net: -$2, Folded Preflop, has 5&hearts; T&diams;
+Oliver Chips, Folded Preflop, has 4&diams; 6&spades;
+Kale, Folded Preflop, has 6&diams; T&clubs;
+Jack Pott, Folded Preflop, has 2&clubs; 4&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#70
+
+Gus Xensen ($84)
+Jack Pott ($438)
+Kale ($585)
+Oliver Chips ($23)
+Daniel Xn ($70)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale raises to $7, 3 folds, Jack Pott calls $5.
+
+Flop: 9&diams; K&diams; 5&clubs; ($15, 2 active)
+Jack Pott checks, Kale bets $15, Jack Pott folds.
+
+Final Pot: $15
+Kale, net: $8, Won uncontested Flop, has 5&hearts; T&hearts; (a Pair of Fives)
+Jack Pott, net: -$7, Folded Flop, has A&diams; 2&hearts; (Ace High)
+Gus Xensen, net: -$1, Folded Preflop, has 6&spades; 8&clubs;
+Daniel Xn, Folded Preflop, has 7&clubs; 5&spades;
+Oliver Chips, Folded Preflop, has Q&diams; 6&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#71
+
+Gus Xensen ($83)
+Jack Pott ($431)
+Kale ($593)
+Oliver Chips ($23)
+Daniel Xn ($70)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+3 folds, Jack Pott raises to $6, Kale raises to $18, Jack Pott folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Preflop, has J&spades; A&diams;
+Jack Pott, net: -$6, Folded Preflop, has 9&clubs; 7&hearts;
+Gus Xensen, Folded Preflop, has 2&diams; T&clubs;
+Daniel Xn, Folded Preflop, has 3&diams; Q&clubs;
+Oliver Chips, Folded Preflop, has A&clubs; 4&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#72
+
+Gus Xensen ($83)
+Jack Pott ($425)
+Kale ($599)
+Oliver Chips ($23)
+Daniel Xn ($70)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott folds, Kale raises to $8, 2 folds.
+
+Final Pot: $6
+Kale, net: $4, Won uncontested Preflop, has K&hearts; T&hearts;
+Gus Xensen, net: -$2, Folded Preflop, has 6&clubs; 3&diams;
+Oliver Chips, net: -$2, Folded Preflop, has 6&diams; A&spades;
+Jack Pott, Folded Preflop, has 5&hearts; Q&spades;
+Daniel Xn, Folded Preflop, has 2&diams; 8&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#73
+
+Gus Xensen ($81)
+Jack Pott ($425)
+Kale ($603)
+Oliver Chips ($21)
+Daniel Xn ($70)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+3 folds, Oliver Chips raises to $10, Daniel Xn folds.
+
+Final Pot: $4
+Oliver Chips, net: $2, Won uncontested Preflop, has 6&hearts; K&spades;
+Daniel Xn, net: -$2, Folded Preflop, has K&hearts; 5&diams;
+Kale, Folded Preflop, has 4&hearts; 7&spades;
+Jack Pott, Folded Preflop, has 6&clubs; 3&diams;
+Gus Xensen, Folded Preflop, has 2&hearts; 3&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#74
+
+Gus Xensen ($81)
+Jack Pott ($425)
+Kale ($603)
+Oliver Chips ($23)
+Daniel Xn ($68)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott raises to $7, Kale calls $7, 3 folds.
+
+Flop: 8&diams; 6&hearts; Q&diams; ($17, 2 active)
+Jack Pott checks, Kale bets $9, Jack Pott folds.
+
+Final Pot: $17
+Kale, net: $10, Won uncontested Flop, has K&spades; Q&hearts; (a Pair of Queens)
+Jack Pott, net: -$7, Folded Flop, has 2&hearts; 4&hearts; (Queen High)
+Gus Xensen, net: -$2, Folded Preflop, has T&hearts; 4&clubs;
+Daniel Xn, net: -$1, Folded Preflop, has A&hearts; 9&spades;
+Oliver Chips, Folded Preflop, has 3&hearts; 6&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#75
+
+Gus Xensen ($79)
+Jack Pott ($418)
+Kale ($613)
+Oliver Chips ($23)
+Daniel Xn ($67)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale calls $2, Oliver Chips folds, Daniel Xn raises to $9, Gus Xensen raises to $31, Jack Pott folds, Kale calls $29, Daniel Xn folds.
+
+Flop: 7&spades; 2&diams; 7&hearts; ($73, 2 active)
+Gus Xensen checks, Kale checks.
+
+Turn: 7&spades; 2&diams; 7&hearts; 4&clubs; ($73, 2 active)
+Gus Xensen checks, Kale checks.
+
+River: 7&spades; 2&diams; 7&hearts; 4&clubs; J&diams; ($73, 2 active)
+Gus Xensen bets $48 (all-in), Kale folds.
+
+Final Pot: $73
+Gus Xensen, net: $42, Won uncontested River, has J&hearts; T&hearts; (Two Pair, Jacks and Sevens)
+Kale, net: -$31, Folded River, has 9&diams; Q&clubs; (a Pair of Sevens)
+Daniel Xn, net: -$9, Folded Preflop, has T&diams; K&diams;
+Jack Pott, net: -$2, Folded Preflop, has Q&hearts; 6&clubs;
+Oliver Chips, Folded Preflop, has 8&clubs; 6&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#76
+
+Gus Xensen ($121)
+Jack Pott ($416)
+Kale ($582)
+Oliver Chips ($23)
+Daniel Xn ($58)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips raises to $7, 2 folds, Jack Pott calls $6, Kale folds.
+
+Flop: 7&clubs; Q&diams; 5&clubs; ($16, 2 active)
+Jack Pott checks, Oliver Chips checks.
+
+Turn: 7&clubs; Q&diams; 5&clubs; Q&clubs; ($16, 2 active)
+Jack Pott bets $4, Oliver Chips calls $4.
+
+River: 7&clubs; Q&diams; 5&clubs; Q&clubs; T&diams; ($24, 2 active)
+Jack Pott bets $12, Oliver Chips folds.
+
+Final Pot: $24
+Jack Pott, net: $13, Won uncontested River, has 6&hearts; A&hearts; (a Pair of Queens)
+Oliver Chips, net: -$11, Folded River, has K&clubs; A&diams; (a Pair of Queens)
+Kale, net: -$2, Folded Preflop, has T&clubs; Q&spades;
+Gus Xensen, Folded Preflop, has J&spades; 8&hearts;
+Daniel Xn, Folded Preflop, has 5&hearts; 6&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#77
+
+Gus Xensen ($121)
+Jack Pott ($429)
+Kale ($580)
+Oliver Chips ($12)
+Daniel Xn ($58)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott raises to $9, 3 folds.
+
+Final Pot: $7
+Jack Pott, net: $5, Won uncontested Preflop, has A&hearts; A&clubs;
+Gus Xensen, net: -$2, Folded Preflop, has Q&clubs; 6&diams;
+Oliver Chips, net: -$2, Folded Preflop, has K&clubs; 8&diams;
+Kale, net: -$1, Folded Preflop, has 2&diams; 8&hearts;
+Daniel Xn, Folded Preflop, has J&spades; 4&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#78
+
+Gus Xensen ($119)
+Jack Pott ($434)
+Kale ($579)
+Oliver Chips ($10)
+Daniel Xn ($58)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen calls $2, Jack Pott raises to $9, 3 folds, Gus Xensen calls $7.
+
+Flop: 2&spades; A&clubs; 4&hearts; ($21, 2 active)
+Gus Xensen bets $11, Jack Pott folds.
+
+Final Pot: $21
+Gus Xensen, net: $12, Won uncontested Flop, has 6&spades; A&spades; (a Pair of Aces)
+Jack Pott, net: -$9, Folded Flop, has 6&diams; J&clubs; (Ace High)
+Daniel Xn, net: -$2, Folded Preflop, has 6&hearts; 2&diams;
+Oliver Chips, net: -$1, Folded Preflop, has T&spades; 6&clubs;
+Kale, Folded Preflop, has 9&clubs; 4&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#79
+
+Gus Xensen ($131)
+Jack Pott ($425)
+Kale ($579)
+Oliver Chips ($9)
+Daniel Xn ($56)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott folds, Kale calls $2, Oliver Chips folds, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: 5&diams; 9&hearts; T&spades; ($6, 3 active)
+Daniel Xn checks, Gus Xensen bets $6, Kale folds, Daniel Xn raises to $15, Gus Xensen folds.
+
+Final Pot: $18
+Daniel Xn, net: $10, Won uncontested Flop, has T&diams; K&hearts; (a Pair of Tens)
+Gus Xensen, net: -$8, Folded Flop, has 5&hearts; K&clubs; (a Pair of Fives)
+Kale, net: -$2, Folded Flop, has 9&spades; Q&clubs; (a Pair of Nines)
+Oliver Chips, Folded Preflop, has 2&spades; 8&hearts;
+Jack Pott, Folded Preflop, has 8&spades; 9&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#80
+
+Gus Xensen ($123)
+Jack Pott ($425)
+Kale ($577)
+Oliver Chips ($9)
+Daniel Xn ($66)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale calls $2, 2 folds, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: T&clubs; 4&hearts; A&spades; ($6, 3 active)
+Gus Xensen checks, Jack Pott checks, Kale bets $2, Gus Xensen raises to $6, Jack Pott folds, Kale raises to $24, Gus Xensen folds.
+
+Final Pot: $18
+Kale, net: $10, Won uncontested Flop, has 5&diams; 5&spades; (a Pair of Fives)
+Gus Xensen, net: -$8, Folded Flop, has 7&spades; 6&clubs; (Ace High)
+Jack Pott, net: -$2, Folded Flop, has 4&spades; Q&clubs; (a Pair of Fours)
+Daniel Xn, Folded Preflop, has 3&diams; K&hearts;
+Oliver Chips, Folded Preflop, has 2&clubs; 6&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#81
+
+Gus Xensen ($115)
+Jack Pott ($423)
+Kale ($587)
+Oliver Chips ($9)
+Daniel Xn ($66)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+2 folds, Gus Xensen calls $2, Jack Pott raises to $8, Kale folds, Gus Xensen calls $6.
+
+Flop: T&spades; 2&hearts; 2&diams; ($18, 2 active)
+Jack Pott checks, Gus Xensen bets $9, Jack Pott folds.
+
+Final Pot: $18
+Gus Xensen, net: $10, Won uncontested Flop, has 9&spades; 8&hearts; (a Pair of Twos)
+Jack Pott, net: -$8, Folded Flop, has K&clubs; 9&clubs; (a Pair of Twos)
+Kale, net: -$2, Folded Preflop, has K&spades; 4&hearts;
+Daniel Xn, Folded Preflop, has J&clubs; 3&hearts;
+Oliver Chips, Folded Preflop, has 7&spades; 5&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#82
+
+Gus Xensen ($125)
+Jack Pott ($415)
+Kale ($585)
+Oliver Chips ($9)
+Daniel Xn ($66)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Oliver Chips posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Daniel Xn folds, Gus Xensen calls $2, Jack Pott calls $2, Kale calls $1, Oliver Chips checks.
+
+Flop: K&clubs; 4&hearts; A&spades; ($8, 4 active)
+Kale bets $4, 3 folds.
+
+Final Pot: $8
+Kale, net: $6, Won uncontested Flop, has Q&hearts; 4&spades; (a Pair of Fours)
+Jack Pott, net: -$2, Folded Flop, has 9&diams; T&hearts; (Ace High)
+Gus Xensen, net: -$2, Folded Flop, has 2&diams; 6&diams; (Ace High)
+Oliver Chips, net: -$2, Folded Flop, has 7&spades; 3&spades; (Ace High)
+Daniel Xn, Folded Preflop, has J&spades; 2&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#83
+
+Gus Xensen ($123)
+Jack Pott ($413)
+Kale ($591)
+Oliver Chips ($7)
+Daniel Xn ($66)
+
+Kale is the button.
+
+Precards: 
+Oliver Chips posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Gus Xensen folds, Jack Pott raises to $7, 3 folds.
+
+Final Pot: $5
+Jack Pott, net: $3, Won uncontested Preflop, has 9&spades; 9&clubs;
+Daniel Xn, net: -$2, Folded Preflop, has 7&clubs; 9&hearts;
+Oliver Chips, net: -$1, Folded Preflop, has 9&diams; 4&spades;
+Kale, Folded Preflop, has 8&clubs; 2&clubs;
+Gus Xensen, Folded Preflop, has Q&diams; 2&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#84
+
+Gus Xensen ($123)
+Jack Pott ($416)
+Kale ($591)
+Oliver Chips ($6)
+Daniel Xn ($64)
+
+Oliver Chips is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Jack Pott raises to $7, 4 folds.
+
+Final Pot: $5
+Jack Pott, net: $3, Won uncontested Preflop, has 9&spades; 9&diams;
+Gus Xensen, net: -$2, Folded Preflop, has 7&clubs; K&hearts;
+Daniel Xn, net: -$1, Folded Preflop, has 5&spades; Q&clubs;
+Oliver Chips, Folded Preflop, has K&clubs; 3&diams;
+Kale, Folded Preflop, has 7&spades; 8&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#85
+
+Gus Xensen ($121)
+Jack Pott ($419)
+Kale ($591)
+Oliver Chips ($6)
+Daniel Xn ($63)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Kale raises to $7, 4 folds.
+
+Final Pot: $5
+Kale, net: $3, Won uncontested Preflop, has A&diams; Q&hearts;
+Jack Pott, net: -$2, Folded Preflop, has 6&clubs; 8&hearts;
+Gus Xensen, net: -$1, Folded Preflop, has J&diams; 7&hearts;
+Daniel Xn, Folded Preflop, has 8&diams; 8&spades;
+Oliver Chips, Folded Preflop, has 3&clubs; 5&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 5 players
+Hand#86
+
+Gus Xensen ($120)
+Jack Pott ($417)
+Kale ($594)
+Oliver Chips ($6)
+Daniel Xn ($63)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (5 active)
+Oliver Chips calls $2, Daniel Xn folds, Gus Xensen calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: 6&spades; 8&clubs; 8&diams; ($8, 4 active)
+Jack Pott bets $8, Kale folds, Oliver Chips calls $4 (all-in), Gus Xensen raises to $18, Jack Pott raises to $66, Gus Xensen calls $48.
+
+Turn: 6&spades; 8&clubs; 8&diams; 4&clubs; ($144, 2 active, 1 all-in)
+Jack Pott bets $36, Gus Xensen raises to $52 (all-in), Jack Pott calls $16.
+
+River: 6&spades; 8&clubs; 8&diams; 4&clubs; 9&hearts; ($248, 3 players)
+
+Final Pot: $248
+Gus Xensen, net: $128, Won at showdown, has 5&spades; 7&clubs; (a Nine High Straight)
+Jack Pott, net: -$120, Lost at showdown, has Q&spades; 8&spades; (Three of a Kind, Eights)
+Oliver Chips, net: -$6, Lost at showdown, has A&diams; 2&diams; (a Pair of Eights)
+Kale, net: -$2, Folded Flop, has 4&hearts; Q&hearts; (a Pair of Eights)
+Daniel Xn, Folded Preflop, has 2&clubs; 7&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#87
+
+Gus Xensen ($248)
+Jack Pott ($297)
+Kale ($592)
+Daniel Xn ($63)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Gus Xensen raises to $7, Jack Pott calls $7, Kale calls $6, Daniel Xn calls $5.
+
+Flop: 5&diams; 5&hearts; 9&clubs; ($28, 4 active)
+Kale checks, Daniel Xn checks, Gus Xensen checks, Jack Pott checks.
+
+Turn: 5&diams; 5&hearts; 9&clubs; 3&hearts; ($28, 4 active)
+Kale checks, Daniel Xn bets $10, Gus Xensen calls $10, 2 folds.
+
+River: 5&diams; 5&hearts; 9&clubs; 3&hearts; 8&diams; ($48, 2 active)
+Daniel Xn checks, Gus Xensen bets $24, Daniel Xn folds.
+
+Final Pot: $48
+Gus Xensen, net: $31, Won uncontested River, has 7&diams; 8&clubs; (Two Pair, Eights and Fives)
+Daniel Xn, net: -$17, Folded River, has 9&spades; T&spades; (Two Pair, Nines and Fives)
+Jack Pott, net: -$7, Folded Turn, has J&diams; 9&diams; (Two Pair, Nines and Fives)
+Kale, net: -$7, Folded Turn, has K&spades; Q&clubs; (a Pair of Fives)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#88
+
+Gus Xensen ($279)
+Jack Pott ($290)
+Kale ($585)
+Daniel Xn ($46)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Jack Pott calls $2, Kale folds, Daniel Xn calls $1, Gus Xensen checks.
+
+Flop: 6&hearts; 3&clubs; 7&hearts; ($6, 3 active)
+Daniel Xn bets $3, Gus Xensen calls $3, Jack Pott folds.
+
+Turn: 6&hearts; 3&clubs; 7&hearts; 8&diams; ($12, 2 active)
+Daniel Xn bets $4, Gus Xensen raises to $11, Daniel Xn calls $7.
+
+River: 6&hearts; 3&clubs; 7&hearts; 8&diams; T&clubs; ($34, 2 active)
+Daniel Xn checks, Gus Xensen bets $34, Daniel Xn folds.
+
+Final Pot: $34
+Gus Xensen, net: $18, Won uncontested River, has 9&diams; 7&diams; (a Ten High Straight)
+Daniel Xn, net: -$16, Folded River, has A&clubs; 7&clubs; (a Pair of Sevens)
+Jack Pott, net: -$2, Folded Flop, has 3&spades; A&hearts; (a Pair of Threes)
+Kale, Folded Preflop, has 2&spades; K&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#89
+
+Gus Xensen ($297)
+Jack Pott ($288)
+Kale ($585)
+Daniel Xn ($30)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Kale calls $2, Daniel Xn folds, Gus Xensen calls $1, Jack Pott checks.
+
+Flop: 9&diams; 4&spades; A&hearts; ($6, 3 active)
+Gus Xensen checks, Jack Pott checks, Kale checks.
+
+Turn: 9&diams; 4&spades; A&hearts; 5&diams; ($6, 3 active)
+Gus Xensen checks, Jack Pott checks, Kale bets $6, 2 folds.
+
+Final Pot: $6
+Kale, net: $4, Won uncontested Turn, has 4&clubs; K&clubs; (a Pair of Fours)
+Jack Pott, net: -$2, Folded Turn, has 3&clubs; T&diams; (Ace High)
+Gus Xensen, net: -$2, Folded Turn, has 8&clubs; T&hearts; (Ace High)
+Daniel Xn, Folded Preflop, has 9&hearts; 2&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#90
+
+Gus Xensen ($295)
+Jack Pott ($286)
+Kale ($589)
+Daniel Xn ($30)
+
+Gus Xensen is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Daniel Xn folds, Gus Xensen raises to $7, Jack Pott raises to $23, Kale folds, Gus Xensen calls $16.
+
+Flop: 5&hearts; 2&hearts; 5&diams; ($48, 2 active)
+Jack Pott checks, Gus Xensen bets $12, Jack Pott folds.
+
+Final Pot: $48
+Gus Xensen, net: $25, Won uncontested Flop, has T&spades; K&clubs; (a Pair of Fives)
+Jack Pott, net: -$23, Folded Flop, has J&clubs; Q&clubs; (a Pair of Fives)
+Kale, net: -$2, Folded Preflop, has Q&hearts; 6&diams;
+Daniel Xn, Folded Preflop, has K&diams; 8&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#91
+
+Gus Xensen ($320)
+Jack Pott ($263)
+Kale ($587)
+Daniel Xn ($30)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Gus Xensen calls $2, Jack Pott raises to $9, 2 folds, Gus Xensen calls $7.
+
+Flop: 9&diams; A&hearts; Q&clubs; ($21, 2 active)
+Gus Xensen checks, Jack Pott checks.
+
+Turn: 9&diams; A&hearts; Q&clubs; A&spades; ($21, 2 active)
+Gus Xensen bets $11, Jack Pott folds.
+
+Final Pot: $21
+Gus Xensen, net: $12, Won uncontested Turn, has 6&clubs; K&hearts; (a Pair of Aces)
+Jack Pott, net: -$9, Folded Turn, has 4&hearts; 5&spades; (a Pair of Aces)
+Daniel Xn, net: -$2, Folded Preflop, has Q&spades; 3&spades;
+Kale, net: -$1, Folded Preflop, has 9&clubs; 5&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#92
+
+Gus Xensen ($332)
+Jack Pott ($254)
+Kale ($586)
+Daniel Xn ($28)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Gus Xensen posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Jack Pott folds, Kale raises to $12, Daniel Xn folds, Gus Xensen calls $10.
+
+Flop: 2&diams; T&diams; J&spades; ($25, 2 active)
+Gus Xensen bets $50, Kale raises to $113, Gus Xensen folds.
+
+Final Pot: $125
+Kale, net: $63, Won uncontested Flop, has A&hearts; A&spades; (a Pair of Aces)
+Gus Xensen, net: -$62, Folded Flop, has 4&hearts; 7&diams; (Jack High)
+Daniel Xn, net: -$1, Folded Preflop, has 9&spades; 8&spades;
+Jack Pott, Folded Preflop, has 3&spades; 8&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 4 players
+Hand#93
+
+Gus Xensen ($270)
+Jack Pott ($254)
+Kale ($649)
+Daniel Xn ($27)
+
+Daniel Xn is the button.
+
+Precards: 
+Gus Xensen posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (4 active)
+Kale raises to $7, Daniel Xn folds, Gus Xensen calls $6, Jack Pott folds.
+
+Flop: T&spades; 4&diams; 5&diams; ($16, 2 active)
+Gus Xensen bets $16, Kale calls $16.
+
+Turn: T&spades; 4&diams; 5&diams; 8&clubs; ($48, 2 active)
+Gus Xensen bets $16, Kale raises to $96, Gus Xensen raises to $247 (all-in), Kale calls $151.
+
+River: T&spades; 4&diams; 5&diams; 8&clubs; T&clubs; ($542, 2 players)
+
+Final Pot: $542
+Kale, net: $272, Won at showdown, has Q&spades; Q&diams; (Two Pair, Queens and Tens)
+Gus Xensen, net: -$270, Lost at showdown, has 8&hearts; 4&hearts; (Two Pair, Tens and Eights)
+Jack Pott, net: -$2, Folded Preflop, has 4&clubs; A&diams;
+Daniel Xn, Folded Preflop, has 6&clubs; 6&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#94
+
+Jack Pott ($252)
+Kale ($921)
+Daniel Xn ($27)
+
+null is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Daniel Xn folds, Jack Pott raises to $6, Kale folds.
+
+Final Pot: $4
+Jack Pott, net: $2, Won uncontested Preflop, has Q&diams; K&spades;
+Kale, net: -$2, Folded Preflop, has 3&spades; T&spades;
+Daniel Xn, Folded Preflop, has 8&clubs; 4&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#95
+
+Jack Pott ($254)
+Kale ($919)
+Daniel Xn ($27)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Jack Pott folds, Kale calls $1, Daniel Xn checks.
+
+Flop: Q&clubs; 3&hearts; 6&hearts; ($4, 2 active)
+Kale checks, Daniel Xn bets $2, Kale raises to $10, Daniel Xn calls $8.
+
+Turn: Q&clubs; 3&hearts; 6&hearts; 8&diams; ($24, 2 active)
+Kale bets $12, Daniel Xn calls $12.
+
+River: Q&clubs; 3&hearts; 6&hearts; 8&diams; 9&hearts; ($48, 2 active)
+Kale checks, Daniel Xn checks.
+
+Final Pot: $48
+Kale, net: $24, Won at showdown, has 8&hearts; K&diams; (a Pair of Eights)
+Daniel Xn, net: -$24, Lost at showdown, has J&clubs; 6&diams; (a Pair of Sixes)
+Jack Pott, Folded Preflop, has 6&spades; T&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#96
+
+Jack Pott ($254)
+Kale ($943)
+Daniel Xn ($3)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Kale folds, Daniel Xn raises to $3 (all-in), Jack Pott calls $1.
+
+Flop: K&hearts; 7&hearts; 5&clubs; ($6, 2 players)
+
+Turn: K&hearts; 7&hearts; 5&clubs; K&clubs; ($6, 2 players)
+
+River: K&hearts; 7&hearts; 5&clubs; K&clubs; J&clubs; ($6, 2 players)
+
+Final Pot: $6
+Daniel Xn, net: $3, Won at showdown, has K&spades; J&hearts; (a Full House, Kings over Jacks)
+Jack Pott, net: -$3, Lost at showdown, has 8&diams; 9&diams; (a Pair of Kings)
+Kale, Folded Preflop, has 2&clubs; 7&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#97
+
+Jack Pott ($251)
+Kale ($943)
+Daniel Xn ($6)
+
+Daniel Xn is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Daniel Xn raises to $6 (all-in), Jack Pott folds, Kale calls $4.
+
+Flop: 7&diams; 6&diams; 4&spades; ($13, 2 players)
+
+Turn: 7&diams; 6&diams; 4&spades; 5&spades; ($13, 2 players)
+
+River: 7&diams; 6&diams; 4&spades; 5&spades; Q&diams; ($13, 2 players)
+
+Final Pot: $13
+Daniel Xn, net: $7, Won at showdown, has T&spades; Q&spades; (a Pair of Queens)
+Kale, net: -$6, Lost at showdown, has A&hearts; 4&hearts; (a Pair of Fours)
+Jack Pott, net: -$1, Folded Preflop, has J&clubs; 3&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#98
+
+Jack Pott ($250)
+Kale ($937)
+Daniel Xn ($13)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Jack Pott folds, Kale raises to $937 (all-in), Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has 4&clubs; A&spades;
+Daniel Xn, net: -$2, Folded Preflop, has 9&diams; 7&clubs;
+Jack Pott, Folded Preflop, has 6&hearts; T&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#99
+
+Jack Pott ($250)
+Kale ($939)
+Daniel Xn ($11)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Kale folds, Daniel Xn raises to $11 (all-in), Jack Pott folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has A&hearts; 9&clubs;
+Jack Pott, net: -$2, Folded Preflop, has Q&diams; 3&hearts;
+Kale, Folded Preflop, has 7&clubs; Q&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#100
+
+Jack Pott ($248)
+Kale ($939)
+Daniel Xn ($13)
+
+Daniel Xn is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Daniel Xn calls $2, Jack Pott calls $1, Kale checks.
+
+Flop: J&hearts; 3&diams; A&diams; ($6, 3 active)
+Jack Pott bets $2, 2 folds.
+
+Final Pot: $6
+Jack Pott, net: $4, Won uncontested Flop, has 6&spades; J&spades; (a Pair of Jacks)
+Daniel Xn, net: -$2, Folded Flop, has 8&spades; Q&spades; (Ace High)
+Kale, net: -$2, Folded Flop, has 8&hearts; 2&spades; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#101
+
+Jack Pott ($252)
+Kale ($937)
+Daniel Xn ($11)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Jack Pott raises to $7, Kale calls $6, Daniel Xn folds.
+
+Flop: 5&clubs; 5&spades; K&diams; ($16, 2 active)
+Kale checks, Jack Pott checks.
+
+Turn: 5&clubs; 5&spades; K&diams; J&hearts; ($16, 2 active)
+Kale checks, Jack Pott bets $8, Kale raises to $930 (all-in), Jack Pott folds.
+
+Final Pot: $32
+Kale, net: $17, Won uncontested Turn, has K&hearts; 9&spades; (Two Pair, Kings and Fives)
+Jack Pott, net: -$15, Folded Turn, has 9&diams; T&hearts; (a Pair of Fives)
+Daniel Xn, net: -$2, Folded Preflop, has 3&hearts; Q&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#102
+
+Jack Pott ($237)
+Kale ($954)
+Daniel Xn ($9)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+2 folds.
+
+Final Pot: $2
+Jack Pott, net: $1, Won uncontested Preflop, has K&hearts; Q&spades;
+Daniel Xn, net: -$1, Folded Preflop, has 4&hearts; T&diams;
+Kale, Folded Preflop, has 5&hearts; 7&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#103
+
+Jack Pott ($238)
+Kale ($954)
+Daniel Xn ($8)
+
+Daniel Xn is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Daniel Xn raises to $8 (all-in), 2 folds.
+
+Final Pot: $5
+Daniel Xn, net: $3, Won uncontested Preflop, has Q&diams; 8&hearts;
+Kale, net: -$2, Folded Preflop, has 9&spades; 2&clubs;
+Jack Pott, net: -$1, Folded Preflop, has 8&spades; 5&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#104
+
+Jack Pott ($237)
+Kale ($952)
+Daniel Xn ($11)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Jack Pott folds, Kale calls $1, Daniel Xn checks.
+
+Flop: K&diams; 8&spades; A&spades; ($4, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: K&diams; 8&spades; A&spades; 5&clubs; ($4, 2 active)
+Kale checks, Daniel Xn checks.
+
+River: K&diams; 8&spades; A&spades; 5&clubs; 6&hearts; ($4, 2 active)
+Kale checks, Daniel Xn checks.
+
+Final Pot: $4
+Kale, net: $2, Won at showdown, has Q&diams; 2&clubs; (Ace High)
+Daniel Xn, net: -$2, Lost at showdown, has 9&spades; 2&diams; (Ace High)
+Jack Pott, Folded Preflop, has 6&spades; 3&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#105
+
+Jack Pott ($237)
+Kale ($954)
+Daniel Xn ($9)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Kale raises to $12, 2 folds.
+
+Final Pot: $5
+Kale, net: $3, Won uncontested Preflop, has Q&spades; Q&hearts;
+Jack Pott, net: -$2, Folded Preflop, has K&spades; 2&diams;
+Daniel Xn, net: -$1, Folded Preflop, has 6&spades; K&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#106
+
+Jack Pott ($235)
+Kale ($957)
+Daniel Xn ($8)
+
+Daniel Xn is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Daniel Xn raises to $8 (all-in), 2 folds.
+
+Final Pot: $5
+Daniel Xn, net: $3, Won uncontested Preflop, has 9&hearts; Q&spades;
+Kale, net: -$2, Folded Preflop, has 5&diams; 8&hearts;
+Jack Pott, net: -$1, Folded Preflop, has 7&spades; 8&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#107
+
+Jack Pott ($234)
+Kale ($955)
+Daniel Xn ($11)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Jack Pott calls $2, Kale calls $1, Daniel Xn checks.
+
+Flop: K&hearts; J&hearts; 6&clubs; ($6, 3 active)
+Kale bets $3, Daniel Xn calls $3, Jack Pott raises to $18, Kale folds, Daniel Xn calls $6 (all-in).
+
+Turn: K&hearts; J&hearts; 6&clubs; 3&hearts; ($36, 2 players)
+
+River: K&hearts; J&hearts; 6&clubs; 3&hearts; A&hearts; ($36, 2 players)
+
+Final Pot: $27
+Daniel Xn, net: $16, Won at showdown, has 5&clubs; K&spades; (a Pair of Kings)
+Jack Pott, net: -$11, Lost at showdown, has J&clubs; 8&clubs; (a Pair of Jacks)
+Kale, net: -$5, Folded Flop, has K&diams; 3&clubs; (a Pair of Kings)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#108
+
+Jack Pott ($223)
+Kale ($950)
+Daniel Xn ($27)
+
+Kale is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Jack Pott posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Kale raises to $7, 2 folds.
+
+Final Pot: $5
+Kale, net: $3, Won uncontested Preflop, has J&diams; A&hearts;
+Jack Pott, net: -$2, Folded Preflop, has 9&clubs; 3&hearts;
+Daniel Xn, net: -$1, Folded Preflop, has 5&spades; 7&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#109
+
+Jack Pott ($221)
+Kale ($953)
+Daniel Xn ($26)
+
+Daniel Xn is the button.
+
+Precards: 
+Jack Pott posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Daniel Xn raises to $7, 2 folds.
+
+Final Pot: $5
+Daniel Xn, net: $3, Won uncontested Preflop, has T&diams; J&clubs;
+Kale, net: -$2, Folded Preflop, has 4&hearts; Q&diams;
+Jack Pott, net: -$1, Folded Preflop, has 4&clubs; T&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 3 players
+Hand#110
+
+Jack Pott ($220)
+Kale ($951)
+Daniel Xn ($29)
+
+Jack Pott is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (3 active)
+Jack Pott calls $2, Kale calls $1, Daniel Xn checks.
+
+Flop: J&hearts; 4&spades; J&clubs; ($6, 3 active)
+Kale bets $2, Daniel Xn folds, Jack Pott raises to $218 (all-in), Kale calls $216.
+
+Turn: J&hearts; 4&spades; J&clubs; K&spades; ($442, 2 players)
+
+River: J&hearts; 4&spades; J&clubs; K&spades; 6&diams; ($442, 2 players)
+
+Final Pot: $442
+Kale, net: $222, Won at showdown, has K&clubs; K&diams; (a Full House, Kings over Jacks)
+Jack Pott, net: -$220, Lost at showdown, has 7&clubs; A&hearts; (a Pair of Jacks)
+Daniel Xn, net: -$2, Folded Flop, has Q&diams; 8&clubs; (a Pair of Jacks)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#111
+
+Kale ($1173)
+Daniel Xn ($27)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has 2&diams; 3&clubs;
+Kale, net: -$2, Folded Preflop, has 2&spades; J&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#112
+
+Kale ($1171)
+Daniel Xn ($29)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $10, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has 2&hearts; 7&spades;
+Daniel Xn, net: -$2, Folded Preflop, has 4&clubs; T&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#113
+
+Kale ($1173)
+Daniel Xn ($27)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale raises to $18, Daniel Xn folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Preflop, has 3&diams; 5&diams;
+Daniel Xn, net: -$6, Folded Preflop, has Q&hearts; 6&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#114
+
+Kale ($1179)
+Daniel Xn ($21)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $10, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has A&clubs; 8&hearts;
+Daniel Xn, net: -$2, Folded Preflop, has 7&spades; 9&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#115
+
+Kale ($1181)
+Daniel Xn ($19)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: 7&hearts; J&hearts; Q&clubs; ($12, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: 7&hearts; J&hearts; Q&clubs; 4&diams; ($12, 2 active)
+Kale bets $3, Daniel Xn calls $3.
+
+River: 7&hearts; J&hearts; Q&clubs; 4&diams; 6&clubs; ($18, 2 active)
+Kale checks, Daniel Xn checks.
+
+Final Pot: $18
+Kale, net: $9, Won at showdown, has 3&clubs; 3&diams; (a Pair of Threes)
+Daniel Xn, net: -$9, Lost at showdown, has 8&spades; T&clubs; (Queen High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#116
+
+Kale ($1190)
+Daniel Xn ($10)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $1190 (all-in), Daniel Xn calls $8 (all-in).
+
+Flop: J&spades; K&diams; 7&clubs; ($1200, 2 players)
+
+Turn: J&spades; K&diams; 7&clubs; 9&spades; ($1200, 2 players)
+
+River: J&spades; K&diams; 7&clubs; 9&spades; T&hearts; ($1200, 2 players)
+
+Final Pot: $20
+Daniel Xn, net: $10, Won at showdown, has K&clubs; 4&spades; (a Pair of Kings)
+Kale, net: -$10, Lost at showdown, has A&diams; 7&hearts; (a Pair of Sevens)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#117
+
+Kale ($1180)
+Daniel Xn ($20)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: 6&diams; 9&diams; Q&clubs; ($12, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: 6&diams; 9&diams; Q&clubs; Q&hearts; ($12, 2 active)
+Kale bets $12, Daniel Xn folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Turn, has K&hearts; 7&hearts; (a Pair of Queens)
+Daniel Xn, net: -$6, Folded Turn, has 2&spades; 4&hearts; (a Pair of Queens)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#118
+
+Kale ($1186)
+Daniel Xn ($14)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $1186 (all-in), Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has A&diams; 6&hearts;
+Daniel Xn, net: -$2, Folded Preflop, has Q&diams; 8&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#119
+
+Kale ($1188)
+Daniel Xn ($12)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $12 (all-in), Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has K&spades; 3&spades;
+Kale, net: -$2, Folded Preflop, has 2&hearts; T&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#120
+
+Kale ($1186)
+Daniel Xn ($14)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale calls $1, Daniel Xn checks.
+
+Flop: 8&diams; 8&hearts; 9&spades; ($4, 2 active)
+Daniel Xn checks, Kale bets $2, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Flop, has 9&diams; 6&clubs; (Two Pair, Nines and Eights)
+Daniel Xn, net: -$2, Folded Flop, has 6&spades; 4&spades; (a Pair of Eights)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#121
+
+Kale ($1188)
+Daniel Xn ($12)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $12 (all-in), Kale calls $10.
+
+Flop: 7&spades; 7&diams; Q&clubs; ($24, 2 players)
+
+Turn: 7&spades; 7&diams; Q&clubs; 8&spades; ($24, 2 players)
+
+River: 7&spades; 7&diams; Q&clubs; 8&spades; 7&clubs; ($24, 2 players)
+
+Final Pot: $24
+Daniel Xn, net: $12, Won at showdown, has 8&hearts; T&hearts; (a Full House, Sevens over Eights)
+Kale, net: -$12, Lost at showdown, has J&hearts; K&spades; (Three of a Kind, Sevens)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#122
+
+Kale ($1176)
+Daniel Xn ($24)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale calls $1, Daniel Xn checks.
+
+Flop: 5&hearts; 7&clubs; 3&spades; ($4, 2 active)
+Daniel Xn checks, Kale bets $2, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Flop, has J&spades; 3&clubs; (a Pair of Threes)
+Daniel Xn, net: -$2, Folded Flop, has A&hearts; T&spades; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#123
+
+Kale ($1178)
+Daniel Xn ($22)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: J&spades; 6&clubs; T&spades; ($12, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: J&spades; 6&clubs; T&spades; T&diams; ($12, 2 active)
+Kale checks, Daniel Xn bets $6, Kale folds.
+
+Final Pot: $12
+Daniel Xn, net: $6, Won uncontested Turn, has A&spades; 9&clubs; (a Pair of Tens)
+Kale, net: -$6, Folded Turn, has 3&clubs; K&diams; (a Pair of Tens)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#124
+
+Kale ($1172)
+Daniel Xn ($28)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $4.
+
+Flop: J&spades; 9&diams; 2&hearts; ($12, 2 active)
+Daniel Xn checks, Kale bets $6, Daniel Xn folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Flop, has K&clubs; 3&hearts; (King High)
+Daniel Xn, net: -$6, Folded Flop, has 3&clubs; 6&clubs; (Jack High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#125
+
+Kale ($1178)
+Daniel Xn ($22)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: 7&diams; K&spades; 8&hearts; ($12, 2 active)
+Kale bets $3, Daniel Xn folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Flop, has Q&hearts; 7&spades; (a Pair of Sevens)
+Daniel Xn, net: -$6, Folded Flop, has J&diams; Q&spades; (King High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#126
+
+Kale ($1184)
+Daniel Xn ($16)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale calls $1, Daniel Xn bets $14 (all-in), Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has 3&hearts; 6&clubs;
+Kale, net: -$2, Folded Preflop, has 3&clubs; Q&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#127
+
+Kale ($1182)
+Daniel Xn ($18)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: T&diams; A&clubs; 9&hearts; ($12, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: T&diams; A&clubs; 9&hearts; K&hearts; ($12, 2 active)
+Kale checks, Daniel Xn bets $6, Kale folds.
+
+Final Pot: $12
+Daniel Xn, net: $6, Won uncontested Turn, has K&diams; 4&diams; (a Pair of Kings)
+Kale, net: -$6, Folded Turn, has 3&diams; 3&clubs; (a Pair of Threes)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#128
+
+Kale ($1176)
+Daniel Xn ($24)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $4.
+
+Flop: 9&clubs; K&diams; 7&hearts; ($12, 2 active)
+Daniel Xn checks, Kale checks.
+
+Turn: 9&clubs; K&diams; 7&hearts; A&hearts; ($12, 2 active)
+Daniel Xn bets $18 (all-in), Kale folds.
+
+Final Pot: $12
+Daniel Xn, net: $6, Won uncontested Turn, has A&spades; 4&diams; (a Pair of Aces)
+Kale, net: -$6, Folded Turn, has 8&diams; J&spades; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#129
+
+Kale ($1170)
+Daniel Xn ($30)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: 2&hearts; 9&hearts; Q&spades; ($12, 2 active)
+Kale bets $4, Daniel Xn calls $4.
+
+Turn: 2&hearts; 9&hearts; Q&spades; J&hearts; ($20, 2 active)
+Kale bets $40, Daniel Xn folds.
+
+Final Pot: $20
+Kale, net: $10, Won uncontested Turn, has T&clubs; J&spades; (a Pair of Jacks)
+Daniel Xn, net: -$10, Folded Turn, has 6&diams; 2&clubs; (a Pair of Twos)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#130
+
+Kale ($1180)
+Daniel Xn ($20)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $10, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has 3&diams; 8&diams;
+Daniel Xn, net: -$2, Folded Preflop, has 7&diams; K&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#131
+
+Kale ($1182)
+Daniel Xn ($18)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: J&hearts; 5&diams; A&hearts; ($12, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: J&hearts; 5&diams; A&hearts; 3&spades; ($12, 2 active)
+Kale bets $12, Daniel Xn folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Turn, has 3&diams; K&diams; (a Pair of Threes)
+Daniel Xn, net: -$6, Folded Turn, has 8&hearts; 6&diams; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#132
+
+Kale ($1188)
+Daniel Xn ($12)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has T&spades; 7&diams;
+Daniel Xn, net: -$2, Folded Preflop, has 8&spades; 3&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#133
+
+Kale ($1190)
+Daniel Xn ($10)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $10 (all-in), Kale calls $8.
+
+Flop: 7&spades; 5&hearts; A&diams; ($20, 2 players)
+
+Turn: 7&spades; 5&hearts; A&diams; 2&hearts; ($20, 2 players)
+
+River: 7&spades; 5&hearts; A&diams; 2&hearts; 6&spades; ($20, 2 players)
+
+Final Pot: $20
+Daniel Xn, net: $10, Won at showdown, has 4&spades; 2&clubs; (a Pair of Twos)
+Kale, net: -$10, Lost at showdown, has 4&clubs; K&clubs; (Ace High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#134
+
+Kale ($1180)
+Daniel Xn ($20)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $4.
+
+Flop: J&diams; T&diams; Q&diams; ($12, 2 active)
+Daniel Xn bets $6, Kale calls $6.
+
+Turn: J&diams; T&diams; Q&diams; 9&spades; ($24, 2 active)
+Daniel Xn checks, Kale checks.
+
+River: J&diams; T&diams; Q&diams; 9&spades; 9&hearts; ($24, 2 active)
+Daniel Xn bets $8 (all-in), Kale calls $8.
+
+Final Pot: $40
+Daniel Xn, net: $20, Won at showdown, has K&diams; Q&spades; (a King High Straight)
+Kale, net: -$20, Lost at showdown, has J&clubs; T&spades; (Two Pair, Jacks and Tens)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#135
+
+Kale ($1160)
+Daniel Xn ($40)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has K&diams; Q&spades;
+Kale, net: -$2, Folded Preflop, has 2&spades; 6&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#136
+
+Kale ($1158)
+Daniel Xn ($42)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $10, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has 6&clubs; Q&hearts;
+Daniel Xn, net: -$2, Folded Preflop, has 7&hearts; 5&clubs;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#137
+
+Kale ($1160)
+Daniel Xn ($40)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: 9&hearts; 2&clubs; 8&clubs; ($12, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: 9&hearts; 2&clubs; 8&clubs; T&diams; ($12, 2 active)
+Kale bets $3, Daniel Xn calls $3.
+
+River: 9&hearts; 2&clubs; 8&clubs; T&diams; 4&spades; ($18, 2 active)
+Kale bets $9, Daniel Xn folds.
+
+Final Pot: $18
+Kale, net: $9, Won uncontested River, has 8&hearts; 9&spades; (Two Pair, Nines and Eights)
+Daniel Xn, net: -$9, Folded River, has 5&spades; Q&hearts; (Queen High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#138
+
+Kale ($1169)
+Daniel Xn ($31)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $4.
+
+Flop: 6&spades; 5&diams; 5&clubs; ($12, 2 active)
+Daniel Xn checks, Kale bets $12, Daniel Xn raises to $25 (all-in), Kale calls $13.
+
+Turn: 6&spades; 5&diams; 5&clubs; 3&diams; ($62, 2 players)
+
+River: 6&spades; 5&diams; 5&clubs; 3&diams; 6&diams; ($62, 2 players)
+
+Final Pot: $62
+Daniel Xn, net: $31, Won at showdown, has 2&diams; 5&spades; (a Full House, Fives over Sixes)
+Kale, net: -$31, Lost at showdown, has 3&clubs; A&diams; (Two Pair, Sixes and Fives)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#139
+
+Kale ($1138)
+Daniel Xn ($62)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has A&diams; 5&clubs;
+Kale, net: -$2, Folded Preflop, has 2&clubs; 3&hearts;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#140
+
+Kale ($1136)
+Daniel Xn ($64)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn raises to $18, Kale calls $12.
+
+Flop: 7&clubs; 7&spades; T&diams; ($36, 2 active)
+Daniel Xn checks, Kale checks.
+
+Turn: 7&clubs; 7&spades; T&diams; 2&diams; ($36, 2 active)
+Daniel Xn checks, Kale checks.
+
+River: 7&clubs; 7&spades; T&diams; 2&diams; 2&clubs; ($36, 2 active)
+Daniel Xn bets $18, Kale raises to $90, Daniel Xn folds.
+
+Final Pot: $72
+Kale, net: $36, Won uncontested River, has K&diams; 3&hearts; (Two Pair, Sevens and Twos)
+Daniel Xn, net: -$36, Folded River, has A&spades; K&spades; (Two Pair, Sevens and Twos)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#141
+
+Kale ($1172)
+Daniel Xn ($28)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has 8&hearts; T&spades;
+Kale, net: -$2, Folded Preflop, has 3&spades; 5&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#142
+
+Kale ($1170)
+Daniel Xn ($30)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $4.
+
+Flop: K&spades; A&hearts; 5&hearts; ($12, 2 active)
+Daniel Xn checks, Kale bets $6, Daniel Xn calls $6.
+
+Turn: K&spades; A&hearts; 5&hearts; 6&clubs; ($24, 2 active)
+Daniel Xn checks, Kale checks.
+
+River: K&spades; A&hearts; 5&hearts; 6&clubs; 2&clubs; ($24, 2 active)
+Daniel Xn checks, Kale bets $12, Daniel Xn calls $12.
+
+Final Pot: $48
+Kale, net: $24, Won at showdown, has T&diams; A&diams; (a Pair of Aces)
+Daniel Xn, net: -$24, Lost at showdown, has 8&hearts; K&diams; (a Pair of Kings)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#143
+
+Kale ($1194)
+Daniel Xn ($6)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn folds.
+
+Final Pot: $2
+Kale, net: $1, Won uncontested Preflop, has T&diams; 5&hearts;
+Daniel Xn, net: -$1, Folded Preflop, has Q&clubs; 3&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#144
+
+Kale ($1195)
+Daniel Xn ($5)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $3 (all-in).
+
+Flop: 6&diams; 4&spades; T&hearts; ($11, 2 players)
+
+Turn: 6&diams; 4&spades; T&hearts; 7&clubs; ($11, 2 players)
+
+River: 6&diams; 4&spades; T&hearts; 7&clubs; 3&diams; ($11, 2 players)
+
+Final Pot: $10
+Daniel Xn, net: $5, Won at showdown, has 5&spades; J&spades; (a Seven High Straight)
+Kale, net: -$5, Lost at showdown, has T&clubs; 9&diams; (a Pair of Tens)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#145
+
+Kale ($1190)
+Daniel Xn ($10)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $10 (all-in), Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested Preflop, has 6&spades; 9&clubs;
+Kale, net: -$2, Folded Preflop, has 8&diams; 5&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#146
+
+Kale ($1188)
+Daniel Xn ($12)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale calls $1, Daniel Xn checks.
+
+Flop: K&diams; J&diams; Q&diams; ($4, 2 active)
+Daniel Xn checks, Kale bets $2, Daniel Xn calls $2.
+
+Turn: K&diams; J&diams; Q&diams; 3&spades; ($8, 2 active)
+Daniel Xn checks, Kale bets $8, Daniel Xn calls $8 (all-in).
+
+River: K&diams; J&diams; Q&diams; 3&spades; 7&diams; ($24, 2 players)
+
+Final Pot: $24
+Daniel Xn, net: $12, Won at showdown, has T&diams; T&hearts; (a Flush, King High)
+Kale, net: -$12, Lost at showdown, has Q&hearts; J&spades; (Two Pair, Queens and Jacks)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#147
+
+Kale ($1176)
+Daniel Xn ($24)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale calls $4.
+
+Flop: Q&spades; 6&diams; 5&clubs; ($12, 2 active)
+Kale bets $6, Daniel Xn calls $6.
+
+Turn: Q&spades; 6&diams; 5&clubs; T&hearts; ($24, 2 active)
+Kale checks, Daniel Xn checks.
+
+River: Q&spades; 6&diams; 5&clubs; T&hearts; 2&clubs; ($24, 2 active)
+Kale checks, Daniel Xn checks.
+
+Final Pot: $24
+Daniel Xn, net: $12, Won at showdown, has 6&spades; 9&clubs; (a Pair of Sixes)
+Kale, net: -$12, Lost at showdown, has J&clubs; K&clubs; (King High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#148
+
+Kale ($1164)
+Daniel Xn ($36)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn calls $4.
+
+Flop: T&spades; Q&hearts; J&clubs; ($12, 2 active)
+Daniel Xn checks, Kale checks.
+
+Turn: T&spades; Q&hearts; J&clubs; 3&spades; ($12, 2 active)
+Daniel Xn checks, Kale bets $6, Daniel Xn calls $6.
+
+River: T&spades; Q&hearts; J&clubs; 3&spades; 5&spades; ($24, 2 active)
+Daniel Xn checks, Kale bets $12, Daniel Xn folds.
+
+Final Pot: $24
+Kale, net: $12, Won uncontested River, has 2&spades; A&spades; (a Flush, Ace High)
+Daniel Xn, net: -$12, Folded River, has K&hearts; 4&clubs; (King High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#149
+
+Kale ($1176)
+Daniel Xn ($24)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $6, Kale raises to $18, Daniel Xn folds.
+
+Final Pot: $12
+Kale, net: $6, Won uncontested Preflop, has 7&diams; 9&spades;
+Daniel Xn, net: -$6, Folded Preflop, has A&spades; 4&diams;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#150
+
+Kale ($1182)
+Daniel Xn ($18)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has 9&spades; J&diams;
+Daniel Xn, net: -$2, Folded Preflop, has T&hearts; 2&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#151
+
+Kale ($1184)
+Daniel Xn ($16)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn calls $1, Kale checks.
+
+Flop: 9&clubs; K&clubs; Q&diams; ($4, 2 active)
+Kale checks, Daniel Xn checks.
+
+Turn: 9&clubs; K&clubs; Q&diams; 3&spades; ($4, 2 active)
+Kale checks, Daniel Xn checks.
+
+River: 9&clubs; K&clubs; Q&diams; 3&spades; 7&diams; ($4, 2 active)
+Kale checks, Daniel Xn bets $2, Kale folds.
+
+Final Pot: $4
+Daniel Xn, net: $2, Won uncontested River, has 2&diams; 7&hearts; (a Pair of Sevens)
+Kale, net: -$2, Folded River, has 4&hearts; 8&spades; (King High)
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#152
+
+Kale ($1182)
+Daniel Xn ($18)
+
+Kale is the button.
+
+Precards: 
+Kale posts the small blind $1, Daniel Xn posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Kale raises to $6, Daniel Xn folds.
+
+Final Pot: $4
+Kale, net: $2, Won uncontested Preflop, has Q&spades; T&spades;
+Daniel Xn, net: -$2, Folded Preflop, has 8&hearts; 8&spades;
+
+============================================================
+Poker Academy (Cash Game): $1/$2 NL , 2 players
+Hand#153
+
+Kale ($1184)
+Daniel Xn ($16)
+
+Daniel Xn is the button.
+
+Precards: 
+Daniel Xn posts the small blind $1, Kale posts the big blind $2.
+
+Preflop: null is dealt *&spades; *&spades; (2 active)
+Daniel Xn raises to $16 (all-in), Kale calls $14.
+
+Flop: A&spades; A&clubs; T&hearts; ($32, 2 players)
+
+Turn: A&spades; A&clubs; T&hearts; 9&diams; ($32, 2 players)
+
+River: A&spades; A&clubs; T&hearts; 9&diams; 7&clubs; ($32, 2 players)
+
+Final Pot: $32
+Kale, net: $16, Won at showdown, has J&diams; A&diams; (Three of a Kind, Aces)
+Daniel Xn, net: -$16, Lost at showdown, has K&diams; 5&diams; (a Pair of Aces)
+

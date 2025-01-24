@@ -101,6 +101,12 @@ public sealed class HoldemEngineTests
         expected.ShouldAsJToken().BeEquivalentToAsJToken(actual);
     }
 
+    [TestMethod]
+    public async Task TestWithEmulatedPAPGame()
+    {
+        var emulatedGame = Helpers.GetPAPEmulatedGameData();
+    }
+
     private IDisposable SetupHoldemEngineServices(out HoldemEngine holdemEngine, 
         Dictionary<byte, Card[]>? holeCards = null,
         Dictionary<Street, Card[]>? communityCards = null,
