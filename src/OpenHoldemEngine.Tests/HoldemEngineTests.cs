@@ -49,7 +49,7 @@ public sealed class HoldemEngineTests
                 Seats: new SeatData[]
                 {
                     new SeatData(1, "Junpei",  100, 100)
-                    { 
+                    {
                         Hole = holeCards[1]
                     },
                     new SeatData(2, "Geraldine", 100, 95)
@@ -57,20 +57,20 @@ public sealed class HoldemEngineTests
                         Hole = holeCards[2]
                     },
                     new SeatData(3, "Zuhaitz", 100, 90)
-                    { 
-                        Hole = holeCards[3] 
+                    {
+                        Hole = holeCards[3]
                     },
-                    new SeatData(4, "Ozias", 100, 100) 
-                    { 
-                        Hole = holeCards[4] 
+                    new SeatData(4, "Ozias", 100, 100)
+                    {
+                        Hole = holeCards[4]
                     },
-                    new SeatData(5, "Ilona", 100, 100) 
-                    { 
-                        Hole = holeCards[5] 
+                    new SeatData(5, "Ilona", 100, 100)
+                    {
+                        Hole = holeCards[5]
                     },
-                    new SeatData(6, "Broen", 100, 100) 
-                    { 
-                        Hole = holeCards[6] 
+                    new SeatData(6, "Broen", 100, 100)
+                    {
+                        Hole = holeCards[6]
                     },
                 },
                 DealerSeatNo: 1,
@@ -102,12 +102,12 @@ public sealed class HoldemEngineTests
     }
 
     [TestMethod]
-    public async Task TestWithEmulatedPAPGame()
+    public void TestWithEmulatedPAPGame()
     {
         var emulatedGame = Helpers.GetPAPEmulatedGameData();
     }
 
-    private IDisposable SetupHoldemEngineServices(out HoldemEngine holdemEngine, 
+    private IDisposable SetupHoldemEngineServices(out HoldemEngine holdemEngine,
         Dictionary<byte, Card[]>? holeCards = null,
         Dictionary<Street, Card[]>? communityCards = null,
         Action<HoldemEngineSettings> configureSettings = null!)

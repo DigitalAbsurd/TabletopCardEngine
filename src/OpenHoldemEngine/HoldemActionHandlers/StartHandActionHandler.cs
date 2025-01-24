@@ -64,7 +64,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
         game.Hands.Add(hand);
 
         var nPokerState = _nPokerStateConverter.ConvertTo<(NPokerState nState, NPokerEmulator nEmulator)>(game);
-        
+
         if (HoldemEngineOptions.Instance.CardShuffler != default)
             nPokerState = _nPokerStateConverter.ConvertToWithDeckCards(game, await GetCustomShuffledHoleCards());
 
