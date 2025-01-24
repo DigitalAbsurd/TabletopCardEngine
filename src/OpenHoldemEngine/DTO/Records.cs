@@ -28,6 +28,8 @@ public record HandData(SeatData[] Seats, byte DealerSeatNo, byte SmallBlindSeatN
     SeatData? SmallBlindRef => Seats.SingleOrDefault(p => p.SeatNo == SmallBlindSeatNo);
     SeatData? BigBlindRef => Seats.SingleOrDefault(p => p.SeatNo == BigBlindSeatNo);
     SeatData? NextPlayerRef => Seats.SingleOrDefault(p => p.SeatNo == NextPlayerSeatNo);
+    internal decimal GetEvalMinValue(PlayerActionType actionType) => Evaluations.Single(ev => ev.PlayerActionType == actionType).MinValue;
+    internal decimal GetEvalMaхValue(PlayerActionType actionType) => Evaluations.Single(ev => ev.PlayerActionType == actionType).MaxValue;
     public bool IsFinishedWithShowdown => Street == Street.Finished && Seats.Where(p => p.RoundResultData != null && !p.RoundResultData.Folded && p.LastAction != null && p.LastAction != null).Count() > 1;
 };
 public record GameData(Guid GameId, GameOptionData Options, HandData HandData);

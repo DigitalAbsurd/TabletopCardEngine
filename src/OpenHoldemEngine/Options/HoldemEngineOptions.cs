@@ -4,7 +4,7 @@ using OpenHoldemEngine.Data;
 namespace OpenHoldemEngine.Options;
 public class HoldemEngineOptions
 {
-    private static HoldemEngineOptions _instance =  null!;
+    private static HoldemEngineOptions _instance = null!;
 
     private HoldemEngineOptions() { }
 

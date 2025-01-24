@@ -1,11 +1,5 @@
-﻿using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+﻿using OpenHoldemEngine.DTO;
 using OpenHoldemEngine.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using NHandRankType = NPokerEngine.Types.HandRankType;
 
@@ -84,8 +78,8 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
             papHandData.HoleCards = parsedHand.handResults.ToDictionary(res => papGameData.PlayersMap[res.Item1], res => new Card[] { res.hole1, res.hole2 });
             papHandData.FinalPot = parsedHand.finalPot;
             papHandData.HandResults = parsedHand.handResults.Select(res =>
-            new PapHandResultData 
-            { 
+            new PapHandResultData
+            {
                 SeatNo = papGameData.PlayersMap[res.Item1],
                 Net = res.Item2,
                 RankType = res.handRankType
@@ -109,9 +103,9 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
 
         return papGameData;
 
-        (Dictionary<string, decimal> startStacks, string button, Dictionary<string, decimal> blinds, 
+        (Dictionary<string, decimal> startStacks, string button, Dictionary<string, decimal> blinds,
             Dictionary<Street, List<Card>> communityCards, List<(string, PlayerActionData)> actionsStack, decimal finalPot,
-            List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners) 
+            List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners)
             ParseHandLog(string[] handLog)
         {
             bool playersStartStacksReaded = false;
@@ -119,9 +113,9 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
             Street? currentStreet = null;
             (Dictionary<string, decimal> startStacks, string button, Dictionary<string, decimal> blinds,
                 Dictionary<Street, List<Card>> communityCards, List<(string, PlayerActionData)> actionsStack, decimal finalPot,
-                List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners) parsed = 
-                (startStacks: new(), 
-                button: string.Empty, 
+                List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners) parsed =
+                (startStacks: new(),
+                button: string.Empty,
                 blinds: new(),
                 communityCards: new(),
                 actionsStack: new(),
@@ -153,7 +147,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
                     parsed.button = logItem.Replace("is the button.", "").Trim();
                     continue;
                 }
-                
+
                 if (logItem.Contains("posts the small blind"))
                 {
                     var blindsSplit = logItem.Split(",");
@@ -237,7 +231,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
 
             string GetNameFromString(string strWithName)
                => parsed.startStacks.Keys.AsEnumerable().First(n => strWithName.Contains(n));
-            
+
             decimal ParseDecimalFromString(string moneyString)
                 => decimal.Parse(new string(moneyString.Where(char.IsDigit).ToArray()));
 
@@ -250,7 +244,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
                         .Select(part => part.Trim())
                         .Select(ParseCard)
                         .ToList();
-                    //.ForEach(parsed.communityCards.Add);
+                //.ForEach(parsed.communityCards.Add);
             }
 
             Card ParseCard(string cardStr)
@@ -356,7 +350,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
     internal record PapGameData
     {
         public decimal InitialSmallBlind { get; set; } = 1;
-        public byte StartDealerSeatNo {  get; set; }
+        public byte StartDealerSeatNo { get; set; }
         public Dictionary<string, byte> PlayersMap { get; set; } = new();
         public List<PapHandData> Hands { get; set; } = new();
     }
@@ -376,7 +370,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
     }
     internal record PapActionData
     {
-        public int No {  get; set; }
+        public int No { get; set; }
         public Street Street { get; set; }
         public byte? SeatNo { get; set; }
         public PlayerActionType ActionType { get; set; }
