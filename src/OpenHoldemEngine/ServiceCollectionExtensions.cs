@@ -20,7 +20,8 @@ public static class ServiceCollectionExtensions
         configure?.Invoke(optionsBuilder);
         services.AddSingleton<HoldemEngine>(servicesProvider =>
         {
-            optionsBuilder.Options.DbContextFactory = servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
+            optionsBuilder.Options.DbContextFactory =
+                servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
             return new HoldemEngine(optionsBuilder.Options);
         });
         return services;

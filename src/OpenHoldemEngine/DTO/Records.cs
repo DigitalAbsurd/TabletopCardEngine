@@ -3,8 +3,8 @@
 namespace OpenHoldemEngine.DTO;
 
 #region PRIMITIVES
-public record GameOptionData(int MaxPlayersCount = 6, decimal InitialSmallBlind = 1, bool AllowRebuy = false, int MaxHandsCount = 0, int AutoIncrementsHands = 0);
-public record PlayerJoinData(string Name, byte SeatNo);
+public record GameOptionData(int MaxPlayersCount = 6, decimal InitialSmallBlind = 1, byte InitialDealerSeatNo = 1, bool AllowRebuy = false, int MaxHandsCount = 0, int AutoIncrementsHands = 0);
+public record PlayerJoinData(string Name, byte SeatNo, decimal BuyInAmount);
 public record BuyInData(byte SeatNo, decimal Amount);
 public record PlayerActionEvaluationData(PlayerActionType PlayerActionType, decimal MinValue = 0, decimal MaxValue = 0);
 public record HandResultData(bool IsWinner, decimal WinSize, decimal Net, string HandTypeCode, int HandStrength, string HandDescription, bool Folded = false);
@@ -22,7 +22,7 @@ public record SeatData(byte SeatNo, string Name, decimal StartRoundStack,
     public bool IsFolded => LastAction?.ActionType == PlayerActionType.Fold;
     public bool IsAllIn => LastAction != default && Stack < DECIMAL_MIN_PRECISION;
 };
-public record HandData(SeatData[] Seats, byte DealerSeatNo, byte SmallBlindSeatNo, byte BigBlindSeatNo, byte NextPlayerSeatNo, Street Street, decimal StreetPot, decimal Pot, Card[] CommunityCards, PlayerActionEvaluationData[] Evaluations)
+public record HandData(int No, SeatData[] Seats, byte DealerSeatNo, byte SmallBlindSeatNo, byte BigBlindSeatNo, byte NextPlayerSeatNo, Street Street, decimal StreetPot, decimal Pot, Card[] CommunityCards, PlayerActionEvaluationData[] Evaluations)
 {
     SeatData? DealerRef => Seats.SingleOrDefault(p => p.SeatNo == DealerSeatNo);
     SeatData? SmallBlindRef => Seats.SingleOrDefault(p => p.SeatNo == SmallBlindSeatNo);
@@ -37,7 +37,8 @@ public record GameData(Guid GameId, GameOptionData Options, HandData HandData);
 
 #region HOLDEM_ACTIONS
 public abstract record HoldemAction(Guid GameId);
-public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] Seats, BuyInData[] BuyIns, GameOptionData Options) : HoldemAction(GameId);
+public record HoldemActionCreateGame(Guid GameId, GameOptionData Options) : HoldemAction(GameId);
+public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : HoldemAction(GameId);
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
     public PlayerJoinData[] JoinSeats { get; set; } = [];

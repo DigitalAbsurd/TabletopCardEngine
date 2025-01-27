@@ -4,7 +4,7 @@ using OpenHoldemEngine.Primitives;
 using NHandRankType = NPokerEngine.Types.HandRankType;
 
 namespace OpenHoldemEngine.Tests;
-internal static class Helpers
+public static class Helpers
 {
     // PA hand log example
     /*
@@ -347,14 +347,14 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
         return sr.ReadToEnd();
     }
 
-    internal record PapGameData
+    public record PapGameData
     {
         public decimal InitialSmallBlind { get; set; } = 1;
         public byte StartDealerSeatNo { get; set; }
         public Dictionary<string, byte> PlayersMap { get; set; } = new();
         public List<PapHandData> Hands { get; set; } = new();
     }
-    internal record PapHandData
+    public record PapHandData
     {
         public int HandNo { get; set; }
         public byte ButtonSeatNo { get; set; }
@@ -368,7 +368,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
         public byte[] Winners { get; set; } = Array.Empty<byte>();
         public List<PapHandResultData> HandResults { get; set; } = new();
     }
-    internal record PapActionData
+    public record PapActionData
     {
         public int No { get; set; }
         public Street Street { get; set; }
@@ -376,7 +376,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
         public PlayerActionType ActionType { get; set; }
         public decimal Size { get; set; }
     }
-    internal record PapHandResultData
+    public record PapHandResultData
     {
         public byte SeatNo { get; set; }
         public decimal Net { get; set; }

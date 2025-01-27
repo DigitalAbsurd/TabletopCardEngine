@@ -14,7 +14,8 @@ public class HoldemEngine(HoldemEngineOptions _options)
     {
         IHoldemActionHandler holdemActionHandler = holdemAction switch
         {
-            HoldemActionStartGame => new StartGameActionHandler(),
+            HoldemActionCreateGame => new CreateGameActionHandler(),
+            HoldemActionStartHand => new StartHandActionHandler(),
             _ => throw new NotImplementedException()
         };
 
