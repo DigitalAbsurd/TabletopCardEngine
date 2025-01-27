@@ -2,9 +2,9 @@
 using OpenHoldemEngine.DTO;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
-internal sealed class StartGameActionHandler : HoldemActionHandler<HoldemActionStartGame>
+internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemActionCreateGame>
 {
-    internal override async Task ImplementHandleAsync(HoldemActionStartGame startGameActionData, HoldemDbContext dbContext)
+    internal override async Task ImplementHandleAsync(HoldemActionCreateGame startGameActionData, HoldemDbContext dbContext)
     {
         dbContext.Add(new Game
         {
@@ -12,16 +12,10 @@ internal sealed class StartGameActionHandler : HoldemActionHandler<HoldemActionS
             AllowRebuy = startGameActionData.Options.AllowRebuy,
             AutoIncrementHands = startGameActionData.Options.AutoIncrementsHands,
             InitialSmallBlind = startGameActionData.Options.InitialSmallBlind,
+            InitialDealerSeatNo = startGameActionData.Options.InitialDealerSeatNo,
             MaxHandsCount = startGameActionData.Options.MaxHandsCount,
             MaxPlayersCount = startGameActionData.Options.MaxPlayersCount
         });
         await dbContext.SaveChangesAsync();
-
-        var startHandData = new HoldemActionStartHand(startGameActionData.GameId)
-        {
-            JoinSeats = startGameActionData.Seats,
-            BuyIns = startGameActionData.BuyIns
-        };
-        await new StartHandActionHandler().HandleAsync(startHandData, dbContext);
     }
 }

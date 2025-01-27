@@ -51,7 +51,7 @@ internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nS
             .ForEach(card => nState.Table.AddCommunityCard(_cardToNCardConverter.ConvertTo<NCard>(card)));
 
         foreach (var seat in Enumerable
-            .Range(0, game.Players.Max(p => p.SeatNo))
+            .Range(0, game.Players.Max(p => (byte?)p.SeatNo) ?? 0)
             .Select(ix => new { Ix = ix, No = (byte)(ix + 1) }))
         {
             var playerData = game.Players.SingleOrDefault(p => p.GetPlayerIx() == seat.Ix);

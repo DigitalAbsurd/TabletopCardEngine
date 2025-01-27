@@ -25,7 +25,7 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
         {
             GameId = holdemAction.GameId,
             HandNo = hand.GetLastAction().No + 1,
-            SeatNo = (byte)(nPokerState.nState.NextPlayerIx+1),
+            SeatNo = (byte)(nPokerState.nState.NextPlayerIx + 1),
             PlayAction = holdemAction.ActionType,
         };
 
@@ -49,8 +49,10 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
 
         var (newState, messages) = nPokerState.nEmulator.ApplyAction(nPokerState.nState, nPokerActionType, out var lastNPokerAction, (float)betAmount);
         if (HoldemEngineOptions.Instance.CardShuffler != default && (byte)hand.GetStreet() < 5)
-            nPokerState = _nPokerStateConverter.ConvertToWithDeckCards(game, 
-                await HoldemEngineOptions.Instance.CardShuffler.GetStreetCardsAsync(holdemAction.GameId, hand.No, (Street)((byte)hand.GetStreet() + 1)));
+        {
+            var streetCards = await HoldemEngineOptions.Instance.CardShuffler.GetStreetCardsAsync(holdemAction.GameId, hand.No, (Street)((byte)hand.GetStreet() + 1));
+            nPokerState = _nPokerStateConverter.ConvertToWithDeckCards(game, streetCards!);
+        }
 
         handActionEntity.NextStreet = _streetToNPokerStreetConverter.ConvertFrom<Street>(newState.Street);
         handActionEntity.NextSeatNo = (byte)(newState.NextPlayerIx + 1);
@@ -68,7 +70,7 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
                 {
                     GameId = holdemAction.GameId,
                     HandNo = hand.No,
-                    Sequence = (byte)(ix+1),
+                    Sequence = (byte)(ix + 1),
                     Card = _cardToNCardConverter.ConvertFrom<Card>(newState.Table.CommunityCards.ElementAt(ix))
                 });
             }
@@ -99,7 +101,7 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
                 var finishRoundStack = pss.StartStack;
                 if (playersRoundBets.ContainsKey(pss.SeatNo))
                     finishRoundStack -= playersRoundBets[pss.SeatNo];
-                finishRoundStack += nRoundResultMessage.PrizeMap.ContainsKey(pss.SeatNo-1) ? (decimal)nRoundResultMessage.PrizeMap[pss.SeatNo - 1] : 0;
+                finishRoundStack += nRoundResultMessage.PrizeMap.ContainsKey(pss.SeatNo - 1) ? (decimal)nRoundResultMessage.PrizeMap[pss.SeatNo - 1] : 0;
                 dbContext.Set<HandPlayerEndState>().Add(new HandPlayerEndState
                 {
                     GameId = holdemAction.GameId,

@@ -70,6 +70,9 @@ internal static class EntityExtensions
     internal static decimal GetSeatActualStack(this Hand hand, byte seatNo)
         => hand.GetSeatStartStack(seatNo) - hand.GetSeatBetAmount(seatNo) + hand.GetSeatWinAmount(seatNo);
 
+    internal static decimal GetSeatFinishStack(this Hand hand, byte seatNo)
+        => hand.PlayerEndStates.SingleOrDefault(est => est.SeatNo == seatNo)?.FinishStack ?? 0;
+
     internal static Street GetCurrentStreet(this Hand hand)
         => hand.GetLastAction().Street;
 

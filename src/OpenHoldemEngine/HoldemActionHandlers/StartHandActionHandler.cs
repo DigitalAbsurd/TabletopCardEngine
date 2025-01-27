@@ -27,41 +27,38 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
                 RoundNoStart = nextHandNo
             }));
 
-        game.BuyIns.AddRange(startHandData.BuyIns.
+        game.BuyIns.AddRange(startHandData.JoinSeats.
             Select(b => new BuyIn
             {
                 HandNo = nextHandNo,
                 SeatNo = b.SeatNo,
-                Amount = b.Amount
+                Amount = b.BuyInAmount
             }));
 
-        var hand = new Hand
+        game.Hands.Add(new Hand
         {
             No = nextHandNo,
             GameId = game.Id,
-            DealerSeatNo = 1,
             PlayerStartStates = game.GetCurrentHand().PlayerEndStates
                 .Select(t => new HandPlayerStartState
                 {
                     GameId = game.Id,
                     HandNo = nextHandNo,
                     SeatNo = t.SeatNo,
-                    StartStack = t.FinishStack + startHandData.BuyIns.SingleOrDefault(b => b.SeatNo == t.SeatNo)?.Amount ?? 0
+                    StartStack = t.FinishStack + startHandData.JoinSeats.SingleOrDefault(b => b.SeatNo == t.SeatNo)?.BuyInAmount ?? 0
                 })
-                .Union(startHandData.BuyIns
+                .Union(startHandData.JoinSeats
                     .Where(b => !game.GetCurrentHand().PlayerEndStates.Any(hes => hes.SeatNo == b.SeatNo))
                     .Select(b => new HandPlayerStartState
                     {
                         GameId = game.Id,
                         HandNo = nextHandNo,
                         SeatNo = b.SeatNo,
-                        StartStack = b.Amount
+                        StartStack = b.BuyInAmount
                     }))
                 .Where(hps => !startHandData.KickOffSeats.Contains(hps.SeatNo))
                 .ToList()
-        };
-
-        game.Hands.Add(hand);
+        });
 
         var nPokerState = _nPokerStateConverter.ConvertTo<(NPokerState nState, NPokerEmulator nEmulator)>(game);
 
@@ -93,6 +90,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
             }
         }
 
+        game.GetCurrentHand().DealerSeatNo = (byte)(handNState.Table.DealerButton + 1);
         var nPlayerSmallBlindSeatNo = (byte)(handNState.Table.Seats.Players.IndexOf(
             handNState.Table.Seats.Players.Single(t => t.LastActionHistory?.ActionType == NPokerActionType.SMALL_BLIND)) + 1);
         var nPlayerBigBlindSeatNo = (byte)(handNState.Table.Seats.Players.IndexOf(
@@ -127,7 +125,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
         byte GetPreviousDealerSeatNo()
         {
             var ll = new LinkedList<byte>(startHandData.JoinSeats.Select(t => t.SeatNo));
-            return ll.Find(1)?.Previous?.Value ?? ll.Last!.Value;
+            return ll.Find(game.InitialDealerSeatNo)?.Previous?.Value ?? ll.Last!.Value;
         }
 
         void ShiftDealerButtonToPreviousHand()

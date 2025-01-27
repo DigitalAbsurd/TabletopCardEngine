@@ -38,4 +38,8 @@ internal static class HoldemDbContextExtensions
         return game;
     }
 
+    internal static Task<Game> LoadGameAsync(this HoldemDbContext context, Guid gameId)
+        => context.Set<Game>().SingleAsync(game => game.Id == gameId);
+
+
 }
