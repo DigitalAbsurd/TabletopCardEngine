@@ -84,7 +84,7 @@ internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nS
 
                 if (actionGroup.Key != currentHand.GetStreet())
                 {
-                    enginePlayer.RoundActionHistories[_streetConverter.ConvertTo<NPokerStreet>(currentHand.GetStreet())] = enginePlayer.ActionHistories.ToList();
+                    enginePlayer.RoundActionHistories[_streetConverter.ConvertTo<NPokerStreet>(actionGroup.Key)] = enginePlayer.ActionHistories.ToList();
                     enginePlayer.ActionHistories.Clear();
                 }
             }
@@ -104,21 +104,24 @@ internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nS
             {
                 enginePlayer.PayInfo.UpdateToAllin();
             }
+        }
 
-            var dealerIx = currentHand.DealerSeatNo - 1;
-            for (int ix = 0; ix < nState.Table.Seats.Players.Count; ix++)
-            {
-                if (nState.Table.DealerButton != dealerIx)
-                    nState.Table.ShiftDealerButton();
+        var dealerIx = currentHand.DealerSeatNo - 1;
+        nState.Table.GetType()
+            .GetField("_dealerButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .SetValue(nState.Table, dealerIx);
+        //for (int ix = 0; ix < nState.Table.Seats.Players.Count; ix++)
+        //{
+        //    if (nState.Table.DealerButton != dealerIx)
+        //        nState.Table.ShiftDealerButton();
 
-                if (nState.Table.DealerButton == dealerIx)
-                    break;
-            }
+        //    if (nState.Table.DealerButton == dealerIx)
+        //        break;
+        //}
 
-            if (currentHand.TryGetBlindSeats(out var sbSeatNo, out var bbSeatNo))
-            {
-                nState.Table.SetBlindPositions(sbSeatNo - 1, bbSeatNo - 1);
-            }
+        if (currentHand.TryGetBlindSeats(out var sbSeatNo, out var bbSeatNo))
+        {
+            nState.Table.SetBlindPositions(sbSeatNo - 1, bbSeatNo - 1);
         }
 
         return (nState, nEmulator);

@@ -15,7 +15,9 @@ public class HoldemEngine(HoldemEngineOptions _options)
         IHoldemActionHandler holdemActionHandler = holdemAction switch
         {
             HoldemActionCreateGame => new CreateGameActionHandler(),
+            HoldemActionGetGame => new GetGameActionHandler(),
             HoldemActionStartHand => new StartHandActionHandler(),
+            HoldemActionPlayerAction => new PlayerActionHandler(),
             _ => throw new NotImplementedException()
         };
 
@@ -33,7 +35,7 @@ public class HoldemEngine(HoldemEngineOptions _options)
             throw;
         }
 
-        var game = await dbContext.LoadGameWitCurrentHandAsync(holdemAction.GameId);
+        var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
 
         return _gameToGameContextConverter.ConvertTo<GameData>(game);
     }

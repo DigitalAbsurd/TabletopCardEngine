@@ -17,12 +17,50 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
     private static GameData GameToGameContext(Game game)
     {
         var nPokerState = _gameToNPokerStateConverter.ConvertTo<(NPokerState nState, NPokerEmulator nEmulator)>(game);
-        var evaluations = Array.Empty<PlayerActionEvaluationData>();
+        var evaluations = new List<PlayerActionEvaluationData>();
 
         if (nPokerState.nState.NextPlayerIx >= 0)
         {
+            var enginePlayer = nPokerState.nState.Table.Seats[nPokerState.nState.NextPlayerIx];
+            var playerCurrentStreetAmount = enginePlayer.ActionHistories?.LastOrDefault()?.Amount ?? 0;
             var nPossibleActions = nPokerState.nEmulator.GeneratePossibleActions(nPokerState.nState);
-            evaluations = _nPossibleActionsToActionsData.ConvertTo<PlayerActionEvaluationData[]>(nPossibleActions);
+            foreach (var nPossibleAction in nPossibleActions)
+            {
+                switch (nPossibleAction.possibleAction)
+                {
+                    case NPokerActionType.FOLD:
+                        evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Fold));
+                        break;
+                    case NPokerActionType.CALL:
+                        var callValue = (decimal)(nPossibleAction.amountInterval.Value - playerCurrentStreetAmount);
+                        if (MoreThanZero(callValue))
+                        {
+                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Call, callValue, callValue));
+                        }
+                        else
+                        {
+                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Check));
+                        }
+                        break;
+                    case NPokerActionType.RAISE:
+                        var maxRaiseValue = (decimal)(nPossibleAction.amountInterval.MaxValue ?? 0 - playerCurrentStreetAmount);
+                        var minRaiseValue = (decimal)(nPossibleAction.amountInterval.Value - playerCurrentStreetAmount);
+                        if (MoreThanZero(minRaiseValue) && MoreThanZero(maxRaiseValue) && maxRaiseValue >= minRaiseValue)
+                        {
+                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Raise, minRaiseValue, maxRaiseValue));
+                        }
+                        else
+                        {
+                            //AllIn always allowed
+                            var allInValue = (decimal)(enginePlayer.Stack);
+                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Raise, allInValue, allInValue));
+                        }
+                        break;
+                    default:
+                        throw new NotImplementedException($"{nPossibleAction.possibleAction}");
+                }
+            }
+            //evaluations = _nPossibleActionsToActionsData.ConvertTo<PlayerActionEvaluationData[]>(nPossibleActions);
         }
 
         var currentHand = game.GetCurrentHand();
@@ -38,6 +76,11 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                                 SeatNo: t.SeatNo,
                                 Name: t.Name,
                                 Hole: currentHand.GetSeatHoleCards(t.SeatNo),
+                                LastAction: currentHand.Actions
+                                    .Where(act => act.SeatNo == t.SeatNo)
+                                    .OrderBy(act => act.No)
+                                    .Select(act => new PlayerActionData(act.Street, act.PlayAction, act.Size, act.No))
+                                    .LastOrDefault(),
                                 StartRoundStack: currentHand.GetSeatStartStack(t.SeatNo),
                                 Stack: currentHand.GetSeatCurrentStack(t.SeatNo)))
                             .ToArray(),
@@ -45,11 +88,14 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                     SmallBlindSeatNo: sbSeatNo,
                     BigBlindSeatNo: bbSeatNo,
                     NextPlayerSeatNo: (byte)(nPokerState.nState.NextPlayerIx + 1),
-                    Street: currentHand.GetLastAction().Street,
+                    Street: currentHand.GetLastAction().NextStreet,
                     StreetPot: currentHand.GetCurrentStreetPot(),
                     Pot: currentHand.GetPot(),
                     CommunityCards: currentHand.GetDeckCards().ToArray(),
-                    Evaluations: evaluations) :
+                    Evaluations: evaluations.ToArray()) :
                 default(HandData)!);
+
+        bool MoreThanZero(decimal amount)
+            => amount > 0.001M;
     }
 }

@@ -308,7 +308,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
                     {
                         for (int y = 0; y < (int)ParseDecimalFromString(line); y++)
                         {
-                            parsed.actionsStack.Add((string.Empty, new PlayerActionData(street, PlayerActionType.Fold, 0, ++actionNum, "")));
+                            parsed.actionsStack.Add((string.Empty, new PlayerActionData(street, PlayerActionType.Fold, 0, ++actionNum)));
                             //actionsData.Add(new ActionData()
                             //{
                             //    No = ++actionNum,
@@ -328,7 +328,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
                         //    PlayerName = playerName,
                         //    Size = size
                         //});
-                        parsed.actionsStack.Add((playerName, new PlayerActionData(street, actionType.Value, size, ++actionNum, "")));
+                        parsed.actionsStack.Add((playerName, new PlayerActionData(street, actionType.Value, size, ++actionNum)));
                     }
 
                 }
@@ -353,6 +353,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
         public byte StartDealerSeatNo { get; set; }
         public Dictionary<string, byte> PlayersMap { get; set; } = new();
         public List<PapHandData> Hands { get; set; } = new();
+        public string GetNameBySeatNo(byte seatNo) => PlayersMap.SingleOrDefault(pm => pm.Value == seatNo).Key;
     }
     public record PapHandData
     {

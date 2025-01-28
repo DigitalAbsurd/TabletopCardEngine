@@ -4,6 +4,15 @@ using OpenHoldemEngine.Primitives;
 namespace OpenHoldemEngine.Converters;
 internal class CardToStringConverter : ValueConverter<Card, string>
 {
+    static readonly Dictionary<char, CardSuit> _cardSuitMap =
+        new Dictionary<char, CardSuit>
+        {
+            { 'c', CardSuit.Club },
+            { 'd', CardSuit.Diamond },
+            { 'h', CardSuit.Heart },
+            { 's', CardSuit.Spade }
+        };
+
     public CardToStringConverter()
         : base(card => CardToString(card),
             strValue => CardFromString(strValue))
@@ -18,10 +27,16 @@ internal class CardToStringConverter : ValueConverter<Card, string>
         return $"{cardTypeChar}{cardSuitChar}";
     }
 
+
+
     private static Card CardFromString(string strValue)
     {
         var cardTypeChar = strValue.ToLower().Last();
         var cardSuitChar = strValue.ToLower().First();
+
+        if (_cardSuitMap.ContainsKey(cardTypeChar))
+            (cardTypeChar, cardSuitChar) = (cardSuitChar, cardTypeChar);
+
         var cardType = cardTypeChar switch
         {
             Char c when Char.IsDigit(c) => (CardType)byte.Parse(c.ToString()),
@@ -33,14 +48,7 @@ internal class CardToStringConverter : ValueConverter<Card, string>
             _ => throw new NotImplementedException()
         };
 
-        var cardSuit = cardSuitChar switch
-        {
-            'c' => CardSuit.Club,
-            'd' => CardSuit.Diamond,
-            'h' => CardSuit.Heart,
-            's' => CardSuit.Spade,
-            _ => throw new NotImplementedException()
-        };
+        var cardSuit = _cardSuitMap[cardSuitChar];
         return new Card() { CardType = cardType, CardSuit = cardSuit };
     }
 }

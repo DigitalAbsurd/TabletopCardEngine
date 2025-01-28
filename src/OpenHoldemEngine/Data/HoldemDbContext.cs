@@ -23,7 +23,7 @@ public class HoldemDbContext : DbContext
         modelBuilder.Entity<Hand>()
             .HasMany(g => g.Actions)
             .WithOne(h => h.Hand)
-            .HasForeignKey(act => new { act.GameId, act.No });
+            .HasForeignKey(act => new { act.GameId, act.HandNo });
 
         modelBuilder.Entity<Player>()
             .HasKey(e => new { e.GameId, e.SeatNo, e.RoundNoStart });
@@ -81,6 +81,18 @@ public class HoldemDbContext : DbContext
             .IsRequired();
 
         modelBuilder.Entity<HandAction>()
-            .HasKey(e => new { e.GameId, e.HandNo, e.SeatNo, e.No });
+            .HasKey(e => new { e.GameId, e.HandNo, e.No, e.SeatNo });
+
+        modelBuilder.Entity<HandAction>()
+            .Property(e => e.Street)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<HandAction>()
+            .Property(e => e.NextStreet)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<HandAction>()
+            .Property(e => e.PlayAction)
+            .HasConversion<string>();
     }
 }

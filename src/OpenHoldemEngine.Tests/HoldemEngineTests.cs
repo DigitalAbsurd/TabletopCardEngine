@@ -45,7 +45,9 @@ public sealed class HoldemEngineTests
             { 6, CardsFromStrings([ "3h", "ts" ]) },
         };
 
-        var expected = new GameData(
+        var deckCards = CardsFromStrings(["ac", "ad", "as", "ah", "2d"]);
+
+        var expectedGameData = new GameData(
             GameId: gameId,
             Options: gameOptions,
             HandData: new HandData(
@@ -66,11 +68,13 @@ public sealed class HoldemEngineTests
                     },
                     new SeatData(4, "Ozias", 100, 95)
                     {
-                        Hole = holeCards[4]
+                        Hole = holeCards[4],
+                        LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 5, 1)
                     },
                     new SeatData(5, "Ilona", 100, 90)
                     {
-                        Hole = holeCards[5]
+                        Hole = holeCards[5],
+                        LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.BigBlind, 10, 2)
                     },
                     new SeatData(6, "Broen", 100, 100)
                     {
@@ -88,91 +92,170 @@ public sealed class HoldemEngineTests
                 Evaluations: new PlayerActionEvaluationData[]
                 {
                     new PlayerActionEvaluationData(PlayerActionType.Fold),
-                    new PlayerActionEvaluationData(PlayerActionType.Call, 10),
+                    new PlayerActionEvaluationData(PlayerActionType.Call, 10, 10),
                     new PlayerActionEvaluationData(PlayerActionType.Raise, 15, 100)
                 })
             );
 
-        using var holdemServices = SetupHoldemEngineServices(out var holdemEngine, holeCards);
 
-        await holdemEngine.ApplyHoldemActionAsync(
-            new HoldemActionCreateGame(
-                GameId: gameId,
-                Options: gameOptions));
-
-        var actual = await holdemEngine.ApplyHoldemActionAsync(
-            new HoldemActionStartHand(GameId: gameId)
-            {
-                JoinSeats = seatsData
-            });
-
-        expected.ShouldAsJToken().BeEquivalentToAsJToken(actual);
-    }
-
-    [TestMethod, DoNotParallelize]
-    [DynamicData(nameof(GetPapEmulatedHandData), DynamicDataSourceType.Method,
-        DynamicDataDisplayName = nameof(GetPapTestDisplayName))]
-    public async Task TestWithEmulatedPAPGame(Helpers.PapGameData papGame, int handNo)
-    {
-        var gameId = Guid.Parse("{11111111-1111-1111-1111-111111111111}");
-        var papHand = papGame.Hands.Single(h => h.HandNo == handNo);
-        Action<HoldemDbContext> seedAction = ctx =>
+        GameData actualGameData;
+        using (SetupHoldemEngineServices(out var holdemEngine, out _,
+                shuffler: new TestCardShuffler(_getHoleFunc: (no, seatNo) => holeCards[seatNo], _getDeckFunc: handNo => deckCards)))
         {
-            ctx.Add(new Game
-            {
-                Id = gameId,
-                AllowRebuy = true,
-                AutoIncrementHands = 0,
-                InitialSmallBlind = papGame.InitialSmallBlind,
-                MaxHandsCount = 0,
-                MaxPlayersCount = papGame.PlayersMap.Count,
-                InitialDealerSeatNo = papGame.StartDealerSeatNo,
-                Players = papGame.PlayersMap.Select(pm => new Player { Name = pm.Key, SeatNo = pm.Value, RoundNoStart = 0 }).ToList()
-            });
+            await holdemEngine.ApplyHoldemActionAsync(
+                new HoldemActionCreateGame(
+                    GameId: gameId,
+                    Options: gameOptions));
 
-            if (handNo > 1)
-                ctx.Set<HandPlayerEndState>()
-                    .AddRange(papGame.PlayersMap.Values.Select(seatNo =>
-                    new HandPlayerEndState
-                    {
-                        GameId = gameId,
-                        HandNo = handNo - 1,
-                        SeatNo = seatNo
-                    }));
-
-            ctx.SaveChanges();
-        };
-
-        using var holdemServices = SetupHoldemEngineServices(out var holdemEngine, papHand.HoleCards, seedAction: seedAction);
-
-        using (new AssertionScope())
-        {
-            var actionResult = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId)
-            {
-                BuyIns = papHand.StartStacks.Select(buyIn => new BuyInData(buyIn.Key, buyIn.Value)).ToArray()
-            });
-
-            papHand.ButtonSeatNo.Should().Be(actionResult.HandData!.DealerSeatNo,
-                because: $"Button expected {papHand.ButtonSeatNo}, actual {actionResult.HandData!.DealerSeatNo}");
-
-            papHand.SmallBlindSeatNo.Should().Be(actionResult.HandData!.SmallBlindSeatNo,
-                because: $"SB expected {papHand.SmallBlindSeatNo}, actual {actionResult.HandData!.SmallBlindSeatNo}");
-
-            papHand.BigBlindSeatNo.Should().Be(actionResult.HandData!.BigBlindSeatNo,
-                because: $"BB expected {papHand.BigBlindSeatNo}, actual {actionResult.HandData!.BigBlindSeatNo}");
+            actualGameData = await holdemEngine.ApplyHoldemActionAsync(
+                new HoldemActionStartHand(GameId: gameId)
+                {
+                    JoinSeats = seatsData
+                });
         }
 
+        expectedGameData.ShouldAsJToken().BeEquivalentToAsJToken(actualGameData);
+    }
 
+    [TestMethod]
+    public async Task EmulatedPAPGame_Test()
+    {
+        var gameId = Guid.Parse("{11111111-1111-1111-1111-111111111111}");
+        var emulatedGame = Helpers.GetPAPEmulatedGameData();
+        var seats = emulatedGame.PlayersMap
+            .Select(pm => new PlayerJoinData(pm.Key, pm.Value, emulatedGame.Hands[0].StartStacks[pm.Value]))
+            .ToArray();
+        GameData gameData;
+        (Dictionary<byte, Card[]> holeCards, Card[] deckCards) currentDeck = new();
+        var shuffler = new TestCardShuffler(
+            _getHoleFunc: (handNo, seatNo) => currentDeck.holeCards![seatNo],
+            _getDeckFunc: (handNo) => currentDeck.deckCards!);
 
-        //foreach (var emulatedAction in papHand.ActionStack)
-        //{
+        using (SetupHoldemEngineServices(out var holdemEngine, out var dbContextFactory, shuffler: shuffler))
+        {
+            await holdemEngine.ApplyHoldemActionAsync(
+                new HoldemActionCreateGame(
+                    GameId: gameId,
+                    Options: new GameOptionData(
+                        MaxPlayersCount: emulatedGame.PlayersMap.Count,
+                        InitialSmallBlind: emulatedGame.InitialSmallBlind,
+                        InitialDealerSeatNo: emulatedGame.StartDealerSeatNo,
+                        AllowRebuy: false)));
 
-        //}
+            foreach (var emulatedHand in emulatedGame.Hands)
+            {
+                currentDeck = GenerateHandCards(emulatedHand);
+                using (new AssertionScope($"PAP Hand #{emulatedHand.HandNo}"))
+                {
+                    gameData = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId)
+                    {
+                        JoinSeats = emulatedHand.HandNo == 1 ? seats : []
+                    });
+
+                    //PAP emulated game has a bug with dealer button #94, #111
+                    if (CorrectButtonIfNeeded(dbContextFactory))
+                        gameData = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionGetGame(gameId));
+
+                    foreach (var startStackItem in emulatedHand.StartStacks)
+                    {
+                        startStackItem.Value.Should()
+                            .Be(gameData.HandData.Seats.Single(seat => seat.SeatNo == startStackItem.Key).StartRoundStack,
+                            because: $"{emulatedGame.GetNameBySeatNo(startStackItem.Key)} SeatNo:{startStackItem.Key} StartStack assert");
+                    }
+
+                    emulatedHand.ButtonSeatNo.Should().Be(gameData.HandData.DealerSeatNo,
+                        because: $"Button expected {emulatedHand.ButtonSeatNo}, actual {gameData.HandData.DealerSeatNo}");
+
+                    emulatedHand.SmallBlindSeatNo.Should().Be(gameData.HandData.SmallBlindSeatNo,
+                        because: $"SB expected {emulatedHand.SmallBlindSeatNo}, actual {gameData.HandData.SmallBlindSeatNo}");
+
+                    emulatedHand.BigBlindSeatNo.Should().Be(gameData.HandData.BigBlindSeatNo,
+                        because: $"BB expected {emulatedHand.BigBlindSeatNo}, actual {gameData.HandData.BigBlindSeatNo}");
+
+                    foreach (var emulatedAction in emulatedHand.ActionStack)
+                    {
+                        var scopeContext = $"ActNo#{(emulatedAction.No + 2)}";
+
+                        //emulatedAction.SeatNo = 0 means that parsed PAP action section is fold groups (ex. 2 folds)
+                        if (emulatedAction.SeatNo != 0)
+                        {
+                            emulatedAction.SeatNo.Should().Be(gameData.HandData.NextPlayerSeatNo,
+                                because: $"{scopeContext} SeatNo expected {emulatedAction.SeatNo}, actual {gameData.HandData.NextPlayerSeatNo}");
+                        }
+
+                        gameData = await holdemEngine.ApplyHoldemActionAsync(
+                                new HoldemActionPlayerAction(gameId, emulatedAction.ActionType, emulatedAction.Size));
+
+                        var handLastAction = gameData.HandData.GetLastAction();
+                        emulatedAction.Street.Should().Be(handLastAction.Street,
+                            because: $"{scopeContext} Street expected {emulatedAction.SeatNo}, actual {handLastAction.Street}");
+                    }
+                }
+            }
+        }
+
+        bool CorrectButtonIfNeeded(IDbContextFactory<HoldemDbContext> dbContextFactory)
+        {
+            if (gameData.HandData.No == 94)
+            {
+                var dbContext = dbContextFactory.CreateDbContext();
+
+                dbContext.Database.ExecuteSqlRaw($"UPDATE Hand SET DealerSeatNo=0 WHERE GameId='{gameId}' AND No=94");
+                dbContext.Database.ExecuteSqlRaw($"UPDATE HandAction SET SeatNo=3, NextSeatNo=4 WHERE GameId='{gameId}' AND HandNo=94 AND PlayAction='SmallBlind'");
+                dbContext.Database.ExecuteSqlRaw($"UPDATE HandAction SET SeatNo=4, NextSeatNo=6 WHERE GameId='{gameId}' AND HandNo=94 AND PlayAction='BigBlind'");
+                return true;
+            }
+
+            if (gameData.HandData.No == 111)
+            {
+                var dbContext = dbContextFactory.CreateDbContext();
+
+                dbContext.Database.ExecuteSqlRaw($"UPDATE Hand SET DealerSeatNo=6 WHERE GameId='{gameId}' AND No=111");
+                dbContext.Database.ExecuteSqlRaw($"UPDATE HandAction SET SeatNo=6, NextSeatNo=4 WHERE GameId='{gameId}' AND HandNo=111 AND PlayAction='SmallBlind'");
+                dbContext.Database.ExecuteSqlRaw($"UPDATE HandAction SET SeatNo=4, NextSeatNo=6 WHERE GameId='{gameId}' AND HandNo=111 AND PlayAction='BigBlind'");
+                return true;
+            }
+
+            return false;
+        }
+
+        (Dictionary<byte, Card[]> holeCards, Card[] deckCards) GenerateHandCards(Helpers.PapHandData emulatedHand)
+        {
+            var rnd = new Random();
+            var deck = Enum.GetValues<CardType>()
+                .SelectMany(cType => Enum.GetValues<CardSuit>().Select(cSuit => new Card { CardSuit = cSuit, CardType = cType }))
+                .ToList();
+            var seatHoles = emulatedHand.HoleCards.ToDictionary(k => k.Key, v => v.Value);
+            var deckCards = emulatedHand.DeckCards.Select(v => v.Value).OrderBy(dc => dc.Length).LastOrDefault() ?? [];
+
+            deck = deck.Except(seatHoles.SelectMany(sh => sh.Value)).Except(deckCards).ToList();
+
+            foreach (var seat in emulatedGame.PlayersMap.Where(pm => !seatHoles.ContainsKey(pm.Value)).Select(pm => pm.Value))
+            {
+                seatHoles[seat] = GetRandomCardsFromDeck(2);
+            }
+
+            deckCards = deckCards.Concat(GetRandomCardsFromDeck(5 - deckCards.Length)).ToArray();
+
+            return (seatHoles, deckCards);
+
+            Card[] GetRandomCardsFromDeck(int num)
+            {
+                var rndCards = new List<Card>();
+                for (int ix = 0; ix < num; ix++)
+                {
+                    var rndCard = deck[rnd.Next(deck.Count)];
+                    deck = deck.Except([rndCard]).ToList();
+                    rndCards.Add(rndCard);
+                }
+                return rndCards.ToArray();
+            }
+        }
     }
 
     private IDisposable SetupHoldemEngineServices(out HoldemEngine holdemEngine,
-        Dictionary<byte, Card[]>? holeCards = null,
-        Dictionary<Street, Card[]>? communityCards = null,
+        out IDbContextFactory<HoldemDbContext> contextFactory,
+        ICardShuffler? shuffler = null,
         Action<HoldemEngineSettings>? configureSettings = null,
         Action<HoldemDbContext>? seedAction = null)
     {
@@ -186,8 +269,11 @@ public sealed class HoldemEngineTests
             dbOptionsAction: opts =>
             {
 #if DEBUG
-                opts.LogTo(msg => System.Diagnostics.Debug.WriteLine(msg), minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
-                opts.EnableSensitiveDataLogging();
+                if (bool.TryParse(Environment.GetEnvironmentVariable("OHE_TEST_SQL_DEBUG"), out var dbgSql) && dbgSql)
+                {
+                    opts.LogTo(msg => System.Diagnostics.Debug.WriteLine(msg), minimumLevel: Microsoft.Extensions.Logging.LogLevel.Information);
+                    opts.EnableSensitiveDataLogging();
+                }
 #endif
                 if (keepAliveConnection != default)
                 {
@@ -197,19 +283,18 @@ public sealed class HoldemEngineTests
                 {
                     opts.UseSqlite($"Filename='{db3FileName}'");
                 }
-                //if (seedAction != null)
-                //    opts.UseSeeding((ctx, _) => seedAction((HoldemDbContext)ctx));
             },
             configure: opts =>
             {
                 if (configureSettings != null)
                     opts.WithSettings(configureSettings);
-                if (holeCards != null)
-                    opts.WithCardShuffler(new TestCardShuffler(holeCards, communityCards));
+                if (shuffler != null)
+                    opts.WithCardShuffler(shuffler);
             }
             );
         var serviceProvider = services.BuildServiceProvider();
-        using var dbContext = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>().CreateDbContext();
+        contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
+        using var dbContext = contextFactory.CreateDbContext();
         keepAliveConnection?.Open();
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
@@ -218,23 +303,8 @@ public sealed class HoldemEngineTests
             seedAction(dbContext);
 
         holdemEngine = serviceProvider.GetRequiredService<HoldemEngine>();
-
         return new DisposableTestData(serviceProvider, keepAliveConnection);
     }
-
-    private static IEnumerable<object[]> GetPapEmulatedHandData()
-    {
-        var papEmulatedGame = Helpers.GetPAPEmulatedGameData();
-        var papHandEnumerator = papEmulatedGame.Hands.GetEnumerator();
-        while (papHandEnumerator.MoveNext())
-        {
-            yield return new object[] { papEmulatedGame, papHandEnumerator.Current.HandNo };
-            yield break;
-        }
-    }
-
-    public static string GetPapTestDisplayName(System.Reflection.MethodInfo methodInfo, Object[] values)
-        => $"{methodInfo.Name}_{values[1]:D3}";
 
     private class DisposableTestData(ServiceProvider _serviceProvider, SqliteConnection? _sqliteConnection) : IDisposable
     {
@@ -255,16 +325,16 @@ public sealed class HoldemEngineTests
         return cardStrings.Select(str => (Card)cardToStringConverter.ConvertFromProvider(new string(str.Reverse().ToArray()))!).ToArray()!;
     }
 
-    class TestCardShuffler(Dictionary<byte, Card[]> _holeCards, Dictionary<Street, Card[]>? _communityCards = null) : ICardShuffler
+    class TestCardShuffler(Func<int, byte, Card[]> _getHoleFunc, Func<int, Card[]> _getDeckFunc) : ICardShuffler
     {
         public Task<IEnumerable<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo)
         {
-            return Task<IEnumerable<Card>>.FromResult(_holeCards[seatNo].AsEnumerable());
+            return Task<IEnumerable<Card>>.FromResult(_getHoleFunc(handNo, seatNo).AsEnumerable());
         }
 
-        public Task<IEnumerable<Card>?> GetStreetCardsAsync(Guid gameId, int handNo, Street street)
+        public Task<IEnumerable<Card>> GetDeckCardsAsync(Guid gameId, int handNo)
         {
-            return Task<IEnumerable<Card>?>.FromResult(_communityCards?[street]?.AsEnumerable());
+            return Task<IEnumerable<Card>>.FromResult(_getDeckFunc.Invoke(handNo).AsEnumerable());
         }
     }
 }

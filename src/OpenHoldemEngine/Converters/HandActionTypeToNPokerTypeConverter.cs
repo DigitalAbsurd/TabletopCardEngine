@@ -17,7 +17,7 @@ internal class HandActionTypeToNPokerTypeConverter : ValueConverter<PlayerAction
             PlayerActionType.Fold => NPokerActionType.FOLD,
             PlayerActionType.Call => NPokerActionType.CALL,
             PlayerActionType.Check => NPokerActionType.CALL,
-            PlayerActionType.Bet => NPokerActionType.RAISE,
+            PlayerActionType.Bet or PlayerActionType.Raise => NPokerActionType.RAISE,
             PlayerActionType.AllIn => NPokerActionType.RAISE,
             _ => throw new NotImplementedException()
         };
