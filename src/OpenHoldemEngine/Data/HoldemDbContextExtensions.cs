@@ -3,7 +3,7 @@
 namespace OpenHoldemEngine.Data;
 internal static class HoldemDbContextExtensions
 {
-    internal static async Task<Game> LoadGameWitCurrentHandAsync(this HoldemDbContext context, Guid gameId)
+    internal static async Task<Game> LoadGameWithCurrentHandAsync(this HoldemDbContext context, Guid gameId)
     {
         var game = await context.Set<Game>()
             .Include(game => game.Hands
@@ -12,6 +12,12 @@ internal static class HoldemDbContextExtensions
         .SingleAsync(g => g.Id == gameId);
 
         var currentHand = game.GetCurrentHand();
+
+        await context.Entry(game)
+            .Collection(g => g.Players)
+            .Query()
+            .Where(p => p.RoundNoStart <= currentHand.No)
+            .LoadAsync();
 
         await context.Entry(currentHand)
             .Collection(h => h.PlayerStartStates)

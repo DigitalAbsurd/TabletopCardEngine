@@ -11,7 +11,7 @@ public record HandResultData(bool IsWinner, decimal WinSize, decimal Net, string
 #endregion
 
 #region CONTEXTS
-public record PlayerActionData(Street Street, PlayerActionType ActionType, decimal Size, int No, string DisplayValue);
+public record PlayerActionData(Street Street, PlayerActionType ActionType, decimal Size, int No);
 public record SeatData(byte SeatNo, string Name, decimal StartRoundStack,
     decimal Stack, decimal? BetSize = null, Card[]? Hole = null,
     PlayerActionData? LastAction = null, HandResultData? RoundResultData = null)
@@ -28,6 +28,7 @@ public record HandData(int No, SeatData[] Seats, byte DealerSeatNo, byte SmallBl
     SeatData? SmallBlindRef => Seats.SingleOrDefault(p => p.SeatNo == SmallBlindSeatNo);
     SeatData? BigBlindRef => Seats.SingleOrDefault(p => p.SeatNo == BigBlindSeatNo);
     SeatData? NextPlayerRef => Seats.SingleOrDefault(p => p.SeatNo == NextPlayerSeatNo);
+    public PlayerActionData GetLastAction() => Seats.Where(s => s.LastAction is not null).Select(s => s.LastAction!).OrderBy(act => act.No).Last();
     internal decimal GetEvalMinValue(PlayerActionType actionType) => Evaluations.Single(ev => ev.PlayerActionType == actionType).MinValue;
     internal decimal GetEvalMaхValue(PlayerActionType actionType) => Evaluations.Single(ev => ev.PlayerActionType == actionType).MaxValue;
     public bool IsFinishedWithShowdown => Street == Street.Finished && Seats.Where(p => p.RoundResultData != null && !p.RoundResultData.Folded && p.LastAction != null && p.LastAction != null).Count() > 1;
@@ -37,6 +38,7 @@ public record GameData(Guid GameId, GameOptionData Options, HandData HandData);
 
 #region HOLDEM_ACTIONS
 public abstract record HoldemAction(Guid GameId);
+public record HoldemActionGetGame(Guid GameId) : HoldemAction(GameId);
 public record HoldemActionCreateGame(Guid GameId, GameOptionData Options) : HoldemAction(GameId);
 public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : HoldemAction(GameId);
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
