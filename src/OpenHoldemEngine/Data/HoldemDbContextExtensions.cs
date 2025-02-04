@@ -9,7 +9,12 @@ internal static class HoldemDbContextExtensions
             .Include(game => game.Hands
                 .OrderByDescending(h => h.No)
                 .Take(1))
-        .SingleAsync(g => g.Id == gameId);
+        .SingleOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == default)
+        {
+            return context.Add(new Game { Id = gameId }).Entity;
+        }
 
         var currentHand = game.GetCurrentHand();
 

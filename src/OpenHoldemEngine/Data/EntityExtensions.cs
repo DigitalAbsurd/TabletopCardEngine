@@ -1,10 +1,14 @@
-﻿using OpenHoldemEngine.Primitives;
+﻿using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Primitives;
 
 namespace OpenHoldemEngine.Data;
 internal static class EntityExtensions
 {
     internal static Hand GetCurrentHand(this Game game)
         => game.Hands.LastOrDefault() ?? new Hand();
+
+    internal static Hand GetPreviousHand(this Game game)
+        => game.Hands.SingleOrDefault(h => h.No == game.GetCurrentHand().No - 1) ?? new Hand();
 
     internal static HandAction GetLastAction(this Hand hand)
         => hand.Actions.LastOrDefault() ?? new HandAction();
@@ -96,4 +100,80 @@ internal static class EntityExtensions
 
     internal static int GetPlayerIx(this Player player)
         => player.SeatNo - 1;
+
+    internal static int GetNextHandNo(this Game game)
+        => game.GetCurrentHand().No + 1;
+
+    internal static void JoinPlayers(this Game game, PlayerJoinData[] playerJoins)
+    {
+        var nextHandNo = game.GetNextHandNo();
+
+        game.Players.AddRange(playerJoins.Select(
+            seat => new Player
+            {
+                Name = seat.Name,
+                SeatNo = seat.SeatNo,
+                RoundNoStart = nextHandNo
+            }));
+
+        game.BuyIns.AddRange(playerJoins.
+            Select(b => new BuyIn
+            {
+                HandNo = nextHandNo,
+                SeatNo = b.SeatNo,
+                Amount = b.BuyInAmount
+            }));
+    }
+
+    internal static void CreateNewHand(this Game game, IEnumerable<HandPlayerStartState> startStacks)
+        => game.Hands.Add(new Hand
+        {
+            No = game.GetNextHandNo(),
+            GameId = game.Id,
+            PlayerStartStates = startStacks.ToList(),
+        });
+
+    internal static void AddHoleCards(this Game game, byte seatNo, IEnumerable<Card> hole)
+        => hole.Select((card, ix) => new { Card = card, SeqNo = (byte)(ix + 1) })
+            .ToList()
+            .ForEach(hc => game.GetCurrentHand().HoleCards.Add(new HandHoleCard { Card = hc.Card, SeatNo = seatNo, Sequence = hc.SeqNo }));
+
+    internal static HandAction AddAction(this Game game, byte seatNo, Street street, PlayerActionType playerActionType,
+        decimal size, decimal amount, decimal addAmount, byte nextSeatNo, Street nextStreet, decimal paid = default)
+    {
+        var handAction = new HandAction
+        {
+            No = game.GetCurrentHand().Actions.DefaultIfEmpty(new HandAction()).Max(x => x.No) + 1,
+            PlayAction = playerActionType,
+            SeatNo = seatNo,
+            Amount = amount,
+            Size = size,
+            AddAmount = addAmount,
+            NextSeatNo = nextSeatNo,
+            Street = street,
+            NextStreet = nextStreet,
+            Paid = paid
+        };
+        game.GetCurrentHand().Actions.Add(handAction);
+        return handAction;
+    }
+
+    internal static void AddDeckCard(this Game game, Card card)
+    {
+        game.GetCurrentHand().DeckCards.Add(new HandDeckCard
+        {
+            Card = card,
+            Sequence = (byte)(game.GetCurrentHand().DeckCards.DefaultIfEmpty(new HandDeckCard()).Max(x => x.Sequence) + 1),
+        });
+    }
+
+    internal static void AddHandEndStates(this Game game, IEnumerable<HandPlayerEndState> handPlayerEndStates)
+        => game.GetCurrentHand().PlayerEndStates.AddRange(handPlayerEndStates);
+
+    internal static NPokerEmulator GetEmulator(this Game game)
+    {
+        var nEmulator = new NPokerEngine.Emulator();
+        nEmulator.SetupConfig(int.MaxValue, int.MaxValue, (float)game.InitialSmallBlind);
+        return nEmulator;
+    }
 }

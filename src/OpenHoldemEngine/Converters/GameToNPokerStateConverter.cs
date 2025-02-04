@@ -10,9 +10,8 @@ using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Primitives;
 
 namespace OpenHoldemEngine.Converters;
-internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nState, NPokerEmulator nEmulator)>
+internal class GameToNPokerStateConverter : ValueConverter<Game, NPokerState>
 {
-
     private static readonly StreetToNPokerStreetConverter _streetConverter = new StreetToNPokerStreetConverter();
     private static readonly CardToNCardConverter _cardToNCardConverter = new CardToNCardConverter();
     private static readonly HandActionTypeToNPokerTypeConverter _actionTypeConverter = new HandActionTypeToNPokerTypeConverter();
@@ -22,18 +21,19 @@ internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nS
             nPokerState => null!)
     { }
 
-    public (NPokerState nState, NPokerEmulator nEmulator) ConvertToWithDeckCards(Game game, IEnumerable<Card> cards)
+    public NPokerState ConvertToWithDeckCards(Game game, IEnumerable<Card>? cards)
     {
+        if (cards == null)
+            return GameContextToNPokerState(game);
+
         var cheatCardsIds = cards.Select(c => _cardToNCardConverter.ConvertTo<NCard>(c).ToId()).ToList();
         var nDeck = new NPokerDeck(cheatCardIds: cheatCardsIds, cheat: true);
         return GameContextToNPokerState(game, nDeck);
     }
 
-    private static (NPokerState nState, NPokerEmulator nEmulator) GameContextToNPokerState(Game game, NPokerDeck? nDeck = null)
+    private static NPokerState GameContextToNPokerState(Game game, NPokerDeck? nDeck = null)
     {
         var currentHand = game.GetCurrentHand();
-        var nEmulator = new NPokerEmulator();
-        nEmulator.SetupConfig(int.MaxValue, int.MaxValue, (float)game.InitialSmallBlind);
 
         var deck = nDeck ?? new NPokerDeck();
         deck.Shuffle();
@@ -110,20 +110,12 @@ internal class GameToNPokerStateConverter : ValueConverter<Game, (NPokerState nS
         nState.Table.GetType()
             .GetField("_dealerButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .SetValue(nState.Table, dealerIx);
-        //for (int ix = 0; ix < nState.Table.Seats.Players.Count; ix++)
-        //{
-        //    if (nState.Table.DealerButton != dealerIx)
-        //        nState.Table.ShiftDealerButton();
-
-        //    if (nState.Table.DealerButton == dealerIx)
-        //        break;
-        //}
 
         if (currentHand.TryGetBlindSeats(out var sbSeatNo, out var bbSeatNo))
         {
             nState.Table.SetBlindPositions(sbSeatNo - 1, bbSeatNo - 1);
         }
 
-        return (nState, nEmulator);
+        return nState;
     }
 }
