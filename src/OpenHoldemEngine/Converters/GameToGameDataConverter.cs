@@ -16,14 +16,14 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
 
     private static GameData GameToGameContext(Game game)
     {
-        var nPokerState = _gameToNPokerStateConverter.ConvertTo<(NPokerState nState, NPokerEmulator nEmulator)>(game);
+        var nPokerState = _gameToNPokerStateConverter.ConvertTo<NPokerState>(game);
         var evaluations = new List<PlayerActionEvaluationData>();
 
-        if (nPokerState.nState.NextPlayerIx >= 0)
+        if (nPokerState.NextPlayerIx >= 0)
         {
-            var enginePlayer = nPokerState.nState.Table.Seats[nPokerState.nState.NextPlayerIx];
+            var enginePlayer = nPokerState.Table.Seats[nPokerState.NextPlayerIx];
             var playerCurrentStreetAmount = enginePlayer.ActionHistories?.LastOrDefault()?.Amount ?? 0;
-            var nPossibleActions = nPokerState.nEmulator.GeneratePossibleActions(nPokerState.nState);
+            var nPossibleActions = game.GetEmulator().GeneratePossibleActions(nPokerState);
             foreach (var nPossibleAction in nPossibleActions)
             {
                 switch (nPossibleAction.possibleAction)
@@ -87,7 +87,7 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                     DealerSeatNo: currentHand.DealerSeatNo,
                     SmallBlindSeatNo: sbSeatNo,
                     BigBlindSeatNo: bbSeatNo,
-                    NextPlayerSeatNo: (byte)(nPokerState.nState.NextPlayerIx + 1),
+                    NextPlayerSeatNo: (byte)(nPokerState.NextPlayerIx + 1),
                     Street: currentHand.GetLastAction().NextStreet,
                     StreetPot: currentHand.GetCurrentStreetPot(),
                     Pot: currentHand.GetPot(),

@@ -10,32 +10,17 @@ public class HoldemEngine(HoldemEngineOptions _options)
 {
     private static readonly GameToGameDataConverter _gameToGameContextConverter = new GameToGameDataConverter();
 
-    public async Task<GameData> ApplyHoldemActionAsync(HoldemAction holdemAction)
+    public async Task<GameData> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
     {
-        IHoldemActionHandler holdemActionHandler = holdemAction switch
-        {
-            HoldemActionCreateGame => new CreateGameActionHandler(),
-            HoldemActionGetGame => new GetGameActionHandler(),
-            HoldemActionStartHand => new StartHandActionHandler(),
-            HoldemActionPlayerAction => new PlayerActionHandler(),
-            _ => throw new NotImplementedException()
-        };
+        IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction);
 
         using var dbContext = await _options.DbContextFactory.CreateDbContextAsync();
 
-        try
-        {
-            await dbContext.Database.BeginTransactionAsync();
-            await holdemActionHandler.HandleAsync(holdemAction, dbContext);
-            await dbContext.Database.CommitTransactionAsync();
-        }
-        catch (Exception)
-        {
-            await dbContext.Database.RollbackTransactionAsync();
-            throw;
-        }
-
         var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
+
+        await holdemActionHandler.HandleAsync(holdemAction, game);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return _gameToGameContextConverter.ConvertTo<GameData>(game);
     }
