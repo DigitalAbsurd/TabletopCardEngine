@@ -1,4 +1,5 @@
-﻿using OpenHoldemEngine.Converters;
+﻿using FluentResults;
+using OpenHoldemEngine.Converters;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
 using OpenHoldemEngine.HoldemActionHandlers;
@@ -10,7 +11,7 @@ public class HoldemEngine(HoldemEngineOptions _options)
 {
     private static readonly GameToGameDataConverter _gameToGameContextConverter = new GameToGameDataConverter();
 
-    public async Task<GameData> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
+    public async Task<Result<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
     {
         IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction);
 
@@ -22,6 +23,6 @@ public class HoldemEngine(HoldemEngineOptions _options)
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return _gameToGameContextConverter.ConvertTo<GameData>(game);
+        return Result.Ok(_gameToGameContextConverter.ConvertTo<GameData>(game));
     }
 }

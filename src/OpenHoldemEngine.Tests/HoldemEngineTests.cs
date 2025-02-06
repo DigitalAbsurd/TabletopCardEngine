@@ -107,11 +107,11 @@ public sealed class HoldemEngineTests
                     GameId: gameId,
                     Options: gameOptions));
 
-            actualGameData = await holdemEngine.ApplyHoldemActionAsync(
+            actualGameData = (await holdemEngine.ApplyHoldemActionAsync(
                 new HoldemActionStartHand(GameId: gameId)
                 {
                     JoinSeats = seatsData
-                });
+                })).Value;
         }
 
         expectedGameData.ShouldAsJToken().BeEquivalentToAsJToken(actualGameData);
@@ -147,14 +147,14 @@ public sealed class HoldemEngineTests
                 currentDeck = GenerateHandCards(emulatedHand);
                 using (new AssertionScope($"PAP Hand #{emulatedHand.HandNo}"))
                 {
-                    gameData = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId)
+                    gameData = (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId)
                     {
                         JoinSeats = emulatedHand.HandNo == 1 ? seats : []
-                    });
+                    })).Value;
 
                     //PAP emulated game has a bug with dealer button #94, #111
                     if (CorrectButtonIfNeeded(dbContextFactory))
-                        gameData = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionGetGame(gameId));
+                        gameData = (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionGetGame(gameId))).Value;
 
                     foreach (var startStackItem in emulatedHand.StartStacks)
                     {
@@ -183,8 +183,8 @@ public sealed class HoldemEngineTests
                                 because: $"{scopeContext} SeatNo expected {emulatedAction.SeatNo}, actual {gameData.HandData.NextPlayerSeatNo}");
                         }
 
-                        gameData = await holdemEngine.ApplyHoldemActionAsync(
-                                new HoldemActionPlayerAction(gameId, emulatedAction.ActionType, emulatedAction.Size));
+                        gameData = (await holdemEngine.ApplyHoldemActionAsync(
+                                new HoldemActionPlayerAction(gameId, emulatedAction.ActionType, emulatedAction.Size))).Value;
 
                         var handLastAction = gameData.HandData.GetLastAction();
                         emulatedAction.Street.Should().Be(handLastAction.Street,

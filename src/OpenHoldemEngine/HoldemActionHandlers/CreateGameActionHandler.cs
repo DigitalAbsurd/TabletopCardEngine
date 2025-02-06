@@ -1,10 +1,11 @@
-﻿using OpenHoldemEngine.Data;
+﻿using FluentResults;
+using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemActionCreateGame>
 {
-    internal override Task ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game)
+    internal override Task<Result> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game)
     {
         game.Id = startGameActionData.GameId;
         game.AllowRebuy = startGameActionData.Options.AllowRebuy;
@@ -14,6 +15,6 @@ internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemAction
         game.MaxHandsCount = startGameActionData.Options.MaxHandsCount;
         game.MaxPlayersCount = startGameActionData.Options.MaxPlayersCount;
 
-        return Task.CompletedTask;
+        return Task.FromResult(Result.Ok());
     }
 }

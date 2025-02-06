@@ -1,8 +1,10 @@
-﻿using OpenHoldemEngine.Converters;
+﻿using FluentResults;
+using OpenHoldemEngine.Converters;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Primitives;
+using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionStartHand>
@@ -10,8 +12,13 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
     private static readonly GameToNPokerStateConverter _nPokerStateConverter = new();
     private static readonly CardToNCardConverter _cardToNCardConverter = new();
 
-    internal override async Task ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
+    internal override async Task<Result> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
     {
+        if (!CheckIsPreviousHandEnded())
+        {
+            return Result.Fail(PackResource.HoldemValidation_PreviousHandNotEnded);
+        }
+
         game.JoinPlayers(startHandData.JoinSeats);
 
         game.CreateNewHand(CalculateStartStacks());
@@ -53,6 +60,8 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
             nextSeatNo: (byte)(handNState.NextPlayerIx + 1),
             nextStreet: Street.PreFlop);
 
+        return Result.Ok();
+
         void ShiftDealerButtonToPreviousHand()
         {
             var previousHandNo = game.GetPreviousHand().No;
@@ -68,6 +77,9 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
                 .GetField("_dealerButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
                 .SetValue(nPokerState.Table, dealerPreviousHandSeatNo - 1);
         }
+
+        bool CheckIsPreviousHandEnded()
+            => game.GetCurrentHand().No == 0 || game.GetCurrentHand().PlayerEndStates.Any();
 
         async Task<IEnumerable<Card>?> GetShuffledHoleCards()
         {

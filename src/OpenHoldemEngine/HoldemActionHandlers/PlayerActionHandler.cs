@@ -1,8 +1,10 @@
-﻿using OpenHoldemEngine.Converters;
+﻿using FluentResults;
+using OpenHoldemEngine.Converters;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Primitives;
+using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlayerAction>
@@ -13,8 +15,13 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
     private static readonly CardToNCardConverter _cardToNCardConverter = new();
     private static readonly HandActionTypeToNPokerTypeConverter _handActionTypeConverter = new();
 
-    internal async override Task ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
+    internal async override Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
+        if (CheckIfCurrentHandEnded())
+        {
+            return Result.Fail(PackResource.HoldemValidation_CurrentHandEnded);
+        }
+
         var hand = game.GetCurrentHand();
         var nPokerState = _nPokerStateConverter.ConvertTo<NPokerState>(game);
         var nPokerPlayer = nPokerState.Table.Seats[nPokerState.NextPlayerIx]!;
@@ -87,6 +94,11 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
             });
             game.AddHandEndStates(handEndStates);
         }
+
+        return Result.Ok();
+
+        bool CheckIfCurrentHandEnded()
+            => game.GetCurrentHand().PlayerEndStates.Any();
 
         decimal CalculateBetAmount()
             => holdemAction.ActionType switch
