@@ -120,6 +120,9 @@
   <data name="HoldemValidation_CurrentHandEnded" xml:space="preserve">
     <value>The current hand is completed</value>
   </data>
+  <data name="HoldemValidation_GameAlreadyExists" xml:space="preserve">
+    <value>The game with passed Id already exists </value>
+  </data>
   <data name="HoldemValidation_PreviousHandNotEnded" xml:space="preserve">
     <value>The previous hand is not completed</value>
   </data>

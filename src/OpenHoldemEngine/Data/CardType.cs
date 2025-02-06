@@ -1,4 +1,4 @@
-﻿namespace OpenHoldemEngine.Primitives;
+﻿namespace OpenHoldemEngine.Data;
 public enum CardType : byte
 {
     Ace = 1,

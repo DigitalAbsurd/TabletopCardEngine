@@ -1,4 +1,4 @@
-﻿namespace OpenHoldemEngine.Primitives;
+﻿namespace OpenHoldemEngine.Data;
 
 public enum PlayerActionType : byte
 {

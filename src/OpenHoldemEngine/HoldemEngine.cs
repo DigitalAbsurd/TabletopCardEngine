@@ -19,7 +19,11 @@ public class HoldemEngine(HoldemEngineOptions _options)
 
         var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
 
-        await holdemActionHandler.HandleAsync(holdemAction, game);
+        var result = await holdemActionHandler.HandleAsync(holdemAction, game);
+        if (!result.IsSuccess)
+        {
+            return result;
+        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
 

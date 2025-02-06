@@ -3,7 +3,7 @@ using OpenHoldemEngine.Converters;
 
 namespace OpenHoldemEngine.Data;
 
-public class HoldemDbContext : DbContext
+internal class HoldemDbContext : DbContext
 {
     public HoldemDbContext(DbContextOptions dbContextOptions)
         : base(dbContextOptions) { }

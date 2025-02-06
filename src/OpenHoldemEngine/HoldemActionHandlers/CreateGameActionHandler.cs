@@ -1,12 +1,18 @@
 ﻿using FluentResults;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemActionCreateGame>
 {
     internal override Task<Result> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game)
     {
+        if (game.Id != default)
+        {
+            return Task.FromResult(Result.Fail(PackResource.HoldemValidation_GameAlreadyExists));
+        }
+
         game.Id = startGameActionData.GameId;
         game.AllowRebuy = startGameActionData.Options.AllowRebuy;
         game.AutoIncrementHands = startGameActionData.Options.AutoIncrementsHands;

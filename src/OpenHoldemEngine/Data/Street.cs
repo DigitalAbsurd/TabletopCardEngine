@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 
-namespace OpenHoldemEngine.Primitives;
+namespace OpenHoldemEngine.Data;
 
-[DefaultValue(Street.PreFlop)]
+[DefaultValue(PreFlop)]
 public enum Street : byte
 {
     PreFlop = 0,

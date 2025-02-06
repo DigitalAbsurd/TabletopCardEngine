@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace OpenHoldemEngine.Primitives;
+namespace OpenHoldemEngine.Data;
 public enum CardSuit : byte
 {
     [Description("♣")] Club = 0,

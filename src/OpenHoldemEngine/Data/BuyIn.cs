@@ -1,6 +1,6 @@
 ﻿namespace OpenHoldemEngine.Data;
 
-public class BuyIn
+internal class BuyIn
 {
     public Guid GameId { get; set; }
     public Game? Game { get; set; }

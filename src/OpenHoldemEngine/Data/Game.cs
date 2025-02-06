@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenHoldemEngine.Data;
 
-public class Game
+internal class Game
 {
-    [Key] public Guid Id { get; set; }
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)] 
+    public Guid Id { get; set; }
     public decimal InitialSmallBlind { get; set; } = 1;
     public int AutoIncrementHands { get; set; } = 0;
     public int MaxPlayersCount { get; set; } = 6;

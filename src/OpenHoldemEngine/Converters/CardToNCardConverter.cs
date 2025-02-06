@@ -1,6 +1,6 @@
 ﻿global using NCard = NPokerEngine.Types.Card;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OpenHoldemEngine.Primitives;
+using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Converters;
 internal class CardToNCardConverter : ValueConverter<Card, NCard>

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OpenHoldemEngine.Primitives;
+using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Converters;
 internal class StreetToNPokerStreetConverter : ValueConverter<Street, NPokerStreet>

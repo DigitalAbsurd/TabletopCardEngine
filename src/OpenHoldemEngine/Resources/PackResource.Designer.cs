@@ -70,6 +70,15 @@ namespace OpenHoldemEngine.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The game with passed Id already exists .
+        /// </summary>
+        internal static string HoldemValidation_GameAlreadyExists {
+            get {
+                return ResourceManager.GetString("HoldemValidation_GameAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The previous hand is not completed.
         /// </summary>
         internal static string HoldemValidation_PreviousHandNotEnded {
