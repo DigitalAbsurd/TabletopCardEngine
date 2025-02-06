@@ -1,6 +1,6 @@
 ﻿using OpenHoldemEngine.Converters;
 
-namespace OpenHoldemEngine.Primitives;
+namespace OpenHoldemEngine.Data;
 
 public record Card
 {

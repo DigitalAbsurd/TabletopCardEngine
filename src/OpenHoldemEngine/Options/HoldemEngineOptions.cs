@@ -11,7 +11,7 @@ public class HoldemEngineOptions
     internal static HoldemEngineOptions Instance
         => _instance ??= new();
 
-    public IDbContextFactory<HoldemDbContext> DbContextFactory { get; internal set; } = null!;
-    public HoldemEngineSettings Settings { get; internal set; } = new();
-    public ICardShuffler? CardShuffler { get; internal set; } = default;
+    internal IDbContextFactory<HoldemDbContext> DbContextFactory { get; set; } = null!;
+    internal HoldemEngineSettings Settings { get; set; } = new();
+    internal ICardShuffler? CardShuffler { get; set; } = default;
 }

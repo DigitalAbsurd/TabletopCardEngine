@@ -13,7 +13,7 @@ internal static class HoldemDbContextExtensions
 
         if (game == default)
         {
-            return context.Add(new Game { Id = gameId }).Entity;
+            return context.Add(new Game() { Id = Guid.Empty }).Entity;
         }
 
         var currentHand = game.GetCurrentHand();

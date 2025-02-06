@@ -1,6 +1,6 @@
 ﻿namespace OpenHoldemEngine.Data;
 
-public class HandPlayerStartState
+internal class HandPlayerStartState
 {
     public Guid GameId { get; set; }
     public int HandNo { get; set; }

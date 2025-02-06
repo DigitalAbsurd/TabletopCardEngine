@@ -1,8 +1,8 @@
 ﻿global using NAmountInterval = NPokerEngine.Types.AmountInterval;
 
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
-using OpenHoldemEngine.Primitives;
 
 namespace OpenHoldemEngine.Converters;
 internal class NPossibleActionsToActionsDataConverter :

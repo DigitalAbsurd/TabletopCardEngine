@@ -29,17 +29,17 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                 switch (nPossibleAction.possibleAction)
                 {
                     case NPokerActionType.FOLD:
-                        evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Fold));
+                        evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Fold));
                         break;
                     case NPokerActionType.CALL:
                         var callValue = (decimal)(nPossibleAction.amountInterval.Value - playerCurrentStreetAmount);
                         if (MoreThanZero(callValue))
                         {
-                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Call, callValue, callValue));
+                            evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Call, callValue, callValue));
                         }
                         else
                         {
-                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Check));
+                            evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Check));
                         }
                         break;
                     case NPokerActionType.RAISE:
@@ -47,13 +47,13 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                         var minRaiseValue = (decimal)(nPossibleAction.amountInterval.Value - playerCurrentStreetAmount);
                         if (MoreThanZero(minRaiseValue) && MoreThanZero(maxRaiseValue) && maxRaiseValue >= minRaiseValue)
                         {
-                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Raise, minRaiseValue, maxRaiseValue));
+                            evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, minRaiseValue, maxRaiseValue));
                         }
                         else
                         {
                             //AllIn always allowed
                             var allInValue = (decimal)(enginePlayer.Stack);
-                            evaluations.Add(new PlayerActionEvaluationData(Primitives.PlayerActionType.Raise, allInValue, allInValue));
+                            evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInValue, allInValue));
                         }
                         break;
                     default:

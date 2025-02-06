@@ -1,8 +1,6 @@
-﻿using OpenHoldemEngine.Primitives;
+﻿namespace OpenHoldemEngine.Data;
 
-namespace OpenHoldemEngine.Data;
-
-public class HandHoleCard
+internal class HandHoleCard
 {
     public Guid GameId { get; set; }
     public int HandNo { get; set; }

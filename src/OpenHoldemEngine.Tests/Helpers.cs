@@ -1,5 +1,5 @@
-﻿using OpenHoldemEngine.DTO;
-using OpenHoldemEngine.Primitives;
+﻿using OpenHoldemEngine.Data;
+using OpenHoldemEngine.DTO;
 
 using NHandRankType = NPokerEngine.Types.HandRankType;
 

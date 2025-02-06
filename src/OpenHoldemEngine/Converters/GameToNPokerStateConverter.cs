@@ -7,7 +7,6 @@ global using NPokerStreet = NPokerEngine.Types.StreetType;
 global using NPokerTable = NPokerEngine.Types.Table;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.Primitives;
 
 namespace OpenHoldemEngine.Converters;
 internal class GameToNPokerStateConverter : ValueConverter<Game, NPokerState>

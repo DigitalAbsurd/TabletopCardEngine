@@ -1,6 +1,6 @@
 ﻿namespace OpenHoldemEngine.Data;
 
-public class Player
+internal class Player
 {
     public Guid GameId { get; set; }
     public Game Game { get; set; } = new();

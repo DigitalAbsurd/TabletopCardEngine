@@ -1,12 +1,12 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
+using FluentResults;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
 using OpenHoldemEngine.Options;
-using OpenHoldemEngine.Primitives;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -14,7 +14,7 @@ namespace OpenHoldemEngine.Tests;
 public sealed class HoldemEngineTests
 {
     [TestMethod]
-    public async Task ApplyHoldemActionAsync_StartGame()
+    public async Task HoldemAction_StartGame()
     {
         var gameId = Guid.Parse("{11111111-1111-1111-1111-111111111111}");
         var gameOptions = new GameOptionData(
@@ -85,7 +85,7 @@ public sealed class HoldemEngineTests
                 SmallBlindSeatNo: 4,
                 BigBlindSeatNo: 5,
                 NextPlayerSeatNo: 6,
-                Street: Primitives.Street.PreFlop,
+                Street: Street.PreFlop,
                 StreetPot: 15,
                 Pot: 15,
                 CommunityCards: Array.Empty<Card>(),
@@ -114,7 +114,37 @@ public sealed class HoldemEngineTests
                 })).Value;
         }
 
-        expectedGameData.ShouldAsJToken().BeEquivalentToAsJToken(actualGameData);
+        actualGameData.ShouldAsJToken().BeEquivalentToAsJToken(expectedGameData);
+    }
+
+    [TestMethod]
+    public async Task HoldemAction_StartGame_ValidationAlreadyExists()
+    {
+        var gameId = Guid.Parse("{11111111-1111-1111-1111-111111111111}");
+        var gameOptions = new GameOptionData(
+                MaxPlayersCount: 10,
+                InitialSmallBlind: 5,
+                InitialDealerSeatNo: 3,
+                AllowRebuy: true,
+                MaxHandsCount: 1000,
+                AutoIncrementsHands: 5);
+
+        Result<GameData> failResult;
+
+        using (SetupHoldemEngineServices(out var holdemEngine, out _))
+        {
+            await holdemEngine.ApplyHoldemActionAsync(
+                new HoldemActionCreateGame(
+                    GameId: gameId,
+                    Options: gameOptions));
+
+            failResult = await holdemEngine.ApplyHoldemActionAsync(
+                new HoldemActionCreateGame(
+                    GameId: gameId,
+                    Options: gameOptions));
+        }
+
+        failResult.IsFailed.Should().BeTrue();
     }
 
     [TestMethod]

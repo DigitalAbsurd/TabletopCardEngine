@@ -1,4 +1,4 @@
-﻿using OpenHoldemEngine.Primitives;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.DTO;
 
