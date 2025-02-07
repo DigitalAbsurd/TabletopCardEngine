@@ -5,7 +5,7 @@ namespace OpenHoldemEngine.Data;
 
 internal class Game
 {
-    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)] 
+    [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid Id { get; set; }
     public decimal InitialSmallBlind { get; set; } = 1;
     public int AutoIncrementHands { get; set; } = 0;
