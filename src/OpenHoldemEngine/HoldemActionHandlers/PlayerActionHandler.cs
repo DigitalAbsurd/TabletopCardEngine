@@ -16,7 +16,7 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
 
     internal async override Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
-        if (CheckIfCurrentHandEnded())
+        if (game.IsCurrentHandEnded())
         {
             return Result.Fail(PackResource.HoldemValidation_CurrentHandEnded);
         }
@@ -95,9 +95,6 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
         }
 
         return Result.Ok();
-
-        bool CheckIfCurrentHandEnded()
-            => game.GetCurrentHand().PlayerEndStates.Any();
 
         decimal CalculateBetAmount()
             => holdemAction.ActionType switch

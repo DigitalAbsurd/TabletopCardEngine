@@ -13,7 +13,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
 
     internal override async Task<Result> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
     {
-        if (!CheckIsPreviousHandEnded())
+        if (!game.IsCurrentHandEnded())
         {
             return Result.Fail(PackResource.HoldemValidation_PreviousHandNotEnded);
         }
@@ -71,14 +71,8 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
                 var ll = new LinkedList<byte>(startHandData.JoinSeats.Select(t => t.SeatNo));
                 dealerPreviousHandSeatNo = ll.Find(game.InitialDealerSeatNo)?.Previous?.Value ?? ll.Last!.Value;
             }
-
-            nPokerState.Table.GetType()
-                .GetField("_dealerButton", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-                .SetValue(nPokerState.Table, dealerPreviousHandSeatNo - 1);
+            nPokerState.Table.SetButtonPosition(dealerPreviousHandSeatNo - 1);
         }
-
-        bool CheckIsPreviousHandEnded()
-            => game.GetCurrentHand().No == 0 || game.GetCurrentHand().PlayerEndStates.Any();
 
         async Task<IEnumerable<Card>?> GetShuffledHoleCards()
         {

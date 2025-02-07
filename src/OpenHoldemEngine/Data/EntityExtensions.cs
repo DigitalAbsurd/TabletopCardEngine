@@ -169,6 +169,9 @@ internal static class EntityExtensions
     internal static void AddHandEndStates(this Game game, IEnumerable<HandPlayerEndState> handPlayerEndStates)
         => game.GetCurrentHand().PlayerEndStates.AddRange(handPlayerEndStates);
 
+    internal static bool IsCurrentHandEnded(this Game game)
+        => game.GetCurrentHand().No == 0 || game.GetCurrentHand().PlayerEndStates.Any();
+
     internal static NPokerEmulator GetEmulator(this Game game)
     {
         var nEmulator = new NPokerEngine.Emulator();
