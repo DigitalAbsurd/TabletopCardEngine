@@ -8,4 +8,7 @@ internal class HandPlayerEndState
     public byte SeatNo { get; set; }
     public decimal FinishStack { get; set; }
     public decimal WinAmount { get; set; }
+    public uint Strength { get; set; }
+    public HandRankType RankType { get; set; }
+    public string Description { get; set; } = string.Empty;
 }

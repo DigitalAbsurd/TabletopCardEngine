@@ -82,7 +82,14 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                                     .Select(act => new PlayerActionData(act.Street, act.PlayAction, act.Size, act.No))
                                     .LastOrDefault(),
                                 StartRoundStack: currentHand.GetSeatStartStack(t.SeatNo),
-                                Stack: currentHand.GetSeatCurrentStack(t.SeatNo)))
+                                Stack: currentHand.GetSeatCurrentStack(t.SeatNo),
+                                RoundResultData: currentHand.PlayerEndStates
+                                    .Where(hes => hes.SeatNo == t.SeatNo)
+                                    .Select(hes => new HandResultData(
+                                        Net: hes.WinAmount,
+                                        Strength: hes.Strength,
+                                        RankType: hes.RankType))
+                                    .SingleOrDefault()))
                             .ToArray(),
                     DealerSeatNo: currentHand.DealerSeatNo,
                     SmallBlindSeatNo: sbSeatNo,
