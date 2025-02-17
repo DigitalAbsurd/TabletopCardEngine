@@ -94,5 +94,9 @@ internal class HoldemDbContext : DbContext
         modelBuilder.Entity<HandAction>()
             .Property(e => e.PlayAction)
             .HasConversion<string>();
+
+        modelBuilder.Entity<HandPlayerEndState>()
+            .Property(e => e.RankType)
+            .HasConversion<string>();
     }
 }

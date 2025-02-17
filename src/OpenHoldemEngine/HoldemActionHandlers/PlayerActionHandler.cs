@@ -13,6 +13,7 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
     private static readonly StreetToNPokerStreetConverter _streetToNPokerStreetConverter = new();
     private static readonly CardToNCardConverter _cardToNCardConverter = new();
     private static readonly HandActionTypeToNPokerTypeConverter _handActionTypeConverter = new();
+    private static readonly CardToStringConverter _cardToStringConverter = new();
 
     internal async override Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
@@ -73,6 +74,12 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
                 playersRoundBets[betGroup.Key.SeatNo] += betGroup.Max(g => g.Amount);
             }
 
+            var playerHands = hand.PlayerStartStates
+                .ToDictionary(k => k.SeatNo,
+                v => new HoldemHand.Hand(
+                    pocket: string.Join(" ", game.GetCurrentHand().GetSeatHoleCards(v.SeatNo)!.Select(c => _cardToStringConverter.ConvertTo<string>(c))),
+                    board: string.Join(" ", game.GetCurrentHand().GetDeckCards().Take((int)gameData.HandData.Street).Select(c => _cardToStringConverter.ConvertTo<string>(c)))));
+
             var handEndStates = hand.PlayerStartStates.Select(pss =>
             {
                 var finishRoundStack = pss.StartStack;
@@ -87,7 +94,9 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
                     Hand = hand,
                     SeatNo = pss.SeatNo,
                     FinishStack = finishRoundStack,
-                    WinAmount = finishRoundStack - pss.StartStack
+                    WinAmount = finishRoundStack - pss.StartStack,
+                    Strength = playerHands[pss.SeatNo].HandValue,
+                    RankType = Enum.TryParse<Data.HandRankType>(playerHands[pss.SeatNo].HandTypeValue.ToString(), out var rankType) ? rankType : Data.HandRankType.None
                 };
                 return hes;
             });

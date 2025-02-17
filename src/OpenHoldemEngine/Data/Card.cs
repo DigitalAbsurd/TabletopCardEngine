@@ -11,4 +11,7 @@ public record Card
 
     public override string ToString()
         => _cardToStringConverter.ConvertTo<string>(this);
+
+    public static Card FromString(string cardStr)
+        => _cardToStringConverter.ConvertFrom<Card>(cardStr);
 }

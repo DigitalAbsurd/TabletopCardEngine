@@ -7,7 +7,7 @@ namespace OpenHoldemEngine;
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddHoldemEngine(this IServiceCollection services,
-        Action<DbContextOptionsBuilder>? dbOptionsAction = null,
+        Action<DbContextOptionsBuilder> dbOptionsAction,
         Action<HoldemEngineOptionsBuilder>? configure = null)
     {
         var optionsBuilder = new HoldemEngineOptionsBuilder();
@@ -24,6 +24,8 @@ public static class ServiceCollectionExtensions
                 servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
             return new HoldemEngine(optionsBuilder.Options);
         });
+
+        global::NPokerEngine.Engine.HandEvaluatorResolver.Register(HandEvaluator.Instance);
         return services;
     }
 }

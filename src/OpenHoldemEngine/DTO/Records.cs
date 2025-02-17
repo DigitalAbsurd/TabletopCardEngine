@@ -7,7 +7,7 @@ public record GameOptionData(int MaxPlayersCount = 6, decimal InitialSmallBlind 
 public record PlayerJoinData(string Name, byte SeatNo, decimal BuyInAmount);
 public record BuyInData(byte SeatNo, decimal Amount);
 public record PlayerActionEvaluationData(PlayerActionType PlayerActionType, decimal MinValue = 0, decimal MaxValue = 0);
-public record HandResultData(bool IsWinner, decimal WinSize, decimal Net, string HandTypeCode, int HandStrength, string HandDescription, bool Folded = false);
+public record HandResultData(decimal Net, uint Strength, Data.HandRankType RankType, string? Description = null);
 #endregion
 
 #region CONTEXTS
@@ -31,13 +31,25 @@ public record HandData(int No, SeatData[] Seats, byte DealerSeatNo, byte SmallBl
     public PlayerActionData GetLastAction() => Seats.Where(s => s.LastAction is not null).Select(s => s.LastAction!).OrderBy(act => act.No).Last();
     internal decimal GetEvalMinValue(PlayerActionType actionType) => Evaluations.Single(ev => ev.PlayerActionType == actionType).MinValue;
     internal decimal GetEvalMaхValue(PlayerActionType actionType) => Evaluations.Single(ev => ev.PlayerActionType == actionType).MaxValue;
-    public bool IsFinishedWithShowdown => Street == Street.Finished && Seats.Where(p => p.RoundResultData != null && !p.RoundResultData.Folded && p.LastAction != null && p.LastAction != null).Count() > 1;
 };
 public record GameData(Guid GameId, GameOptionData Options, HandData HandData);
 #endregion
 
 #region HOLDEM_ACTIONS
-public abstract record HoldemAction(Guid GameId);
+public abstract record HoldemAction(Guid GameId)
+{
+    public static HoldemActionCreateGame CreateCreateGameDto(GameOptionData optionData, Guid? gameId)
+        => new HoldemActionCreateGame(gameId ?? Guid.NewGuid(), optionData);
+
+    public static HoldemActionStartHand CreateStartGameDto(Guid gameId, PlayerJoinData[] joinSeats)
+        => new HoldemActionStartHand(gameId) { JoinSeats = joinSeats };
+
+    public static HoldemActionStartHand CreateStartNextHandDto(Guid gameId)
+        => new HoldemActionStartHand(gameId);
+
+    public static HoldemActionPlayerAction CreatePlayerActionDto(Guid gameId, PlayerActionType actionType, decimal size = 0)
+        => new HoldemActionPlayerAction(gameId, actionType, size);
+};
 public record HoldemActionGetGame(Guid GameId) : HoldemAction(GameId);
 public record HoldemActionCreateGame(Guid GameId, GameOptionData Options) : HoldemAction(GameId);
 public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : HoldemAction(GameId);
