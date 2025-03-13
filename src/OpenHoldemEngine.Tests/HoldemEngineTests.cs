@@ -186,21 +186,21 @@ public sealed class HoldemEngineTests
                     if (CorrectButtonIfNeeded(dbContextFactory))
                         gameData = (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionGetGame(gameId))).Value;
 
-                    foreach (var startStackItem in emulatedHand.StartStacks)
+                    foreach (var startStackExpectedItem in emulatedHand.StartStacks)
                     {
-                        startStackItem.Value.Should()
-                            .Be(gameData.HandData.Seats.Single(seat => seat.SeatNo == startStackItem.Key).StartRoundStack,
-                            because: $"{emulatedGame.GetNameBySeatNo(startStackItem.Key)} SeatNo:{startStackItem.Key} StartStack assert");
+                        var actualSeatStartStack = gameData.HandData.Seats.Single(seat => seat.SeatNo == startStackExpectedItem.Key).StartRoundStack;
+                        actualSeatStartStack.Should().Be(startStackExpectedItem.Value,
+                            because: $"{emulatedGame.GetNameBySeatNo(startStackExpectedItem.Key)} SeatNo:{startStackExpectedItem.Key} StartStack assert");
                     }
 
-                    emulatedHand.ButtonSeatNo.Should().Be(gameData.HandData.DealerSeatNo,
-                        because: $"Button expected {emulatedHand.ButtonSeatNo}, actual {gameData.HandData.DealerSeatNo}");
+                    gameData.HandData.DealerSeatNo.Should().Be(emulatedHand.ButtonSeatNo,
+                        because: $"Button seat shoud match");
 
-                    emulatedHand.SmallBlindSeatNo.Should().Be(gameData.HandData.SmallBlindSeatNo,
-                        because: $"SB expected {emulatedHand.SmallBlindSeatNo}, actual {gameData.HandData.SmallBlindSeatNo}");
+                    gameData.HandData.SmallBlindSeatNo.Should().Be(emulatedHand.SmallBlindSeatNo,
+                        because: $"SB seat shoud match");
 
-                    emulatedHand.BigBlindSeatNo.Should().Be(gameData.HandData.BigBlindSeatNo,
-                        because: $"BB expected {emulatedHand.BigBlindSeatNo}, actual {gameData.HandData.BigBlindSeatNo}");
+                    gameData.HandData.BigBlindSeatNo.Should().Be(emulatedHand.BigBlindSeatNo,
+                        because: $"BB seat shoud match");
 
                     foreach (var emulatedAction in emulatedHand.ActionStack)
                     {
@@ -209,24 +209,24 @@ public sealed class HoldemEngineTests
                         //emulatedAction.SeatNo = 0 means that parsed PAP action section is fold groups (ex. 2 folds)
                         if (emulatedAction.SeatNo != 0)
                         {
-                            emulatedAction.SeatNo.Should().Be(gameData.HandData.NextPlayerSeatNo,
-                                because: $"{scopeContext} SeatNo expected {emulatedAction.SeatNo}, actual {gameData.HandData.NextPlayerSeatNo}");
+                            gameData.HandData.NextPlayerSeatNo.Should().Be(emulatedAction.SeatNo,
+                                because: $"{scopeContext} SeatNo for action should match");
                         }
 
-                        var prevGameData = gameData with { };
+                        var prevActionStreet = gameData.HandData.Street;
 
                         gameData = (await holdemEngine.ApplyHoldemActionAsync(
                                 new HoldemActionPlayerAction(gameId, emulatedAction.ActionType, emulatedAction.Size))).Value;
 
                         var handLastAction = gameData.HandData.GetLastAction();
-                        emulatedAction.Street.Should().Be(handLastAction.Street,
-                            because: $"{scopeContext} Street expected {emulatedAction.SeatNo}, actual {handLastAction.Street}");
+                        handLastAction.Street.Should().Be(emulatedAction.Street,
+                            because: $"{scopeContext} Street should match");
 
-                        if (prevGameData.HandData.Street != gameData.HandData.Street &&
+                        if (prevActionStreet != gameData.HandData.Street &&
                             emulatedHand.StreetStartPots.ContainsKey(gameData.HandData.Street))
                         {
-                            emulatedHand.StreetStartPots[gameData.HandData.Street].Should().Be(gameData.HandData.Pot,
-                                because: $"{scopeContext} Pot at {gameData.HandData.Street} expected {emulatedHand.StreetStartPots[gameData.HandData.Street]}, actual {gameData.HandData.Pot}");
+                            gameData.HandData.Pot.Should().Be(emulatedHand.StreetStartPots[gameData.HandData.Street],
+                                because: $"{scopeContext} Pot at {gameData.HandData.Street} should match");
                         }
                     }
                 }
