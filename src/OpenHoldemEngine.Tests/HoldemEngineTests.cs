@@ -87,7 +87,7 @@ public sealed class HoldemEngineTests
                 NextPlayerSeatNo: 6,
                 Street: Street.PreFlop,
                 StreetPot: 15,
-                Pot: 15,
+                Pot: 0,
                 CommunityCards: Array.Empty<Card>(),
                 Evaluations: new PlayerActionEvaluationData[]
                 {
@@ -213,12 +213,21 @@ public sealed class HoldemEngineTests
                                 because: $"{scopeContext} SeatNo expected {emulatedAction.SeatNo}, actual {gameData.HandData.NextPlayerSeatNo}");
                         }
 
+                        var prevGameData = gameData with { };
+
                         gameData = (await holdemEngine.ApplyHoldemActionAsync(
                                 new HoldemActionPlayerAction(gameId, emulatedAction.ActionType, emulatedAction.Size))).Value;
 
                         var handLastAction = gameData.HandData.GetLastAction();
                         emulatedAction.Street.Should().Be(handLastAction.Street,
                             because: $"{scopeContext} Street expected {emulatedAction.SeatNo}, actual {handLastAction.Street}");
+
+                        if (prevGameData.HandData.Street != gameData.HandData.Street &&
+                            emulatedHand.StreetStartPots.ContainsKey(gameData.HandData.Street))
+                        {
+                            emulatedHand.StreetStartPots[gameData.HandData.Street].Should().Be(gameData.HandData.Pot,
+                                because: $"{scopeContext} Pot at {gameData.HandData.Street} expected {emulatedHand.StreetStartPots[gameData.HandData.Street]}, actual {gameData.HandData.Pot}");
+                        }
                     }
                 }
             }
