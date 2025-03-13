@@ -60,11 +60,17 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                         throw new NotImplementedException($"{nPossibleAction.possibleAction}");
                 }
             }
-            //evaluations = _nPossibleActionsToActionsData.ConvertTo<PlayerActionEvaluationData[]>(nPossibleActions);
         }
 
         var currentHand = game.GetCurrentHand();
         currentHand.TryGetBlindSeats(out var sbSeatNo, out var bbSeatNo);
+
+        var lastHandAction = currentHand.GetLastAction();
+
+        var playersRoundAmounts = currentHand.Actions
+            .GroupBy(g => new { g.Street, g.SeatNo })
+            .Select(g => new { g.Key.Street, g.Key.SeatNo, Amount = g.Max(t => t.Amount) })
+            .ToList();
 
         return new GameData(
             GameId: game.Id,
@@ -95,9 +101,9 @@ internal class GameToGameDataConverter : ValueConverter<Game, GameData>
                     SmallBlindSeatNo: sbSeatNo,
                     BigBlindSeatNo: bbSeatNo,
                     NextPlayerSeatNo: (byte)(nPokerState.NextPlayerIx + 1),
-                    Street: currentHand.GetLastAction().NextStreet,
-                    StreetPot: currentHand.GetCurrentStreetPot(),
-                    Pot: currentHand.GetPot(),
+                    Street: lastHandAction.NextStreet,
+                    StreetPot: playersRoundAmounts.Where(g => g.Street == lastHandAction.Street).Select(g => g.Amount).Sum(),
+                    Pot: playersRoundAmounts.Where(g => g.Street != lastHandAction.NextStreet).Select(g => g.Amount).Sum(),
                     CommunityCards: currentHand.GetDeckCards().ToArray(),
                     Evaluations: evaluations.ToArray()) :
                 default(HandData)!);

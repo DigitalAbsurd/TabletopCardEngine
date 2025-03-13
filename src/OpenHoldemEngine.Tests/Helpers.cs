@@ -76,6 +76,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
             }
             papHandData.Winners = parsedHand.winners.Select(w => papGameData.PlayersMap[w]).ToArray();
             papHandData.HoleCards = parsedHand.handResults.ToDictionary(res => papGameData.PlayersMap[res.Item1], res => new Card[] { res.hole1, res.hole2 });
+            papHandData.StreetStartPots = parsedHand.streetStartPots;
             papHandData.FinalPot = parsedHand.finalPot;
             papHandData.HandResults = parsedHand.handResults.Select(res =>
             new PapHandResultData
@@ -104,21 +105,22 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
         return papGameData;
 
         (Dictionary<string, decimal> startStacks, string button, Dictionary<string, decimal> blinds,
-            Dictionary<Street, List<Card>> communityCards, List<(string, PlayerActionData)> actionsStack, decimal finalPot,
-            List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners)
+            Dictionary<Street, List<Card>> communityCards, List<(string, PlayerActionData)> actionsStack, Dictionary<Street, decimal> streetStartPots,
+            decimal finalPot, List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners)
             ParseHandLog(string[] handLog)
         {
             bool playersStartStacksReaded = false;
             int actionNum = 0;
             Street? currentStreet = null;
             (Dictionary<string, decimal> startStacks, string button, Dictionary<string, decimal> blinds,
-                Dictionary<Street, List<Card>> communityCards, List<(string, PlayerActionData)> actionsStack, decimal finalPot,
-                List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners) parsed =
+                Dictionary<Street, List<Card>> communityCards, List<(string, PlayerActionData)> actionsStack, Dictionary<Street, decimal> streetStartPots, 
+                decimal finalPot, List<(string, decimal, Card hole1, Card hole2, NHandRankType? handRankType)> handResults, List<string> winners) parsed =
                 (startStacks: new(),
                 button: string.Empty,
                 blinds: new(),
                 communityCards: new(),
                 actionsStack: new(),
+                streetStartPots: new(),
                 finalPot: 0,
                 handResults: new(),
                 winners: new());
@@ -163,18 +165,21 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
                 if (logItem.StartsWith("Flop:"))
                 {
                     currentStreet = Street.Flop;
+                    parsed.streetStartPots[Street.Flop] = ParseStartStreetPot(logItem);
                     ParseCommunityCards(currentStreet.Value, logItem.Replace("Flop:", ""));
                     continue;
                 }
                 if (logItem.StartsWith("Turn:"))
                 {
                     currentStreet = Street.Turn;
+                    parsed.streetStartPots[Street.Turn] = ParseStartStreetPot(logItem);
                     ParseCommunityCards(currentStreet.Value, logItem.Replace("Turn:", ""));
                     continue;
                 }
                 if (logItem.StartsWith("River:"))
                 {
                     currentStreet = Street.River;
+                    parsed.streetStartPots[Street.River] = ParseStartStreetPot(logItem);
                     ParseCommunityCards(currentStreet.Value, logItem.Replace("River:", ""));
                     continue;
                 }
@@ -245,6 +250,17 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
                         .Select(ParseCard)
                         .ToList();
                 //.ForEach(parsed.communityCards.Add);
+            }
+
+            decimal ParseStartStreetPot(string logItem)
+            {
+                decimal streetStartPot = 0;
+                var potPart = logItem.Split(";").FirstOrDefault(prt => prt.Contains("(") && prt.Contains(")"));
+                if (potPart != default)
+                {
+                    streetStartPot = ParseDecimalFromString(potPart.Split(",").First());
+                }
+                return streetStartPot;
             }
 
             Card ParseCard(string cardStr)
@@ -362,6 +378,7 @@ Oliver Chips, Folded Preflop, has 6&diams; J&hearts;
         public byte SmallBlindSeatNo { get; set; }
         public byte BigBlindSeatNo { get; set; }
         public decimal FinalPot { get; set; }
+        public Dictionary<Street, decimal> StreetStartPots { get; set; } = new();
         public Dictionary<byte, decimal> StartStacks { get; set; } = new();
         public Dictionary<Street, Card[]> DeckCards { get; set; } = new();
         public Dictionary<byte, Card[]> HoleCards { get; set; } = new();
