@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <!--
-      Файл документации генерируется только чтобы включить IDE0005 (лишние using) при сборке;
-      сами доки на тестовых классах не нужны, поэтому CS1591/CS1573 глушатся.
+      The documentation file is generated only to enable IDE0005 (unnecessary using) at build time;
+      docs on the test classes themselves aren't needed, so CS1591/CS1573 are suppressed.
     -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>

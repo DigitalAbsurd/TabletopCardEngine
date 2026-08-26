@@ -1,17 +1,17 @@
-# Единый источник правды по стилю кода OpenHoldemEngine.
+# Single source of truth for OpenHoldemEngine code style.
 #
-# Правила проверяются при сборке: Directory.Build.props включает
-# EnforceCodeStyleInBuild (правила IDExxxx), NetAnalyzers (CAxxxx) и
-# TreatWarningsAsErrors, поэтому всё, что помечено ниже как `warning`,
-# останавливает `dotnet build`.
+# Rules are checked at build time: Directory.Build.props enables
+# EnforceCodeStyleInBuild (IDExxxx rules), NetAnalyzers (CAxxxx) and
+# TreatWarningsAsErrors, so anything marked below as `warning`
+# stops `dotnet build`.
 #
-# Автоисправление:      dotnet format OpenHoldemEngine.sln
-# Проверка без правок:  dotnet format OpenHoldemEngine.sln --verify-no-changes
+# Auto-fix:            dotnet format OpenHoldemEngine.sln
+# Verify without fix:  dotnet format OpenHoldemEngine.sln --verify-no-changes
 
 root = true
 
 #############################################
-# Базовые опции EditorConfig для всех файлов
+# Base EditorConfig options for all files
 #############################################
 
 [*]
@@ -26,7 +26,7 @@ trim_trailing_whitespace = true
 indent_size = 2
 
 [*.md]
-# В Markdown два пробела в конце строки — значащий перенос.
+# In Markdown, two trailing spaces are a meaningful line break.
 trim_trailing_whitespace = false
 
 #############################################
@@ -36,32 +36,32 @@ trim_trailing_whitespace = false
 [*.cs]
 charset = utf-8-bom
 
-#### Организация using-директив ####
+#### using directive organization ####
 
 dotnet_separate_import_directive_groups = false
 dotnet_sort_system_directives_first = false
 file_header_template = unset
 
-#### this. и Me. ####
+#### this. and Me. ####
 
 dotnet_style_qualification_for_event = false:warning
 dotnet_style_qualification_for_field = false:warning
 dotnet_style_qualification_for_method = false:warning
 dotnet_style_qualification_for_property = false:warning
 
-#### Ключевые слова языка вместо типов BCL ####
+#### Language keywords instead of BCL types ####
 
 dotnet_style_predefined_type_for_locals_parameters_members = true:warning
 dotnet_style_predefined_type_for_member_access = true:warning
 
-#### Скобки ####
+#### Parentheses ####
 
 dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
 dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
 
-#### Модификаторы ####
+#### Modifiers ####
 
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:warning
@@ -71,7 +71,7 @@ csharp_style_prefer_readonly_struct = true:suggestion
 csharp_style_prefer_readonly_struct_member = true:suggestion
 dotnet_style_readonly_field = true:warning
 
-#### Выражения ####
+#### Expressions ####
 
 dotnet_prefer_system_hash_code = true:suggestion
 dotnet_style_coalesce_expression = true:suggestion
@@ -93,26 +93,26 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_prefer_simplified_boolean_expressions = true:suggestion
 dotnet_style_prefer_simplified_interpolation = true:suggestion
 
-#### Неиспользуемый код ####
+#### Unused code ####
 
 dotnet_code_quality_unused_parameters = all:warning
 dotnet_remove_unnecessary_suppression_exclusions = none
 
-#### Пустые строки ####
+#### Blank lines ####
 
 dotnet_style_allow_multiple_blank_lines_experimental = false:suggestion
 dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
 
 #### var ####
-# Код повсеместно использует var; правило оставлено как стилистический выбор,
-# а не как нарушение — оба варианта допустимы.
+# The code uses var throughout; the rule is left as a stylistic choice,
+# not a violation — both forms are allowed.
 
 csharp_style_var_elsewhere = true:silent
 csharp_style_var_for_built_in_types = true:silent
 csharp_style_var_when_type_is_apparent = true:silent
 
-#### Члены-выражения (=>) ####
-# Используются повсеместно (весь Data/EntityExtensions.cs) — разрешены, но не навязаны.
+#### Expression-bodied members (=>) ####
+# Used throughout (all of Data/EntityExtensions.cs) — allowed, but not enforced.
 
 csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_constructors = false:silent
@@ -123,7 +123,7 @@ csharp_style_expression_bodied_methods = when_on_single_line:silent
 csharp_style_expression_bodied_operators = when_on_single_line:silent
 csharp_style_expression_bodied_properties = true:silent
 
-#### Сопоставление с образцом ####
+#### Pattern matching ####
 
 csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
@@ -133,7 +133,7 @@ csharp_style_prefer_pattern_matching = true:silent
 csharp_style_prefer_switch_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:suggestion
 
-#### Блоки кода ####
+#### Code blocks ####
 
 csharp_prefer_braces = true:warning
 csharp_prefer_simple_using_statement = true:suggestion
@@ -144,7 +144,7 @@ csharp_style_prefer_primary_constructors = true:suggestion
 csharp_style_prefer_top_level_statements = true:silent
 csharp_using_directive_placement = outside_namespace:warning
 
-#### Выражения уровня C# ####
+#### C#-level expressions ####
 
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_deconstructed_variable_declaration = true:suggestion
@@ -160,7 +160,7 @@ csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
-#### Пустые строки (C#) ####
+#### Blank lines (C#) ####
 
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true:silent
 csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = true:silent
@@ -169,10 +169,10 @@ csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:s
 csharp_style_allow_embedded_statements_on_same_line_experimental = true:silent
 
 #############################################
-# Форматирование C# (зонтичное правило IDE0055)
+# C# formatting (umbrella rule IDE0055)
 #############################################
 
-# Переносы строк
+# Line breaks
 csharp_new_line_before_catch = true
 csharp_new_line_before_else = true
 csharp_new_line_before_finally = true
@@ -181,7 +181,7 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_open_brace = all
 csharp_new_line_between_query_expression_clauses = true
 
-# Отступы
+# Indentation
 csharp_indent_block_contents = true
 csharp_indent_braces = false
 csharp_indent_case_contents = true
@@ -189,7 +189,7 @@ csharp_indent_case_contents_when_block = true
 csharp_indent_labels = one_less_than_current
 csharp_indent_switch_labels = true
 
-# Пробелы
+# Spacing
 csharp_space_after_cast = false
 csharp_space_after_colon_in_inheritance_clause = true
 csharp_space_after_comma = true
@@ -213,18 +213,18 @@ csharp_space_between_method_declaration_parameter_list_parentheses = false
 csharp_space_between_parentheses = false
 csharp_space_between_square_brackets = false
 
-# Перенос
+# Wrapping
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = false
 
 #############################################
-# Соглашения об именовании
+# Naming conventions
 #############################################
 #
-# Побеждает ПЕРВОЕ правило, чья группа символов подходит к элементу,
-# поэтому частные случаи (интерфейсы, константы) идут раньше общих.
+# The FIRST rule whose symbol group matches an element wins,
+# so special cases (interfaces, constants) come before general ones.
 
-## Стили
+## Styles
 
 dotnet_naming_style.pascal_case.capitalization = pascal_case
 
@@ -239,7 +239,7 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 dotnet_naming_style.begins_with_t.required_prefix = T
 dotnet_naming_style.begins_with_t.capitalization = pascal_case
 
-## Группы символов
+## Symbol groups
 
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
 dotnet_naming_symbols.interfaces.applicable_accessibilities = *
@@ -272,120 +272,120 @@ dotnet_naming_symbols.parameters.applicable_accessibilities = *
 dotnet_naming_symbols.locals.applicable_kinds = local
 dotnet_naming_symbols.locals.applicable_accessibilities = *
 
-## Правила
+## Rules
 
-# Интерфейсы: ICardShuffler
+# Interfaces: ICardShuffler
 dotnet_naming_rule.interfaces_begin_with_i.symbols = interfaces
 dotnet_naming_rule.interfaces_begin_with_i.style = begins_with_i
 dotnet_naming_rule.interfaces_begin_with_i.severity = error
 
-# Параметры-типы: TResult
+# Type parameters: TResult
 dotnet_naming_rule.type_parameters_begin_with_t.symbols = type_parameters
 dotnet_naming_rule.type_parameters_begin_with_t.style = begins_with_t
 dotnet_naming_rule.type_parameters_begin_with_t.severity = warning
 
-# Константы и члены перечислений: MaxHandsCount, а не MAX_HANDS_COUNT
+# Constants and enum members: MaxHandsCount, not MAX_HANDS_COUNT
 dotnet_naming_rule.constants_are_pascal_case.symbols = constants
 dotnet_naming_rule.constants_are_pascal_case.style = pascal_case
 dotnet_naming_rule.constants_are_pascal_case.severity = warning
 
-# Закрытые поля, включая static readonly: _cards, _suitByChar
+# Private fields, including static readonly: _cards, _suitByChar
 dotnet_naming_rule.private_fields_are_underscore_camel_case.symbols = private_fields
 dotnet_naming_rule.private_fields_are_underscore_camel_case.style = underscore_camel_case
 dotnet_naming_rule.private_fields_are_underscore_camel_case.severity = warning
 
-# Видимые поля: HandEvaluator.Instance, PhhCards.FullDeck
+# Visible fields: HandEvaluator.Instance, PhhCards.FullDeck
 dotnet_naming_rule.visible_fields_are_pascal_case.symbols = visible_fields
 dotnet_naming_rule.visible_fields_are_pascal_case.style = pascal_case
 dotnet_naming_rule.visible_fields_are_pascal_case.severity = warning
 
-# Типы
+# Types
 dotnet_naming_rule.types_are_pascal_case.symbols = types
 dotnet_naming_rule.types_are_pascal_case.style = pascal_case
 dotnet_naming_rule.types_are_pascal_case.severity = warning
 
-# Свойства, события, методы
+# Properties, events, methods
 dotnet_naming_rule.non_field_members_are_pascal_case.symbols = non_field_members
 dotnet_naming_rule.non_field_members_are_pascal_case.style = pascal_case
 dotnet_naming_rule.non_field_members_are_pascal_case.severity = warning
 
-# Локальные функции
+# Local functions
 dotnet_naming_rule.local_functions_are_pascal_case.symbols = local_functions
 dotnet_naming_rule.local_functions_are_pascal_case.style = pascal_case
 dotnet_naming_rule.local_functions_are_pascal_case.severity = warning
 
-# Параметры (в том числе параметры primary-конструкторов и лямбд)
+# Parameters (including primary-constructor and lambda parameters)
 dotnet_naming_rule.parameters_are_camel_case.symbols = parameters
 dotnet_naming_rule.parameters_are_camel_case.style = camel_case
 dotnet_naming_rule.parameters_are_camel_case.severity = warning
 
-# Локальные переменные
+# Local variables
 dotnet_naming_rule.locals_are_camel_case.symbols = locals
 dotnet_naming_rule.locals_are_camel_case.style = camel_case
 dotnet_naming_rule.locals_are_camel_case.severity = warning
 
 #############################################
-# Severity правил, останавливающих сборку
+# Severity of rules that stop the build
 #############################################
 
-# Подчёркивания в именах публичного API.
+# Underscores in public API names.
 #
-# Известное ограничение: правила dotnet_naming_rule подчёркивания НЕ ловят — Roslyn
-# для pascal_case проверяет только регистр первой буквы, поэтому Probe_UnderscoreName
-# и DECIMAL_MIN_PRECISION формально ему соответствуют. Запрет держится на CA1707, а он
-# по умолчанию покрывает только видимые извне члены. Расширить его до internal/private
-# через api_surface = all нельзя: тогда он начинает ругаться на _camelCase-поля, то есть
-# ровно на нашу же конвенцию, а исключить из него поля точечно нечем.
-# Подчёркивания в именах internal- и private-членов остаются на ревью.
+# Known limitation: the dotnet_naming_rule rules do NOT catch underscores — Roslyn's
+# pascal_case check only looks at the case of the first letter, so Probe_UnderscoreName
+# and DECIMAL_MIN_PRECISION formally satisfy it. The ban is carried by CA1707, which
+# by default only covers externally visible members. Widening it to internal/private
+# via api_surface = all is not an option: it then starts flagging _camelCase fields,
+# i.e. exactly our own convention, and there is no way to exclude just those fields.
+# Underscores in internal/private member names are left to review.
 dotnet_diagnostic.CA1707.severity = warning
 
-# Форматирование — зонтичное правило для всех csharp_space_* / csharp_new_line_* / csharp_indent_*
+# Formatting — umbrella rule for all csharp_space_* / csharp_new_line_* / csharp_indent_*
 dotnet_diagnostic.IDE0055.severity = warning
 
-# Именование — проводник для всех dotnet_naming_rule выше
+# Naming — umbrella rule for all dotnet_naming_rule entries above
 dotnet_diagnostic.IDE1006.severity = warning
 
-# Лишние using
+# Unnecessary using
 dotnet_diagnostic.IDE0005.severity = warning
-# Обязательные фигурные скобки
+# Mandatory braces
 dotnet_diagnostic.IDE0011.severity = warning
-# Обязательные модификаторы доступа
+# Mandatory accessibility modifiers
 dotnet_diagnostic.IDE0040.severity = warning
-# Неиспользуемый закрытый член
+# Unused private member
 dotnet_diagnostic.IDE0051.severity = warning
-# Закрытое поле, которому только присваивают
+# Private field that is only assigned to
 dotnet_diagnostic.IDE0052.severity = warning
-# using вне namespace
+# using outside namespace
 dotnet_diagnostic.IDE0065.severity = warning
-# namespace должен совпадать с папкой
+# namespace must match folder
 dotnet_diagnostic.IDE0130.severity = warning
 # file-scoped namespace
 dotnet_diagnostic.IDE0161.severity = warning
 
-# Стилистический выбор, а не нарушение
+# Stylistic choice, not a violation
 dotnet_diagnostic.IDE0007.severity = silent
 dotnet_diagnostic.IDE0008.severity = silent
 dotnet_diagnostic.IDE0022.severity = silent
 dotnet_diagnostic.IDE0058.severity = silent
 
 #############################################
-# Сгенерированный код
+# Generated code
 #############################################
 
 [*.Designer.cs]
 generated_code = true
 
 #############################################
-# Тесты
+# Tests
 #############################################
 #
-# Имена тестовых методов пишутся как Subject_Scenario[_Expected], например
-# HoldemAction_StartGame_ValidationAlreadyExists: подчёркивание здесь несёт смысл.
-# Тестовые классы публичны (этого требует MSTest), поэтому их методы попадают под
-# CA1707 "Identifiers should not contain underscores" — здесь он и выключается.
+# Test method names are written as Subject_Scenario[_Expected], e.g.
+# HoldemAction_StartGame_ValidationAlreadyExists: the underscore carries meaning here.
+# Test classes are public (MSTest requires it), so their methods fall under
+# CA1707 "Identifiers should not contain underscores" — this is where it gets disabled.
 #
-# Шаблон намеренно узкий: он покрывает только файлы *Tests.cs, то есть сами тесты.
-# Хелперы (Phh/*, TestEngineHost, TestCardShuffler) живут по общим правилам.
+# The pattern is deliberately narrow: it only covers *Tests.cs files, i.e. the tests
+# themselves. Helpers (Phh/*, TestEngineHost, TestCardShuffler) follow the general rules.
 
 [**/*Tests.cs]
 

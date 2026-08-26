@@ -1,8 +1,8 @@
 <Project>
 
   <!--
-    Общие настройки сборки для всех проектов репозитория.
-    Правила стиля живут в .editorconfig; здесь только их принудительное применение.
+    Shared build settings for every project in the repository.
+    Style rules live in .editorconfig; this file only enforces them.
   -->
 
   <PropertyGroup>
@@ -11,23 +11,23 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <PropertyGroup Label="Анализ кода">
-    <!-- Правила стиля IDExxxx из .editorconfig проверяются при сборке, а не только в IDE. -->
+  <PropertyGroup Label="Code analysis">
+    <!-- IDExxxx style rules from .editorconfig are checked at build time, not just in the IDE. -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
-    <!-- Правила качества CAxxxx (Microsoft.CodeAnalysis.NetAnalyzers, входят в SDK). -->
+    <!-- CAxxxx quality rules (Microsoft.CodeAnalysis.NetAnalyzers, shipped with the SDK). -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Recommended</AnalysisMode>
 
-    <!-- Билд не проходит при нарушениях линтера. -->
+    <!-- The build fails on linter violations. -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
 
     <!--
-      Точечный клапан для предупреждений, не относящихся к стилю кода
-      (например, NUxxxx от restore). Список должен оставаться пустым или коротким
-      и обоснованным; для правил анализа используйте .editorconfig, а не NoWarn.
+      Targeted escape hatch for warnings unrelated to code style
+      (e.g. NUxxxx from restore). Keep this list empty or short and
+      justified; use .editorconfig for analysis rules, not NoWarn.
     -->
     <WarningsNotAsErrors></WarningsNotAsErrors>
   </PropertyGroup>

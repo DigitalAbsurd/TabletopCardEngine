@@ -1,4 +1,4 @@
-# Нормализация окончаний строк. Исходники репозитория — CRLF (см. .editorconfig).
+# Line-ending normalization. Repository sources are CRLF (see .editorconfig).
 * text=auto
 
 *.cs        text eol=crlf

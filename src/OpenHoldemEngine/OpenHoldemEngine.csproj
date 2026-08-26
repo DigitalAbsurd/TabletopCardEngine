@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <!-- Публичный API документируется обязательно: CS1591 -> ошибка через TreatWarningsAsErrors. -->
+    <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
