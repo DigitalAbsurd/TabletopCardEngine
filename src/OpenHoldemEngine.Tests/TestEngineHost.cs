@@ -30,7 +30,7 @@ internal static class TestEngineHost
         var db3FileName = Environment.GetEnvironmentVariable(Db3FileNameVariable);
         var keepAliveConnection = string.IsNullOrEmpty(db3FileName) ?
             new SqliteConnection("DataSource=:memory:") :
-            default(SqliteConnection);
+            default;
 
         IServiceCollection services = new ServiceCollection();
         services.AddHoldemEngine(
@@ -55,9 +55,14 @@ internal static class TestEngineHost
             configure: opts =>
             {
                 if (configureSettings != null)
+                {
                     opts.WithSettings(configureSettings);
+                }
+
                 if (shuffler != null)
+                {
                     opts.WithCardShuffler(shuffler);
+                }
             }
             );
         var serviceProvider = services.BuildServiceProvider();
@@ -73,12 +78,12 @@ internal static class TestEngineHost
         return new DisposableTestData(serviceProvider, keepAliveConnection);
     }
 
-    private class DisposableTestData(ServiceProvider _serviceProvider, SqliteConnection? _sqliteConnection) : IDisposable
+    private sealed class DisposableTestData(ServiceProvider serviceProvider, SqliteConnection? sqliteConnection) : IDisposable
     {
         public void Dispose()
         {
-            _sqliteConnection?.Dispose();
-            _serviceProvider?.Dispose();
+            sqliteConnection?.Dispose();
+            serviceProvider?.Dispose();
         }
     }
 }

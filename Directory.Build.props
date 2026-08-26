@@ -1,0 +1,35 @@
+<Project>
+
+  <!--
+    Общие настройки сборки для всех проектов репозитория.
+    Правила стиля живут в .editorconfig; здесь только их принудительное применение.
+  -->
+
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Анализ кода">
+    <!-- Правила стиля IDExxxx из .editorconfig проверяются при сборке, а не только в IDE. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Правила качества CAxxxx (Microsoft.CodeAnalysis.NetAnalyzers, входят в SDK). -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+
+    <!-- Билд не проходит при нарушениях линтера. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+
+    <!--
+      Точечный клапан для предупреждений, не относящихся к стилю кода
+      (например, NUxxxx от restore). Список должен оставаться пустым или коротким
+      и обоснованным; для правил анализа используйте .editorconfig, а не NoWarn.
+    -->
+    <WarningsNotAsErrors></WarningsNotAsErrors>
+  </PropertyGroup>
+
+</Project>

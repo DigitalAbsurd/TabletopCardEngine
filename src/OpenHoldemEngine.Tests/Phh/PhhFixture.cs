@@ -34,7 +34,9 @@ internal static class PhhFixture
         get
         {
             if (HandLimit is not { } limit || limit >= Pluribus.Count)
+            {
                 return Pluribus;
+            }
 
             var stride = (int)Math.Ceiling(Pluribus.Count / (double)limit);
             return [.. Pluribus.Where((_, ix) => ix % stride == 0)];
@@ -48,10 +50,14 @@ internal static class PhhFixture
         {
             var configured = Environment.GetEnvironmentVariable(HandLimitVariable);
             if (string.IsNullOrWhiteSpace(configured))
+            {
                 return DefaultHandLimit;
+            }
 
             if (!int.TryParse(configured, out var limit) || limit < 0)
+            {
                 throw new InvalidOperationException($"{HandLimitVariable}='{configured}' is not a non-negative integer");
+            }
 
             return limit == 0 ? null : limit;
         }

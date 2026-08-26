@@ -1,14 +1,15 @@
-using FluentResults;
+﻿using FluentResults;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
+
 internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlayerAction>
 {
-    internal async override Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
+    internal override async Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
         if (game.IsCurrentHandEnded())
         {
@@ -65,8 +66,8 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
                     SeatNo = startState.SeatNo,
                     FinishStack = startState.StartStack + winAmount,
                     WinAmount = winAmount,
-                    Strength = HandEvaluator.Instance.EvaluateStrength(hole, board),
-                    RankType = HandEvaluator.Instance.EvaluateRankType(hole, board),
+                    Strength = HandEvaluator.EvaluateStrength(hole, board),
+                    RankType = HandEvaluator.EvaluateRankType(hole, board),
                 };
             });
             game.AddHandEndStates(handEndStates);
@@ -93,7 +94,7 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
             }
             var deckCards = await HoldemEngineOptions.Instance.CardShuffler
                 .GetDeckCardsAsync(holdemAction.GameId, hand.No);
-            var remaining = deckCards.Except(hand.DeckCards.Select(dc => dc.Card));
+            var remaining = deckCards.Except(hand.DeckCards.Select(deckCard => deckCard.Card));
             return CardDeck.Predetermined(remaining);
         }
     }

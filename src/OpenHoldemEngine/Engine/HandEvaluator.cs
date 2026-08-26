@@ -1,4 +1,4 @@
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 
@@ -10,7 +10,7 @@ internal sealed class HandEvaluator
 {
     internal static readonly HandEvaluator Instance = new();
 
-    private static readonly Dictionary<HoldemHand.Hand.HandTypes, HandRankType> RankTypeByHandType = new()
+    private static readonly Dictionary<HoldemHand.Hand.HandTypes, HandRankType> _rankTypeByHandType = new()
     {
         [HoldemHand.Hand.HandTypes.HighCard] = HandRankType.HighCard,
         [HoldemHand.Hand.HandTypes.Pair] = HandRankType.Pair,
@@ -26,12 +26,12 @@ internal sealed class HandEvaluator
     private HandEvaluator() { }
 
     /// <summary>A single comparable strength value — higher wins. Used to rank hands against each other.</summary>
-    internal uint EvaluateStrength(IReadOnlyList<Card> hole, IReadOnlyList<Card> board)
+    internal static uint EvaluateStrength(IReadOnlyList<Card> hole, IReadOnlyList<Card> board)
         => GetHand(hole, board).HandValue;
 
     /// <summary>The category of hand (pair, flush, ...), for display.</summary>
-    internal HandRankType EvaluateRankType(IReadOnlyList<Card> hole, IReadOnlyList<Card> board)
-        => RankTypeByHandType.TryGetValue(GetHand(hole, board).HandTypeValue, out var rankType)
+    internal static HandRankType EvaluateRankType(IReadOnlyList<Card> hole, IReadOnlyList<Card> board)
+        => _rankTypeByHandType.TryGetValue(GetHand(hole, board).HandTypeValue, out var rankType)
             ? rankType
             : HandRankType.None;
 

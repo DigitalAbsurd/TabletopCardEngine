@@ -1,9 +1,10 @@
 ﻿using FluentResults;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
+
 internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemActionCreateGame>
 {
     internal override Task<Result> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game)

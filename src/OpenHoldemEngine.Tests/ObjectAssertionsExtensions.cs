@@ -5,9 +5,10 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 
 namespace OpenHoldemEngine.Tests;
+
 internal static class ObjectAssertionsExtensions
 {
-    static readonly JsonSerializer _jsonSerializer;
+    private static readonly JsonSerializer _jsonSerializer;
 
     static ObjectAssertionsExtensions()
     {
@@ -16,7 +17,7 @@ internal static class ObjectAssertionsExtensions
     }
 
     internal static JTokenAssertions ShouldAsJToken(this object obj)
-        => new JTokenAssertions(JToken.FromObject(obj, _jsonSerializer));
+        => new(JToken.FromObject(obj, _jsonSerializer));
 
     internal static AndConstraint<JTokenAssertions> BeEquivalentToAsJToken(this JTokenAssertions assertions, object obj)
         => assertions.BeEquivalentTo(JToken.FromObject(obj, _jsonSerializer));

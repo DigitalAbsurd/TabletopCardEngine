@@ -1,4 +1,4 @@
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 
@@ -11,7 +11,7 @@ internal readonly record struct ActionEvaluations(decimal CallTo, decimal? MinRa
 /// </summary>
 internal static class BettingRules
 {
-    private static readonly PlayerActionType[] RaiseKinds =
+    private static readonly PlayerActionType[] _raiseKinds =
         [PlayerActionType.Raise, PlayerActionType.SmallBlind, PlayerActionType.BigBlind];
 
     /// <summary>The street total a call brings a seat up to: the biggest raise-kind wager so far this street.</summary>
@@ -87,11 +87,11 @@ internal static class BettingRules
     private static (decimal Amount, decimal AddAmount)? LastRaise(HandTable table)
     {
         (decimal Amount, decimal AddAmount)? best = null;
-        foreach (var seat in table.Seats.OrderBy(s => s.SeatNo))
+        foreach (var seat in table.Seats.OrderBy(seat => seat.SeatNo))
         {
             foreach (var bet in seat.StreetBets)
             {
-                if (Array.IndexOf(RaiseKinds, bet.Action) < 0)
+                if (Array.IndexOf(_raiseKinds, bet.Action) < 0)
                 {
                     continue;
                 }
