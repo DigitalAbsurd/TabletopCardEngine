@@ -26,12 +26,6 @@ internal sealed record PhhHandDeck
     /// <summary>Only the board cards the history actually recorded.</summary>
     internal required Card[] RecordedBoardCards { get; init; }
 
-    /// <summary>
-    /// The prefix of <see cref="RecordedBoardCards"/> that was dealt while betting was still open.
-    /// See <see cref="PhhHand.BoardDealtDuringBetting"/>.
-    /// </summary>
-    internal required Card[] BoardCardsDuringBetting { get; init; }
-
     internal static PhhHandDeck Create(PhhHand hand)
     {
         var recordedHoleCards = hand.Actions.OfType<PhhDealHoleAction>()
@@ -61,8 +55,7 @@ internal sealed record PhhHandDeck
         {
             HoleCards = holeCards,
             BoardCards = boardCards,
-            RecordedBoardCards = [.. boardCards.Take(recordedBoard.Length)],
-            BoardCardsDuringBetting = [.. boardCards.Take(hand.BoardDealtDuringBetting.Length)]
+            RecordedBoardCards = [.. boardCards.Take(recordedBoard.Length)]
         };
     }
 }

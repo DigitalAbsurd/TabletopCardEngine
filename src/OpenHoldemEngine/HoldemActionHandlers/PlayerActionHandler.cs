@@ -1,20 +1,13 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Converters;
+using FluentResults;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlayerAction>
 {
-    private static readonly GameToNPokerStateConverter _nPokerStateConverter = new();
-    private static readonly GameToGameDataConverter _gameToGameContextConverter = new();
-    private static readonly StreetToNPokerStreetConverter _streetToNPokerStreetConverter = new();
-    private static readonly CardToNCardConverter _cardToNCardConverter = new();
-    private static readonly HandActionTypeToNPokerTypeConverter _handActionTypeConverter = new();
-    private static readonly CardToStringConverter _cardToStringConverter = new();
-
     internal async override Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
         if (game.IsCurrentHandEnded())
@@ -23,82 +16,58 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
         }
 
         var hand = game.GetCurrentHand();
-        var nPokerState = _nPokerStateConverter.ConvertTo<NPokerState>(game);
-        var nPokerPlayer = nPokerState.Table.Seats[nPokerState.NextPlayerIx]!;
-        var nPokerPlayerAmount = (decimal)(nPokerPlayer.LastActionHistory?.Amount ?? 0);
-        var gameData = _gameToGameContextConverter.ConvertTo<GameData>(game);
+        var table = HandTableFactory.Build(game, await BuildDeckAsync());
 
-        await ShuffleDeckCardsIfNeededAsync();
+        var seatNo = table.NextSeatNo;
+        var seat = table[seatNo];
+        var window = BettingRules.LegalActions(table, seatNo);
 
-        var (newState, messages) = game.GetEmulator()
-            .ApplyAction(nPokerState, _handActionTypeConverter.ConvertTo<NPokerActionType>(holdemAction.ActionType),
-                out var lastNPokerAction, (float)CalculateBetAmount());
+        var outcome = HandRunner.ApplyAction(table, holdemAction.ActionType, CalculateBetAmount());
 
-        var handActionEntity = game.AddAction(
-            seatNo: (byte)(nPokerState.NextPlayerIx + 1),
-            street: gameData.HandData.Street,
+        game.AddAction(
+            seatNo: outcome.SeatNo,
+            street: outcome.Street,
             playerActionType: holdemAction.ActionType,
             size: holdemAction.Size,
-            amount: (decimal)lastNPokerAction.Amount,
-            addAmount: (decimal)lastNPokerAction.AddAmount,
-            nextSeatNo: (byte)(newState.NextPlayerIx + 1),
-            nextStreet: _streetToNPokerStreetConverter.ConvertFrom<Street>(newState.Street),
-            paid: (decimal)lastNPokerAction.Paid);
+            amount: outcome.Amount,
+            addAmount: outcome.AddAmount,
+            nextSeatNo: outcome.NextSeatNo,
+            nextStreet: outcome.NextStreet,
+            paid: outcome.Paid);
 
-        // if new deck cards appeared
-        if (nPokerState.Street != newState.Street)
+        foreach (var card in outcome.Board)
         {
-            for (int ix = hand.DeckCards.Count; ix < newState.Table.CommunityCards.Count; ix++)
-            {
-                game.AddDeckCard(_cardToNCardConverter.ConvertFrom<Card>(newState.Table.CommunityCards.ElementAt(ix)));
-            }
+            game.AddDeckCard(card);
         }
 
-        // if hand ended
-        var nRoundResultMessage = messages.OfType<NPokerEngine.Messages.RoundResultMessage>().SingleOrDefault();
-        if (nRoundResultMessage != null)
+        if (outcome.PrizeBySeatNo is { } prizes)
         {
-            var handBetGroups = hand.Actions
-                .Concat([handActionEntity])
-                .OrderBy(t => t.No)
-                .GroupBy(t => new { t.SeatNo, t.Street });
-
-            var playersRoundBets = new Dictionary<byte, decimal>();
-            foreach (var betGroup in handBetGroups)
+            var board = game.GetCurrentHand().GetDeckCards();
+            var handEndStates = hand.PlayerStartStates.Select(startState =>
             {
-                if (!playersRoundBets.ContainsKey(betGroup.Key.SeatNo))
-                    playersRoundBets[betGroup.Key.SeatNo] = 0;
+                var hole = table.Find(startState.SeatNo)?.Hole ?? [];
+                var seatBet = hand.GetSeatBetAmount(startState.SeatNo);
+                var prize = prizes.GetValueOrDefault(startState.SeatNo);
 
-                if (!betGroup.Any()) continue;
+                // Computed directly as prize - bet, not as (StartStack - bet + prize) - StartStack:
+                // a deep stack (many integer digits) added to a prize with a long fractional tail
+                // (an uneven pot split can need most of decimal's ~28-29 significant digits) can force
+                // decimal to round the fraction away, and the two seats in a hand rarely have the same
+                // number of stack digits — so the rounding wouldn't even land the same way on both
+                // sides, and Sum(Net) across the hand would stop being exactly zero.
+                var winAmount = prize - seatBet;
 
-                playersRoundBets[betGroup.Key.SeatNo] += betGroup.Max(g => g.Amount);
-            }
-
-            var playerHands = hand.PlayerStartStates
-                .ToDictionary(k => k.SeatNo,
-                v => new HoldemHand.Hand(
-                    pocket: string.Join(" ", game.GetCurrentHand().GetSeatHoleCards(v.SeatNo)!.Select(c => _cardToStringConverter.ConvertTo<string>(c))),
-                    board: string.Join(" ", game.GetCurrentHand().GetDeckCards().Take((int)gameData.HandData.Street).Select(c => _cardToStringConverter.ConvertTo<string>(c)))));
-
-            var handEndStates = hand.PlayerStartStates.Select(pss =>
-            {
-                var finishRoundStack = pss.StartStack;
-                if (playersRoundBets.ContainsKey(pss.SeatNo))
-                    finishRoundStack -= playersRoundBets[pss.SeatNo];
-                finishRoundStack += nRoundResultMessage.PrizeMap.ContainsKey(pss.SeatNo - 1) ?
-                    (decimal)nRoundResultMessage.PrizeMap[pss.SeatNo - 1] : 0;
-                var hes = new HandPlayerEndState
+                return new HandPlayerEndState
                 {
                     GameId = holdemAction.GameId,
                     HandNo = hand.No,
                     Hand = hand,
-                    SeatNo = pss.SeatNo,
-                    FinishStack = finishRoundStack,
-                    WinAmount = finishRoundStack - pss.StartStack,
-                    Strength = playerHands[pss.SeatNo].HandValue,
-                    RankType = Enum.TryParse<Data.HandRankType>(playerHands[pss.SeatNo].HandTypeValue.ToString(), out var rankType) ? rankType : Data.HandRankType.None
+                    SeatNo = startState.SeatNo,
+                    FinishStack = startState.StartStack + winAmount,
+                    WinAmount = winAmount,
+                    Strength = HandEvaluator.Instance.EvaluateStrength(hole, board),
+                    RankType = HandEvaluator.Instance.EvaluateRankType(hole, board),
                 };
-                return hes;
             });
             game.AddHandEndStates(handEndStates);
         }
@@ -108,25 +77,24 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
         decimal CalculateBetAmount()
             => holdemAction.ActionType switch
             {
-                PlayerActionType.Check => nPokerPlayerAmount,
-                PlayerActionType.Call => nPokerPlayerAmount + gameData.HandData.GetEvalMinValue(PlayerActionType.Call),
+                PlayerActionType.Check => seat.StreetWager,
+                PlayerActionType.Call => window.CallTo,
                 PlayerActionType.Fold => 0M,
                 PlayerActionType.Raise => holdemAction.Size,
-                PlayerActionType.Bet => holdemAction.Size + nPokerPlayerAmount,
+                PlayerActionType.Bet => holdemAction.Size + seat.StreetWager,
                 _ => throw new NotImplementedException()
             };
 
-        async Task ShuffleDeckCardsIfNeededAsync()
+        async Task<CardDeck?> BuildDeckAsync()
         {
             if (HoldemEngineOptions.Instance.CardShuffler == default || (byte)hand.GetStreet() >= 5)
             {
-                return;
+                return null;
             }
-            var nextStreet = Enum.GetValues<Street>().Where(s => (byte)s > (byte)hand.GetStreet()).OrderBy(s => (byte)s).First();
             var deckCards = await HoldemEngineOptions.Instance.CardShuffler
                 .GetDeckCardsAsync(holdemAction.GameId, hand.No);
-            deckCards = deckCards.Except(hand.DeckCards.Select(dc => dc.Card));
-            nPokerState = _nPokerStateConverter.ConvertToWithDeckCards(game, deckCards);
+            var remaining = deckCards.Except(hand.DeckCards.Select(dc => dc.Card));
+            return CardDeck.Predetermined(remaining);
         }
     }
 }
