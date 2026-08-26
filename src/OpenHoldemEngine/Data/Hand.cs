@@ -7,9 +7,9 @@ internal class Hand
     public int No { get; set; }
     public byte DealerSeatNo { get; set; }
 
-    public List<HandPlayerStartState> PlayerStartStates { get; set; } = new();
-    public List<HandPlayerEndState> PlayerEndStates { get; set; } = new();
-    public List<HandDeckCard> DeckCards { get; set; } = new();
-    public List<HandHoleCard> HoleCards { get; set; } = new();
-    public List<HandAction> Actions { get; set; } = new();
+    public List<HandPlayerStartState> PlayerStartStates { get; set; } = [];
+    public List<HandPlayerEndState> PlayerEndStates { get; set; } = [];
+    public List<HandDeckCard> DeckCards { get; set; } = [];
+    public List<HandHoleCard> HoleCards { get; set; } = [];
+    public List<HandAction> Actions { get; set; } = [];
 }

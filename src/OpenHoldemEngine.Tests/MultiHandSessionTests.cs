@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -41,8 +41,8 @@ public sealed class MultiHandSessionTests
 
         using var host = TestEngineHost.Setup(out var holdemEngine, out _,
             shuffler: new TestCardShuffler(
-                _getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
-                _getDeckFunc: handNo => cardsByHand[handNo].Board));
+                getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
+                getDeckFunc: handNo => cardsByHand[handNo].Board));
 
         (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(
             GameId: gameId,
@@ -82,23 +82,23 @@ public sealed class MultiHandSessionTests
 
             foreach (var seatData in handData.Seats)
             {
-                seatData.StartRoundStack.Should().Be(expectedStartStacks[seatData.SeatNo],
+                seatData.StartHandStack.Should().Be(expectedStartStacks[seatData.SeatNo],
                     $"seat {seatData.SeatNo} should start on what it finished the previous hand with");
             }
 
-            handData.Seats.Sum(seat => seat.StartRoundStack).Should()
+            handData.Seats.Sum(seat => seat.StartHandStack).Should()
                 .Be(SeatCount * BuyIn, "nobody buys in again, so the chips on the table never change");
 
             gameData = await PlayOutHandAsync(holdemEngine, gameId, gameData, random);
             handData = gameData.HandData;
 
-            handData.Seats.Sum(seat => seat.RoundResultData?.Net ?? 0).Should()
+            handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
                 .Be(0, "a hand neither creates nor destroys chips");
 
             foreach (var seatData in handData.Seats)
             {
-                seatData.RoundResultData.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
-                expectedStartStacks[seatData.SeatNo] = seatData.StartRoundStack + (seatData.RoundResultData?.Net ?? 0);
+                seatData.HandResult.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
+                expectedStartStacks[seatData.SeatNo] = seatData.StartHandStack + (seatData.HandResult?.Net ?? 0);
 
                 // Deliberately more than "not negative": the session is sized (deep stacks, small
                 // blinds, minimum raises only) so that nobody can ever bust. A seat sitting on
@@ -125,7 +125,7 @@ public sealed class MultiHandSessionTests
         // A hand is over once the engine has written results — the same test the engine itself makes
         // in IsCurrentHandEnded. Evaluations is not a reliable signal: a hand that ends on a fold
         // still reports a next player, and so still offers actions.
-        while (!gameData.HandData.Seats.Any(seat => seat.RoundResultData != null))
+        while (!gameData.HandData.Seats.Any(seat => seat.HandResult != null))
         {
             (--decisionsLeft).Should().BePositive(
                 $"hand #{gameData.HandData.No} should end within {MaxDecisionsPerHand} decisions");
@@ -137,13 +137,21 @@ public sealed class MultiHandSessionTests
 
             HoldemActionPlayerAction playerAction;
             if (raise != null && random.Next(4) == 0)
+            {
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Raise, raise.MinValue);
+            }
             else if (check != null)
+            {
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Check, 0);
+            }
             else if (call != null && random.Next(5) > 0)
+            {
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Call, 0);
+            }
             else
+            {
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Fold, 0);
+            }
 
             var result = await holdemEngine.ApplyHoldemActionAsync(playerAction);
             result.IsSuccess.Should().BeTrue(

@@ -1,8 +1,9 @@
 ﻿using FluentResults;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
+
 internal abstract class HoldemActionHandler<T> : IHoldemActionHandler
     where T : HoldemAction
 {
@@ -10,6 +11,5 @@ internal abstract class HoldemActionHandler<T> : IHoldemActionHandler
         => ImplementHandleAsync((T)holdemAction, game);
 
     internal abstract Task<Result> ImplementHandleAsync(T holdemAction, Game game);
-
 
 }

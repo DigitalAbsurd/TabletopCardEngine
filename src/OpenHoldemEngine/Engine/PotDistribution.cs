@@ -1,4 +1,4 @@
-namespace OpenHoldemEngine.Engine;
+﻿namespace OpenHoldemEngine.Engine;
 
 /// <summary>
 /// Side-pot construction and prize splitting, ported from NPokerEngine's <c>GameEvaluator</c>.
@@ -49,9 +49,9 @@ internal static class PotDistribution
             return [];
         }
 
-        var scores = active.ToDictionary(seat => seat, seat => HandEvaluator.Instance.EvaluateStrength(seat.Hole, board));
+        var scores = active.ToDictionary(seat => seat, seat => HandEvaluator.EvaluateStrength(seat.Hole, board));
         var best = scores.Values.Max();
-        return active.Where(seat => scores[seat] == best).ToList();
+        return [.. active.Where(seat => scores[seat] == best)];
     }
 
     /// <summary>One side pot per all-in level (ascending), then the main pot on top.</summary>

@@ -3,100 +3,97 @@ using OpenHoldemEngine.Converters;
 
 namespace OpenHoldemEngine.Data;
 
-internal class HoldemDbContext : DbContext
+internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(dbContextOptions)
 {
-    public HoldemDbContext(DbContextOptions dbContextOptions)
-        : base(dbContextOptions) { }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Game>()
-            .HasMany(g => g.Hands)
-            .WithOne(h => h.Game)
-            .HasForeignKey(h => h.GameId);
+            .HasMany(game => game.Hands)
+            .WithOne(hand => hand.Game)
+            .HasForeignKey(hand => hand.GameId);
 
         modelBuilder.Entity<Game>()
-            .HasMany(g => g.BuyIns)
-            .WithOne(p => p.Game)
-            .HasForeignKey(p => p.GameId);
+            .HasMany(game => game.BuyIns)
+            .WithOne(buyIn => buyIn.Game)
+            .HasForeignKey(buyIn => buyIn.GameId);
 
         modelBuilder.Entity<Hand>()
-            .HasMany(g => g.Actions)
-            .WithOne(h => h.Hand)
-            .HasForeignKey(act => new { act.GameId, act.HandNo });
+            .HasMany(hand => hand.Actions)
+            .WithOne(action => action.Hand)
+            .HasForeignKey(action => new { action.GameId, action.HandNo });
 
         modelBuilder.Entity<Player>()
-            .HasKey(e => new { e.GameId, e.SeatNo, e.RoundNoStart });
+            .HasKey(entity => new { entity.GameId, entity.SeatNo, entity.HandNoStart });
 
         modelBuilder.Entity<BuyIn>()
-            .HasKey(e => new { e.GameId, e.SeatNo, e.HandNo });
+            .HasKey(entity => new { entity.GameId, entity.SeatNo, entity.HandNo });
 
         modelBuilder.Entity<Hand>()
-            .HasKey(e => new { e.GameId, e.No });
+            .HasKey(entity => new { entity.GameId, entity.No });
 
         modelBuilder.Entity<HandPlayerStartState>()
-            .HasKey(e => new { e.GameId, e.HandNo, e.SeatNo });
+            .HasKey(entity => new { entity.GameId, entity.HandNo, entity.SeatNo });
 
         modelBuilder.Entity<HandPlayerEndState>()
-            .HasKey(e => new { e.GameId, e.HandNo, e.SeatNo });
+            .HasKey(entity => new { entity.GameId, entity.HandNo, entity.SeatNo });
 
         modelBuilder.Entity<Hand>()
-            .HasMany(h => h.PlayerStartStates)
-            .WithOne(hss => hss.Hand)
-            .HasForeignKey(hss => new { hss.GameId, hss.HandNo })
+            .HasMany(hand => hand.PlayerStartStates)
+            .WithOne(startState => startState.Hand)
+            .HasForeignKey(startState => new { startState.GameId, startState.HandNo })
             .IsRequired();
 
         modelBuilder.Entity<Hand>()
-            .HasMany(h => h.PlayerEndStates)
-            .WithOne(hes => hes.Hand)
-            .HasForeignKey(hes => new { hes.GameId, hes.HandNo })
+            .HasMany(hand => hand.PlayerEndStates)
+            .WithOne(endState => endState.Hand)
+            .HasForeignKey(endState => new { endState.GameId, endState.HandNo })
             .IsRequired();
 
         modelBuilder.Entity<HandDeckCard>()
-            .Property(e => e.Card)
+            .Property(entity => entity.Card)
             .HasConversion<CardToStringConverter>()
             .HasMaxLength(2);
 
         modelBuilder.Entity<HandHoleCard>()
-            .Property(e => e.Card)
+            .Property(entity => entity.Card)
             .HasConversion<CardToStringConverter>()
             .HasMaxLength(2);
 
         modelBuilder.Entity<HandDeckCard>()
-            .HasKey(e => new { e.GameId, e.HandNo, e.Sequence });
+            .HasKey(entity => new { entity.GameId, entity.HandNo, entity.Sequence });
 
         modelBuilder.Entity<Hand>()
-            .HasMany(h => h.DeckCards)
-            .WithOne(dc => dc.Hand)
-            .HasForeignKey(dc => new { dc.GameId, dc.HandNo })
+            .HasMany(hand => hand.DeckCards)
+            .WithOne(deckCard => deckCard.Hand)
+            .HasForeignKey(deckCard => new { deckCard.GameId, deckCard.HandNo })
             .IsRequired();
 
         modelBuilder.Entity<HandHoleCard>()
-            .HasKey(e => new { e.GameId, e.HandNo, e.SeatNo, e.Sequence });
+            .HasKey(entity => new { entity.GameId, entity.HandNo, entity.SeatNo, entity.Sequence });
 
         modelBuilder.Entity<Hand>()
-            .HasMany(h => h.HoleCards)
-            .WithOne(pc => pc.Hand)
-            .HasForeignKey(pc => new { pc.GameId, pc.HandNo })
+            .HasMany(hand => hand.HoleCards)
+            .WithOne(holeCard => holeCard.Hand)
+            .HasForeignKey(holeCard => new { holeCard.GameId, holeCard.HandNo })
             .IsRequired();
 
         modelBuilder.Entity<HandAction>()
-            .HasKey(e => new { e.GameId, e.HandNo, e.No, e.SeatNo });
+            .HasKey(entity => new { entity.GameId, entity.HandNo, entity.No, entity.SeatNo });
 
         modelBuilder.Entity<HandAction>()
-            .Property(e => e.Street)
+            .Property(entity => entity.Street)
             .HasConversion<string>();
 
         modelBuilder.Entity<HandAction>()
-            .Property(e => e.NextStreet)
+            .Property(entity => entity.NextStreet)
             .HasConversion<string>();
 
         modelBuilder.Entity<HandAction>()
-            .Property(e => e.PlayAction)
+            .Property(entity => entity.ActionType)
             .HasConversion<string>();
 
         modelBuilder.Entity<HandPlayerEndState>()
-            .Property(e => e.RankType)
+            .Property(entity => entity.RankType)
             .HasConversion<string>();
     }
 }

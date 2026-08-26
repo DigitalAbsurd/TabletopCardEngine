@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.Tests.Phh;
 
@@ -35,15 +35,17 @@ internal sealed class PhhReplayRunner : IDisposable
     internal PhhReplayRunner()
     {
         _shuffler = new TestCardShuffler(
-            _getHoleFunc: (handNo, seatNo) => _currentDeck.HoleCards[seatNo],
-            _getDeckFunc: handNo => _currentDeck.BoardCards);
+            getHoleFunc: (handNo, seatNo) => _currentDeck.HoleCards[seatNo],
+            getDeckFunc: handNo => _currentDeck.BoardCards);
         _host = TestEngineHost.Setup(out _engine, out _, shuffler: _shuffler);
     }
 
     private void RecycleDatabaseIfNeeded()
     {
         if (_handsOnCurrentDatabase++ < HandsPerDatabase)
+        {
             return;
+        }
 
         _host.Dispose();
         _host = TestEngineHost.Setup(out _engine, out _, shuffler: _shuffler);
@@ -60,21 +62,37 @@ internal sealed class PhhReplayRunner : IDisposable
         reason = string.Empty;
 
         if (hand.Variant != "NT")
+        {
             reason = $"variant '{hand.Variant}' is not no-limit Texas hold'em";
+        }
         else if (hand.PlayerCount < 3)
+        {
             reason = $"{hand.PlayerCount} players — heads-up seats the button differently in PHH";
+        }
         else if (hand.BlindsOrStraddles.Length != hand.PlayerCount || hand.Antes.Length != hand.PlayerCount)
+        {
             reason = "the antes and blinds do not line up with the players";
+        }
         else if (hand.Antes.Any(ante => ante != 0))
+        {
             reason = "antes are not supported by the engine";
+        }
         else if (hand.SmallBlind <= 0 || hand.BigBlind != hand.SmallBlind * 2)
+        {
             reason = $"blinds {hand.SmallBlind}/{hand.BigBlind} — the engine derives the big blind as twice the small blind";
+        }
         else if (hand.BlindsOrStraddles.Skip(2).Any(blind => blind != 0))
+        {
             reason = "straddles are not supported by the engine";
+        }
         else if (hand.StartingStacks.Any(stack => stack is null))
+        {
             reason = "not every starting stack is recorded";
+        }
         else if (hand.FinishingStacks is null)
+        {
             reason = "no finishing stacks to verify against";
+        }
 
         return reason.Length == 0;
     }
@@ -123,7 +141,9 @@ internal sealed class PhhReplayRunner : IDisposable
             // Hole and board cards reach the engine through the shuffler, and it settles the
             // showdown itself, so dealing and show/muck entries are not replayed as actions.
             if (action is not IPhhPlayerDecision decision)
+            {
                 continue;
+            }
 
             var expectedSeatNo = (byte)(decision.PlayerIndex + 1);
             gameData.HandData.NextPlayerSeatNo.Should().Be(expectedSeatNo,
@@ -156,7 +176,7 @@ internal sealed class PhhReplayRunner : IDisposable
             var seatData = handData.Seats.Single(seat => seat.SeatNo == seatNo);
 
             seatData.Name.Should().Be(hand.Players[playerIx], $"seat {seatNo} should be taken by that player");
-            seatData.StartRoundStack.Should().Be(hand.StartingStacks[playerIx]!.Value, $"seat {seatNo} start stack");
+            seatData.StartHandStack.Should().Be(hand.StartingStacks[playerIx]!.Value, $"seat {seatNo} start stack");
             seatData.Hole.Should().Equal(_currentDeck.HoleCards[seatNo],
                 $"seat {seatNo} should hold the cards the history dealt it");
         }
@@ -192,12 +212,12 @@ internal sealed class PhhReplayRunner : IDisposable
             var seatNo = (byte)(playerIx + 1);
             var seatData = handData.Seats.Single(seat => seat.SeatNo == seatNo);
 
-            seatData.RoundResultData.Should().NotBeNull($"seat {seatNo} should have a result once the hand is over");
-            (seatData.StartRoundStack + (seatData.RoundResultData?.Net ?? 0)).Should()
+            seatData.HandResult.Should().NotBeNull($"seat {seatNo} should have a result once the hand is over");
+            (seatData.StartHandStack + (seatData.HandResult?.Net ?? 0)).Should()
                 .Be(hand.FinishingStacks![playerIx], $"seat {seatNo} finish stack");
         }
 
-        handData.Seats.Sum(seat => seat.RoundResultData?.Net ?? 0).Should()
+        handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
             .Be(0, "a hand neither creates nor destroys chips");
     }
 
