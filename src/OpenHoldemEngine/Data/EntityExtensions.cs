@@ -171,11 +171,4 @@ internal static class EntityExtensions
 
     internal static bool IsCurrentHandEnded(this Game game)
         => game.GetCurrentHand().No == 0 || game.GetCurrentHand().PlayerEndStates.Any();
-
-    internal static NPokerEmulator GetEmulator(this Game game)
-    {
-        var nEmulator = new NPokerEngine.Emulator();
-        nEmulator.SetupConfig(int.MaxValue, int.MaxValue, (float)game.InitialSmallBlind);
-        return nEmulator;
-    }
 }

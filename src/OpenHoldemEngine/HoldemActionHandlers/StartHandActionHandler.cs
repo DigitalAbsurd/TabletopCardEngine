@@ -1,16 +1,13 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Converters;
+using FluentResults;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionStartHand>
 {
-    private static readonly GameToNPokerStateConverter _nPokerStateConverter = new();
-    private static readonly CardToNCardConverter _cardToNCardConverter = new();
-
     internal override async Task<Result> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
     {
         if (!game.IsCurrentHandEnded())
@@ -19,74 +16,67 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
         }
 
         game.JoinPlayers(startHandData.JoinSeats);
-
         game.CreateNewHand(CalculateStartStacks());
 
-        var nPokerState = _nPokerStateConverter.ConvertToWithDeckCards(game, await GetShuffledHoleCards());
+        var table = HandTableFactory.Build(game, await BuildDeckAsync());
+        table.DealerSeatNo = ResolvePreviousDealerSeatNo();
 
-        ShiftDealerButtonToPreviousHand();
+        HandRunner.StartHand(table);
 
-        var (handNState, messages) = game.GetEmulator().StartNewRound(nPokerState);
+        foreach (var seat in table.Seats)
+        {
+            game.AddHoleCards(seat.SeatNo, seat.Hole);
+        }
 
-        handNState.Table.Seats.Players
-            .Select((p, ix) => new
-            {
-                NPlayer = p,
-                SeatNo = (byte)(ix + 1),
-                HoleCards = p.HoleCards.Select(_cardToNCardConverter.ConvertFrom<Card>)
-            })
-            .Where(t => game.Players.Any(gp => gp.SeatNo == t.SeatNo))
-            .ToList()
-            .ForEach(t => game.AddHoleCards(t.SeatNo, t.HoleCards));
+        game.GetCurrentHand().DealerSeatNo = table.DealerSeatNo;
 
-        game.GetCurrentHand().DealerSeatNo = (byte)(handNState.Table.DealerButton + 1);
-
-        game.AddAction(seatNo: (byte)(handNState.Table.SmallBlindPosition! + 1),
+        game.AddAction(seatNo: table.SmallBlindSeatNo,
             street: Street.PreFlop,
             playerActionType: PlayerActionType.SmallBlind,
-            size: game.InitialSmallBlind,
-            amount: game.InitialSmallBlind,
-            addAmount: game.InitialSmallBlind,
-            nextSeatNo: (byte)(handNState.Table.BigBlindPosition! + 1),
+            size: table.SmallBlind,
+            amount: table.SmallBlind,
+            addAmount: table.SmallBlind,
+            nextSeatNo: table.BigBlindSeatNo,
             nextStreet: Street.PreFlop);
 
-        game.AddAction(seatNo: (byte)(handNState.Table.BigBlindPosition! + 1),
+        game.AddAction(seatNo: table.BigBlindSeatNo,
             street: Street.PreFlop,
             playerActionType: PlayerActionType.BigBlind,
-            size: game.InitialSmallBlind * 2,
-            amount: game.InitialSmallBlind * 2,
-            addAmount: game.InitialSmallBlind,
-            nextSeatNo: (byte)(handNState.NextPlayerIx + 1),
+            size: table.SmallBlind * 2,
+            amount: table.SmallBlind * 2,
+            addAmount: table.SmallBlind,
+            nextSeatNo: table.NextSeatNo,
             nextStreet: Street.PreFlop);
 
         return Result.Ok();
 
-        void ShiftDealerButtonToPreviousHand()
+        byte ResolvePreviousDealerSeatNo()
         {
             var previousHandNo = game.GetPreviousHand().No;
-
             var dealerPreviousHandSeatNo = game.GetPreviousHand().DealerSeatNo;
             if (previousHandNo == default)
             {
-                var ll = new LinkedList<byte>(startHandData.JoinSeats.Select(t => t.SeatNo));
-                dealerPreviousHandSeatNo = ll.Find(game.InitialDealerSeatNo)?.Previous?.Value ?? ll.Last!.Value;
+                var seatOrder = new LinkedList<byte>(startHandData.JoinSeats.Select(join => join.SeatNo));
+                dealerPreviousHandSeatNo = seatOrder.Find(game.InitialDealerSeatNo)?.Previous?.Value ?? seatOrder.Last!.Value;
             }
-            nPokerState.Table.SetButtonPosition(dealerPreviousHandSeatNo - 1);
+            return dealerPreviousHandSeatNo;
         }
 
-        async Task<IEnumerable<Card>?> GetShuffledHoleCards()
+        async Task<CardDeck?> BuildDeckAsync()
         {
             var shuffler = HoldemEngineOptions.Instance.CardShuffler;
-            if (shuffler == null) return null;
-
-            var playerCards = new List<Card>();
-            var handNo = game.GetCurrentHand().No;
-
-            for (int ix = 0; ix < game.Players.Count; ix++)
+            if (shuffler == null)
             {
-                playerCards.AddRange(await shuffler.GetHoleCardsAsync(game.Id, handNo, (byte)(ix + 1)));
+                return null;
             }
-            return playerCards;
+
+            var handNo = game.GetCurrentHand().No;
+            var cards = new List<Card>();
+            foreach (var seatNo in HandTableFactory.CurrentSeatNumbers(game))
+            {
+                cards.AddRange(await shuffler.GetHoleCardsAsync(game.Id, handNo, seatNo));
+            }
+            return CardDeck.Predetermined(cards);
         }
 
         IEnumerable<HandPlayerStartState> CalculateStartStacks()
