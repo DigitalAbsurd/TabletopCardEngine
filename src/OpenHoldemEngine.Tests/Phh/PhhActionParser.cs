@@ -18,7 +18,9 @@ internal static class PhhActionParser
             .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
         if (tokens.Length < 2)
+        {
             throw new FormatException($"'{rawAction}' is not a PHH action");
+        }
 
         if (tokens[0] == "d")
         {
@@ -50,7 +52,9 @@ internal static class PhhActionParser
     private static int ParsePlayerIndex(string token, string rawAction)
     {
         if (token.Length < 2 || token[0] != 'p' || !int.TryParse(token[1..], CultureInfo.InvariantCulture, out var playerNo) || playerNo < 1)
+        {
             throw new FormatException($"'{token}' in '{rawAction}' is not a PHH player label");
+        }
 
         return playerNo - 1;
     }

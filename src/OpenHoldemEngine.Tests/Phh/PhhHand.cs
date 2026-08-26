@@ -44,7 +44,7 @@ internal sealed record PhhHand
     internal decimal BigBlind => BlindsOrStraddles[1];
 
     /// <summary>Every board card the history records, flop first, in dealing order.</summary>
-    internal Card?[] Board => Actions.OfType<PhhDealBoardAction>().SelectMany(deal => deal.Cards).ToArray();
+    internal Card?[] Board => [.. Actions.OfType<PhhDealBoardAction>().SelectMany(deal => deal.Cards)];
 
     public override string ToString() => $"{Source} (hand #{Index})";
 }

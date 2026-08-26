@@ -1,4 +1,4 @@
-namespace OpenHoldemEngine.Engine;
+﻿namespace OpenHoldemEngine.Engine;
 
 /// <summary>Where a seat stands in the current hand.</summary>
 internal enum SeatStatus : byte

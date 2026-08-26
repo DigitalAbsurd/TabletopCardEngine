@@ -1,4 +1,4 @@
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 
@@ -56,12 +56,12 @@ internal sealed class HandTable
             return 0;
         }
 
-        var anchorIx = ordered.FindIndex(seat => seat.SeatNo == anchor);
-        var startIx = anchorIx < 0 ? 0 : anchorIx;
+        var anchorIndex = ordered.FindIndex(seat => seat.SeatNo == anchor);
+        var startIndex = anchorIndex < 0 ? 0 : anchorIndex;
 
         for (var step = offset; step < offset + ordered.Count; step++)
         {
-            var seat = ordered[(startIx + step) % ordered.Count];
+            var seat = ordered[(startIndex + step) % ordered.Count];
             if (match(seat))
             {
                 return seat.SeatNo;

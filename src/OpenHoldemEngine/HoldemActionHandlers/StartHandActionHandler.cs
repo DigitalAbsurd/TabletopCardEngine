@@ -1,11 +1,12 @@
-using FluentResults;
+﻿using FluentResults;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
+
 internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionStartHand>
 {
     internal override async Task<Result> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
@@ -82,19 +83,19 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
         IEnumerable<HandPlayerStartState> CalculateStartStacks()
         {
             var handStartStates = game.GetCurrentHand().PlayerEndStates
-                    .Select(t => new HandPlayerStartState
+                    .Select(endState => new HandPlayerStartState
                     {
                         GameId = game.Id,
                         HandNo = game.GetNextHandNo(),
-                        SeatNo = t.SeatNo,
-                        StartStack = t.FinishStack
+                        SeatNo = endState.SeatNo,
+                        StartStack = endState.FinishStack
                     })
                     .ToList();
 
             foreach (var joinData in startHandData.JoinSeats)
             {
-                var hss = handStartStates.SingleOrDefault(hss => hss.SeatNo == joinData.SeatNo);
-                if (hss == null)
+                var startState = handStartStates.SingleOrDefault(state => state.SeatNo == joinData.SeatNo);
+                if (startState == null)
                 {
                     handStartStates.Add(new HandPlayerStartState
                     {
@@ -106,7 +107,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
                 }
                 else
                 {
-                    hss.StartStack += joinData.BuyInAmount;
+                    startState.StartStack += joinData.BuyInAmount;
                 }
             }
             return handStartStates;

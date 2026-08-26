@@ -1,0 +1,35 @@
+<Project>
+
+  <!--
+    Shared build settings for every project in the repository.
+    Style rules live in .editorconfig; this file only enforces them.
+  -->
+
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Code analysis">
+    <!-- IDExxxx style rules from .editorconfig are checked at build time, not just in the IDE. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- CAxxxx quality rules (Microsoft.CodeAnalysis.NetAnalyzers, shipped with the SDK). -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+
+    <!-- The build fails on linter violations. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+
+    <!--
+      Targeted escape hatch for warnings unrelated to code style
+      (e.g. NUxxxx from restore). Keep this list empty or short and
+      justified; use .editorconfig for analysis rules, not NoWarn.
+    -->
+    <WarningsNotAsErrors></WarningsNotAsErrors>
+  </PropertyGroup>
+
+</Project>

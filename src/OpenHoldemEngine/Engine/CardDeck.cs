@@ -1,5 +1,5 @@
+﻿using OpenHoldemEngine.Data;
 using System.Security.Cryptography;
-using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 
@@ -29,7 +29,7 @@ internal sealed class CardDeck
     /// </summary>
     internal static CardDeck Shuffled(IEnumerable<Card>? exclude = null)
     {
-        var excluded = exclude is null ? new HashSet<Card>() : exclude.ToHashSet();
+        var excluded = exclude is null ? new HashSet<Card>() : [.. exclude];
         var cards = FullDeck().Where(card => !excluded.Contains(card)).ToList();
         Shuffle(cards);
         return new CardDeck(cards);
@@ -38,13 +38,13 @@ internal sealed class CardDeck
     internal Card Draw()
         => _cards.Count > 0 ? _cards.Dequeue() : throw new InvalidOperationException("The deck is empty.");
 
-    internal List<Card> Draw(int count) => Enumerable.Range(0, count).Select(_ => Draw()).ToList();
+    internal List<Card> Draw(int count) => [.. Enumerable.Range(0, count).Select(_ => Draw())];
 
     private static IEnumerable<Card> FullDeck()
         => Enum.GetValues<CardSuit>()
             .SelectMany(suit => Enum.GetValues<CardType>().Select(type => new Card { CardSuit = suit, CardType = type }));
 
-    private static void Shuffle(IList<Card> cards)
+    private static void Shuffle(List<Card> cards)
     {
         for (var i = cards.Count - 1; i > 0; i--)
         {

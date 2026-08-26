@@ -17,12 +17,11 @@ internal static partial class PhhReader
         var sources = ReadSourceComments(phhsText);
         var document = Toml.ToModel(phhsText);
 
-        return document
+        return [.. document
             .Where(entry => entry.Value is TomlTable && int.TryParse(entry.Key, CultureInfo.InvariantCulture, out _))
             .Select(entry => (Index: int.Parse(entry.Key, CultureInfo.InvariantCulture), Table: (TomlTable)entry.Value!))
             .OrderBy(entry => entry.Index)
-            .Select(entry => ReadHand(entry.Table, entry.Index, sources.GetValueOrDefault(entry.Index, $"#{entry.Index}")))
-            .ToArray();
+            .Select(entry => ReadHand(entry.Table, entry.Index, sources.GetValueOrDefault(entry.Index, $"#{entry.Index}")))];
     }
 
     /// <summary>
@@ -43,7 +42,7 @@ internal static partial class PhhReader
         var startingStacks = ReadNullableDecimals(table, "starting_stacks", source);
         var players = ReadStrings(table, "players", source)
             // `players` is optional; fall back to the PHH player labels.
-            ?? Enumerable.Range(1, startingStacks.Length).Select(no => $"p{no}").ToArray();
+            ?? [.. Enumerable.Range(1, startingStacks.Length).Select(no => $"p{no}")];
 
         return new PhhHand
         {
@@ -56,7 +55,7 @@ internal static partial class PhhReader
             StartingStacks = startingStacks,
             Players = players,
             FinishingStacks = table.ContainsKey("finishing_stacks") ? ReadDecimals(table, "finishing_stacks", source) : null,
-            Actions = ReadStrings(table, "actions", source)!.Select(PhhActionParser.Parse).ToArray()
+            Actions = [.. ReadStrings(table, "actions", source)!.Select(PhhActionParser.Parse)]
         };
     }
 
@@ -67,8 +66,8 @@ internal static partial class PhhReader
 
     private static string[]? ReadStrings(TomlTable table, string key, string source)
         => table.TryGetValue(key, out var value)
-            ? ReadArray(value, key, source).Select(item => item as string
-                ?? throw new FormatException($"{source}: '{key}' contains a non-string element")).ToArray()
+            ? [.. ReadArray(value, key, source).Select(item => item as string
+                ?? throw new FormatException($"{source}: '{key}' contains a non-string element"))]
             : null;
 
     private static decimal ReadDecimal(TomlTable table, string key, string source)
@@ -77,13 +76,11 @@ internal static partial class PhhReader
             : throw new FormatException($"{source}: '{key}' is missing");
 
     private static decimal[] ReadDecimals(TomlTable table, string key, string source)
-        => ReadNullableDecimals(table, key, source)
-            .Select(amount => amount ?? throw new FormatException($"{source}: '{key}' contains a null element"))
-            .ToArray();
+        => [.. ReadNullableDecimals(table, key, source).Select(amount => amount ?? throw new FormatException($"{source}: '{key}' contains a null element"))];
 
     private static decimal?[] ReadNullableDecimals(TomlTable table, string key, string source)
         => table.TryGetValue(key, out var value)
-            ? ReadArray(value, key, source).Select(item => ToDecimal(item, key, source)).ToArray()
+            ? [.. ReadArray(value, key, source).Select(item => ToDecimal(item, key, source))]
             : throw new FormatException($"{source}: '{key}' is missing");
 
     private static IEnumerable<object?> ReadArray(object? value, string key, string source)

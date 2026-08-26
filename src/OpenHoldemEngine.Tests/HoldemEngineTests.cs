@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using FluentResults;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -22,12 +22,12 @@ public sealed class HoldemEngineTests
 
         var seatsData = new PlayerJoinData[]
         {
-            new PlayerJoinData("Junpei", 1, 100),
-            new PlayerJoinData("Geraldine", 2, 100),
-            new PlayerJoinData("Zuhaitz", 3, 100),
-            new PlayerJoinData("Ozias", 4, 100),
-            new PlayerJoinData("Ilona", 5, 100),
-            new PlayerJoinData("Broen", 6, 100)
+            new("Junpei", 1, 100),
+            new("Geraldine", 2, 100),
+            new("Zuhaitz", 3, 100),
+            new("Ozias", 4, 100),
+            new("Ilona", 5, 100),
+            new("Broen", 6, 100)
         };
 
         var holeCards = new Dictionary<byte, Card[]>()
@@ -47,35 +47,35 @@ public sealed class HoldemEngineTests
             Options: gameOptions,
             HandData: new HandData(
                 No: 1,
-                Seats: new SeatData[]
-                {
-                    new SeatData(1, "Junpei",  100, 100)
+                Seats:
+                [
+                    new(1, "Junpei",  100, 100)
                     {
                         Hole = holeCards[1]
                     },
-                    new SeatData(2, "Geraldine", 100, 100)
+                    new(2, "Geraldine", 100, 100)
                     {
                         Hole = holeCards[2]
                     },
-                    new SeatData(3, "Zuhaitz", 100, 100)
+                    new(3, "Zuhaitz", 100, 100)
                     {
                         Hole = holeCards[3]
                     },
-                    new SeatData(4, "Ozias", 100, 95)
+                    new(4, "Ozias", 100, 95)
                     {
                         Hole = holeCards[4],
                         LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 5, 1)
                     },
-                    new SeatData(5, "Ilona", 100, 90)
+                    new(5, "Ilona", 100, 90)
                     {
                         Hole = holeCards[5],
                         LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.BigBlind, 10, 2)
                     },
-                    new SeatData(6, "Broen", 100, 100)
+                    new(6, "Broen", 100, 100)
                     {
                         Hole = holeCards[6]
                     },
-                },
+                ],
                 DealerSeatNo: 3,
                 SmallBlindSeatNo: 4,
                 BigBlindSeatNo: 5,
@@ -83,19 +83,18 @@ public sealed class HoldemEngineTests
                 Street: Street.PreFlop,
                 StreetPot: 15,
                 Pot: 0,
-                CommunityCards: Array.Empty<Card>(),
-                Evaluations: new PlayerActionEvaluationData[]
-                {
-                    new PlayerActionEvaluationData(PlayerActionType.Fold),
-                    new PlayerActionEvaluationData(PlayerActionType.Call, 10, 10),
-                    new PlayerActionEvaluationData(PlayerActionType.Raise, 15, 100)
-                })
+                CommunityCards: [],
+                Evaluations:
+                [
+                    new(PlayerActionType.Fold),
+                    new(PlayerActionType.Call, 10, 10),
+                    new(PlayerActionType.Raise, 15, 100)
+                ])
             );
-
 
         GameData actualGameData;
         using (TestEngineHost.Setup(out var holdemEngine, out _,
-                shuffler: new TestCardShuffler(_getHoleFunc: (no, seatNo) => holeCards[seatNo], _getDeckFunc: handNo => deckCards)))
+                shuffler: new TestCardShuffler(getHoleFunc: (no, seatNo) => holeCards[seatNo], getDeckFunc: handNo => deckCards)))
         {
             await holdemEngine.ApplyHoldemActionAsync(
                 new HoldemActionCreateGame(
@@ -147,8 +146,10 @@ public sealed class HoldemEngineTests
         var cardToStringConverter = new Converters.CardToStringConverter();
 
         if (cardStrings == null)
-            return Array.Empty<Card>();
+        {
+            return [];
+        }
 
-        return cardStrings.Select(str => (Card)cardToStringConverter.ConvertFromProvider(new string(str.Reverse().ToArray()))!).ToArray()!;
+        return cardStrings.Select(str => (Card)cardToStringConverter.ConvertFromProvider(new string([.. str.Reverse()]))!).ToArray()!;
     }
 }

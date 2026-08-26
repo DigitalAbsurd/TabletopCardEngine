@@ -1,4 +1,4 @@
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 

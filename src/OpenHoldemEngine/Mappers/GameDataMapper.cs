@@ -1,5 +1,5 @@
-using OpenHoldemEngine.Data;
-using OpenHoldemEngine.DTO;
+﻿using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
 
 namespace OpenHoldemEngine.Mappers;
@@ -16,7 +16,7 @@ internal static class GameDataMapper
             ? BuildEvaluations(game, lastHandAction.NextSeatNo)
             : [];
 
-        currentHand.TryGetBlindSeats(out var sbSeatNo, out var bbSeatNo);
+        currentHand.TryGetBlindSeats(out var smallBlindSeatNo, out var bigBlindSeatNo);
 
         var playersRoundAmounts = currentHand.Actions
             .GroupBy(action => new { action.Street, action.SeatNo })
@@ -29,35 +29,34 @@ internal static class GameDataMapper
             HandData: currentHand.No != default
                 ? new HandData(
                     No: currentHand.No,
-                    Seats: game.Players.Select(player => new SeatData(
+                    Seats: [.. game.Players.Select(player => new SeatData(
                             SeatNo: player.SeatNo,
                             Name: player.Name,
                             Hole: currentHand.GetSeatHoleCards(player.SeatNo),
                             LastAction: currentHand.Actions
                                 .Where(action => action.SeatNo == player.SeatNo)
                                 .OrderBy(action => action.No)
-                                .Select(action => new PlayerActionData(action.Street, action.PlayAction, action.Size, action.No))
+                                .Select(action => new PlayerActionData(action.Street, action.ActionType, action.Size, action.No))
                                 .LastOrDefault(),
-                            StartRoundStack: currentHand.GetSeatStartStack(player.SeatNo),
+                            StartHandStack: currentHand.GetSeatStartStack(player.SeatNo),
                             Stack: currentHand.GetSeatCurrentStack(player.SeatNo),
-                            RoundResultData: currentHand.PlayerEndStates
+                            HandResult: currentHand.PlayerEndStates
                                 .Where(endState => endState.SeatNo == player.SeatNo)
                                 .Select(endState => new HandResultData(
                                     Net: endState.WinAmount,
                                     Strength: endState.Strength,
                                     RankType: endState.RankType))
-                                .SingleOrDefault()))
-                        .ToArray(),
+                                .SingleOrDefault()))],
                     DealerSeatNo: currentHand.DealerSeatNo,
-                    SmallBlindSeatNo: sbSeatNo,
-                    BigBlindSeatNo: bbSeatNo,
+                    SmallBlindSeatNo: smallBlindSeatNo,
+                    BigBlindSeatNo: bigBlindSeatNo,
                     NextPlayerSeatNo: lastHandAction.NextSeatNo,
                     Street: lastHandAction.NextStreet,
-                    StreetPot: playersRoundAmounts.Where(g => g.Street == lastHandAction.Street).Select(g => g.Amount).Sum(),
-                    Pot: playersRoundAmounts.Where(g => g.Street != lastHandAction.NextStreet).Select(g => g.Amount).Sum(),
-                    CommunityCards: currentHand.GetDeckCards().ToArray(),
+                    StreetPot: playersRoundAmounts.Where(entry => entry.Street == lastHandAction.Street).Select(entry => entry.Amount).Sum(),
+                    Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
+                    CommunityCards: [.. currentHand.GetDeckCards()],
                     Evaluations: evaluations)
-                : default(HandData)!);
+                : default!);
     }
 
     /// <remarks>

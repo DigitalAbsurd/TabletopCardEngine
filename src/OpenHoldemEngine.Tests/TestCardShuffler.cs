@@ -7,11 +7,11 @@ namespace OpenHoldemEngine.Tests;
 /// recorded hand history possible. Both delegates are keyed by hand number, so a caller replaying
 /// a multi-hand game can serve a different deck per hand.
 /// </summary>
-internal class TestCardShuffler(Func<int, byte, Card[]> _getHoleFunc, Func<int, Card[]> _getDeckFunc) : ICardShuffler
+internal sealed class TestCardShuffler(Func<int, byte, Card[]> getHoleFunc, Func<int, Card[]> getDeckFunc) : ICardShuffler
 {
     public Task<IEnumerable<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo)
-        => Task.FromResult(_getHoleFunc(handNo, seatNo).AsEnumerable());
+        => Task.FromResult(getHoleFunc(handNo, seatNo).AsEnumerable());
 
     public Task<IEnumerable<Card>> GetDeckCardsAsync(Guid gameId, int handNo)
-        => Task.FromResult(_getDeckFunc(handNo).AsEnumerable());
+        => Task.FromResult(getDeckFunc(handNo).AsEnumerable());
 }

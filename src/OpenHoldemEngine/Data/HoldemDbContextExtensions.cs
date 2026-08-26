@@ -1,15 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 namespace OpenHoldemEngine.Data;
+
 internal static class HoldemDbContextExtensions
 {
     internal static async Task<Game> LoadGameWithCurrentHandAsync(this HoldemDbContext context, Guid gameId)
     {
         var game = await context.Set<Game>()
             .Include(game => game.Hands
-                .OrderByDescending(h => h.No)
+                .OrderByDescending(hand => hand.No)
                 .Take(1))
-        .SingleOrDefaultAsync(g => g.Id == gameId);
+        .SingleOrDefaultAsync(candidate => candidate.Id == gameId);
 
         if (game == default)
         {
@@ -19,31 +20,31 @@ internal static class HoldemDbContextExtensions
         var currentHand = game.GetCurrentHand();
 
         await context.Entry(game)
-            .Collection(g => g.Players)
+            .Collection(game => game.Players)
             .Query()
-            .Where(p => p.RoundNoStart <= currentHand.No)
+            .Where(player => player.HandNoStart <= currentHand.No)
             .LoadAsync();
 
         await context.Entry(currentHand)
-            .Collection(h => h.PlayerStartStates)
+            .Collection(hand => hand.PlayerStartStates)
             .LoadAsync();
 
         await context.Entry(currentHand)
-            .Collection(h => h.PlayerEndStates)
+            .Collection(hand => hand.PlayerEndStates)
             .LoadAsync();
 
         await context.Entry(currentHand)
-            .Collection(h => h.HoleCards)
+            .Collection(hand => hand.HoleCards)
             .LoadAsync();
 
         await context.Entry(currentHand)
-            .Collection(h => h.DeckCards)
+            .Collection(hand => hand.DeckCards)
             .LoadAsync();
 
         await context.Entry(currentHand)
-            .Collection(h => h.Actions)
+            .Collection(hand => hand.Actions)
             .Query()
-            .OrderBy(h => h.No)
+            .OrderBy(action => action.No)
             .LoadAsync();
 
         return game;
@@ -51,6 +52,5 @@ internal static class HoldemDbContextExtensions
 
     internal static Task<Game> LoadGameAsync(this HoldemDbContext context, Guid gameId)
         => context.Set<Game>().SingleAsync(game => game.Id == gameId);
-
 
 }

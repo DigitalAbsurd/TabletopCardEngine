@@ -1,4 +1,4 @@
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 
@@ -89,24 +89,24 @@ internal static class HandRunner
         switch (action)
         {
             case PlayerActionType.Call:
-            {
-                var paid = CollectDelta(seat, amount);
-                seat.Record(PlayerActionType.Call, amount, 0M, paid);
-                return (amount, 0M, paid);
-            }
+                {
+                    var paid = CollectDelta(seat, amount);
+                    seat.Record(PlayerActionType.Call, amount, 0M, paid);
+                    return (amount, 0M, paid);
+                }
             case PlayerActionType.Raise:
-            {
-                var addAmount = amount - agreeAmountBeforeAction;
-                var paid = CollectDelta(seat, amount);
-                seat.Record(PlayerActionType.Raise, amount, addAmount, paid);
-                return (amount, addAmount, paid);
-            }
+                {
+                    var addAmount = amount - agreeAmountBeforeAction;
+                    var paid = CollectDelta(seat, amount);
+                    seat.Record(PlayerActionType.Raise, amount, addAmount, paid);
+                    return (amount, addAmount, paid);
+                }
             case PlayerActionType.Fold:
-            {
-                seat.Record(PlayerActionType.Fold, 0M, 0M, 0M);
-                seat.Status = SeatStatus.Folded;
-                return (0M, 0M, 0M);
-            }
+                {
+                    seat.Record(PlayerActionType.Fold, 0M, 0M, 0M);
+                    seat.Status = SeatStatus.Folded;
+                    return (0M, 0M, 0M);
+                }
             default:
                 throw new ArgumentOutOfRangeException(nameof(action), action, "Unexpected action.");
         }
@@ -131,11 +131,11 @@ internal static class HandRunner
     /// </summary>
     private static void ExcludeShortOfMoneySeats(HandTable table)
     {
-        var (sbSeatNo, bbSeatNo) = StealFromPoorSeats(table);
-        table.SmallBlindSeatNo = sbSeatNo;
-        table.BigBlindSeatNo = bbSeatNo;
+        var (smallBlindSeatNo, bigBlindSeatNo) = StealFromPoorSeats(table);
+        table.SmallBlindSeatNo = smallBlindSeatNo;
+        table.BigBlindSeatNo = bigBlindSeatNo;
 
-        foreach (var seat in table.Seats.Where(s => s.Stack <= 0))
+        foreach (var seat in table.Seats.Where(seat => seat.Stack <= 0))
         {
             seat.Status = SeatStatus.Folded;
         }
@@ -143,7 +143,7 @@ internal static class HandRunner
 
     private static (byte SmallBlindSeatNo, byte BigBlindSeatNo) StealFromPoorSeats(HandTable table)
     {
-        foreach (var seat in table.Seats.Where(s => s.Stack <= 0))
+        foreach (var seat in table.Seats.Where(seat => seat.Stack <= 0))
         {
             seat.Stack = 0;
         }
@@ -152,10 +152,10 @@ internal static class HandRunner
             ShiftButton(table);
         }
 
-        var ordered = table.Seats.OrderBy(s => s.SeatNo).ToList();
-        var dealerIx = ordered.FindIndex(s => s.SeatNo == table.DealerSeatNo);
-        var ring = Enumerable.Range(0, ordered.Count * 3).Select(i => ordered[i % ordered.Count]).ToList();
-        var searchTargets = ring.Skip(dealerIx + 1).Take(ordered.Count).ToList();
+        var ordered = table.Seats.OrderBy(seat => seat.SeatNo).ToList();
+        var dealerIndex = ordered.FindIndex(seat => seat.SeatNo == table.DealerSeatNo);
+        var ring = Enumerable.Range(0, ordered.Count * 3).Select(index => ordered[index % ordered.Count]).ToList();
+        var searchTargets = ring.Skip(dealerIndex + 1).Take(ordered.Count).ToList();
 
         var sbSeat = FindFirstEligible(searchTargets, table.SmallBlind);
         if (sbSeat is null)
@@ -174,7 +174,7 @@ internal static class HandRunner
         if (bbSeat == sbSeat)
         {
             // Nobody can cover the big blind either — steal from everyone except the small blind.
-            foreach (var seat in table.Seats.Where(s => s != sbSeat))
+            foreach (var seat in table.Seats.Where(seat => seat != sbSeat))
             {
                 seat.Stack = 0;
             }
@@ -214,7 +214,7 @@ internal static class HandRunner
 
     private static void DealHoleCards(HandTable table)
     {
-        foreach (var seat in table.Seats.OrderBy(s => s.SeatNo))
+        foreach (var seat in table.Seats.OrderBy(seat => seat.SeatNo))
         {
             seat.Hole.Clear();
             seat.Hole.AddRange(table.Deck.Draw(2));
@@ -301,7 +301,7 @@ internal static class HandRunner
             throw new InvalidOperationException("No active seats remain.");
         }
 
-        var maxWager = table.Seats.Max(s => s.StreetWager);
+        var maxWager = table.Seats.Max(seat => seat.StreetWager);
         var everyoneAgreed = table.Seats.All(s => IsAgreed(table, s, maxWager));
         var lonelySeat = table.ActiveCount == 1;
 

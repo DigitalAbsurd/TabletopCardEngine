@@ -1,4 +1,4 @@
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Engine;
 
@@ -18,17 +18,17 @@ internal static class HandTableFactory
         var hand = game.GetCurrentHand();
         var seats = CurrentSeatPlayers(game).Select(player => BuildSeat(hand, player)).ToList();
 
-        hand.TryGetBlindSeats(out var sbSeatNo, out var bbSeatNo);
+        hand.TryGetBlindSeats(out var smallBlindSeatNo, out var bigBlindSeatNo);
 
         var table = new HandTable
         {
             SmallBlind = game.InitialSmallBlind,
-            Deck = deck ?? CardDeck.Shuffled(exclude: hand.GetDeckCards().Concat(seats.SelectMany(s => s.Hole))),
+            Deck = deck ?? CardDeck.Shuffled(exclude: hand.GetDeckCards().Concat(seats.SelectMany(seat => seat.Hole))),
             Seats = seats,
             Street = hand.GetStreet(),
             DealerSeatNo = hand.DealerSeatNo,
-            SmallBlindSeatNo = sbSeatNo,
-            BigBlindSeatNo = bbSeatNo,
+            SmallBlindSeatNo = smallBlindSeatNo,
+            BigBlindSeatNo = bigBlindSeatNo,
             NextSeatNo = hand.GetLastAction().NextSeatNo,
         };
         table.Board.AddRange(hand.GetDeckCards());
@@ -43,7 +43,7 @@ internal static class HandTableFactory
     private static IEnumerable<Data.Player> CurrentSeatPlayers(Game game)
         => game.Players
             .GroupBy(player => player.SeatNo)
-            .Select(seatPlayers => seatPlayers.OrderByDescending(player => player.RoundNoStart).First())
+            .Select(seatPlayers => seatPlayers.OrderByDescending(player => player.HandNoStart).First())
             .OrderBy(player => player.SeatNo);
 
     private static TableSeat BuildSeat(Hand hand, Data.Player player)
@@ -58,12 +58,12 @@ internal static class HandTableFactory
         {
             foreach (var action in streetActions)
             {
-                seat.Record(action.PlayAction, action.Amount, action.AddAmount, action.Paid);
+                seat.Record(action.ActionType, action.Amount, action.AddAmount, action.Paid);
             }
         }
 
-        var folded = hand.IsSeatFolded(seatNo) || (!hand.IsSeatDidActions(seatNo) && seat.Stack <= 0);
-        var allIn = !folded && hand.IsSeatDidActions(seatNo) && seat.Stack <= 0;
+        var folded = hand.IsSeatFolded(seatNo) || (!hand.HasSeatActed(seatNo) && seat.Stack <= 0);
+        var allIn = !folded && hand.HasSeatActed(seatNo) && seat.Stack <= 0;
         seat.Status = folded ? SeatStatus.Folded : allIn ? SeatStatus.AllIn : SeatStatus.Waiting;
 
         return seat;
