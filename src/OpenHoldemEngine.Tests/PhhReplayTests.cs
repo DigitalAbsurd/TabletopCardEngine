@@ -127,20 +127,12 @@ public sealed class PhhReplayTests
     }
 
     /// <summary>
-    /// A pre-flop all-in for the whole stack. The money comes out right, but this pins down a known
-    /// engine defect: because <c>PlayerActionHandler</c> only persists community cards while the
-    /// street is still advancing, the board is never run out once betting ends, so
-    /// <see cref="HandData.CommunityCards"/> stays empty and the reported hand rank is computed on
-    /// that empty board.
+    /// A pre-flop all-in for the whole stack. Betting closes before the river, so the engine has to
+    /// run the rest of the board out on its own — the history has it as <c>5d Kd Th Ac 7d</c>, which
+    /// gives the winning kings a set.
     /// </summary>
-    /// <remarks>
-    /// The history has the board as <c>5d Kd Th Ac 7d</c>, which gives the winning kings a set —
-    /// NPokerEngine evaluates that internally and hands back the right prize, but nothing of it
-    /// reaches the engine's own rows. When the defect is fixed this test should start failing;
-    /// the expectations below are then the ones to correct.
-    /// </remarks>
     [TestMethod]
-    public async Task PhhSingleHand_AllInRunOut_LeavesTheBoardUnfinished()
+    public async Task PhhSingleHand_AllInBeforeTheRiver_RunsOutTheBoard()
     {
         using var runner = new PhhReplayRunner();
 
@@ -153,9 +145,9 @@ public sealed class PhhReplayTests
         (loser.StartRoundStack + loser.RoundResultData!.Net).Should().Be(0, "the loser was all in");
 
         gameData.HandData.CommunityCards.Should()
-            .BeEmpty("the engine stops dealing the board once betting is over (known defect)");
+            .Equal(CardsFrom("5d", "Kd", "Th", "Ac", "7d"), "the board is run out in full even though betting ended on the flop");
         winner.RoundResultData.RankType.Should()
-            .Be(HandRankType.Pair, "with no board the winning kings only read as a pair (known defect)");
+            .Be(HandRankType.Trips, "the winning kings pair the king on the board for a set");
     }
 
     private static Card[] CardsFrom(params string[] cards)

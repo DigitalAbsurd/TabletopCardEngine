@@ -25,7 +25,6 @@ public static class ServiceCollectionExtensions
             return new HoldemEngine(optionsBuilder.Options);
         });
 
-        global::NPokerEngine.Engine.HandEvaluatorResolver.Register(HandEvaluator.Instance);
         return services;
     }
 }

@@ -184,12 +184,8 @@ internal sealed class PhhReplayRunner : IDisposable
     {
         var handData = gameData.HandData;
 
-        // Only the cards dealt while betting was still open, not the full recorded board: the engine
-        // stops dealing once the last decision is in, so when everyone is all in before the river it
-        // never persists the run-out. That is a known defect — see
-        // PhhSingleHand_AllInRunOut_LeavesTheBoardUnfinished, which pins it down.
-        handData.CommunityCards.Should().Equal(_currentDeck.BoardCardsDuringBetting,
-            "the finished hand should have dealt exactly the board the history recorded");
+        handData.CommunityCards.Should().Equal(_currentDeck.RecordedBoardCards,
+            "the finished hand should have dealt exactly the board the history recorded, running it out in full when betting ended early");
 
         for (var playerIx = 0; playerIx < hand.PlayerCount; playerIx++)
         {
