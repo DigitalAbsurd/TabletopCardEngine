@@ -46,22 +46,5 @@ internal sealed record PhhHand
     /// <summary>Every board card the history records, flop first, in dealing order.</summary>
     internal Card?[] Board => Actions.OfType<PhhDealBoardAction>().SelectMany(deal => deal.Cards).ToArray();
 
-    /// <summary>
-    /// Only the board cards dealt while there was still betting to come. When the last player is
-    /// all in, the rest of the board is run out afterwards, and a history records those cards after
-    /// the final decision.
-    /// </summary>
-    internal Card?[] BoardDealtDuringBetting
-    {
-        get
-        {
-            var lastDecisionIx = Array.FindLastIndex(Actions, action => action is IPhhPlayerDecision);
-
-            return Actions.Take(lastDecisionIx + 1).OfType<PhhDealBoardAction>()
-                .SelectMany(deal => deal.Cards)
-                .ToArray();
-        }
-    }
-
     public override string ToString() => $"{Source} (hand #{Index})";
 }

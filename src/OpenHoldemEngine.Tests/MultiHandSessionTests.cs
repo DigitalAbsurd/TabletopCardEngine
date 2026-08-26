@@ -113,14 +113,13 @@ public sealed class MultiHandSessionTests
     }
 
     /// <summary>
-    /// Drives the hand to its end. The policy checks when it can, otherwise calls or folds, and opens
-    /// with the smallest legal raise on the first decision of a street — at that point the actor has
-    /// nothing in front of it yet, so the minimum from <see cref="HandData.Evaluations"/> is the
-    /// street total the engine wants as the raise size.
+    /// Drives the hand to its end. The policy checks when it can, otherwise calls or folds, and
+    /// occasionally opens with the smallest legal raise — <see cref="PlayerActionEvaluationData.MinValue"/>
+    /// on a raise is the "raise to" total the engine wants as the size, regardless of where in the
+    /// street the decision falls.
     /// </summary>
     private static async Task<GameData> PlayOutHandAsync(HoldemEngine holdemEngine, Guid gameId, GameData gameData, Random random)
     {
-        var streetOfPreviousDecision = default(Street?);
         var decisionsLeft = MaxDecisionsPerHand;
 
         // A hand is over once the engine has written results — the same test the engine itself makes
@@ -132,13 +131,12 @@ public sealed class MultiHandSessionTests
                 $"hand #{gameData.HandData.No} should end within {MaxDecisionsPerHand} decisions");
 
             var handData = gameData.HandData;
-            var isFirstDecisionOfStreet = streetOfPreviousDecision != handData.Street;
             var check = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Check);
             var call = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Call);
             var raise = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
 
             HoldemActionPlayerAction playerAction;
-            if (isFirstDecisionOfStreet && raise != null && random.Next(4) == 0)
+            if (raise != null && random.Next(4) == 0)
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Raise, raise.MinValue);
             else if (check != null)
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Check, 0);
@@ -146,8 +144,6 @@ public sealed class MultiHandSessionTests
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Call, 0);
             else
                 playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Fold, 0);
-
-            streetOfPreviousDecision = handData.Street;
 
             var result = await holdemEngine.ApplyHoldemActionAsync(playerAction);
             result.IsSuccess.Should().BeTrue(
