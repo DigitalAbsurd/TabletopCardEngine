@@ -15,6 +15,14 @@ namespace OpenHoldemEngine.Tests.Phh;
 /// player is on the button. Mapping <c>pI</c> to seat <c>I</c> and starting the game with
 /// <c>InitialDealerSeatNo = PlayerCount</c> therefore puts the button, small blind and big blind
 /// exactly where the history says they are.
+/// <para>
+/// Heads-up the two rules cannot both hold, and the histories settle it by their action order: the
+/// last player acts first pre-flop and <c>p1</c> first on every street after it, which is the button
+/// posting the small blind — so heads-up it is the *last* player that posts the small blind, not
+/// <c>p1</c>. See <see cref="BlindSeatsFor"/>. The engine reaches the same layout from
+/// <c>InitialDealerSeatNo = PlayerCount</c> unchanged, because heads-up it moves the small blind onto
+/// the button itself.
+/// </para>
 /// </remarks>
 internal sealed class PhhReplayRunner : IDisposable
 {
@@ -25,6 +33,9 @@ internal sealed class PhhReplayRunner : IDisposable
     /// either way.
     /// </summary>
     private const int HandsPerDatabase = 250;
+
+    /// <summary>The five board cards a completed hand deals.</summary>
+    private const int BoardCardsCount = 5;
 
     private readonly ICardShuffler _shuffler;
     private IDisposable _host;
@@ -53,9 +64,22 @@ internal sealed class PhhReplayRunner : IDisposable
     }
 
     /// <summary>
+    /// Which seats post the blinds. <c>p1</c> and <c>p2</c> at three players or more; heads-up the
+    /// button — the last player — posts the small blind and <c>p1</c> the big one.
+    /// </summary>
+    internal static (byte SmallBlindSeatNo, byte BigBlindSeatNo) BlindSeatsFor(int playerCount)
+        => playerCount == 2 ? ((byte)2, (byte)1) : ((byte)1, (byte)2);
+
+    /// <summary>
     /// Whether the engine can model this hand at all. The engine plays no-limit hold'em with no
     /// antes and a big blind of exactly twice the small blind (<c>StartHandActionHandler</c> derives
-    /// it that way), and heads-up play is excluded because PHH seats the button differently there.
+    /// it that way), and it can only settle a showdown the history wrote every card of.
+    /// <para>
+    /// Recorded finishing stacks are deliberately *not* required. A corpus that has them is verified
+    /// against them (see <see cref="AssertHandResult"/>); one that does not is still worth replaying
+    /// for the positions, the action order, the street progression and the board, which is most of
+    /// what a hand history pins down.
+    /// </para>
     /// </summary>
     internal static bool IsSupported(PhhHand hand, out string reason)
     {
@@ -65,9 +89,9 @@ internal sealed class PhhReplayRunner : IDisposable
         {
             reason = $"variant '{hand.Variant}' is not no-limit Texas hold'em";
         }
-        else if (hand.PlayerCount < 3)
+        else if (hand.PlayerCount < 2)
         {
-            reason = $"{hand.PlayerCount} players — heads-up seats the button differently in PHH";
+            reason = $"{hand.PlayerCount} players — a hand needs at least two";
         }
         else if (hand.BlindsOrStraddles.Length != hand.PlayerCount || hand.Antes.Length != hand.PlayerCount)
         {
@@ -89,12 +113,37 @@ internal sealed class PhhReplayRunner : IDisposable
         {
             reason = "not every starting stack is recorded";
         }
-        else if (hand.FinishingStacks is null)
+        else if (!ShowdownIsFullyRecorded(hand))
         {
-            reason = "no finishing stacks to verify against";
+            reason = "a showdown is reached without every contender's cards and the whole board recorded";
         }
 
         return reason.Length == 0;
+    }
+
+    /// <summary>
+    /// Whether a hand that ends with more than one player still in it records everything needed to
+    /// settle the showdown the same way the history did. <see cref="PhhHandDeck"/> substitutes unused
+    /// deck cards for whatever a history leaves out, which costs nothing on a hand decided by folds
+    /// but would have the engine award the pot to somebody the finishing stacks disagree with.
+    /// Corpora of bot play record every card; corpora of real play record only what was shown.
+    /// </summary>
+    private static bool ShowdownIsFullyRecorded(PhhHand hand)
+    {
+        var folded = hand.Actions.OfType<PhhFoldAction>().Select(fold => fold.PlayerIndex).ToHashSet();
+        var contenders = Enumerable.Range(0, hand.PlayerCount).Where(playerIx => !folded.Contains(playerIx)).ToList();
+
+        if (contenders.Count < 2)
+        {
+            return true;
+        }
+
+        var board = hand.Board;
+        return board.Length == BoardCardsCount
+            && board.All(card => card is not null)
+            && contenders.All(playerIx => IsFullyKnown(PhhHandDeck.RecordedHoleCards(hand, playerIx)));
+
+        static bool IsFullyKnown(Card?[] hole) => hole.Length == 2 && hole.All(card => card is not null);
     }
 
     /// <summary>
@@ -164,9 +213,11 @@ internal sealed class PhhReplayRunner : IDisposable
     {
         var handData = gameData.HandData;
 
+        var (smallBlindSeatNo, bigBlindSeatNo) = BlindSeatsFor(hand.PlayerCount);
+
         handData.DealerSeatNo.Should().Be((byte)hand.PlayerCount, "the last PHH player is on the button");
-        handData.SmallBlindSeatNo.Should().Be(1, "the first PHH player is the small blind");
-        handData.BigBlindSeatNo.Should().Be(2, "the second PHH player is the big blind");
+        handData.SmallBlindSeatNo.Should().Be(smallBlindSeatNo, "where the small blind sits");
+        handData.BigBlindSeatNo.Should().Be(bigBlindSeatNo, "where the big blind sits");
         handData.StreetPot.Should().Be(hand.SmallBlind + hand.BigBlind, "only the blinds are in yet");
         handData.CommunityCards.Should().BeEmpty("no board is dealt pre-flop");
 
@@ -213,8 +264,15 @@ internal sealed class PhhReplayRunner : IDisposable
             var seatData = handData.Seats.Single(seat => seat.SeatNo == seatNo);
 
             seatData.HandResult.Should().NotBeNull($"seat {seatNo} should have a result once the hand is over");
-            (seatData.StartHandStack + (seatData.HandResult?.Net ?? 0)).Should()
-                .Be(hand.FinishingStacks![playerIx], $"seat {seatNo} finish stack");
+
+            // Not every corpus records where the stacks landed. The handhq hands do not, and could
+            // not be compared exactly even if they did: their pots are raked, which the engine has no
+            // concept of. Those hands are replayed for everything else a history pins down.
+            if (hand.FinishingStacks is { } finishingStacks)
+            {
+                (seatData.StartHandStack + (seatData.HandResult?.Net ?? 0)).Should()
+                    .Be(finishingStacks[playerIx], $"seat {seatNo} finish stack");
+            }
         }
 
         handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()

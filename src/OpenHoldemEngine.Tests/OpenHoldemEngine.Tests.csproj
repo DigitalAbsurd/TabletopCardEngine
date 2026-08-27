@@ -18,10 +18,12 @@
 
   <ItemGroup>
     <None Remove="Resources\phh\pluribus.phhs.gz" />
+    <None Remove="Resources\phh\handhq-headsup.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\phh\pluribus.phhs.gz" />
+    <EmbeddedResource Include="Resources\phh\handhq-headsup.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>

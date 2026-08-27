@@ -20,13 +20,16 @@ internal static class BettingRules
     /// <summary>
     /// The smallest legal "raise to" total: the last raise's total plus its own increment (so the
     /// big blind's post — amount 2·sb, increment sb — makes the preflop minimum raise 3·sb, not
-    /// the 4·sb a naive "double the bet" rule would give). With no raise yet, the minimum is one
-    /// big blind.
+    /// the 4·sb a naive "double the bet" rule would give). Never less than one big blind, whether or
+    /// not a raise has been made: a blind posted by a stack too short to cover it is a raise-kind
+    /// entry below a full blind, and a raise can never bring the street total under one.
     /// </summary>
     internal static decimal MinRaiseAmount(HandTable table)
     {
         var lastRaise = LastRaise(table);
-        return lastRaise is { } raise ? raise.Amount + raise.AddAmount : table.SmallBlind * 2;
+        return lastRaise is { } raise
+            ? Math.Max(raise.Amount + raise.AddAmount, table.SmallBlind * 2)
+            : table.SmallBlind * 2;
     }
 
     internal static bool IsAllIn(TableSeat seat, PlayerActionType action, decimal betAmount)

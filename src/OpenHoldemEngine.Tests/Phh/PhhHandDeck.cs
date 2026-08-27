@@ -10,7 +10,13 @@ namespace OpenHoldemEngine.Tests.Phh;
 /// A history need not name every card — hole cards can be <c>??</c>, and a hand that ends before the
 /// river simply has no board left to record. Those gaps are filled from the unused part of the deck
 /// in a fixed order rather than at random, so a failing hand always fails the same way. Filler never
-/// reaches a showdown: the engine only needs the full board when the history recorded one.
+/// decides a showdown: <c>PhhReplayRunner.IsSupported</c> rejects a hand that reaches one without
+/// every contender's cards written down.
+/// <para>
+/// Hole cards are read from the deal entries and from the show/muck entries alike. Corpora of bot
+/// play record every hand dealt (<c>d dh p1 3c9s</c>); corpora of real play only record what was
+/// shown at the end (<c>p1 sm 3c9s</c>), and both name the same two cards.
+/// </para>
 /// </remarks>
 internal sealed record PhhHandDeck
 {
@@ -28,8 +34,10 @@ internal sealed record PhhHandDeck
 
     internal static PhhHandDeck Create(PhhHand hand)
     {
-        var recordedHoleCards = hand.Actions.OfType<PhhDealHoleAction>()
-            .ToDictionary(deal => (byte)(deal.PlayerIndex + 1), deal => deal.Cards);
+        var recordedHoleCards = Enumerable.Range(0, hand.PlayerCount)
+            .Select(playerIx => (SeatNo: (byte)(playerIx + 1), Cards: RecordedHoleCards(hand, playerIx)))
+            .Where(entry => entry.Cards.Length > 0)
+            .ToDictionary(entry => entry.SeatNo, entry => entry.Cards);
         var recordedBoard = hand.Board;
 
         var unusedCards = new Queue<Card>(PhhCards.FullDeck
@@ -57,5 +65,23 @@ internal sealed record PhhHandDeck
             BoardCards = boardCards,
             RecordedBoardCards = [.. boardCards.Take(recordedBoard.Length)]
         };
+    }
+
+    /// <summary>
+    /// What the history says one player held, merging the deal entry with the show/muck entry — a
+    /// card is unknown only when neither names it. Empty when the history says nothing at all.
+    /// </summary>
+    internal static Card?[] RecordedHoleCards(PhhHand hand, int playerIndex)
+    {
+        var dealt = hand.Actions.OfType<PhhDealHoleAction>()
+            .LastOrDefault(deal => deal.PlayerIndex == playerIndex)?.Cards ?? [];
+        var shown = hand.Actions.OfType<PhhShowMuckAction>()
+            .LastOrDefault(show => show.PlayerIndex == playerIndex)?.Cards ?? [];
+
+        return [.. Enumerable
+            .Range(0, Math.Max(dealt.Length, shown.Length))
+            .Select(cardIx => At(dealt, cardIx) ?? At(shown, cardIx))];
+
+        static Card? At(Card?[] cards, int cardIx) => cardIx < cards.Length ? cards[cardIx] : null;
     }
 }
