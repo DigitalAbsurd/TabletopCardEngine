@@ -15,11 +15,15 @@ namespace OpenHoldemEngine.Tests;
 /// There is no external oracle here — the invariants are the oracle, which is why the action policy
 /// only ever checks, calls, folds or makes the smallest legal raise. Bet sizing is already covered by
 /// the thousands of recorded raises the PHH replay drives through the engine.
+/// <para>
+/// Run at two table sizes. Heads-up is not a shorter ring but a different one — the button posts the
+/// small blind and the acting order flips after the pre-flop — and it is the only shape where the
+/// same two seats meet every hand, so the button has to alternate rather than walk.
+/// </para>
 /// </remarks>
 [TestClass]
 public sealed class MultiHandSessionTests
 {
-    private const int SeatCount = 6;
     private const int HandCount = 200;
     private const decimal SmallBlind = 10;
     private const decimal BigBlind = SmallBlind * 2;
@@ -33,7 +37,9 @@ public sealed class MultiHandSessionTests
     private const int Seed = 20260825;
 
     [TestMethod]
-    public async Task MultiHandSession_KeepsTheLedgerBalanced()
+    [DataRow(6, DisplayName = "six-handed")]
+    [DataRow(2, DisplayName = "heads-up")]
+    public async Task MultiHandSession_KeepsTheLedgerBalanced(int seatCount)
     {
         var gameId = Guid.Parse("{22222222-2222-2222-2222-222222222222}");
         var random = new Random(Seed);
@@ -47,12 +53,12 @@ public sealed class MultiHandSessionTests
         (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(
             GameId: gameId,
             Options: new GameOptionData(
-                MaxPlayersCount: SeatCount,
+                MaxPlayersCount: seatCount,
                 InitialSmallBlind: SmallBlind,
                 InitialDealerSeatNo: FirstDealerSeatNo,
                 AllowRebuy: false)))).IsSuccess.Should().BeTrue();
 
-        var joinSeats = Enumerable.Range(1, SeatCount)
+        var joinSeats = Enumerable.Range(1, seatCount)
             .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, BuyIn))
             .ToArray();
 
@@ -62,9 +68,9 @@ public sealed class MultiHandSessionTests
 
         for (var handNo = 1; handNo <= HandCount; handNo++)
         {
-            cardsByHand[handNo] = DealCards(random);
+            cardsByHand[handNo] = DealCards(random, seatCount);
 
-            using var scope = new AssertionScope($"session hand #{handNo}");
+            using var scope = new AssertionScope($"{seatCount}-handed session hand #{handNo}");
 
             var startResult = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId)
             {
@@ -77,8 +83,8 @@ public sealed class MultiHandSessionTests
             var handData = gameData.HandData;
 
             handData.No.Should().Be(handNo);
-            AssertButtonWalksRound(handData, previousDealerSeatNo);
-            AssertBlindSeats(handData);
+            AssertButtonWalksRound(handData, previousDealerSeatNo, seatCount);
+            AssertBlindSeats(handData, seatCount);
 
             foreach (var seatData in handData.Seats)
             {
@@ -87,7 +93,7 @@ public sealed class MultiHandSessionTests
             }
 
             handData.Seats.Sum(seat => seat.StartHandStack).Should()
-                .Be(SeatCount * BuyIn, "nobody buys in again, so the chips on the table never change");
+                .Be(seatCount * BuyIn, "nobody buys in again, so the chips on the table never change");
 
             gameData = await PlayOutHandAsync(holdemEngine, gameId, gameData, random);
             handData = gameData.HandData;
@@ -170,38 +176,44 @@ public sealed class MultiHandSessionTests
         return gameData;
     }
 
-    private static void AssertButtonWalksRound(HandData handData, byte? previousDealerSeatNo)
+    private static void AssertButtonWalksRound(HandData handData, byte? previousDealerSeatNo, int seatCount)
     {
         var expectedDealerSeatNo = previousDealerSeatNo == null
             ? FirstDealerSeatNo
-            : NextSeatNo(previousDealerSeatNo.Value);
+            : NextSeatNo(previousDealerSeatNo.Value, seatCount);
 
         handData.DealerSeatNo.Should().Be(expectedDealerSeatNo,
             "the button moves one seat on at every hand while the table stays full");
     }
 
-    private static void AssertBlindSeats(HandData handData)
+    private static void AssertBlindSeats(HandData handData, int seatCount)
     {
-        handData.SmallBlindSeatNo.Should().Be(NextSeatNo(handData.DealerSeatNo), "the small blind sits left of the button");
-        handData.BigBlindSeatNo.Should().Be(NextSeatNo(handData.SmallBlindSeatNo), "the big blind sits left of the small blind");
+        // Heads-up the button posts the small blind; at a fuller table the small blind sits left of it.
+        var expectedSmallBlindSeatNo = seatCount == 2
+            ? handData.DealerSeatNo
+            : NextSeatNo(handData.DealerSeatNo, seatCount);
+
+        handData.SmallBlindSeatNo.Should().Be(expectedSmallBlindSeatNo, "where the small blind sits");
+        handData.BigBlindSeatNo.Should().Be(NextSeatNo(handData.SmallBlindSeatNo, seatCount),
+            "the big blind sits left of the small blind");
         handData.StreetPot.Should().Be(SmallBlind + BigBlind, "only the blinds are in yet");
     }
 
-    private static byte NextSeatNo(byte seatNo) => (byte)(seatNo % SeatCount + 1);
+    private static byte NextSeatNo(byte seatNo, int seatCount) => (byte)(seatNo % seatCount + 1);
 
     /// <summary>
     /// A full shuffle per hand: two cards for each seat, then the five board cards. Driven by the
     /// test's seeded generator, so the whole session is reproducible.
     /// </summary>
-    private static (Dictionary<byte, Card[]> Hole, Card[] Board) DealCards(Random random)
+    private static (Dictionary<byte, Card[]> Hole, Card[] Board) DealCards(Random random, int seatCount)
     {
         var deck = Phh.PhhCards.FullDeck.OrderBy(_ => random.Next()).ToArray();
 
-        var hole = Enumerable.Range(0, SeatCount)
+        var hole = Enumerable.Range(0, seatCount)
             .ToDictionary(
                 seatIx => (byte)(seatIx + 1),
                 seatIx => deck.Skip(seatIx * 2).Take(2).ToArray());
 
-        return (hole, [.. deck.Skip(SeatCount * 2).Take(5)]);
+        return (hole, [.. deck.Skip(seatCount * 2).Take(5)]);
     }
 }

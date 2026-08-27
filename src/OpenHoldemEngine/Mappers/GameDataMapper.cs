@@ -88,8 +88,12 @@ internal static class GameDataMapper
             }
         }
 
-        // All-in is always allowed, even when the raise window above is degenerate.
-        evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, seat.Stack, seat.Stack));
+        // All-in is always allowed, even when the raise window above is degenerate. The bound is a
+        // "raise to" total like every other raise bound, so it has to include what the seat already
+        // has on the street — otherwise a seat that has posted a blind would be handed a size the
+        // rules read as an under-raise and silently turn into a fold.
+        var allInRaiseTo = seat.Stack + seat.StreetWager;
+        evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInRaiseTo, allInRaiseTo));
         return [.. evaluations];
     }
 

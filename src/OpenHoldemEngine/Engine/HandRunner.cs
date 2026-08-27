@@ -11,17 +11,19 @@ namespace OpenHoldemEngine.Engine;
 internal static class HandRunner
 {
     /// <summary>
-    /// Starts a new hand: shifts the button, collects blinds from whoever can afford them (folding
-    /// anyone who cannot), deals hole cards, and advances to the first decision — or straight to
-    /// showdown, if the blinds alone leave one player standing.
+    /// Starts a new hand: shifts the button, settles who posts the blinds (folding every broke
+    /// seat), collects them — capped at what each seat has — deals hole cards, and advances to the
+    /// first decision, or straight to showdown if the blinds alone leave one player standing.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Fewer than two seats can cover the blinds.</exception>
+    /// <exception cref="InvalidOperationException">Fewer than two seats have chips to play with.</exception>
     internal static void StartHand(HandTable table)
     {
         ShiftButton(table);
         ExcludeShortOfMoneySeats(table);
 
-        if (table.ActiveCount < 2)
+        // Counted on chips rather than on ActiveCount, because a seat with less than a full blind is
+        // a playable hand — it posts what it has and is all in — not a seat that cannot be dealt to.
+        if (table.Seats.Count(seat => seat.Stack > 0) < 2 || table.SmallBlindSeatNo == 0 || table.BigBlindSeatNo == 0)
         {
             throw new InvalidOperationException("At least two funded seats are required to start a hand.");
         }
@@ -132,13 +134,24 @@ internal static class HandRunner
     private static void ExcludeShortOfMoneySeats(HandTable table)
     {
         var (smallBlindSeatNo, bigBlindSeatNo) = StealFromPoorSeats(table);
-        table.SmallBlindSeatNo = smallBlindSeatNo;
-        table.BigBlindSeatNo = bigBlindSeatNo;
 
         foreach (var seat in table.Seats.Where(seat => seat.Stack <= 0))
         {
             seat.Status = SeatStatus.Folded;
         }
+
+        // Heads-up the button posts the small blind. Assigned here rather than by swapping the two
+        // answers above, which is how this used to work: that search picks seats by what they can
+        // afford, so swapping its answers hands the big blind to a seat that only ever qualified for
+        // the small one — and the post then takes more chips than the seat has.
+        if (table.ActiveCount == 2)
+        {
+            smallBlindSeatNo = table.DealerSeatNo;
+            bigBlindSeatNo = table.Seats.First(seat => seat.IsActive && seat.SeatNo != table.DealerSeatNo).SeatNo;
+        }
+
+        table.SmallBlindSeatNo = smallBlindSeatNo;
+        table.BigBlindSeatNo = bigBlindSeatNo;
     }
 
     private static (byte SmallBlindSeatNo, byte BigBlindSeatNo) StealFromPoorSeats(HandTable table)
@@ -150,6 +163,16 @@ internal static class HandRunner
         if (table[table.DealerSeatNo].Stack <= 0)
         {
             ShiftButton(table);
+        }
+
+        // Two funded seats is heads-up, and the search below has nothing useful to say about it:
+        // there is nobody to skip past, while its "nobody can cover the big blind" branch would zero
+        // the short stack out of the hand instead of letting it play for what it has. Which of the
+        // two posts which blind is settled by the caller.
+        var funded = table.Seats.Where(seat => seat.Stack > 0).ToList();
+        if (funded.Count == 2)
+        {
+            return (funded[0].SeatNo, funded[1].SeatNo);
         }
 
         var ordered = table.Seats.OrderBy(seat => seat.SeatNo).ToList();
@@ -195,21 +218,27 @@ internal static class HandRunner
 
     private static void PostBlinds(HandTable table)
     {
-        // Heads-up, the button posts the small blind and acts last preflop but first postflop.
-        if (table.ActiveCount == 2)
-        {
-            (table.SmallBlindSeatNo, table.BigBlindSeatNo) = (table.BigBlindSeatNo, table.SmallBlindSeatNo);
-        }
-
         PostBlind(table[table.SmallBlindSeatNo], PlayerActionType.SmallBlind, table.SmallBlind, table.SmallBlind);
         PostBlind(table[table.BigBlindSeatNo], PlayerActionType.BigBlind, table.SmallBlind * 2, table.SmallBlind);
     }
 
+    /// <summary>
+    /// Posts one blind, capped at the stack: a seat with less than the blind posts what it has and is
+    /// all in, which is what the rules say and is common heads-up. The recorded amount is what was
+    /// actually wagered, so the pot maths, the side-pot levels and the callers' view of the street
+    /// all agree with the stack that was taken.
+    /// </summary>
     private static void PostBlind(TableSeat seat, PlayerActionType kind, decimal amount, decimal addAmount)
     {
-        seat.Stack -= amount;
-        seat.Committed += amount;
-        seat.Record(kind, amount, addAmount, paid: amount);
+        var posted = Math.Min(amount, seat.Stack);
+        seat.Stack -= posted;
+        seat.Committed += posted;
+        seat.Record(kind, posted, Math.Min(addAmount, posted), paid: posted);
+
+        if (seat.Stack == 0)
+        {
+            seat.Status = SeatStatus.AllIn;
+        }
     }
 
     private static void DealHoleCards(HandTable table)
@@ -258,7 +287,8 @@ internal static class HandRunner
         var dealt = table.Deck.Draw(count);
         table.Board.AddRange(dealt);
 
-        // The button acts first postflop when heads-up.
+        // Heads-up — which is what the button holding the small blind means — the big blind acts
+        // first on every street after the pre-flop, so step one seat past the button.
         if (table.DealerSeatNo == table.SmallBlindSeatNo && table.NextSeatNo != 0)
         {
             table.NextSeatNo = table.NextSeatAfter(table.NextSeatNo, s => s.IsWaiting);
@@ -268,17 +298,36 @@ internal static class HandRunner
     }
 
     /// <summary>
-    /// When at most one seat can still be asked (everyone else is all in or folded), keeps
-    /// dealing streets and advancing without stopping to ask anyone, all the way to showdown.
+    /// When nobody is left to ask (everyone else is all in or folded), keeps dealing streets and
+    /// advancing without stopping, all the way to showdown.
     /// </summary>
     private static IReadOnlyList<Card> ForwardStreet(HandTable table)
     {
-        if (table.WaitingCount <= 1)
+        if (CanCloseWithoutAsking(table))
         {
             table.Street = table.Street.Next();
             return StartStreet(table);
         }
         return [];
+    }
+
+    /// <summary>
+    /// Whether the street is settled with nobody asked: at most one seat is still waiting, and if
+    /// there is one it has already matched the biggest wager. A lone waiting seat that still owes
+    /// chips has a real decision left, and heads-up that is not a theoretical case — against a big
+    /// blind that went all in for less than a full blind, the button has only its small blind in and
+    /// still has to call or fold. Post-flop every street opens with the wagers cleared, so the only
+    /// waiting seat trivially matches and the board runs itself out as before.
+    /// </summary>
+    private static bool CanCloseWithoutAsking(HandTable table)
+    {
+        if (table.WaitingCount > 1)
+        {
+            return false;
+        }
+
+        var maxWager = table.Seats.Max(seat => seat.StreetWager);
+        return table.Seats.Where(seat => seat.IsWaiting).All(seat => seat.StreetWager == maxWager);
     }
 
     private static IReadOnlyList<Card> Resolve(HandTable table)

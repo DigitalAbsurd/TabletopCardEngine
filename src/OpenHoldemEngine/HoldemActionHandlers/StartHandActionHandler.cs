@@ -31,12 +31,18 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
 
         game.GetCurrentHand().DealerSeatNo = table.DealerSeatNo;
 
+        // Amounts come off the table rather than from the nominal blinds, because a stack too short
+        // to cover its blind posts what it has: `Size` stays the blind that was asked for, `Amount`
+        // is what the seat actually put in, and all pot maths reads `Amount`.
+        var smallBlindPost = table[table.SmallBlindSeatNo].StreetWager;
+        var bigBlindPost = table[table.BigBlindSeatNo].StreetWager;
+
         game.AddAction(seatNo: table.SmallBlindSeatNo,
             street: Street.PreFlop,
             playerActionType: PlayerActionType.SmallBlind,
             size: table.SmallBlind,
-            amount: table.SmallBlind,
-            addAmount: table.SmallBlind,
+            amount: smallBlindPost,
+            addAmount: smallBlindPost,
             nextSeatNo: table.BigBlindSeatNo,
             nextStreet: Street.PreFlop);
 
@@ -44,8 +50,8 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
             street: Street.PreFlop,
             playerActionType: PlayerActionType.BigBlind,
             size: table.SmallBlind * 2,
-            amount: table.SmallBlind * 2,
-            addAmount: table.SmallBlind,
+            amount: bigBlindPost,
+            addAmount: Math.Min(table.SmallBlind, bigBlindPost),
             nextSeatNo: table.NextSeatNo,
             nextStreet: Street.PreFlop);
 
