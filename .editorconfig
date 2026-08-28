@@ -390,3 +390,24 @@ generated_code = true
 [**/*Tests.cs]
 
 dotnet_diagnostic.CA1707.severity = none
+
+#############################################
+# Blazor demo project
+#############################################
+#
+# Generated Razor partial classes cannot satisfy:
+# - CS1591: Missing XML doc comments (generated partials are an implementation detail)
+# - IDE0130: namespace must match folder (generated partials live in a different namespace)
+#
+# These suppressions are limited to the demo project and .razor files only; the engine
+# and test projects maintain their full documentation and naming rules.
+
+[src/OpenHoldemEngine.Demo/**.cs]
+
+dotnet_diagnostic.CS1591.severity = none
+dotnet_diagnostic.IDE0130.severity = none
+
+[**/*.razor]
+
+dotnet_diagnostic.CS1591.severity = none
+dotnet_diagnostic.IDE0130.severity = none
