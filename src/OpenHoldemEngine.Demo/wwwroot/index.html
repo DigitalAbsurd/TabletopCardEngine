@@ -30,22 +30,6 @@
     <script src="lib/prism/prism.min.js"></script>
     <script src="lib/prism/prism-csharp.min.js"></script>
     <script src="js/download.js"></script>
-
-    <script>
-        // Helper function for scrolling to latest entry (called by JS interop)
-        window.scrollToLatestEntry = function (element) {
-            if (!element) {
-                return;
-            }
-            requestAnimationFrame(() => {
-                const entries = element.querySelectorAll('.engine-call-entry');
-                if (entries.length > 0) {
-                    const lastEntry = entries[entries.length - 1];
-                    lastEntry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            });
-        };
-    </script>
 </body>
 
 </html>

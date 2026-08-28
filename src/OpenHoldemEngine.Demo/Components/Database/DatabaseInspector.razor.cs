@@ -45,16 +45,26 @@ public abstract class DatabaseInspectorBase : ComponentBase
     /// <summary>The CREATE TABLE statement for the currently selected table.</summary>
     public string? CreateTableStatement { get; set; }
 
+    /// <summary>The last error message encountered during database operations.</summary>
+    public string? LastErrorMessage { get; set; }
+
     /// <summary>
     /// Initializes the component and loads the table list.
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        TableNames = SqliteBrowser.GetTableNames();
-        if (TableNames.Count > 0)
+        try
         {
-            SelectedTable = TableNames[0];
-            await LoadTableDataAsync(SelectedTable);
+            TableNames = SqliteBrowser.GetTableNames();
+            if (TableNames.Count > 0)
+            {
+                SelectedTable = TableNames[0];
+                await LoadTableDataAsync(SelectedTable);
+            }
+        }
+        catch (Exception ex)
+        {
+            LastErrorMessage = ex.Message;
         }
 
         Session.StateChanged += OnSessionStateChanged;
@@ -68,11 +78,21 @@ public abstract class DatabaseInspectorBase : ComponentBase
         if (SelectedTable != null)
         {
             var previousCount = RowCount;
-            InvokeAsync(async () =>
+            _ = InvokeAsync(async () =>
             {
-                await LoadTableDataAsync(SelectedTable);
-                RowCountChanged = RowCount != previousCount;
-                StateHasChanged();
+                try
+                {
+                    await LoadTableDataAsync(SelectedTable);
+                    RowCountChanged = RowCount != previousCount;
+                }
+                catch (Exception ex)
+                {
+                    LastErrorMessage = ex.Message;
+                }
+                finally
+                {
+                    StateHasChanged();
+                }
             });
         }
     }
@@ -85,7 +105,16 @@ public abstract class DatabaseInspectorBase : ComponentBase
         SelectedTable = tableName;
         CurrentPage = 1;
         RowCountChanged = false;
-        await LoadTableDataAsync(SelectedTable);
+        try
+        {
+            await LoadTableDataAsync(SelectedTable);
+            LastErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            LastErrorMessage = ex.Message;
+        }
+
         StateHasChanged();
     }
 
@@ -96,7 +125,16 @@ public abstract class DatabaseInspectorBase : ComponentBase
     {
         // Get the current page from the event args
         CurrentPage = (int)args.Page;
-        await LoadTableDataAsync(SelectedTable);
+        try
+        {
+            await LoadTableDataAsync(SelectedTable);
+            LastErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            LastErrorMessage = ex.Message;
+        }
+
         StateHasChanged();
     }
 
@@ -112,12 +150,25 @@ public abstract class DatabaseInspectorBase : ComponentBase
 
         await Task.Run(() =>
         {
-            Columns = SqliteBrowser.GetColumnInfo(tableName);
-            RowCount = SqliteBrowser.GetRowCount(tableName);
-            CreateTableStatement = SqliteBrowser.GetCreateTableStatement(tableName);
+            try
+            {
+                Columns = SqliteBrowser.GetColumnInfo(tableName);
+                RowCount = SqliteBrowser.GetRowCount(tableName);
+                CreateTableStatement = SqliteBrowser.GetCreateTableStatement(tableName);
 
-            var offset = (CurrentPage - 1) * PageSize;
-            Rows = SqliteBrowser.GetTableRows(tableName, PageSize, offset);
+                var offset = (CurrentPage - 1) * PageSize;
+                Rows = SqliteBrowser.GetTableRows(tableName, PageSize, offset);
+                LastErrorMessage = null;
+            }
+            catch (Exception ex)
+            {
+                LastErrorMessage = ex.Message;
+                Columns = [];
+                Rows = [];
+                RowCount = 0;
+                CreateTableStatement = null;
+                throw;
+            }
         });
     }
 
