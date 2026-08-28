@@ -2,13 +2,14 @@
 @using OpenHoldemEngine.Demo.Services
 @implements IAsyncDisposable
 @inject BrowserStorage Storage
+@inject WalkthroughState WalkthroughState
 
 <Modal Visible="_visible"
     Title="Welcome to OpenHoldemEngine Demo"
     OnOk="OnClose"
     OnCancel="OnClose"
     Width="600"
-    Closable="false">
+    Closable="true">
     <div class="walkthrough-content">
         @if (_currentStep == 1)
         {
@@ -122,6 +123,19 @@
             // If storage service fails, show the walkthrough
             _visible = true;
         }
+
+        WalkthroughState.ShowRequested += Show;
+    }
+
+    /// <summary>
+    /// Opens the walkthrough and resets it to step 1.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task Show()
+    {
+        _currentStep = 1;
+        _visible = true;
+        return Task.CompletedTask;
     }
 
     private async Task OnClose()
@@ -159,6 +173,7 @@
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
+        WalkthroughState.ShowRequested -= Show;
         await Task.CompletedTask;
     }
 }
