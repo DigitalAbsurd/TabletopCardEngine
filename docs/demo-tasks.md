@@ -13,6 +13,13 @@ repository, without reading the rest of this document. The shared background an 
 collected under [Engine facts every task depends on](#engine-facts-every-task-depends-on); the
 relevant subset is repeated inside each task's **Notes** section.
 
+Phases A to E shipped as issues #3 to #19. [Phase F](#phase-f--post-release-fixes) was added
+afterwards, once the demo was actually run in a browser: it collects the defects the chain could not
+catch. That is not an accident of process but a property of it — the automated gates are
+`dotnet build`, `dotnet format --verify-no-changes` and `dotnet test`, and every Phase F defect passes
+all three. A duplicated SQL quote, a `bool` where a `string` comes back from JS interop, and a missing
+`@` on a Razor attribute are all perfectly legal code.
+
 ## Product scope
 
 | Area | Decision |
@@ -98,6 +105,24 @@ Every one of them was verified against the code at `b7c09ea`.
     justifying comment, never in a `NoWarn` in the csproj.
 18. **There is no `.github/` directory at all.** CI and deployment are greenfield.
 
+Facts 1 to 18 describe the repository as task 1 found it. Phase F adds three more, verified against
+`fa656c3` — the state after the whole chain had landed.
+
+19. **`.github/` exists now**, holding `ci.yml` and `deploy-demo.yml` from task 15, so fact 18 is
+    history rather than current state. `deploy-demo.yml` declares a `permissions:` block, which means
+    every scope it does not list is dropped to *none* — the reason task 18 exists.
+20. **`HoldemEngineOptionsBuilder.WithCardShuffler` takes a non-nullable `ICardShuffler`**, so the
+    builder cannot express "deal at random again". The engine falls back to a real shuffle only when
+    `HoldemEngineOptions.Instance.CardShuffler` is `null`, which the demo can assign directly because
+    it has `InternalsVisibleTo`. Read together with fact 14: a shuffler is global state, so it has to
+    be uninstalled and not merely emptied.
+21. **The automated gates cannot see the browser.** `dotnet build`,
+    `dotnet format OpenHoldemEngine.sln --verify-no-changes` and `dotnet test` are the only checks the
+    task runner has. A Definition of done that reads "it looks right in the browser" is therefore not
+    implementable by the runner, so every Phase F task lands a test, or a grep, that settles it without
+    one. The genuinely browser-only checks are collected in
+    [End-to-end verification](#end-to-end-verification) for a human to run.
+
 ## A known, deliberate duplication
 
 The PHH tooling (`PhhReader`, `PhhActionParser`, `PhhCards`, `PhhHandDeck`, `PhhAction`, `PhhHand`)
@@ -116,7 +141,8 @@ at that option.
 
 # Task chain
 
-Seventeen tasks in five phases. Each is sized for a single pull request.
+Seventeen tasks in five phases, plus eight post-release fixes in Phase F. Each is sized for a single
+pull request.
 
 ## Phase A — foundation
 
@@ -755,6 +781,328 @@ English-only throughout, without exception.
 
 ---
 
+## Phase F — post-release fixes
+
+Eight tasks, written after the demo was first run in a browser. Six are independent; only 24 and 25
+wait on anything.
+
+### 18. Grant `contents: read` to the Pages deployment workflow
+
+**Depends on:** nothing.
+
+**Why.** The Pages deployment has never succeeded. It fails on its first step, `Checkout code`, with
+`repository not found` and git exit code 128. The repository is private, but the credential is not the
+problem: `deploy-demo.yml` declares a `permissions:` block, and declaring one drops every scope it does
+not list to *none*. The failing run's own log header reads `GITHUB_TOKEN Permissions: Metadata: read,
+Pages: write` — no `contents: read`, so the token cannot see the repository it is checking out.
+`ci.yml` passes on the same private repository because it declares no `permissions:` block and keeps
+the default read access.
+
+**Scope.**
+- Add `contents: read` to the `permissions:` block, alongside `pages: write` and `id-token: write`.
+- Add an `environment:` block to the `build` job — `name: github-pages`, `url` from the deployment
+  step's `page_url` output. `actions/deploy-pages@v4` expects that attribution and the job has none.
+- Make the `Rewrite base href` step fail loudly. It is a literal `sed` match on `<base href="/" />`, so
+  any change to spacing or quoting silently no-ops and ships a site whose every asset request 404s.
+
+**Files.** `.github/workflows/deploy-demo.yml`.
+
+**Definition of done.** `contents: read` and the `github-pages` environment are both present, and the
+`base href` step exits non-zero when its match does not apply.
+
+**Notes for the implementer.**
+- Do **not** introduce a personal access token. A `PRIVATE_REPO_ACCESS` secret exists and passing it as
+  `token:` to `actions/checkout` would also make the step pass, but that treats a missing permission
+  scope as if it were a missing credential. `contents: read` never expires and keeps working unchanged
+  if the repository is later made public.
+- Do not delete the `permissions:` block to inherit the defaults — `id-token: write` is required for
+  Pages OIDC and is not a default. The block has to stay; it has to be complete.
+- Publishing Pages from a private repository additionally requires an account plan that permits it. If
+  `deploy-pages` still fails after this, the next thing to look at is repository settings, not the
+  workflow. This task's job ends at getting past `Checkout code`.
+- The workflow only runs `on: push` to `main`, so no pull request can prove it green.
+
+---
+
+### 19. Nest every project under the `src` solution folder
+
+**Depends on:** nothing.
+
+**Why.** `OpenHoldemEngine.sln` has a `src` solution folder, but only the two demo projects are nested
+inside it, so Solution Explorer shows a split that does not exist on disk: all four projects already
+live under `src/`.
+
+**Scope.** Add the two missing `GlobalSection(NestedProjects)` entries, mapping `OpenHoldemEngine` and
+`OpenHoldemEngine.Tests` to the `src` folder's GUID. Nothing else — no GUID changes, no `.csproj` path
+changes, no configuration-platform edits.
+
+**Files.** `OpenHoldemEngine.sln`.
+
+**Definition of done.** All four projects appear under `src` in the solution tree, and the three gates
+pass unchanged.
+
+**Notes for the implementer.**
+- **Do not move any directory.** This is a virtual Visual Studio grouping recorded in
+  `GlobalSection(NestedProjects)` and unrelated to the filesystem. Moving directories would break every
+  relative `ProjectReference`, the `InternalsVisibleTo` wiring, `scripts/pack-phh-*.ps1`, and the paths
+  hard-coded in `.github/workflows/`.
+- The file is UTF-8 with BOM, CRLF, tab-indented. A line-ending flip turns a two-line change into an
+  unreviewable whole-file diff.
+
+---
+
+### 20. Fix the SQLite identifier quoting that breaks the database inspector
+
+**Depends on:** nothing.
+
+**Why.** This is the headline crash. `SqliteBrowser.EscapeIdentifier` returns an identifier *with* its
+quotes, and all three of its call sites wrap the result in another pair, so `GetRowCount("Game")`
+executes `SELECT COUNT(*) FROM """Game"""` — the table whose name is the seven-character string
+`"Game"` — and SQLite answers `no such table`. `GetColumnInfo` returns zero rows silently first (a
+`PRAGMA` on an unknown table does not error), then `GetRowCount` throws. Nothing catches it:
+`DatabaseInspector.OnInitializedAsync` loads the moment a game exists, and again on every
+`StateChanged`, so the exception escapes the renderer and takes the whole page's interactivity down to
+the stock error bar. The panel carrying the demo's central lesson — the database *is* the state — is
+the one panel that has never worked.
+
+**Scope.**
+- Drop the duplicated quotes at the three call sites (`GetColumnInfo`, `GetRowCount`, `GetTableRows`)
+  and let `EscapeIdentifier` supply them. The helper is correct; the call sites are wrong.
+- `SqliteBrowser_Tests` over a real schema: assert `GetTableNames()` is non-empty, then, for **every**
+  name it returns, that all four readers complete and return sensible values. Iterating the real table
+  list is what makes the regression impossible to reintroduce quietly.
+
+**Files.** `src/OpenHoldemEngine.Demo/Services/SqliteBrowser.cs`,
+`src/OpenHoldemEngine.Demo.Tests/SqliteBrowser_Tests.cs`.
+
+**Definition of done.** `dotnet test` passes with the new tests and the three gates are clean.
+
+**Notes for the implementer.**
+- Do not switch to a bound parameter. SQLite does not accept one where an identifier is expected, which
+  is exactly why the helper exists.
+- Hold the `:memory:` connection open for the test's lifetime — an in-memory SQLite database vanishes
+  when its last connection closes. `Engine/DemoEngineHost.cs` is the shape to copy.
+- The engine's `TestEngineHost` is reachable but off limits; keep the demo tests self-contained.
+
+---
+
+### 21. A typed browser storage service to replace the raw `localStorage` interop
+
+**Depends on:** nothing.
+
+**Why.** Two of the first interop calls the demo makes are guaranteed to throw, which is a large share
+of the console noise on load and the reason the welcome walkthrough reappears on every visit. Both
+sites do `await JS.InvokeAsync<bool>("localStorage.getItem", key)`, and `getItem` returns `string` or
+`null`, never a JSON boolean — so `null` and `"true"` both fail to deserialise. A bare `catch { }` then
+swallows the exception and defaults to "show it", which hides the failure in C# entirely and would hide
+the next interop bug too.
+
+**Scope.**
+- `Services/BrowserStorage.cs` plus `wwwroot/js/browserStorage.js`, an ES module loaded with the
+  `IJSObjectReference` "import" pattern `Components/EngineCalls/EngineCalls.razor.cs` already uses,
+  exposing `GetFlagAsync` / `SetFlagAsync` with a real `bool` on the C# side.
+- Rewire both call sites — `Components/FirstVisitWalkthrough.razor` and `Pages/Home.razor` — keeping
+  their key strings byte-for-byte so anyone who already dismissed either stays dismissed.
+- Replace the blanket `catch { }` with a narrow catch around the interop call only, falling back to the
+  safe default. A caught-and-defaulted interop failure is fine; a caught-and-hidden type error is not.
+- `BrowserStorage_Tests` over a fake `IJSRuntime`.
+
+**Files.** `src/OpenHoldemEngine.Demo/Services/BrowserStorage.cs`,
+`src/OpenHoldemEngine.Demo/wwwroot/js/browserStorage.js`,
+`src/OpenHoldemEngine.Demo/Components/FirstVisitWalkthrough.razor`,
+`src/OpenHoldemEngine.Demo/Pages/Home.razor`, `src/OpenHoldemEngine.Demo/Program.cs`,
+`src/OpenHoldemEngine.Demo.Tests/BrowserStorage_Tests.cs`.
+
+**Definition of done.** No component calls `localStorage.*` directly, and
+`grep -rn "InvokeAsync<bool>(\"localStorage" src/OpenHoldemEngine.Demo` is empty.
+
+**Notes for the implementer.**
+- The bug is the *type argument* — worth saying so in the commit message, because it is the kind of
+  thing that gets rewritten back in.
+- Do not add another `window.*` global. The demo has two competing interop styles (globals in
+  `index.html` versus collocated ES modules); this task settles on the module style, and task 24
+  removes the leftover duplicate global.
+- Keep the module specifier relative. Pages serves the demo from the `/OpenHoldemEngine/` sub-path, so
+  a leading `/` works locally and 404s in production.
+- This is standalone WebAssembly, so there is no prerender phase and interop from `OnInitializedAsync`
+  is safe. Do not restructure the components on prerender grounds.
+- Do not switch the flags to cookies. `localStorage` is right for a WASM SPA — it does not ride along
+  on every HTTP request and has no 4 KB cap — and only the read was broken.
+
+---
+
+### 22. Stop the PHH replay shuffler leaking into the engine options singleton
+
+**Depends on:** nothing.
+
+**Why.** Replaying one imported hand breaks normal play for the rest of the session.
+`PhhReplayController.LoadHandAsync` installs its shuffler with
+`new HoldemEngineOptionsBuilder().WithCardShuffler(_shuffler)` and never takes it out — and per fact
+14 that builder writes the process-wide singleton, so it is global state, not a per-controller setting.
+While a shuffler is installed the engine asks it for cards for whatever hand it is dealing, and
+`PhhCardShuffler` throws `No deck registered for game …` for anything not registered in advance.
+`Unload()` exists and clears the registry, but nobody calls it, and clearing the registry would not
+help anyway: the shuffler itself is still installed.
+
+**Scope.**
+- Uninstall the shuffler when a replay ends. `HoldemEngineOptions.Instance.CardShuffler = null` is
+  reachable from the demo through `InternalsVisibleTo`, and per fact 20 it is the only way to say
+  "deal at random again". Keep the set and the clear next to each other so they are visibly symmetric.
+- Actually call `Unload()` — from `ReplayControls` on dispose, and from `Home.razor` when the user
+  leaves replay for a normal game.
+- Wrap `ApplyHoldemActionAsync` in `DemoGameSession` so an escaped exception becomes an `EngineError`
+  event rather than a dead page. Reuse the existing error channel; do not add a second one.
+- Fix the fire-and-forget `_ = RunAutoPlayAsync(...)` in `ReplayControls`, which catches only
+  `OperationCanceledException` and so loses every other failure to an unobserved task.
+- A test: replay a hand, unload, then create a **normal** game and start a hand — it must succeed with
+  cards that are not the replayed hand's.
+
+**Files.** `src/OpenHoldemEngine.Demo/Services/PhhReplayController.cs`,
+`src/OpenHoldemEngine.Demo/Services/DemoGameSession.cs`,
+`src/OpenHoldemEngine.Demo/Components/Phh/ReplayControls.razor`,
+`src/OpenHoldemEngine.Demo/Pages/Home.razor`,
+`src/OpenHoldemEngine.Demo.Tests/PhhReplayLifecycle_Tests.cs`.
+
+**Definition of done.** After an unload, `HoldemEngineOptions.Instance.CardShuffler` is `null` and a
+normal game starts and plays.
+
+**Notes for the implementer.**
+- Do not change the engine. The product scope allows `InternalsVisibleTo` and nothing else, so widening
+  `WithCardShuffler` to accept `null` is out of bounds.
+- The tempting alternative — have `PhhCardShuffler` return an empty sequence for an unregistered hand —
+  is worse: `CardDeck.Predetermined` with too few cards is a stranger failure, and an unregistered hand
+  really is a programming error. Uninstalling is the fix.
+- `DemoGameSession` is the only place in the demo that calls `ApplyHoldemActionAsync`. Keep it that way;
+  the new `catch` belongs there, not in a component.
+
+---
+
+### 23. Repair the Razor markup that leaks source text into the page
+
+**Depends on:** nothing.
+
+**Why.** Several places render their own source text, or hand a component a C# expression as a literal
+string. None of it breaks the build — `Type="AlertType.Info"` is a valid string attribute and text
+after `@(...)` is valid markup — so all of it survived the chain while being the first thing a visitor
+sees.
+
+**Scope.**
+- Add the missing `@` to every enum-valued attribute: eight `AlertType.*` occurrences across
+  `Pages/Home.razor`, `Components/Table/GameSetup.razor`, `Components/Phh/HandHistoryImport.razor`,
+  `Components/Phh/HandHistoryExport.razor` and `Components/Phh/ReplayControls.razor`. Without it
+  AntDesign receives a literal nine-character string and renders an unstyled, icon-less alert. Sweep
+  for the same mistake on any other enum attribute.
+- `Components/Table/HandHistory.razor`: `@(Pot + StreetPot).ToString("F2")` prints the sum followed by
+  the literal text `.ToString("F2")`. Move the call inside the parentheses.
+- `Components/Table/GameSetup.razor`: `@(_smallBlind * 2)m` displays a stray `m`, a decimal suffix that
+  escaped the expression.
+- `Components/Phh/ReplayControls.razor`: `(#{ReplayController.CurrentHand.Index})` is entirely literal,
+  because `#{` is not a Razor transition. `PhhHand.Index` does exist, so this only needs a real `@`.
+- Delete the dead `Layout/NavMenu.razor` and its `.css` (the untouched template menu, zero references)
+  and `wwwroot/sample-data/weather.json`. Keep `wwwroot/sample/sample.phhs`.
+
+**Files.** the six components above, plus the two deletions.
+
+**Definition of done.** `grep -rn 'Type="AlertType' src/OpenHoldemEngine.Demo` is empty, and every
+remaining `.ToString(` in a `.razor` file sits inside its `@(...)` rather than after it.
+
+**Notes for the implementer.** This is a sweep, not a redesign: no restyling, no rewording, no layout
+changes. There is no analyzer that would have caught any of it, which is why the greps are the
+regression guard rather than a test.
+
+---
+
+### 24. Contain panel failures with error boundaries
+
+**Depends on:** 20, 21, 22, 23.
+
+**Why.** There is not one `<ErrorBoundary>` in the demo, so a single panel throwing takes the whole
+page down to `An unhandled error has occurred. Reload` with no indication of what broke — which is
+exactly what a visitor saw. Its dependencies fix the four causes; this task installs the net, so the
+*next* bug degrades one panel instead of the application. For a demo whose only job is to explain the
+engine, a generic yellow bar is the wrong failure mode even when nothing is wrong.
+
+**Scope.**
+- An `ErrorBoundary` around each of the three regions of `Pages/Home.razor` — table, database
+  inspector, engine calls — so one failing leaves the other two usable.
+- `ErrorContent` shows the exception's message, not a generic string, with a Retry that calls
+  `Recover()`. The demo teaches by showing what actually happened; the same standard applies to its own
+  failures.
+- Report rather than swallow in `DatabaseInspector`: the `SqliteBrowser` calls in `LoadTableDataAsync`,
+  and the discarded `InvokeAsync(async () => …)` in `OnSessionStateChanged`.
+- Confirm the `import "./Components/EngineCalls/EngineCalls.razor.js"` specifier resolves under a
+  rewritten `<base href="/OpenHoldemEngine/">`, and make it base-relative if it does not.
+- Delete the duplicated `scrollToLatestEntry`. It exists both as a module export and as a `window.*`
+  global in `index.html`, and only the global is called. Keep the module.
+
+**Files.** `src/OpenHoldemEngine.Demo/Pages/Home.razor`,
+`src/OpenHoldemEngine.Demo/Components/Database/DatabaseInspector.razor.cs`,
+`src/OpenHoldemEngine.Demo/Components/EngineCalls/EngineCalls.razor.cs` and its `.razor.js`,
+`src/OpenHoldemEngine.Demo/wwwroot/index.html`.
+
+**Definition of done.** Each panel is inside its own boundary with a message-bearing `ErrorContent` and
+a working `Recover()`, neither `DatabaseInspector` path discards a `Task` silently, and
+`grep -n "scrollToLatestEntry" src/OpenHoldemEngine.Demo/wwwroot/index.html` is empty.
+
+**Notes for the implementer.**
+- Do not use a boundary to paper over a bug. If a fifth cause turns up while wiring these, fix it or
+  open a follow-up — do not let the boundary hide it.
+- `ErrorBoundary` catches exceptions from its children's lifecycle methods and event handlers. It does
+  **not** catch a `Task` discarded with `_ =`, or a callback running outside the render pipeline, which
+  is why the two `DatabaseInspector` paths are named here rather than assumed covered.
+- `ErrorBoundary` gives up after `MaximumErrorCount` errors, and `Recover()` is what resets the count —
+  so Retry matters functionally, not just cosmetically.
+- The stock `#blazor-error-ui` markup stays; it is the last resort for what a boundary cannot catch.
+  Note that `app.css` already defines `.blazor-error-boundary` with an `::after` content string that
+  will fight a custom message.
+- To check the module specifier without a browser, publish, apply the workflow's `sed`, and reason about
+  where the file lands relative to the base path. A `./` specifier resolves against the *document* URL,
+  not the `<base>` element — that is the subtlety.
+
+---
+
+### 25. Remember the walkthrough and add a header button to reopen it
+
+**Depends on:** 21.
+
+**Why.** The walkthrough is wrong in both directions: it reappears on every visit, because the flag it
+writes is never read back successfully, and once dismissed there is no way to bring it back — so a
+visitor who clicked Skip has permanently lost the only explanation of the three panels. The header has
+room; it holds a title and a GitHub link.
+
+**Scope.**
+- Read the dismissed flag through `BrowserStorage` from task 21, keeping the key
+  `ohe-demo-walkthrough-dismissed` unchanged so existing dismissals survive.
+- A public `Show()` (or a two-way-bound `Visible`) that reopens the modal and resets the step counter to
+  1, and `Closable="true"` — `false` is defensible for a first-visit tour but wrong for a modal the user
+  opened on purpose.
+- A round icon button in `Layout/MainLayout.razor`'s header, next to the GitHub link, with a tooltip,
+  that opens it.
+- The button and the walkthrough live in different components, so connect them with a shared scoped
+  service (a `WalkthroughState` with an event, the pattern `DemoGameSession.StateChanged` already
+  establishes) rather than a `@ref` — a layout cannot hold a reference into the page it renders. Moving
+  the walkthrough into `MainLayout` is an acceptable alternative if it still fires on a first visit to
+  every route.
+- Tests for the state, not the rendering: the flag round-trips, and a show request resets the step to 1.
+
+**Files.** `src/OpenHoldemEngine.Demo/Components/FirstVisitWalkthrough.razor`,
+`src/OpenHoldemEngine.Demo/Layout/MainLayout.razor` and its `.razor.css`,
+`src/OpenHoldemEngine.Demo/Services/WalkthroughState.cs`, `src/OpenHoldemEngine.Demo/Program.cs`,
+`src/OpenHoldemEngine.Demo/Pages/Home.razor`, and a test file.
+
+**Definition of done.** The walkthrough shows on a first visit, stays closed after dismissal and a
+reload, and reopens at step 1 from the header button.
+
+**Notes for the implementer.**
+- Do not reimplement storage; task 21 delivers it. If the read still fails, the bug is in that service
+  and belongs there, not in a second copy of the interop.
+- Resetting the step matters: without it a reopen lands wherever the user left off, which for someone
+  who dismissed at step 3 means an immediate Done button and nothing explained.
+- It stays a modal. Do not promote it to a route or redesign the onboarding.
+- Every UI string is English, the tooltip included.
+
+---
+
 ## Dependency graph
 
 ```
@@ -773,6 +1121,19 @@ English-only throughout, without exception.
 Once tasks 1 to 4 are done, five branches can proceed in parallel: the table chain (5, 6, 7, 8), the
 call viewer (9), the database inspector (10), the PHH chain (11, 12), and CI (15).
 
+Phase F is almost flat — six of the eight fixes touch different files and can run in any order:
+
+```
+18   19   20 ─┐
+              ├─ 24
+21 ─┬─────────┤
+    │   22 ───┤
+    │   23 ───┘
+    └─ 25
+```
+
+24 needs its four causes fixed first (20, 21, 22, 23); 25 needs the storage service from 21.
+
 ## Issue conventions
 
 - Labels: `demo` on every issue, plus one of `blazor`, `phh`, `ci` or `docs`.
@@ -780,6 +1141,11 @@ call viewer (9), the database inspector (10), the PHH chain (11, 12), and CI (15
 - Every issue repeats the subset of [Engine facts every task depends on](#engine-facts-every-task-depends-on)
   that its task can trip over, so the issue reads on its own without this document.
 - Title format matches the headings above, so an issue and its section are easy to line up.
+- **Heading numbers are document ordinals, not issue numbers.** Phases A to E map to issues #(N + 2),
+  Phase F to issues #(N + 19) — so task 18 is issue #37 and task 25 is issue #44. The
+  `**Depends on:**` line uses ordinals in *this document* and real `#` numbers in the *issue body*, and
+  only the latter is what `run-next-demo-task.ps1` parses when it picks the next ready task. Getting it
+  wrong there does not fail loudly; it just makes the runner skip the task forever.
 
 ## End-to-end verification
 
@@ -798,3 +1164,23 @@ Run these once the chain is complete.
    identical.
 6. `dotnet publish -c Release`, then serve `wwwroot` from a sub-path locally, to confirm the
    `base href` rewrite and `404.html` work before relying on GitHub Pages.
+
+### After Phase F
+
+These are the checks that no automated gate can perform, and whose absence is why Phase F was needed
+at all. Run them in a browser with the developer console open.
+
+7. Create a game. The database inspector must populate — table list, row counts, rows — with no yellow
+   error bar and **no exceptions in the console**. This one check is what the whole of task 20 exists
+   for, and it failed on every run before it.
+8. Reload the page with the console open, before touching anything. There must be no `JsonException`
+   from a `localStorage` call (task 21).
+9. Play a hand to showdown, watching all three panels stay consistent, then start the next hand.
+10. Import a hand history, replay it to the end, then start a **normal** game from the same page. The
+    normal game must deal random cards and not fail (task 22).
+11. Read the page for leaked source text: an alert with no colour or icon, a visible `.ToString("F2")`,
+    a stray `m` after the big blind, a literal `(#{...})` next to the replayed hand's name (task 23).
+12. Dismiss the walkthrough, reload, and confirm it stays closed. Then reopen it from the header button
+    and confirm it starts at step 1 (task 25).
+13. Confirm the deployed site at its Pages URL actually loads, including a deep link, once
+    `deploy-demo.yml` has run green on `main` (task 18).
