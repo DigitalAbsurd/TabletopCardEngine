@@ -1,0 +1,24 @@
+@using AntDesign
+
+<div class="error-card-content">
+    <div class="error-message" style="margin-bottom: 12px;">
+        <span style="color: #cf1322;">❌ @ExceptionMessage</span>
+    </div>
+    <Button Type="primary" Danger OnClick="OnRetryClick">
+        Retry
+    </Button>
+</div>
+
+@code {
+    /// <summary>
+    /// The error message to display to the user.
+    /// </summary>
+    [Parameter]
+    public string ExceptionMessage { get; set; } = "An unexpected error occurred";
+
+    /// <summary>
+    /// Callback invoked when the user clicks the Retry button.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnRetryClick { get; set; }
+}

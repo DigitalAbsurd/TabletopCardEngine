@@ -26,33 +26,42 @@
 }
 
 <div class="home-container">
-    <div class="main-region">
-        @if (Session.CurrentGame is not null)
-        {
-            @if (Session.CurrentHand is not null)
-            {
-                <StreetIndicator Street="@Session.CurrentHand.Street" />
-            }
+    <ErrorBoundary @ref="_tableErrorBoundary">
+        <ChildContent>
+            <div class="main-region">
+                @if (Session.CurrentGame is not null)
+                {
+                    @if (Session.CurrentHand is not null)
+                    {
+                        <StreetIndicator Street="@Session.CurrentHand.Street" />
+                    }
 
-            <PokerTable HandData="@Session.CurrentHand" />
+                    <PokerTable HandData="@Session.CurrentHand" />
 
-            @if (Session.CurrentHand is not null)
-            {
-                <ActionPanel HandData="@Session.CurrentHand" />
-            }
+                    @if (Session.CurrentHand is not null)
+                    {
+                        <ActionPanel HandData="@Session.CurrentHand" />
+                    }
 
-            <HandHistory CurrentGameData="@Session.CurrentGame" />
+                    <HandHistory CurrentGameData="@Session.CurrentGame" />
 
-            <HandResult
-                GameData="@Session.CurrentGame"
-                OnNextHand="@OnNextHandAsync"
-                OnNewGame="@OnNewGameAsync" />
-        }
-        else
-        {
-            <GameSetup />
-        }
-    </div>
+                    <HandResult
+                        GameData="@Session.CurrentGame"
+                        OnNextHand="@OnNextHandAsync"
+                        OnNewGame="@OnNewGameAsync" />
+                }
+                else
+                {
+                    <GameSetup />
+                }
+            </div>
+        </ChildContent>
+        <ErrorContent Context="ex">
+            <div class="companion-panel" style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnTableErrorRetryAsync())" />
+            </div>
+        </ErrorContent>
+    </ErrorBoundary>
 
     <div class="companion-panels">
         @if (Session.CurrentGame is null)
@@ -73,11 +82,29 @@
         {
             <!-- Show database inspector and engine calls when game is active -->
             <div class="companion-panel database-panel">
-                <DatabaseInspector />
+                <ErrorBoundary @ref="_databaseErrorBoundary">
+                    <ChildContent>
+                        <DatabaseInspector />
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
+                        </div>
+                    </ErrorContent>
+                </ErrorBoundary>
             </div>
 
             <div class="companion-panel engine-calls-panel">
-                <EngineCalls />
+                <ErrorBoundary @ref="_engineCallsErrorBoundary">
+                    <ChildContent>
+                        <EngineCalls />
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
+                        </div>
+                    </ErrorContent>
+                </ErrorBoundary>
             </div>
 
             <div class="companion-panel">
@@ -91,6 +118,9 @@
     private bool _showStorageAlert = false;
     private HandHistoryImport.HandHistoryItem? _selectedHistoryHand;
     private const string StorageAlertKey = "ohe-demo-storage-alert-dismissed";
+    private ErrorBoundary? _tableErrorBoundary;
+    private ErrorBoundary? _databaseErrorBoundary;
+    private ErrorBoundary? _engineCallsErrorBoundary;
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,6 +180,24 @@
     {
         _selectedHistoryHand = hand;
         return Task.CompletedTask;
+    }
+
+    private async Task OnTableErrorRetryAsync()
+    {
+        _tableErrorBoundary?.Recover();
+        await Task.CompletedTask;
+    }
+
+    private async Task OnDatabaseErrorRetryAsync()
+    {
+        _databaseErrorBoundary?.Recover();
+        await Task.CompletedTask;
+    }
+
+    private async Task OnEngineCallsErrorRetryAsync()
+    {
+        _engineCallsErrorBoundary?.Recover();
+        await Task.CompletedTask;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
