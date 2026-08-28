@@ -261,6 +261,13 @@
         {
             // Auto-play was cancelled
         }
+        catch (Exception ex)
+        {
+            // Surface unexpected errors through the replay error display
+            ReplayController.ReplayError = $"Auto-play failed: {ex.Message}";
+            _isAutoPlaying = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task OnResetAsync()
@@ -281,6 +288,10 @@
     {
         Session.StateChanged -= OnSessionStateChanged;
         _autoPlayCts?.Dispose();
+
+        // Uninstall the PHH shuffler so subsequent games can deal at random
+        ReplayController.Unload();
+
         await Task.CompletedTask;
     }
 }
