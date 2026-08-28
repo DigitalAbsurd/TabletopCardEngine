@@ -2,7 +2,7 @@
 @using System.Globalization
 @inject IJSRuntime JS
 
-<div class="engine-calls-panel" @ref="_containerElement">
+<div class="engine-calls-panel">
     <div class="engine-calls-header">
         <h3>Engine Calls</h3>
         @if (Session.Journal.Count > 0)
@@ -21,7 +21,7 @@
     }
     else
     {
-        <div class="engine-calls-list">
+        <div class="engine-calls-list" @ref="_listElement">
             @foreach (var (entry, index) in Session.Journal.Entries.Select((e, i) => (e, i)))
             {
                 <div class="engine-call-entry">
