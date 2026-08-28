@@ -1,0 +1,114 @@
+# Poker hand histories in PHH format, sample subset for demo.
+# Source: Pluribus subset of the PHH dataset (https://github.com/uoftcprg/phh-dataset.git)
+# MIT License — see LICENSE-phh-dataset.txt in src/OpenHoldemEngine.Tests/Resources/phh/
+# These ten hands are a representative sample suitable for learning and testing.
+
+# pluribus/30/0.phh
+[1]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['MrWhite', 'Gogo', 'Budd', 'Eddie', 'Bill', 'Pluribus']
+actions = ['d dh p1 3c9s', 'd dh p2 6d5s', 'd dh p3 9dTs', 'd dh p4 2sQs', 'd dh p5 AdKd', 'd dh p6 7cTc', 'p3 f', 'p4 f', 'p5 cbr 225', 'p6 f', 'p1 f', 'p2 f']
+finishing_stacks = [9950, 9900, 10000, 10000, 10150, 10000]
+
+# pluribus/30/1.phh
+[2]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Gogo', 'Budd', 'Eddie', 'Bill', 'Pluribus', 'MrWhite']
+actions = ['d dh p1 8sQc', 'd dh p2 2s8d', 'd dh p3 7dTs', 'd dh p4 5d8h', 'd dh p5 2h9s', 'd dh p6 6cQd', 'p3 f', 'p4 f', 'p5 f', 'p6 f', 'p1 cbr 300', 'p2 f']
+finishing_stacks = [10100, 9900, 10000, 10000, 10000, 10000]
+
+# pluribus/30/2.phh
+[3]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Budd', 'Eddie', 'Bill', 'Pluribus', 'MrWhite', 'Gogo']
+actions = ['d dh p1 2h3c', 'd dh p2 Jc4c', 'd dh p3 6c9c', 'd dh p4 8c4s', 'd dh p5 Jh4h', 'd dh p6 KsAd', 'p3 f', 'p4 f', 'p5 f', 'p6 cbr 200', 'p1 f', 'p2 cc', 'd db 5c9s7c', 'p2 cc', 'p6 cc', 'd db 3h', 'p2 cbr 675', 'p6 f']
+finishing_stacks = [9950, 10250, 10000, 10000, 10000, 9800]
+
+# pluribus/30/3.phh
+[4]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Eddie', 'Bill', 'Pluribus', 'MrWhite', 'Gogo', 'Budd']
+actions = ['d dh p1 JhKh', 'd dh p2 JdTs', 'd dh p3 3hAc', 'd dh p4 4sTc', 'd dh p5 5hAh', 'd dh p6 9c9d', 'p3 f', 'p4 f', 'p5 cbr 200', 'p6 cbr 700', 'p1 f', 'p2 f', 'p5 cbr 2050', 'p6 cc', 'd db 9sJc5d', 'p5 cc', 'p6 cc', 'd db 8h', 'p5 cc', 'p6 cbr 2125', 'p5 f']
+finishing_stacks = [9950, 9900, 10000, 10000, 7950, 12200]
+
+# pluribus/30/4.phh
+[5]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Bill', 'Pluribus', 'MrWhite', 'Gogo', 'Budd', 'Eddie']
+actions = ['d dh p1 Tc2c', 'd dh p2 3c6c', 'd dh p3 5s8s', 'd dh p4 Ts2h', 'd dh p5 KcTh', 'd dh p6 TdAh', 'p3 f', 'p4 f', 'p5 cbr 225', 'p6 cbr 800', 'p1 f', 'p2 f', 'p5 f']
+finishing_stacks = [9950, 9900, 10000, 10000, 9775, 10375]
+
+# pluribus/30/5.phh
+[6]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Pluribus', 'MrWhite', 'Gogo', 'Budd', 'Eddie', 'Bill']
+actions = ['d dh p1 JhJs', 'd dh p2 7d7c', 'd dh p3 7sKc', 'd dh p4 4d6s', 'd dh p5 8hAs', 'd dh p6 8s4c', 'p3 f', 'p4 f', 'p5 cbr 200', 'p6 f', 'p1 cbr 950', 'p2 f', 'p5 f']
+finishing_stacks = [10300, 9900, 10000, 10000, 9800, 10000]
+
+# pluribus/30/6.phh
+[7]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['MrWhite', 'Gogo', 'Budd', 'Eddie', 'Bill', 'Pluribus']
+actions = ['d dh p1 Qd4c', 'd dh p2 7h9d', 'd dh p3 6s3h', 'd dh p4 7s9c', 'd dh p5 JcKc', 'd dh p6 Ks7c', 'p3 f', 'p4 f', 'p5 cbr 225', 'p6 f', 'p1 f', 'p2 f']
+finishing_stacks = [9950, 9900, 10000, 10000, 10150, 10000]
+
+# pluribus/30/7.phh
+[8]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Gogo', 'Budd', 'Eddie', 'Bill', 'Pluribus', 'MrWhite']
+actions = ['d dh p1 5h8h', 'd dh p2 TsTc', 'd dh p3 2cJh', 'd dh p4 4d5d', 'd dh p5 3sKs', 'd dh p6 2d9h', 'p3 f', 'p4 f', 'p5 f', 'p6 cbr 200', 'p1 f', 'p2 cc', 'd db 7s3c6d', 'p2 f', 'p6 cc']
+finishing_stacks = [10000, 9900, 10000, 10000, 10000, 10100]
+
+# pluribus/30/8.phh
+[9]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Budd', 'Eddie', 'Bill', 'Pluribus', 'MrWhite', 'Gogo']
+actions = ['d dh p1 2s5c', 'd dh p2 AdQd', 'd dh p3 8d9d', 'd dh p4 TcTh', 'd dh p5 JsQc', 'd dh p6 4h7h', 'p3 f', 'p4 cbr 400', 'p5 f', 'p6 f', 'p1 f', 'p2 cbr 1200', 'p4 f']
+finishing_stacks = [9950, 10300, 10000, 9750, 10000, 10000]
+
+# pluribus/30/9.phh
+[10]
+variant = 'NT'
+antes = [0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+min_bet = 100
+starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+players = ['Eddie', 'Bill', 'Pluribus', 'MrWhite', 'Gogo', 'Budd']
+actions = ['d dh p1 4s4h', 'd dh p2 9c3c', 'd dh p3 2h5h', 'd dh p4 KdAs', 'd dh p5 JcJd', 'd dh p6 6c6s', 'p3 f', 'p4 cbr 300', 'p5 cbr 1000', 'p6 f', 'p1 f', 'p2 f', 'p4 f']
+finishing_stacks = [9950, 9900, 10000, 9750, 10300, 10100]

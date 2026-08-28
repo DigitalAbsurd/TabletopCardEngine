@@ -107,6 +107,18 @@ This is a tooling limitation (Emscripten cannot generate correct calling convent
 
 The `HandEvaluator` 1.0.1 library is old and lacks trimming annotations. It builds large static lookup tables at type initialization, contributing significantly to both published size and cold-start time. This is acceptable for a demo but should be tracked if the application grows.
 
+## Attribution
+
+### PHH Dataset
+
+The sample hand histories bundled in `wwwroot/sample/` are derived from the **PHH dataset** (Poker Hand Histories).
+
+- **Source**: https://github.com/uoftcprg/phh-dataset
+- **License**: MIT
+- **Copyright**: University of Toronto Computer Poker Research Group
+
+The full license text is available in `wwwroot/sample/LICENSE-phh-dataset.txt`.
+
 ## Troubleshooting
 
 ### "wasm-tools workload not installed"
