@@ -1,6 +1,42 @@
 # OpenHoldemEngine Blazor WebAssembly Demo
 
-This is a walking skeleton demonstrating the `OpenHoldemEngine` library running in the browser via Blazor WebAssembly with an in-memory SQLite database.
+An interactive guide to the `OpenHoldemEngine` library running live in the browser. Play Texas Hold'em hands or replay recorded hand histories, and watch as the three panels move in lockstep:
+
+- **The poker table**: Live visualization of each player's cards, position, stack, and actions
+- **The database inspector**: The physical SQLite schema and rows the engine writes (the state)
+- **The engine calls log**: The exact C# code (`ApplyHoldemActionAsync` calls) that produced every table change
+
+**Try it live**: https://miekhra.github.io/OpenHoldemEngine/
+
+![OpenHoldemEngine Demo Layout](wwwroot/img/demo-layout.svg)
+
+## What this demo teaches
+
+The central lesson of `OpenHoldemEngine` is that **there is no in-memory game object — the database is the state**. Every action in the library follows the same path:
+
+1. Load the game aggregate from the database
+2. Mutate the EF entity graph by calling a handler for the action
+3. Write the changes back to the database
+4. Return the newly-projected `GameData` to the caller
+
+The demo proves this by showing you the exact tables and rows the engine creates, and the exact C# code that created them, all updated live as you play. This is the strongest evidence that the engine is deterministic and correct, and the quickest way to understand what it does.
+
+A visitor who has never seen the repository should be able to open the link above, spend two minutes on the walkthrough, play one hand, and explain back what the three panels are showing.
+
+## Running locally
+
+### Prerequisites
+
+- .NET 8.0 SDK
+- The `wasm-tools-net8` workload (for native SQLite in WebAssembly)
+
+### Install the workload
+
+```bash
+dotnet workload restore
+```
+
+This installs the Emscripten toolchain and build tools required for native library compilation in WebAssembly.
 
 ## Building
 
@@ -45,7 +81,49 @@ This launches the Blazor dev server and watches for changes.
 
 Once running, open the demo in your browser at `https://localhost:5001`.
 
-Navigate to the `/diagnostics` page to verify that the engine is operational and the SQLite database is working correctly.
+## Known limitations
+
+### Database lives in memory only
+
+The demo stores every game in your browser's memory, not on disk:
+
+- **No persistence across reloads**: If you reload the page, the current game is lost completely.
+- **No tab switching**: Closing the tab, or navigating away and back, discards the game.
+- **`.phh` export is your backup**: Use the "Export hand as .phh" button in the right panel to download the current hand as a text file, which you can re-import later or share.
+
+This is a deliberate design choice. Persisting SQLite to browser storage (LocalStorage, IndexedDB, or OPFS) adds complexity that does not teach anything about the engine. The in-memory approach keeps the demo self-contained and fast, while still demonstrating that the engine separates the game state (database) from the application (handlers and queries).
+
+### Non-functional engine features declared but unused
+
+These settings are declared in the public DTOs and do nothing:
+
+- **`GameOptionData.AllowRebuy`**: Rebuy logic is not implemented by any handler.
+- **`HoldemActionStartHand.BuyIns`** and **`KickOffSeats`**: Mid-session buy-ins and seat removals are declared but ignored.
+
+The demo presents these fields honestly:
+
+- `AllowRebuy` is omitted from the game setup form, because ticking it would mislead you into thinking it works.
+- `BuyIns` and `KickOffSeats` are not shown when starting a new hand, for the same reason.
+
+If you want to add these features to the engine, they are good candidates for the follow-up implementation.
+
+## Troubleshooting and diagnostics
+
+If the demo does not respond:
+
+1. Open your browser's Developer Tools (F12), then the **Console** tab, and look for JavaScript errors.
+2. Check the **Network** tab for failed asset loads or slow downloads.
+3. If the engine is crashing, you may see an unhandled C# exception in the console.
+
+### Verify the engine with the diagnostics page
+
+Run the demo locally with `dotnet watch run`, then navigate to `https://localhost:5001/diagnostics`.
+
+This page:
+1. Creates a test game via `HoldemEngine.ApplyHoldemActionAsync`
+2. Queries the SQLite database directly to list all nine engine tables
+
+If you see the nine table names, the engine is working correctly.
 
 ## Performance metrics
 

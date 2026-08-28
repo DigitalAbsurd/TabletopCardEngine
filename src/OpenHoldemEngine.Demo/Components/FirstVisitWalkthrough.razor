@@ -1,0 +1,163 @@
+@using AntDesign
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+<Modal Visible="_visible"
+    Title="Welcome to OpenHoldemEngine Demo"
+    OnOk="OnClose"
+    OnCancel="OnClose"
+    Width="600"
+    Closable="false">
+    <div class="walkthrough-content">
+        @if (_currentStep == 1)
+        {
+            <div class="step-content">
+                <h3>Step 1: The Poker Table</h3>
+                <p>
+                    On the left, you'll see a live poker table where you can:
+                </p>
+                <ul>
+                    <li><strong>Play a hand:</strong> Click "Create and start game" to set up players, then use the action buttons to Fold, Check, Call, or Raise</li>
+                    <li><strong>Watch the action:</strong> The table shows each player's cards, stack size, and current position (dealer, small blind, big blind)</li>
+                    <li><strong>See the board:</strong> The community cards appear as you progress through the betting streets: flop, turn, river</li>
+                    <li><strong>Track the pot:</strong> Both the current street pot and total pot are displayed</li>
+                </ul>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    Or import a recorded hand history to replay past games step-by-step.
+                </p>
+            </div>
+        }
+        else if (_currentStep == 2)
+        {
+            <div class="step-content">
+                <h3>Step 2: The Database Inspector</h3>
+                <p>
+                    The middle panel shows the <strong>physical SQLite database schema</strong> — the exact tables and rows the engine writes:
+                </p>
+                <ul>
+                    <li><strong>Real tables:</strong> <code>Game</code>, <code>Hand</code>, <code>HandAction</code>, <code>HandDeckCard</code>, and more</li>
+                    <li><strong>No in-memory game object:</strong> The engine has no internal state — the database IS the state</li>
+                    <li><strong>See what changed:</strong> After each action, the inspector highlights tables whose row count changed</li>
+                    <li><strong>Inspect values:</strong> Enums are stored as text, cards as two-character strings like <code>ah</code> (ace of hearts)</li>
+                </ul>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    This teaches the central lesson: there is no hidden game state, only the database.
+                </p>
+            </div>
+        }
+        else if (_currentStep == 3)
+        {
+            <div class="step-content">
+                <h3>Step 3: The Engine Calls Log</h3>
+                <p>
+                    The right panel shows the <strong>exact C# code</strong> that produced every table change:
+                </p>
+                <ul>
+                    <li><strong>Readable snippets:</strong> Each action is shown as a C# call with named arguments and syntax highlighting</li>
+                    <li><strong>Copy and paste:</strong> Take any snippet and use it directly in your own project</li>
+                    <li><strong>Failed calls visible:</strong> If an action fails validation, you'll see the error instead of the result</li>
+                    <li><strong>Whole session export:</strong> Copy the entire session's calls as a compilable console-project snippet</li>
+                </ul>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    Now you understand what the engine does. Play a hand or import one to see these three panels move together.
+                </p>
+            </div>
+        }
+    </div>
+    <ModalFooter>
+        <Button OnClick="OnSkip" Danger>Skip</Button>
+        <Button Type="@ButtonType.Primary" OnClick="OnClose">@(_currentStep < 3 ? "Next" : "Done")</Button>
+    </ModalFooter>
+</Modal>
+
+<style>
+    .walkthrough-content {
+        padding: 1rem 0;
+    }
+
+    .step-content h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: #1890ff;
+    }
+
+    .step-content p {
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+
+    .step-content ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .step-content li {
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+
+    .step-content code {
+        background-color: #f0f0f0;
+        padding: 0.2rem 0.4rem;
+        border-radius: 2px;
+        font-family: 'Courier New', monospace;
+    }
+</style>
+
+@code {
+    private bool _visible = false;
+    private int _currentStep = 1;
+    private const string WalkthroughDismissedKey = "ohe-demo-walkthrough-dismissed";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var isDismissed = await JS.InvokeAsync<bool>("localStorage.getItem", WalkthroughDismissedKey);
+            _visible = !isDismissed;
+        }
+        catch
+        {
+            // If localStorage is not available, show the walkthrough
+            _visible = true;
+        }
+    }
+
+    private async Task OnClose()
+    {
+        if (_currentStep < 3)
+        {
+            _currentStep++;
+        }
+        else
+        {
+            _visible = false;
+            try
+            {
+                await JS.InvokeVoidAsync("localStorage.setItem", WalkthroughDismissedKey, "true");
+            }
+            catch
+            {
+                // Ignore localStorage errors
+            }
+        }
+    }
+
+    private async Task OnSkip()
+    {
+        _visible = false;
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", WalkthroughDismissedKey, "true");
+        }
+        catch
+        {
+            // Ignore localStorage errors
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        await Task.CompletedTask;
+    }
+}
