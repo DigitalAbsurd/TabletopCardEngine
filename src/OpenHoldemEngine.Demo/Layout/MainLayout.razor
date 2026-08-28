@@ -1,6 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using AntDesign
 @using OpenHoldemEngine.Demo.Services
+@using OpenHoldemEngine.Demo.Components
 @inject WalkthroughState WalkthroughState
 
 <Layout Class="layout-full-height">
@@ -23,7 +24,14 @@
     </Header>
     <Layout Class="layout-body">
         <Content Class="layout-content">
-            @Body
+            <ErrorBoundary @ref="_bodyErrorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnBodyErrorRetryAsync())" />
+                </ErrorContent>
+            </ErrorBoundary>
         </Content>
     </Layout>
 </Layout>
@@ -31,8 +39,16 @@
 <AntContainer />
 
 @code {
+    private ErrorBoundary? _bodyErrorBoundary;
+
     private async Task ShowWalkthrough()
     {
         await WalkthroughState.RequestShowAsync();
+    }
+
+    private async Task OnBodyErrorRetryAsync()
+    {
+        _bodyErrorBoundary?.Recover();
+        await Task.CompletedTask;
     }
 }
