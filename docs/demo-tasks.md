@@ -20,6 +20,12 @@ catch. That is not an accident of process but a property of it — the automated
 all three. A duplicated SQL quote, a `bool` where a `string` comes back from JS interop, and a missing
 `@` on a Razor attribute are all perfectly legal code.
 
+[Phase G](#phase-g--the-demo-does-not-render) exists because Phase F closed its eight defects and
+introduced a ninth of exactly the same kind: an AntDesign parameter that does not exist, which froze
+every route in the application while all three gates stayed green. Working *around* a blind spot eight
+times does not close it. So Phase G closes it — component rendering becomes part of `dotnet test`, and
+from then on a markup mistake fails a test rather than a visitor.
+
 ## Product scope
 
 | Area | Decision |
@@ -106,7 +112,8 @@ Every one of them was verified against the code at `b7c09ea`.
 18. **There is no `.github/` directory at all.** CI and deployment are greenfield.
 
 Facts 1 to 18 describe the repository as task 1 found it. Phase F adds three more, verified against
-`fa656c3` — the state after the whole chain had landed.
+`fa656c3` — the state after the whole chain had landed — and Phase G adds one, verified against
+`c6aebc9`.
 
 19. **`.github/` exists now**, holding `ci.yml` and `deploy-demo.yml` from task 15, so fact 18 is
     history rather than current state. `deploy-demo.yml` declares a `permissions:` block, which means
@@ -122,6 +129,21 @@ Facts 1 to 18 describe the repository as task 1 found it. Phase F adds three mor
     implementable by the runner, so every Phase F task lands a test, or a grep, that settles it without
     one. The genuinely browser-only checks are collected in
     [End-to-end verification](#end-to-end-verification) for a human to run.
+22. **Nothing renders a component.** The demo test project has nine test files and 65 tests, every one
+    of them over a *service*; there is no bUnit reference and no `.razor` component is instantiated
+    anywhere. That matters more than it sounds, because **AntDesign's components have no
+    `CaptureUnmatchedValues` catch-all** — the base chain `AntDomComponentBase` to `AntComponentBase`
+    exposes only `Class`, `ClassMapper`, `ComponentIdGenerator`, `ConfigProvider`, `Id`, `Ref`, `RTL`,
+    `Style`, `IsDisposed`, `Js`, `RefBack` — so an attribute that is not a real `[Parameter]` is an
+    `InvalidOperationException` thrown when parameters are set at render time, not a compile error.
+    Legal C#, legal Razor, all three gates green, application dead. Read together with fact 21: this is
+    the specific blind spot Phase G closes, and until it is closed a Definition of done that names a
+    grep is the best a markup task can do.
+    <br>Two related traps live in the same package. `ButtonType`, `ButtonShape` and `AlertType` are
+    static classes of `string` constants rather than enums, so `Type="primary"` and
+    `Type="@ButtonType.Primary"` both bind — neither spelling is wrong. And `Modal`'s `Footer`,
+    `OkText` and `CancelText` are `OneOf<string, RenderFragment>?` (AntDesign 0.17.0 depends on `OneOf`
+    2.1.155), which a plain string binds to through a compiler-inserted conversion.
 
 ## A known, deliberate duplication
 
@@ -141,8 +163,8 @@ at that option.
 
 # Task chain
 
-Seventeen tasks in five phases, plus eight post-release fixes in Phase F. Each is sized for a single
-pull request.
+Seventeen tasks in five phases, plus eight post-release fixes in Phase F and three in Phase G. Each is
+sized for a single pull request.
 
 ## Phase A — foundation
 
@@ -1103,6 +1125,176 @@ reload, and reopens at step 1 from the header button.
 
 ---
 
+## Phase G — the demo does not render
+
+Three tasks, written after Phase F had landed and the demo still froze on load. Two AntDesign
+parameters that do not exist were killing every route, and the reason they could ship is that nothing
+in the repository has ever rendered a component outside a browser. Task 26 fixes both and closes that
+gap; 27 widens it; 28 makes the next one survivable.
+
+### 26. Render components in tests, and fix the two AntDesign parameters that freeze the page
+
+**Depends on:** nothing.
+
+**Why.** The page freezes on load behind the stock `An unhandled error has occurred. Reload` bar, and
+the console names both causes outright:
+
+```
+System.InvalidOperationException: Object of type 'AntDesign.Button' does not have a property matching the name 'Title'.
+System.InvalidOperationException: Object of type 'AntDesign.ModalFooter' does not have a property matching the name 'ChildContent'.
+```
+
+Both check out against `AntDesign.dll` 0.17.0. `Button` has `Type`, `Shape`, `Size`, `Icon`, `Icons`,
+`Danger`, `Ghost`, `Block`, `Loading`, `Disabled`, `HtmlType`, `Color`, `NoSpanWrap`, `FormSize`,
+`AriaLabel`, `OnClick`, `OnClickStopPropagation` and `ChildContent` — and no `Title`.
+`ModalFooter` has `ModalProps` and nothing else, so it cannot take child content at all. With no
+catch-all anywhere in the base chain (fact 22), each is a hard throw at render time.
+
+`Layout/MainLayout.razor` renders on every route and is inside no `ErrorBoundary`, so its `Button`
+`Title` throws on the first render pass. That is the freeze, and Phase F task 25 is where it came from.
+`<FirstVisitWalkthrough />` sits at the top of `Pages/Home.razor`, also outside every boundary, and its
+`<ModalFooter>` throws whenever the modal is visible — that one dates to task 17, so the walkthrough's
+footer buttons have never rendered once.
+
+A third defect rides along and would outlive the crash fix: `FirstVisitWalkthrough.Show()` sets its
+fields and returns `Task.CompletedTask` without calling `StateHasChanged`, and it is invoked from
+*another* component's event handler through `WalkthroughState.ShowRequested`, so nothing schedules a
+re-render. The header button from task 25 would still do nothing.
+
+The fix and its gate have to land together, because the gate is the point: a test that fails on today's
+markup and passes after the change is the first thing in this repository that would have caught either
+bug.
+
+**Scope.**
+- Add `bunit` 1.40.0 to the demo test project; it supports `net8.0`.
+- New `ComponentRender_Tests.cs` using bUnit **by composition** — `using var ctx = new Bunit.TestContext();`
+  per test, never by inheritance, because MSTest reserves the `TestContext` property name. Loose JS
+  interop, `ctx.Services.AddAntDesign()`, and the demo services registered scoped as `Program.cs` does.
+- Three tests: `MainLayout` renders; `FirstVisitWalkthrough` renders and shows step 1; and a
+  `WalkthroughState.RequestShowAsync()` makes step 1 appear, which is what pins the missing re-render.
+- Fix `MainLayout.razor` — drop `Title`, add `AriaLabel="Show the walkthrough"` to the `Button`, and
+  wrap it in `<Tooltip Title="Show the walkthrough">`, since `Tooltip` is the component that carries
+  `Title` and inherits `ChildContent` from `AntDesign.Internal.OverlayTrigger`.
+- Fix `FirstVisitWalkthrough.razor` — delete the `<ModalFooter>` block and drive the two buttons from
+  the `Modal`'s own `OkText` / `OnOk` and `CancelText` / `OnCancel`, whose default footer already
+  renders them. That also repairs a second-order bug: `OnCancel` is currently `OnClose`, so the
+  `Closable` X advances the walkthrough a step instead of dismissing it.
+- Fix `Show()` to `await InvokeAsync(StateHasChanged)`.
+
+**Files.** `src/OpenHoldemEngine.Demo/Layout/MainLayout.razor`,
+`src/OpenHoldemEngine.Demo/Components/FirstVisitWalkthrough.razor`, the demo test project file, and
+`src/OpenHoldemEngine.Demo.Tests/ComponentRender_Tests.cs`.
+
+**Definition of done.** All three gates clean with the new tests passing, and reverting either markup
+fix makes a test fail — verified by hand and said so in the pull request.
+
+**Notes for the implementer.**
+- Do **not** "fix" `Title` by lower-casing it to `title`. Every attribute on a component tag is a
+  parameter lookup, and with no catch-all `title="…"` throws identically.
+- `OkText` is `OneOf<string, RenderFragment>?`, so a plain string binds — but a conditional one cannot
+  be written inline, because `OkText="@(_currentStep < 3 ? "Next" : "Done")"` has nested double quotes
+  and will not parse. Use a private property and bind `OkText="@OkLabel"`.
+- Keep the walkthrough otherwise identical, `ohe-demo-walkthrough-dismissed` included, byte for byte.
+- Loose JS interop means `BrowserStorage` reads `false` and writes nothing, so the dismissed state in
+  the third test has to be forced rather than assumed.
+- Two markup fixes, one lifecycle fix, one test file. Not a redesign of the onboarding or the header.
+
+---
+
+### 27. Smoke-render every remaining demo component
+
+**Depends on:** 26.
+
+**Why.** Task 26 renders the two components already known to be broken, because their exceptions were
+sitting in a console. The other eighteen have never been rendered by anything but a browser, and the
+same class of defect hides in all of them: an unknown parameter, child content on a component that has
+no `ChildContent`, an unguarded null in `OnInitializedAsync`, a `StateHasChanged` that never fires. The
+audit that found the two current bugs was a throwaway script that reflected over `AntDesign.dll` and
+cross-checked every attribute in every `.razor` file — useful once, gone now. A test per component is
+what makes the check permanent.
+
+**Scope.**
+- Render every component at least once: `PokerTable`, `Seat`, `PlayingCard`, `StreetIndicator`,
+  `ActionPanel`, `HandHistory`, `HandResult`, `GameSetup`, `DatabaseInspector`, `EngineCalls`,
+  `ErrorCardContent`, `HandHistoryImport`, `HandHistoryExport`, `ReplayControls`, plus the `Home` and
+  `Diagnostics` pages.
+- Render both branches wherever markup switches on state. `Home.razor` swaps its whole companion column
+  on `Session.CurrentGame is null`, and most of the demo lives on the other side of that condition.
+- Build the populated case from a real `GameData` by driving `DemoGameSession`, the way
+  `DemoGameSession_Tests` already stands up its container, rather than hand-constructing DTOs.
+- Assert something specific per component — a heading, a seat count, a formatted pot — not merely that
+  nothing threw. A component that silently renders nothing is also a bug.
+- Fix what this exposes when the fix is small and local; anything larger gets its own follow-up issue,
+  linked from the pull request.
+
+**Files.** `src/OpenHoldemEngine.Demo.Tests/ComponentRender_Tests.cs` or a sibling, plus whichever
+`.razor` files need a fix.
+
+**Definition of done.** Every component and page above is rendered with a meaningful assertion, all
+three gates clean, and the pull request says what the tests found — including "nothing", if that is the
+honest answer.
+
+**Notes for the implementer.**
+- Reuse task 26's harness; factor the shared setup into one helper rather than repeating it eighteen
+  times.
+- `DatabaseInspector` needs the engine schema to exist, which the session harness creates. `ReplayControls`
+  and `HandHistoryImport` need a PHH hand — `wwwroot/sample/sample.phhs` and the demo's own `Phh/`
+  reader beat inventing one.
+- If a test installs a card shuffler, uninstall it in a `finally` (`HoldemEngineOptions.Instance.CardShuffler = null`).
+  Fact 14: that is process-wide global state, which is why the assembly is `[assembly: DoNotParallelize]`.
+- **No snapshot or HTML-diff assertions.** A brittle markup snapshot fails on every styling change and
+  teaches the next contributor to delete the test.
+- Do not reshape production markup to make it easier to render. Say so and file a follow-up instead.
+
+---
+
+### 28. Keep a component failure from taking the whole page down
+
+**Depends on:** 26.
+
+**Why.** Task 24 wrapped the three panels of `Pages/Home.razor` in `ErrorBoundary`s, and that was
+right — but the two components that actually broke were the ones outside every boundary.
+`Layout/MainLayout.razor` renders on every route and sits above all of them, and
+`<FirstVisitWalkthrough />` sits above the boundary that guards the table. So one unknown attribute in
+the layout froze the entire application and left a visitor with the stock yellow bar, which says
+nothing they can act on and does not even hint that reloading is safe. Containment has to cover the
+shell, not only the panels. This task fixes no bug — 26 does that — it makes the next one cost a panel.
+
+**Scope.**
+- Wrap `@Body` in `MainLayout.razor` in an `ErrorBoundary` whose `ErrorContent` shows the exception
+  message and a Retry that calls `Recover()`, reusing `Components/ErrorCardContent.razor`. Keep the
+  header, the GitHub link and `<AntContainer />` outside it.
+- Wrap `<FirstVisitWalkthrough />` in `Home.razor` in its own boundary. A broken onboarding modal must
+  never cost the visitor the demo underneath it.
+- Rewrite the `#blazor-error-ui` text in `wwwroot/index.html` so the last-resort handler reads like
+  one: something unexpected happened, reloading is safe, and the in-memory database means the current
+  game is lost on reload. Keep the element and its CSS.
+- Tests: a stub that throws on render, inside each new boundary, produces the error card while the
+  markup outside the boundary still renders.
+
+**Files.** `src/OpenHoldemEngine.Demo/Layout/MainLayout.razor`,
+`src/OpenHoldemEngine.Demo/Pages/Home.razor`, `src/OpenHoldemEngine.Demo/wwwroot/index.html`, and a
+test file.
+
+**Definition of done.** A component that throws inside either new boundary renders the error card and
+leaves the rest of the page rendered, proven by a test, with all three gates clean.
+
+**Notes for the implementer.**
+- `ErrorBoundary` gives up after `MaximumErrorCount` errors (default 2) and only `Recover()` resets the
+  count, so the Retry button is functional rather than decorative.
+- It catches exceptions from its children's lifecycle methods and event handlers, and **not** from a
+  `Task` discarded with `_ =` or a callback outside the render pipeline. Task 24 already handled the two
+  `DatabaseInspector` cases of that; do not remove those `try`/`catch` blocks on the assumption that a
+  boundary now covers them.
+- `app.css` carries the template's `.blazor-error-boundary` with `::after { content: "An error has occurred." }`,
+  which will fight your own message if you reuse the class.
+- `<AntContainer />` stays outside the boundary: AntDesign renders its modals, notifications and toasts
+  through it, so a boundary that can fail must not contain it.
+- A boundary is containment, not a fix. If wiring these up exposes another real defect, fix it or file
+  it — a boundary that quietly swallows a bug is worse than no boundary.
+
+---
+
 ## Dependency graph
 
 ```
@@ -1134,6 +1326,13 @@ Phase F is almost flat — six of the eight fixes touch different files and can 
 
 24 needs its four causes fixed first (20, 21, 22, 23); 25 needs the storage service from 21.
 
+Phase G is a fan-out from one task, because 27 and 28 both need the render harness 26 introduces:
+
+```
+26 ─┬─ 27
+    └─ 28
+```
+
 ## Issue conventions
 
 - Labels: `demo` on every issue, plus one of `blazor`, `phh`, `ci` or `docs`.
@@ -1142,7 +1341,9 @@ Phase F is almost flat — six of the eight fixes touch different files and can 
   that its task can trip over, so the issue reads on its own without this document.
 - Title format matches the headings above, so an issue and its section are easy to line up.
 - **Heading numbers are document ordinals, not issue numbers.** Phases A to E map to issues #(N + 2),
-  Phase F to issues #(N + 19) — so task 18 is issue #37 and task 25 is issue #44. The
+  Phase F to issues #(N + 19) and Phase G to issues #(N + 27) — so task 18 is issue #37, task 25 is
+  issue #44, and tasks 26 to 28 are issues #53 to #55. The offset changes per phase because pull
+  requests take numbers from the same sequence as issues, so never compute it; read it here. The
   `**Depends on:**` line uses ordinals in *this document* and real `#` numbers in the *issue body*, and
   only the latter is what `run-next-demo-task.ps1` parses when it picks the next ready task. Getting it
   wrong there does not fail loudly; it just makes the runner skip the task forever.
@@ -1184,3 +1385,20 @@ at all. Run them in a browser with the developer console open.
     and confirm it starts at step 1 (task 25).
 13. Confirm the deployed site at its Pages URL actually loads, including a deep link, once
     `deploy-demo.yml` has run green on `main` (task 18).
+
+### After Phase G
+
+Checks 7 to 13 above were written for a human because no gate could run them. Phase G moves the first
+and most important of them into `dotnet test`, so what is left here is short — and check 14 is the one
+that matters, because it is the check whose absence let a dead application ship twice.
+
+14. Open the demo with the browser console open and touch nothing. The console must be **empty** — no
+    `InvalidOperationException`, no `does not have a property matching the name`, and no yellow bar in
+    the footer. Both Phase G defects would have failed this in the first second (task 26).
+15. Click the round question button in the header. The walkthrough must open at step 1, every time,
+    including after it has already been dismissed once (tasks 25 and 26).
+16. Walk the walkthrough to Done, reload, and confirm it stays closed. Then open it again from the
+    header and close it with the X — the X must dismiss it, not advance it a step (task 26).
+17. Force a failure in one panel — comment out a guard, or point a component at a null — and confirm
+    the rest of the page still works and the failing panel shows a message with a Retry that recovers.
+    Put the code back afterwards (task 28).
