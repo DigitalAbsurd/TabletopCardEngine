@@ -10,7 +10,7 @@
             <Alert
                 Message="Error"
                 Description="@_errorMessage"
-                Type="AlertType.Error"
+                Type="@AlertType.Error"
                 Closable="true"
                 OnClose="@ClearError"
                 ShowIcon="true" />
@@ -39,7 +39,7 @@
             <Alert
                 Message="Success"
                 Description="@_successMessage"
-                Type="AlertType.Success"
+                Type="@AlertType.Success"
                 Closable="true"
                 OnClose="@ClearSuccess"
                 ShowIcon="true" />

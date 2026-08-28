@@ -41,7 +41,7 @@
                 <Alert
                     Message="Error"
                     Description="@_errorMessage"
-                    Type="AlertType.Error"
+                    Type="@AlertType.Error"
                     Closable="true"
                     OnClose="@ClearError"
                     ShowIcon="true" />
@@ -128,7 +128,7 @@
                 <Alert
                     Message="Selected"
                     Description="@($"Hand #{_selectedHand.Index} from {_selectedHand.Source} selected for replay")"
-                    Type="AlertType.Info"
+                    Type="@AlertType.Info"
                     ShowIcon="true"
                     Style="margin-top: 16px;" />
             }
