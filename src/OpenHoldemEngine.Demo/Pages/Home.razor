@@ -11,7 +11,16 @@
 
 <PageTitle>OpenHoldemEngine Demo</PageTitle>
 
-<FirstVisitWalkthrough />
+<ErrorBoundary @ref="_walkthroughErrorBoundary">
+    <ChildContent>
+        <FirstVisitWalkthrough />
+    </ChildContent>
+    <ErrorContent Context="ex">
+        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnWalkthroughErrorRetryAsync())" />
+        </div>
+    </ErrorContent>
+</ErrorBoundary>
 
 @if (_showStorageAlert)
 {
@@ -121,6 +130,7 @@
     private ErrorBoundary? _tableErrorBoundary;
     private ErrorBoundary? _databaseErrorBoundary;
     private ErrorBoundary? _engineCallsErrorBoundary;
+    private ErrorBoundary? _walkthroughErrorBoundary;
 
     protected override async Task OnInitializedAsync()
     {
@@ -197,6 +207,12 @@
     private async Task OnEngineCallsErrorRetryAsync()
     {
         _engineCallsErrorBoundary?.Recover();
+        await Task.CompletedTask;
+    }
+
+    private async Task OnWalkthroughErrorRetryAsync()
+    {
+        _walkthroughErrorBoundary?.Recover();
         await Task.CompletedTask;
     }
 
