@@ -1,7 +1,6 @@
 ﻿@page "/"
 @using AntDesign
 @using OpenHoldemEngine.Demo.Services
-@using OpenHoldemEngine.Demo.Components.Table
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject DemoGameSession Session
@@ -57,9 +56,7 @@
         </div>
 
         <div class="companion-panel engine-calls-panel">
-            <Card Class="companion-card" Title="Engine Calls">
-                <p>Engine call log placeholder — will be implemented in task #9.</p>
-            </Card>
+            <EngineCalls />
         </div>
     </div>
 </div>
