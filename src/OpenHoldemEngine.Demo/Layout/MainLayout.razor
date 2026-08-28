@@ -1,18 +1,22 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@using AntDesign
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+<Layout Class="layout-full-height">
+    <Header Class="layout-header">
+        <div class="layout-header-content">
+            <h1 class="layout-title">
+                <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
+            </h1>
+            <a href="https://github.com/miekhra/OpenHoldemEngine" target="_blank" rel="noopener noreferrer" class="layout-github-link">
+                GitHub Repository
+            </a>
         </div>
-
-        <article class="content px-4">
+    </Header>
+    <Layout Class="layout-body">
+        <Content Class="layout-content">
             @Body
-        </article>
-    </main>
-</div>
+        </Content>
+    </Layout>
+</Layout>
 
 <AntContainer />
