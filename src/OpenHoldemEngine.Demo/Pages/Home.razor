@@ -7,6 +7,7 @@
 @implements IAsyncDisposable
 @inject BrowserStorage Storage
 @inject DemoGameSession Session
+@inject PhhReplayController ReplayController
 
 <PageTitle>OpenHoldemEngine Demo</PageTitle>
 
@@ -132,7 +133,15 @@
 
     private async Task OnNewGameAsync()
     {
+        // Unload any active replay and clear the shuffler from the engine options singleton
+        ReplayController.Unload();
+
+        // Clear the selected hand so replay controls disappear
+        _selectedHistoryHand = null;
+
+        // Reset the game session
         Session.Reset();
+
         await Task.CompletedTask;
         StateHasChanged();
     }

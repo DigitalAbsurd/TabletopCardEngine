@@ -26,11 +26,11 @@ public sealed class PhhReplayController
     /// <summary>Gets the currently loaded hand, or null if no hand is loaded.</summary>
     public PhhHand? CurrentHand => _currentHand;
 
-    /// <summary>Gets the current replay error message, or null if no error.</summary>
+    /// <summary>Gets or sets the current replay error message, or null if no error.</summary>
     public string? ReplayError
     {
         get => _replayError;
-        private set => _replayError = value;
+        set => _replayError = value;
     }
 
     /// <summary>Gets the number of actions already replayed (for progress).</summary>
@@ -209,7 +209,7 @@ public sealed class PhhReplayController
     }
 
     /// <summary>
-    /// Clears the loaded hand and all state.
+    /// Clears the loaded hand and all state, and uninstalls the shuffler from the engine options singleton.
     /// </summary>
     public void Unload()
     {
@@ -218,6 +218,12 @@ public sealed class PhhReplayController
         _currentDeck = null;
         _joinSeats = null;
         _shuffler.Clear();
+
+        // Uninstall the shuffler from the engine options singleton so normal games can deal at random.
+        // The builder writes HoldemEngineOptions.Instance, a process-wide singleton, so we bypass it
+        // and set directly — HoldemEngineOptionsBuilder.WithCardShuffler takes non-nullable ICardShuffler
+        // and cannot express "none".
+        HoldemEngineOptions.Instance.CardShuffler = null;
     }
 
     /// <summary>
