@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @using AntDesign
+@using OpenHoldemEngine.Demo.Services
+@inject WalkthroughState WalkthroughState
 
 <Layout Class="layout-full-height">
     <Header Class="layout-header">
@@ -7,9 +9,14 @@
             <h1 class="layout-title">
                 <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
             </h1>
-            <a href="https://github.com/miekhra/OpenHoldemEngine" target="_blank" rel="noopener noreferrer" class="layout-github-link">
-                GitHub Repository
-            </a>
+            <div class="layout-header-actions">
+                <Button Type="@ButtonType.Text" Shape="@ButtonShape.Circle" Title="Show the walkthrough" OnClick="ShowWalkthrough" Class="layout-walkthrough-button">
+                    <Icon Type="question" Theme="outline" />
+                </Button>
+                <a href="https://github.com/miekhra/OpenHoldemEngine" target="_blank" rel="noopener noreferrer" class="layout-github-link">
+                    GitHub Repository
+                </a>
+            </div>
         </div>
     </Header>
     <Layout Class="layout-body">
@@ -20,3 +27,10 @@
 </Layout>
 
 <AntContainer />
+
+@code {
+    private async Task ShowWalkthrough()
+    {
+        await WalkthroughState.RequestShowAsync();
+    }
+}
