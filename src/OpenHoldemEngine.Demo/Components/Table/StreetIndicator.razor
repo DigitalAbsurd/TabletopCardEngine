@@ -1,0 +1,95 @@
+@using OpenHoldemEngine.Data
+
+<div class="street-indicator">
+    <div class="street-track">
+        <div class="street-stage @(Street == Street.PreFlop ? "active" : "")" title="Pre-Flop">
+            <span class="stage-name">PreFlop</span>
+        </div>
+        <div class="street-stage @(Street == Street.Flop ? "active" : "")" title="Flop">
+            <span class="stage-name">Flop</span>
+        </div>
+        <div class="street-stage @(Street == Street.Turn ? "active" : "")" title="Turn">
+            <span class="stage-name">Turn</span>
+        </div>
+        <div class="street-stage @(Street == Street.River ? "active" : "")" title="River">
+            <span class="stage-name">River</span>
+        </div>
+        <div class="street-stage @(Street == Street.Showdown ? "active" : "")" title="Showdown">
+            <span class="stage-name">Showdown</span>
+        </div>
+    </div>
+    <div class="street-label">@FormatStreet(Street)</div>
+</div>
+
+@code {
+    /// <summary>The current street to display.</summary>
+    [Parameter]
+    public Street Street { get; set; } = Street.PreFlop;
+
+    private static string FormatStreet(Street street)
+    {
+        return street switch
+        {
+            Street.PreFlop => "Pre-Flop",
+            Street.Flop => "Flop",
+            Street.Turn => "Turn",
+            Street.River => "River",
+            Street.Showdown => "Showdown",
+            Street.Finished => "Hand Finished",
+            _ => street.ToString()
+        };
+    }
+}
+
+<style>
+    .street-indicator {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 1rem;
+        background: var(--table-bg, #2a5a3a);
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .street-track {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .street-stage {
+        flex: 1;
+        min-width: 70px;
+        padding: 0.5rem;
+        text-align: center;
+        border: 2px solid #555;
+        border-radius: 4px;
+        background: #1a3a2a;
+        color: #ccc;
+        transition: all 0.3s ease;
+    }
+
+    .street-stage.active {
+        background: #4a9a6a;
+        border-color: #6ac88a;
+        color: white;
+        box-shadow: 0 0 10px rgba(106, 200, 138, 0.5);
+        font-weight: bold;
+    }
+
+    .stage-name {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .street-label {
+        font-size: 1rem;
+        font-weight: bold;
+        color: #6ac88a;
+    }
+</style>
