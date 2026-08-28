@@ -1,0 +1,115 @@
+@using OpenHoldemEngine.Dto
+@using OpenHoldemEngine.Data
+
+<div class="seat @GetSeatClasses()">
+    <div class="seat-badges">
+        @if (IsDealer)
+        {
+            <span class="badge badge-dealer" title="Dealer Button">D</span>
+        }
+        @if (IsSmallBlind)
+        {
+            <span class="badge badge-small-blind" title="Small Blind">SB</span>
+        }
+        @if (IsBigBlind)
+        {
+            <span class="badge badge-big-blind" title="Big Blind">BB</span>
+        }
+    </div>
+
+    <div class="seat-content">
+        <div class="seat-name">@SeatData.Name</div>
+
+        <div class="seat-stack">
+            <span class="stack-amount">@SeatData.Stack.ToString("F2")</span>
+            @if (StackDelta != 0)
+            {
+                var sign = StackDelta > 0 ? "+" : "";
+                var deltaClass = StackDelta > 0 ? "delta-positive" : "delta-negative";
+                <span class="@deltaClass">(@sign@StackDelta.ToString("F2"))</span>
+            }
+        </div>
+
+        @if (SeatData.Hole?.Length > 0)
+        {
+            <div class="seat-hole-cards">
+                @foreach (var card in SeatData.Hole)
+                {
+                    <PlayingCard Card="card" />
+                }
+            </div>
+        }
+
+        @if (SeatData.LastAction is not null)
+        {
+            <div class="seat-last-action">
+                <span class="action-type">@FormatActionType(SeatData.LastAction.ActionType)</span>
+                @if (SeatData.LastAction.Size > 0)
+                {
+                    <span class="action-size">@SeatData.LastAction.Size.ToString("F2")</span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>The seat data to display.</summary>
+    [Parameter]
+    public required SeatData SeatData { get; set; }
+
+    /// <summary>Whether this seat has the dealer button.</summary>
+    [Parameter]
+    public bool IsDealer { get; set; }
+
+    /// <summary>Whether this seat posted the small blind.</summary>
+    [Parameter]
+    public bool IsSmallBlind { get; set; }
+
+    /// <summary>Whether this seat posted the big blind.</summary>
+    [Parameter]
+    public bool IsBigBlind { get; set; }
+
+    /// <summary>Whether this seat is currently to act.</summary>
+    [Parameter]
+    public bool IsActing { get; set; }
+
+    private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
+
+    private string GetSeatClasses()
+    {
+        var classes = new List<string>();
+
+        if (IsActing)
+            classes.Add("seat-acting");
+
+        if (SeatData.IsFolded)
+            classes.Add("seat-folded");
+
+        if (SeatData.IsAllIn)
+            classes.Add("seat-all-in");
+
+        return string.Join(" ", classes);
+    }
+
+    private static string FormatActionType(PlayerActionType actionType)
+    {
+        return actionType switch
+        {
+            PlayerActionType.SmallBlind => "SB",
+            PlayerActionType.BigBlind => "BB",
+            PlayerActionType.Fold => "Fold",
+            PlayerActionType.Check => "Check",
+            PlayerActionType.Call => "Call",
+            PlayerActionType.Raise => "Raise",
+            PlayerActionType.Post => "Post",
+            PlayerActionType.Bet => "Bet",
+            PlayerActionType.AllIn => "All-In",
+            PlayerActionType.Showdown => "Showdown",
+            PlayerActionType.Winner => "Win",
+            PlayerActionType.GameWinner => "Game Win",
+            PlayerActionType.BuyIn => "Buy-In",
+            _ => actionType.ToString()
+        };
+    }
+}

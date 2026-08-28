@@ -1,7 +1,9 @@
 ﻿@page "/"
 @using AntDesign
+@using OpenHoldemEngine.Demo.Services
 @implements IAsyncDisposable
 @inject IJSRuntime JS
+@inject DemoGameSession Session
 
 <PageTitle>OpenHoldemEngine Demo</PageTitle>
 
@@ -19,7 +21,14 @@
 
 <div class="home-container">
     <div class="main-region">
-        <GameSetup />
+        @if (Session.CurrentGame is not null)
+        {
+            <PokerTable HandData="@Session.CurrentHand" />
+        }
+        else
+        {
+            <GameSetup />
+        }
     </div>
 
     <div class="companion-panels">
@@ -53,6 +62,13 @@
             // If localStorage is not available, show the alert
             _showStorageAlert = true;
         }
+
+        Session.StateChanged += OnSessionStateChanged;
+    }
+
+    private void OnSessionStateChanged(object? sender, EventArgs e)
+    {
+        StateHasChanged();
     }
 
     private async Task OnAlertClose()
@@ -70,7 +86,7 @@
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        // Cleanup if needed
+        Session.StateChanged -= OnSessionStateChanged;
         await Task.CompletedTask;
     }
 }

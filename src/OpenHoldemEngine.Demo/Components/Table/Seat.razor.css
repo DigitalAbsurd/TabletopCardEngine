@@ -1,0 +1,153 @@
+.seat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    min-width: 140px;
+    transition: all 0.3s ease;
+    color: #fff;
+    position: relative;
+}
+
+.seat-acting {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: #ffd700;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+.seat-folded {
+    opacity: 0.5;
+    background: rgba(128, 128, 128, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.seat-all-in {
+    background: rgba(220, 20, 60, 0.2);
+    border-color: rgba(220, 20, 60, 0.5);
+}
+
+.seat-badges {
+    display: flex;
+    gap: 0.25rem;
+    min-height: 20px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1;
+}
+
+.badge-dealer {
+    background: #ffd700;
+    color: #000;
+}
+
+.badge-small-blind {
+    background: #87ceeb;
+    color: #000;
+}
+
+.badge-big-blind {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.seat-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    text-align: center;
+}
+
+.seat-name {
+    font-weight: 600;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.seat-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 12px;
+}
+
+.stack-amount {
+    font-weight: 700;
+    color: #ffd700;
+}
+
+.delta-positive {
+    color: #90ee90;
+    font-size: 11px;
+}
+
+.delta-negative {
+    color: #ff6b6b;
+    font-size: 11px;
+}
+
+.seat-hole-cards {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.seat-last-action {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.action-type {
+    font-weight: 600;
+    color: #87ceeb;
+}
+
+.action-size {
+    color: #ffd700;
+    font-weight: 600;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .seat {
+        min-width: 120px;
+        padding: 0.75rem;
+    }
+
+    .seat-name {
+        font-size: 12px;
+    }
+
+    .seat-stack {
+        font-size: 11px;
+    }
+
+    .badge {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+}

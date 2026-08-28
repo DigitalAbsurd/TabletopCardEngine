@@ -1,0 +1,63 @@
+.playing-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 80px;
+    background: #fff;
+    border: 2px solid #333;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease;
+}
+
+.playing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-weight: 700;
+}
+
+.card-rank {
+    font-size: 14px;
+    color: #333;
+}
+
+.card-suit {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Suit-specific colors */
+.playing-card[data-suit="club"] .card-suit,
+.playing-card[data-suit="spade"] .card-suit {
+    color: #000;
+}
+
+.playing-card[data-suit="diamond"] .card-suit,
+.playing-card[data-suit="heart"] .card-suit {
+    color: #e74c3c;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 480px) {
+    .playing-card {
+        width: 50px;
+        height: 68px;
+    }
+
+    .card-rank {
+        font-size: 12px;
+    }
+
+    .card-suit {
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,91 @@
+@using OpenHoldemEngine.Dto
+@using OpenHoldemEngine.Data
+
+<div class="poker-table">
+    <div class="table-seats">
+        @if (HandData is not null)
+        {
+            @foreach (var seat in HandData.Seats)
+            {
+                var isDealer = seat.SeatNo == HandData.DealerSeatNo;
+                var isSmallBlind = seat.SeatNo == HandData.SmallBlindSeatNo;
+                var isBigBlind = seat.SeatNo == HandData.BigBlindSeatNo;
+                var isActing = seat.SeatNo == HandData.NextPlayerSeatNo;
+
+                <Seat
+                    SeatData="seat"
+                    IsDealer="isDealer"
+                    IsSmallBlind="isSmallBlind"
+                    IsBigBlind="isBigBlind"
+                    IsActing="isActing" />
+            }
+        }
+    </div>
+
+    <div class="table-center">
+        <div class="table-info">
+            <div class="hand-info">
+                @if (HandData is not null)
+                {
+                    <div class="info-row">
+                        <span class="info-label">Hand:</span>
+                        <span class="info-value">@HandData.No</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Street:</span>
+                        <span class="info-value">@FormatStreet(HandData.Street)</span>
+                    </div>
+                }
+            </div>
+
+            <div class="community-cards">
+                @if (HandData?.CommunityCards is not null && HandData.CommunityCards.Length > 0)
+                {
+                    @foreach (var card in HandData.CommunityCards)
+                    {
+                        <PlayingCard Card="card" />
+                    }
+                }
+                else
+                {
+                    <div class="empty-board">No community cards</div>
+                }
+            </div>
+
+            <div class="pot-info">
+                @if (HandData is not null)
+                {
+                    var totalPot = HandData.Pot + HandData.StreetPot;
+                    <div class="pot-row">
+                        <span class="pot-label">Pot:</span>
+                        <span class="pot-value">@totalPot.ToString("F2")</span>
+                    </div>
+                    <div class="pot-breakdown">
+                        <span class="pot-small">Prior: @HandData.Pot.ToString("F2")</span>
+                        <span class="pot-small">Street: @HandData.StreetPot.ToString("F2")</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    /// <summary>The current hand data to display, or null if no hand is in progress.</summary>
+    [Parameter]
+    public HandData? HandData { get; set; }
+
+    private static string FormatStreet(Street street)
+    {
+        return street switch
+        {
+            Street.PreFlop => "Pre-Flop",
+            Street.Flop => "Flop",
+            Street.Turn => "Turn",
+            Street.River => "River",
+            Street.Showdown => "Showdown",
+            Street.Finished => "Finished",
+            _ => street.ToString()
+        };
+    }
+}
