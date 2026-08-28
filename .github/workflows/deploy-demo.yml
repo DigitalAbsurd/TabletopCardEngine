@@ -6,6 +6,7 @@ on:
       - main
 
 permissions:
+  contents: read
   pages: write
   id-token: write
 
@@ -16,6 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout code
@@ -38,6 +42,7 @@ jobs:
       - name: Rewrite base href
         run: |
           sed -i 's|<base href="/" />|<base href="/OpenHoldemEngine/" />|' _publish/wwwroot/index.html
+          grep -q '<base href="/OpenHoldemEngine/" />' _publish/wwwroot/index.html || (echo "Failed to rewrite base href in index.html" && exit 1)
 
       - name: Add .nojekyll
         run: touch _publish/wwwroot/.nojekyll
