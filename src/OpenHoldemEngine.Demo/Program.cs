@@ -22,6 +22,7 @@ internal sealed class Program
 
         // Register demo services
         builder.Services.AddScoped<BrowserStorage>();
+        builder.Services.AddScoped<WalkthroughState>();
         builder.Services.AddScoped<DemoGameSession>();
         builder.Services.AddScoped<SqliteBrowser>();
         builder.Services.AddScoped<PhhCardShuffler>();
