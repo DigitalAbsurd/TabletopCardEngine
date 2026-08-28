@@ -1,0 +1,26 @@
+<Project Sdk="MSTest.Sdk/3.6.1">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+    <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
+    <TestingExtensionsProfile>None</TestingExtensionsProfile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.Demo\OpenHoldemEngine.Demo.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.Tests\OpenHoldemEngine.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+</Project>
