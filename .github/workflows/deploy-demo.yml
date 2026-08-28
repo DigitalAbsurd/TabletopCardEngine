@@ -1,0 +1,65 @@
+name: Deploy demo to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish demo
+        run: dotnet publish -c Release -o _publish src/OpenHoldemEngine.Demo
+
+      - name: Rewrite base href
+        run: |
+          sed -i 's|<base href="/" />|<base href="/OpenHoldemEngine/" />|' _publish/wwwroot/index.html
+
+      - name: Add .nojekyll
+        run: touch _publish/wwwroot/.nojekyll
+
+      - name: Create 404.html for SPA
+        run: cp _publish/wwwroot/index.html _publish/wwwroot/404.html
+
+      - name: Calculate artifact size
+        id: size
+        run: |
+          SIZE=$(du -sh _publish/wwwroot/ | cut -f1)
+          echo "artifact_size=$SIZE" >> $GITHUB_OUTPUT
+          echo "### Published artifact size: $SIZE" >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_publish/wwwroot'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
