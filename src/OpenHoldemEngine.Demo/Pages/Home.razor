@@ -2,6 +2,7 @@
 @using AntDesign
 @using OpenHoldemEngine.Demo.Services
 @using OpenHoldemEngine.Demo.Components.Database
+@using OpenHoldemEngine.Demo.Components.Phh
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject DemoGameSession Session
@@ -50,18 +51,37 @@
     </div>
 
     <div class="companion-panels">
-        <div class="companion-panel database-panel">
-            <DatabaseInspector />
-        </div>
+        @if (Session.CurrentGame is null)
+        {
+            <!-- Show hand history import when no game is active -->
+            <div class="companion-panel">
+                <HandHistoryImport OnHandSelected="@OnHandSelected" />
+            </div>
 
-        <div class="companion-panel engine-calls-panel">
-            <EngineCalls />
-        </div>
+            @if (_selectedHistoryHand is not null)
+            {
+                <div class="companion-panel">
+                    <ReplayControls SelectedHand="@_selectedHistoryHand" />
+                </div>
+            }
+        }
+        else
+        {
+            <!-- Show database inspector and engine calls when game is active -->
+            <div class="companion-panel database-panel">
+                <DatabaseInspector />
+            </div>
+
+            <div class="companion-panel engine-calls-panel">
+                <EngineCalls />
+            </div>
+        }
     </div>
 </div>
 
 @code {
     private bool _showStorageAlert = false;
+    private HandHistoryImport.HandHistoryItem? _selectedHistoryHand;
     private const string StorageAlertKey = "ohe-demo-storage-alert-dismissed";
 
     protected override async Task OnInitializedAsync()
@@ -108,6 +128,12 @@
         Session.Reset();
         await Task.CompletedTask;
         StateHasChanged();
+    }
+
+    private Task OnHandSelected(HandHistoryImport.HandHistoryItem hand)
+    {
+        _selectedHistoryHand = hand;
+        return Task.CompletedTask;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
