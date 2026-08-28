@@ -16,6 +16,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
     <InternalsVisibleTo Include="$(AssemblyName).Demo" />
+    <InternalsVisibleTo Include="$(AssemblyName).Demo.Tests" />
   </ItemGroup>
 
   <ItemGroup>
