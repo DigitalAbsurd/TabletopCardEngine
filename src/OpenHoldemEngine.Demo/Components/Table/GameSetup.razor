@@ -9,7 +9,7 @@
             <Alert
                 Message="Error"
                 Description="@_errorMessage"
-                Type="AlertType.Error"
+                Type="@AlertType.Error"
                 Closable="true"
                 OnClose="@ClearErrorMessage"
                 ShowIcon="true" />
@@ -54,7 +54,7 @@
                     <div class="form-group">
                         <label>Big Blind</label>
                         <div style="padding-top: 4px;">
-                            <span class="big-blind-display">@(_smallBlind * 2)m</span>
+                            <span class="big-blind-display">@(_smallBlind * 2)</span>
                             <span style="font-size: 12px; color: #999; margin-left: 8px;">(auto, 2x small blind)</span>
                         </div>
                     </div>
@@ -163,7 +163,7 @@
         <Alert
             Message="Engine Limitations"
             Description="The engine does not implement: Allow Rebuy on GameOptionData, and BuyIns / KickOffSeats on StartHand. These are declared in the DTOs but are not read by any handler."
-            Type="AlertType.Warning"
+            Type="@AlertType.Warning"
             ShowIcon="true" />
     </Space>
 </Card>

@@ -30,7 +30,7 @@
                 <Alert
                     Message="Replay Error"
                     Description="@ReplayController.ReplayError"
-                    Type="AlertType.Error"
+                    Type="@AlertType.Error"
                     Closable="false"
                     ShowIcon="true" />
             }
@@ -99,7 +99,7 @@
 
             <!-- Hand Info -->
             <div style="padding: 12px; background: #f5f5f5; border-radius: 4px; font-size: 12px; color: #666;">
-                <p style="margin: 0;">Hand: @ReplayController.CurrentHand.Source (#{ReplayController.CurrentHand.Index})</p>
+                <p style="margin: 0;">Hand: @ReplayController.CurrentHand.Source (#@ReplayController.CurrentHand.Index)</p>
                 <p style="margin: 4px 0 0 0;">Players: @ReplayController.CurrentHand.PlayerCount | Blinds: @ReplayController.CurrentHand.SmallBlind/@ReplayController.CurrentHand.BigBlind | Actions: @ReplayController.CurrentHand.Actions.Length</p>
             </div>
         }
