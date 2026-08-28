@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using AntDesign
 @using OpenHoldemEngine.Demo.Services
+@using OpenHoldemEngine.Demo.Components.Table
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject DemoGameSession Session
@@ -24,6 +25,10 @@
         @if (Session.CurrentGame is not null)
         {
             <PokerTable HandData="@Session.CurrentHand" />
+            @if (Session.CurrentHand is not null)
+            {
+                <ActionPanel HandData="@Session.CurrentHand" />
+            }
         }
         else
         {
