@@ -1,0 +1,83 @@
+@page "/diagnostics"
+@using Microsoft.Data.Sqlite
+@using OpenHoldemEngine.Dto
+@inject HoldemEngine holdemEngine
+@inject SqliteConnection sqliteConnection
+
+<PageTitle>Diagnostics</PageTitle>
+
+<h1>OpenHoldemEngine Diagnostics</h1>
+
+<p>This page verifies that the engine is correctly configured and the database is operational.</p>
+
+<Button Type="primary" OnClick="RunDiagnostics">Run Diagnostics</Button>
+
+@if (diagnosticsRun)
+{
+    <div style="margin-top: 20px;">
+        @if (errorMessage != null)
+        {
+            <Alert Message="Error" Description="@errorMessage" Type="error" ShowIcon="true"></Alert>
+        }
+        else if (gameId != Guid.Empty && tableNames.Count > 0)
+        {
+            <Alert Message="Success" Description="@($"Game created with ID {gameId}. Database is operational.")" Type="success" ShowIcon="true"></Alert>
+            <div style="margin-top: 20px;">
+                <h3>Engine Tables</h3>
+                <p>Total tables: @tableNames.Count</p>
+                <ul>
+                    @foreach (var tableName in tableNames)
+                    {
+                        <li>@tableName</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool diagnosticsRun = false;
+    private Guid gameId = Guid.Empty;
+    private List<string> tableNames = [];
+    private string? errorMessage = null;
+
+    private async Task RunDiagnostics()
+    {
+        try
+        {
+            diagnosticsRun = false;
+            errorMessage = null;
+            gameId = Guid.Empty;
+            tableNames.Clear();
+
+            // Create a game
+            gameId = Guid.NewGuid();
+            var createGameAction = HoldemAction.CreateCreateGameDto(new GameOptionData(), gameId);
+            var result = await holdemEngine.ApplyHoldemActionAsync(createGameAction, CancellationToken.None);
+
+            if (!result.IsSuccess)
+            {
+                errorMessage = $"Failed to create game: {string.Join(", ", result.Errors.Select(e => e.Message))}";
+            }
+            else
+            {
+                // Query table names from sqlite_master
+                using var command = sqliteConnection.CreateCommand();
+                command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    tableNames.Add(reader.GetString(0));
+                }
+            }
+
+            diagnosticsRun = true;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Exception: {ex.Message}";
+            diagnosticsRun = true;
+        }
+    }
+}
