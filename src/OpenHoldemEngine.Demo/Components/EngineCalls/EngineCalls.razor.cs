@@ -37,10 +37,10 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         if (_jsModule != null)
         {
             await _jsModule.InvokeVoidAsync("highlightCode");
-        }
 
-        // Auto-scroll to the newest entry
-        await JS.InvokeVoidAsync("scrollToLatestEntry", _containerElement);
+            // Auto-scroll to the newest entry using the module function
+            await _jsModule.InvokeVoidAsync("scrollToLatestEntry", _containerElement);
+        }
     }
 
     /// <summary>Copies a single code snippet to the clipboard.</summary>
