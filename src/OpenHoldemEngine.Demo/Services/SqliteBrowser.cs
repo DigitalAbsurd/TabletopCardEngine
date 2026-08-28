@@ -88,7 +88,7 @@ public sealed class SqliteBrowser
         using var command = _connection.CreateCommand();
         // Use PRAGMA table_info which is SQLite standard.
         // Columns are: cid, name, type, notnull, dflt_value, pk
-        command.CommandText = $"PRAGMA table_info(\"{EscapeIdentifier(tableName)}\")";
+        command.CommandText = $"PRAGMA table_info({EscapeIdentifier(tableName)})";
 
         using var reader = command.ExecuteReader();
         while (reader.Read())
@@ -119,7 +119,7 @@ public sealed class SqliteBrowser
         }
 
         using var command = _connection.CreateCommand();
-        command.CommandText = $"SELECT COUNT(*) FROM \"{EscapeIdentifier(tableName)}\"";
+        command.CommandText = $"SELECT COUNT(*) FROM {EscapeIdentifier(tableName)}";
 
         var result = command.ExecuteScalar();
         return result is long count ? count : 0;
@@ -145,7 +145,7 @@ public sealed class SqliteBrowser
         var rows = new List<IReadOnlyDictionary<string, object?>>();
 
         using var command = _connection.CreateCommand();
-        command.CommandText = $"SELECT * FROM \"{EscapeIdentifier(tableName)}\" LIMIT @limit OFFSET @offset";
+        command.CommandText = $"SELECT * FROM {EscapeIdentifier(tableName)} LIMIT @limit OFFSET @offset";
         command.Parameters.AddWithValue("@limit", limit);
         command.Parameters.AddWithValue("@offset", Math.Max(0, offset));
 
