@@ -1,0 +1,57 @@
+@using OpenHoldemEngine.Demo.Services
+@using System.Globalization
+@inject IJSRuntime JS
+
+<div class="engine-calls-panel" @ref="_containerElement">
+    <div class="engine-calls-header">
+        <h3>Engine Calls</h3>
+        @if (Session.Journal.Count > 0)
+        {
+            <button class="copy-session-btn" @onclick="CopyWholeSessionAsync" title="Copy entire session as compilable C# code">
+                Copy Session
+            </button>
+        }
+    </div>
+
+    @if (Session.Journal.Count == 0)
+    {
+        <div class="no-entries">
+            <p>No engine calls yet. Create a game to see the calls here.</p>
+        </div>
+    }
+    else
+    {
+        <div class="engine-calls-list">
+            @foreach (var (entry, index) in Session.Journal.Entries.Select((e, i) => (e, i)))
+            {
+                <div class="engine-call-entry">
+                    <div class="entry-header">
+                        <span class="entry-number">Call #@entry.SequenceNumber</span>
+                        <span class="entry-status" data-succeeded="@entry.Succeeded.ToString()">
+                            @if (entry.Succeeded)
+                            {
+                                <span class="status-success">✓ Success</span>
+                            }
+                            else
+                            {
+                                <span class="status-error">✗ Failed</span>
+                            }
+                        </span>
+                        <button class="copy-btn" @onclick="@(async () => await CopySnippetAsync(index))" title="Copy this snippet">
+                            Copy
+                        </button>
+                    </div>
+
+                    <pre><code class="language-csharp">@EngineCallSnippetWriter.GenerateSnippet(entry)</code></pre>
+
+                    @if (!entry.Succeeded && entry.ErrorMessages.Length > 0)
+                    {
+                        <div class="error-message">
+                            <strong>Error:</strong> @string.Join("; ", entry.ErrorMessages)
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
