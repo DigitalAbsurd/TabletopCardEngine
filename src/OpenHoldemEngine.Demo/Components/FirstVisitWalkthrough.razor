@@ -6,8 +6,10 @@
 
 <Modal Visible="_visible"
     Title="Welcome to OpenHoldemEngine Demo"
+    OkText="@OkLabel"
     OnOk="OnClose"
-    OnCancel="OnClose"
+    CancelText="@CancelLabel"
+    OnCancel="OnSkip"
     Width="600"
     Closable="true">
     <div class="walkthrough-content">
@@ -66,10 +68,6 @@
             </div>
         }
     </div>
-    <ModalFooter>
-        <Button OnClick="OnSkip" Danger>Skip</Button>
-        <Button Type="@ButtonType.Primary" OnClick="OnClose">@(_currentStep < 3 ? "Next" : "Done")</Button>
-    </ModalFooter>
 </Modal>
 
 <style>
@@ -111,6 +109,9 @@
     private int _currentStep = 1;
     private const string WalkthroughDismissedKey = "ohe-demo-walkthrough-dismissed";
 
+    private string OkLabel => _currentStep < 3 ? "Next" : "Done";
+    private const string CancelLabel = "Skip";
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -131,11 +132,11 @@
     /// Opens the walkthrough and resets it to step 1.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>
-    public Task Show()
+    public async Task Show()
     {
         _currentStep = 1;
         _visible = true;
-        return Task.CompletedTask;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task OnClose()
