@@ -21,6 +21,7 @@ internal sealed class Program
         DemoEngineHost.ConfigureHoldemEngine(builder.Services);
 
         // Register demo services
+        builder.Services.AddScoped<BrowserStorage>();
         builder.Services.AddScoped<DemoGameSession>();
         builder.Services.AddScoped<SqliteBrowser>();
         builder.Services.AddScoped<PhhCardShuffler>();
