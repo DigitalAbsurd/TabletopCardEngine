@@ -14,8 +14,10 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
     [Inject]
     public DemoGameSession Session { get; set; } = null!;
 
-    private ElementReference _containerElement;
+    private ElementReference _listElement;
     private IJSObjectReference? _jsModule;
+    private int _lastJournalCount;
+
 
     /// <summary>Called when the session state changes to update the displayed calls.</summary>
     protected override void OnInitialized()
@@ -24,13 +26,15 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
-    /// Called after the component renders. Highlights any new code blocks that were just added.
+    /// Called after the component renders. Highlights any new code blocks that were just added
+    /// and scrolls the list to show the newest entry only when new entries are added.
     /// </summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             _jsModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/EngineCalls/EngineCalls.razor.js");
+            _lastJournalCount = Session.Journal.Entries.Count;
         }
 
         // Highlight code blocks that haven't been highlighted yet
@@ -38,8 +42,13 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         {
             await _jsModule.InvokeVoidAsync("highlightCode");
 
-            // Auto-scroll to the newest entry using the module function
-            await _jsModule.InvokeVoidAsync("scrollToLatestEntry", _containerElement);
+            // Auto-scroll to the newest entry only if a new entry was actually added
+            int currentCount = Session.Journal.Entries.Count;
+            if (currentCount > _lastJournalCount)
+            {
+                await _jsModule.InvokeVoidAsync("scrollToLatestEntry", _listElement);
+                _lastJournalCount = currentCount;
+            }
         }
     }
 
