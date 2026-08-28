@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using OpenHoldemEngine.Demo.Engine;
+using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Demo.Services;
 
 namespace OpenHoldemEngine.Demo;
@@ -22,6 +23,8 @@ internal sealed class Program
         // Register demo services
         builder.Services.AddScoped<DemoGameSession>();
         builder.Services.AddScoped<SqliteBrowser>();
+        builder.Services.AddScoped<PhhCardShuffler>();
+        builder.Services.AddScoped<PhhReplayController>();
 
         await builder.Build().RunAsync();
     }
