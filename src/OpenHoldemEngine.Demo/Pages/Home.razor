@@ -24,11 +24,24 @@
     <div class="main-region">
         @if (Session.CurrentGame is not null)
         {
+            @if (Session.CurrentHand is not null)
+            {
+                <StreetIndicator Street="@Session.CurrentHand.Street" />
+            }
+
             <PokerTable HandData="@Session.CurrentHand" />
+
             @if (Session.CurrentHand is not null)
             {
                 <ActionPanel HandData="@Session.CurrentHand" />
             }
+
+            <HandHistory CurrentGameData="@Session.CurrentGame" />
+
+            <HandResult
+                GameData="@Session.CurrentGame"
+                OnNextHand="@OnNextHandAsync"
+                OnNewGame="@OnNewGameAsync" />
         }
         else
         {
@@ -87,6 +100,18 @@
         {
             // Ignore localStorage errors
         }
+    }
+
+    private async Task OnNextHandAsync()
+    {
+        await Session.StartNextHandAsync();
+    }
+
+    private async Task OnNewGameAsync()
+    {
+        Session.Reset();
+        await Task.CompletedTask;
+        StateHasChanged();
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
