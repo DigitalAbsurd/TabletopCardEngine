@@ -1,6 +1,7 @@
 @using AntDesign
+@using OpenHoldemEngine.Demo.Services
 @implements IAsyncDisposable
-@inject IJSRuntime JS
+@inject BrowserStorage Storage
 
 <Modal Visible="_visible"
     Title="Welcome to OpenHoldemEngine Demo"
@@ -113,12 +114,12 @@
     {
         try
         {
-            var isDismissed = await JS.InvokeAsync<bool>("localStorage.getItem", WalkthroughDismissedKey);
+            var isDismissed = await Storage.GetFlagAsync(WalkthroughDismissedKey);
             _visible = !isDismissed;
         }
         catch
         {
-            // If localStorage is not available, show the walkthrough
+            // If storage service fails, show the walkthrough
             _visible = true;
         }
     }
@@ -134,11 +135,11 @@
             _visible = false;
             try
             {
-                await JS.InvokeVoidAsync("localStorage.setItem", WalkthroughDismissedKey, "true");
+                await Storage.SetFlagAsync(WalkthroughDismissedKey, true);
             }
             catch
             {
-                // Ignore localStorage errors
+                // Ignore storage errors
             }
         }
     }
@@ -148,11 +149,11 @@
         _visible = false;
         try
         {
-            await JS.InvokeVoidAsync("localStorage.setItem", WalkthroughDismissedKey, "true");
+            await Storage.SetFlagAsync(WalkthroughDismissedKey, true);
         }
         catch
         {
-            // Ignore localStorage errors
+            // Ignore storage errors
         }
     }
 
