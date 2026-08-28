@@ -1,9 +1,78 @@
 ﻿@page "/"
+@using AntDesign
+@implements IAsyncDisposable
+@inject IJSRuntime JS
 
-<PageTitle>Home</PageTitle>
+<PageTitle>OpenHoldemEngine Demo</PageTitle>
 
-<h1>OpenHoldemEngine Demo</h1>
+@if (_showStorageAlert)
+{
+    <Alert
+        Message="Database is in-memory only"
+        Description="This demo stores your game in your browser's memory. If you reload the page, your game will be lost. Use the .phh export feature to save hands for later."
+        Type="AlertType.Info"
+        Closable="true"
+        OnClose="@OnAlertClose"
+        Class="storage-alert"
+        ShowIcon="true" />
+}
 
-<p>This is a placeholder home page for the OpenHoldemEngine Blazor WebAssembly demo.</p>
+<div class="home-container">
+    <div class="main-region">
+        <Card Class="poker-table-card" Title="Poker Table">
+            <p>Poker table placeholder — will be implemented in task #5.</p>
+        </Card>
+    </div>
 
-<Button Type="primary">Demo Button</Button>
+    <div class="companion-panels">
+        <div class="companion-panel database-panel">
+            <Card Class="companion-card" Title="Database Inspector">
+                <p>Database inspector placeholder — will be implemented in task #10.</p>
+            </Card>
+        </div>
+
+        <div class="companion-panel engine-calls-panel">
+            <Card Class="companion-card" Title="Engine Calls">
+                <p>Engine call log placeholder — will be implemented in task #9.</p>
+            </Card>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _showStorageAlert = false;
+    private const string StorageAlertKey = "ohe-demo-storage-alert-dismissed";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var isDismissed = await JS.InvokeAsync<bool>("localStorage.getItem", StorageAlertKey);
+            _showStorageAlert = !isDismissed;
+        }
+        catch
+        {
+            // If localStorage is not available, show the alert
+            _showStorageAlert = true;
+        }
+    }
+
+    private async Task OnAlertClose()
+    {
+        _showStorageAlert = false;
+        try
+        {
+            await JS.InvokeVoidAsync("localStorage.setItem", StorageAlertKey, "true");
+        }
+        catch
+        {
+            // Ignore localStorage errors
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        // Cleanup if needed
+        await Task.CompletedTask;
+    }
+}
