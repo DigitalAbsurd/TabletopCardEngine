@@ -135,32 +135,44 @@ public sealed class DemoGameSession
 
     /// <summary>
     /// Internal method that applies an action to the engine and updates the cached state.
+    /// Catches any thrown exceptions and converts them to engine error events.
     /// </summary>
     private async Task<bool> ApplyActionInternalAsync(
         HoldemAction action,
         CancellationToken cancellationToken = default)
     {
-        var result = await _engine.ApplyHoldemActionAsync(action, cancellationToken);
-
-        if (result.IsSuccess)
+        try
         {
-            CurrentGameId = result.Value.GameId;
-            CurrentGame = result.Value;
-            _journal.RecordSuccess(action);
-            RaiseStateChanged();
-            return true;
+            var result = await _engine.ApplyHoldemActionAsync(action, cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                CurrentGameId = result.Value.GameId;
+                CurrentGame = result.Value;
+                _journal.RecordSuccess(action);
+                RaiseStateChanged();
+                return true;
+            }
+
+            // Record failure in journal
+            var errorMessages = result.Errors
+                .Select(error => error.Message)
+                .ToArray();
+            _journal.RecordFailure(action, errorMessages);
+
+            // Map engine error messages to user-friendly ones
+            var userMessage = MapEngineErrorToUserMessage(errorMessages);
+            RaiseEngineError(userMessage);
+            return false;
         }
-
-        // Record failure in journal
-        var errorMessages = result.Errors
-            .Select(error => error.Message)
-            .ToArray();
-        _journal.RecordFailure(action, errorMessages);
-
-        // Map engine error messages to user-friendly ones
-        var userMessage = MapEngineErrorToUserMessage(errorMessages);
-        RaiseEngineError(userMessage);
-        return false;
+        catch (Exception ex)
+        {
+            // Catch engine or database exceptions and surface them as engine errors
+            var errorMessage = $"Engine call failed: {ex.Message}";
+            _journal.RecordFailure(action, [ex.Message]);
+            RaiseEngineError(errorMessage);
+            return false;
+        }
     }
 
     /// <summary>
