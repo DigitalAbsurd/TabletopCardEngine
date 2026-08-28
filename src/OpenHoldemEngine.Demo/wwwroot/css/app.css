@@ -113,67 +113,6 @@ code {
     text-align: start;
 }
 
-/* Layout styles */
-.layout-full-height {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.layout-header {
-    background: #fff;
-    border-bottom: 1px solid #f0f0f0;
-    padding: 0 2rem;
-    display: flex;
-    align-items: center;
-    height: auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.layout-header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    height: 64px;
-}
-
-.layout-title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.layout-title a {
-    text-decoration: none;
-    color: inherit;
-}
-
-.layout-title a:hover {
-    color: #1890ff;
-}
-
-.layout-github-link {
-    text-decoration: none;
-    color: #1890ff;
-    transition: color 0.3s;
-}
-
-.layout-github-link:hover {
-    color: #40a9ff;
-}
-
-.layout-body {
-    flex: 1;
-    overflow: hidden;
-}
-
-.layout-content {
-    padding: 2rem;
-    height: 100%;
-    overflow-y: auto;
-}
-
 /* Home page layout */
 .storage-alert {
     margin-bottom: 2rem;
@@ -183,16 +122,8 @@ code {
     display: grid;
     grid-template-columns: 1fr;
     gap: 2rem;
-    height: 100%;
 }
 
-.main-region {
-    min-height: 400px;
-}
-
-.poker-table-card {
-    height: 100%;
-}
 
 .companion-panels {
     display: grid;
@@ -239,7 +170,6 @@ code {
 
     .main-region {
         order: 1;
-        min-height: 400px;
     }
 
     .companion-panels {
@@ -247,47 +177,10 @@ code {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-
-    .layout-header {
-        padding: 0 1rem;
-    }
-
-    .layout-header-content {
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .layout-title {
-        font-size: 1.25rem;
-        flex-basis: 100%;
-    }
-
-    .layout-github-link {
-        flex-basis: 100%;
-    }
 }
 
 @media (max-width: 768px) {
     /* Mobile layout */
-    .layout-header {
-        padding: 0 1rem;
-    }
-
-    .layout-header-content {
-        height: auto;
-        padding: 1rem 0;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .layout-title {
-        font-size: 1.1rem;
-    }
-
-    .layout-content {
-        padding: 1rem;
-    }
-
     .home-container {
         gap: 1rem;
     }
