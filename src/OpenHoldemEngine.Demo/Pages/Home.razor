@@ -3,11 +3,14 @@
 @using OpenHoldemEngine.Demo.Services
 @using OpenHoldemEngine.Demo.Components.Database
 @using OpenHoldemEngine.Demo.Components.Phh
+@using OpenHoldemEngine.Demo.Components
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 @inject DemoGameSession Session
 
 <PageTitle>OpenHoldemEngine Demo</PageTitle>
+
+<FirstVisitWalkthrough />
 
 @if (_showStorageAlert)
 {
