@@ -2,9 +2,9 @@
 @using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
 
-<div class="hand-result-container">
-    @if (IsHandFinished)
-    {
+@if (IsHandFinished)
+{
+    <div class="hand-result-container">
         <div class="hand-result-overlay">
             <div class="hand-result-content">
                 <h2>Hand Complete</h2>
@@ -59,8 +59,8 @@
                 </div>
             </div>
         </div>
-    }
-</div>
+    </div>
+}
 
 @code {
     [Parameter]

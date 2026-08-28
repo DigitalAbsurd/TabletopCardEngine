@@ -327,8 +327,69 @@ public sealed class ComponentRender_Tests
         component.Markup.Should().Contain("hand-history");
     }
 
+    private static GameData CreateFinishedHandGameData()
+    {
+        var seat1 = new SeatData(
+            SeatNo: 1,
+            Name: "Test Player 1",
+            Stack: 900m,
+            StartHandStack: 1000m,
+            Hole: new[] { Card.FromString("ah"), Card.FromString("kh") }
+        );
+
+        var handResult1 = new HandResultData(
+            Net: 100m,
+            Strength: 1000u,
+            RankType: HandRankType.Pair
+        );
+
+        seat1 = seat1 with { HandResult = handResult1 };
+
+        var seat2 = new SeatData(
+            SeatNo: 2,
+            Name: "Test Player 2",
+            Stack: 900m,
+            StartHandStack: 1000m,
+            Hole: new[] { Card.FromString("2h"), Card.FromString("3h") }
+        );
+
+        var handResult2 = new HandResultData(
+            Net: -100m,
+            Strength: 500u,
+            RankType: HandRankType.HighCard
+        );
+
+        seat2 = seat2 with { HandResult = handResult2 };
+
+        var handData = new HandData(
+            No: 1,
+            Seats: new[] { seat1, seat2 },
+            DealerSeatNo: 1,
+            SmallBlindSeatNo: 1,
+            BigBlindSeatNo: 2,
+            NextPlayerSeatNo: 0,
+            Street: Street.Finished,
+            StreetPot: 0m,
+            Pot: 200m,
+            CommunityCards: new[] { Card.FromString("ac"), Card.FromString("ad"), Card.FromString("as"), Card.FromString("2c"), Card.FromString("3d") },
+            Evaluations: Array.Empty<PlayerActionEvaluationData>()
+        );
+
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 1
+        );
+
+        return new GameData(
+            GameId: Guid.NewGuid(),
+            Options: options,
+            HandData: handData
+        );
+    }
+
     [TestMethod]
-    public void HandResult_WithoutHandData_Renders_Empty()
+    public void HandResult_WithoutHandData_DoesNotRenderContainer()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -339,12 +400,14 @@ public sealed class ComponentRender_Tests
         var component = ctx.RenderComponent<HandResult>(parameters => parameters
             .Add(p => p.GameData, null));
 
-        // Assert
-        component.Markup.Should().Contain("hand-result");
+        // Assert - mid-hand or null state should produce no container div element
+        // (the style block is always present, so we check for the actual div element)
+        var containerDivs = component.FindAll("div.hand-result-container");
+        containerDivs.Should().BeEmpty();
     }
 
     [TestMethod]
-    public async Task HandResult_WithGameData_Renders_Results()
+    public async Task HandResult_WithInProgressHand_DoesNotRenderContainer()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -353,14 +416,40 @@ public sealed class ComponentRender_Tests
 
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
 
-        // Act
+        // Act - render with a game that has an in-progress hand
         var component = ctx.RenderComponent<HandResult>(parameters => parameters
             .Add(p => p.GameData, session.CurrentGame)
             .Add(p => p.OnNextHand, EventCallback.Factory.Create(this, async () => await Task.CompletedTask))
             .Add(p => p.OnNewGame, EventCallback.Factory.Create(this, async () => await Task.CompletedTask)));
 
-        // Assert
-        component.Markup.Should().Contain("hand-result");
+        // Assert - mid-hand should produce no container div element
+        var containerDivs = component.FindAll("div.hand-result-container");
+        containerDivs.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void HandResult_WithFinishedHand_RendersContainer()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var gameData = CreateFinishedHandGameData();
+
+        // Act - render with a finished hand
+        var component = ctx.RenderComponent<HandResult>(parameters => parameters
+            .Add(p => p.GameData, gameData)
+            .Add(p => p.OnNextHand, EventCallback.Factory.Create(this, async () => await Task.CompletedTask))
+            .Add(p => p.OnNewGame, EventCallback.Factory.Create(this, async () => await Task.CompletedTask)));
+
+        // Assert - finished hand should render the container div and content
+        var containerDivs = component.FindAll("div.hand-result-container");
+        containerDivs.Should().NotBeEmpty();
+        component.Markup.Should().Contain("hand-result-overlay");
+        component.Markup.Should().Contain("Hand Complete");
+        component.Markup.Should().Contain("Next Hand");
+        component.Markup.Should().Contain("New Game");
     }
 
     [TestMethod]
