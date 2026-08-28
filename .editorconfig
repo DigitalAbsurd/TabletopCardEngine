@@ -406,8 +406,14 @@ dotnet_diagnostic.CA1707.severity = none
 
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.IDE0130.severity = none
+# Razor-generated code in WASM apps with top-level statements in Program.cs
+# cannot use file-scoped namespaces (CS8802: only one compilation unit can have top-level statements)
+dotnet_diagnostic.IDE0161.severity = none
 
 [**/*.razor]
 
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.IDE0130.severity = none
+# Razor components in WASM apps that have top-level statements in Program.cs
+# cannot use file-scoped namespaces in generated code.
+csharp_style_namespace_declarations = block:silent
