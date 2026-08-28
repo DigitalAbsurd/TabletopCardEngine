@@ -1,0 +1,169 @@
+@using AntDesign
+@using OpenHoldemEngine.Demo.Services
+
+<Card Title="Game Setup" Class="game-setup-card">
+    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+        <!-- Error Messages -->
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <Alert
+                Message="Error"
+                Description="@_errorMessage"
+                Type="AlertType.Error"
+                Closable="true"
+                OnClose="@ClearErrorMessage"
+                ShowIcon="true" />
+        }
+
+        <!-- Game Options -->
+        <div class="game-options">
+            <Row Gutter="16">
+                <AntDesign.Col Xs="24" Sm="12" Md="8">
+                    <div class="form-group">
+                        <label>Max Players</label>
+                        <Select
+                            @bind-Value="@_maxPlayers"
+                            Disabled="@_isLoading"
+                            Style="width: 100%;"
+                            TItemValue="int"
+                            TItem="int">
+                            <SelectOption TItemValue="int" TItem="int" Value="2">2 (Heads-up)</SelectOption>
+                            <SelectOption TItemValue="int" TItem="int" Value="3">3</SelectOption>
+                            <SelectOption TItemValue="int" TItem="int" Value="4">4</SelectOption>
+                            <SelectOption TItemValue="int" TItem="int" Value="5">5</SelectOption>
+                            <SelectOption TItemValue="int" TItem="int" Value="6">6</SelectOption>
+                        </Select>
+                    </div>
+                </AntDesign.Col>
+
+                <AntDesign.Col Xs="24" Sm="12" Md="8">
+                    <div class="form-group">
+                        <label>Small Blind</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0.01"
+                            disabled="@_isLoading"
+                            placeholder="Small blind amount"
+                            @bind="_smallBlind"
+                            style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 2px;" />
+                    </div>
+                </AntDesign.Col>
+
+                <AntDesign.Col Xs="24" Sm="12" Md="8">
+                    <div class="form-group">
+                        <label>Big Blind</label>
+                        <div style="padding-top: 4px;">
+                            <span class="big-blind-display">@(_smallBlind * 2)m</span>
+                            <span style="font-size: 12px; color: #999; margin-left: 8px;">(auto, 2x small blind)</span>
+                        </div>
+                    </div>
+                </AntDesign.Col>
+            </Row>
+
+            <Row Gutter="16">
+                <AntDesign.Col Xs="24" Sm="12" Md="8">
+                    <div class="form-group">
+                        <label>Dealer Seat (1-based)</label>
+                        <input
+                            type="number"
+                            min="1"
+                            max="@_maxPlayers"
+                            disabled="@_isLoading"
+                            placeholder="Initial dealer seat"
+                            @bind="_dealerSeat"
+                            style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 2px;" />
+                    </div>
+                </AntDesign.Col>
+            </Row>
+        </div>
+
+        <!-- Players List -->
+        <div class="players-section">
+            <h3>Players</h3>
+            <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+                @for (int i = 0; i < _players.Count; i++)
+                {
+                    var index = i;
+                    var player = _players[index];
+                    <Card Size="small" Class="player-card">
+                        <Row Gutter="8">
+                            <AntDesign.Col Xs="24" Sm="12" Md="8">
+                                <input
+                                    type="text"
+                                    disabled="@_isLoading"
+                                    placeholder="Player name"
+                                    @bind="player.Name"
+                                    style="width: 100%; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 2px;" />
+                            </AntDesign.Col>
+
+                            <AntDesign.Col Xs="12" Sm="6" Md="4">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span>Seat:</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="@_maxPlayers"
+                                        disabled="@_isLoading"
+                                        @bind="player.SeatNo"
+                                        style="width: 70px; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 2px;" />
+                                </div>
+                            </AntDesign.Col>
+
+                            <AntDesign.Col Xs="12" Sm="6" Md="8">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span>Buy-In:</span>
+                                    <input
+                                        type="number"
+                                        step="1"
+                                        min="0.01"
+                                        disabled="@_isLoading"
+                                        placeholder="Buy-in"
+                                        @bind="player.BuyInAmount"
+                                        style="width: 100px; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 2px;" />
+                                </div>
+                            </AntDesign.Col>
+
+                            <AntDesign.Col Xs="24" Sm="24" Md="4" Style="display: flex; justify-content: flex-end;">
+                                <Button
+                                    Type="@ButtonType.Text"
+                                    Danger
+                                    OnClick="@(() => RemovePlayer(index))"
+                                    Disabled="@_isLoading">
+                                    Remove
+                                </Button>
+                            </AntDesign.Col>
+                        </Row>
+                    </Card>
+                }
+
+                <Button
+                    Type="@ButtonType.Dashed"
+                    OnClick="@AddPlayer"
+                    Disabled="@(_isLoading || _players.Count >= _maxPlayers)"
+                    Block>
+                    + Add Player (max @_maxPlayers)
+                </Button>
+            </Space>
+        </div>
+
+        <!-- Create and Start Button -->
+        <div style="padding-top: 16px;">
+            <Button
+                Type="@ButtonType.Primary"
+                Loading="@_isLoading"
+                OnClick="@CreateAndStartAsync"
+                Disabled="@(!IsFormValid)"
+                Block>
+                Create and Start Game
+            </Button>
+        </div>
+
+        <!-- Ignored Options Notice -->
+        <Alert
+            Message="Engine Limitations"
+            Description="The engine does not implement: Allow Rebuy on GameOptionData, and BuyIns / KickOffSeats on StartHand. These are declared in the DTOs but are not read by any handler."
+            Type="AlertType.Warning"
+            ShowIcon="true" />
+    </Space>
+</Card>
