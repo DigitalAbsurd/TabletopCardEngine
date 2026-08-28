@@ -5,7 +5,7 @@
 @using OpenHoldemEngine.Demo.Components.Phh
 @using OpenHoldemEngine.Demo.Components
 @implements IAsyncDisposable
-@inject IJSRuntime JS
+@inject BrowserStorage Storage
 @inject DemoGameSession Session
 
 <PageTitle>OpenHoldemEngine Demo</PageTitle>
@@ -95,12 +95,12 @@
     {
         try
         {
-            var isDismissed = await JS.InvokeAsync<bool>("localStorage.getItem", StorageAlertKey);
+            var isDismissed = await Storage.GetFlagAsync(StorageAlertKey);
             _showStorageAlert = !isDismissed;
         }
         catch
         {
-            // If localStorage is not available, show the alert
+            // If storage service fails, show the alert
             _showStorageAlert = true;
         }
 
@@ -117,11 +117,11 @@
         _showStorageAlert = false;
         try
         {
-            await JS.InvokeVoidAsync("localStorage.setItem", StorageAlertKey, "true");
+            await Storage.SetFlagAsync(StorageAlertKey, true);
         }
         catch
         {
-            // Ignore localStorage errors
+            // Ignore storage errors
         }
     }
 
