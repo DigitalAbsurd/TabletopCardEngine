@@ -49,7 +49,7 @@ public sealed class HoldemEngineTests
                 No: 1,
                 Seats:
                 [
-                    new(1, "Junpei",  100, 100)
+                    new(1, "Junpei", 100, 100)
                     {
                         Hole = holeCards[1]
                     },

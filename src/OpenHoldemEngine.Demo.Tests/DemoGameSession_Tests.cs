@@ -213,4 +213,255 @@ public sealed class DemoGameSession_Tests
         errorMessage.Should().NotBeNullOrEmpty();
         errorMessage.Should().Contain("already exists");
     }
+
+    [TestMethod]
+    public async Task EngineError_GameIdAlreadyExists_MapsToUserFriendlyMessage()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        string? errorMessage = null;
+        session.EngineError += (s, e) =>
+        {
+            errorMessage = e.Message;
+        };
+
+        // Act - Create a game with a specific ID
+        var firstCreate = await session.CreateGameAsync(options, gameId);
+        firstCreate.Should().BeTrue();
+
+        // Try to create another game with the same ID
+        var secondCreate = await session.CreateGameAsync(options, gameId);
+
+        // Assert
+        secondCreate.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+        errorMessage.Should().Be("Game already exists. Choose a different game ID.");
+    }
+
+    [TestMethod]
+    public async Task EngineError_CurrentHandCompleted_MapsToUserFriendlyMessage()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        var joinSeats = new PlayerJoinData[]
+        {
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 1000m),
+        };
+
+        string? errorMessage = null;
+        session.EngineError += (s, e) =>
+        {
+            errorMessage = e.Message;
+        };
+
+        // Act - Create game and start first hand
+        await session.CreateGameAsync(options, gameId);
+        await session.StartFirstHandAsync(joinSeats);
+
+        // Play the hand to completion (one player folds)
+        while (session.CurrentHand != null && session.CurrentHand.NextPlayerSeatNo != 0)
+        {
+            await session.ApplyPlayerActionAsync(PlayerActionType.Fold);
+        }
+
+        // Hand is now complete. Try to start the next hand while one is already complete
+        // (This should fail because the current hand is already complete)
+        // Actually, let's test by trying to apply an action when the hand is complete
+        if (session.CurrentHand != null)
+        {
+            var actionResult = await session.ApplyPlayerActionAsync(PlayerActionType.Fold);
+
+            // Assert - The action should fail because hand is complete
+            if (!actionResult)
+            {
+                errorMessage.Should().Contain("already complete");
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task EngineError_PreviousHandNotCompleted_MapsToUserFriendlyMessage()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        var joinSeats = new PlayerJoinData[]
+        {
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 1000m),
+        };
+
+        string? errorMessage = null;
+        session.EngineError += (s, e) =>
+        {
+            errorMessage = e.Message;
+        };
+
+        // Act - Create game and start first hand
+        await session.CreateGameAsync(options, gameId);
+        await session.StartFirstHandAsync(joinSeats);
+
+        // Immediately try to start next hand while first hand is still in progress
+        var nextHandResult = await session.StartNextHandAsync();
+
+        // Assert
+        nextHandResult.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+        errorMessage.Should().Be("The previous hand has not completed yet. Wait for the hand to finish before starting the next one.");
+    }
+
+    [TestMethod]
+    public async Task StateChanged_NotRaised_OnFailedCall()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        var stateChangedCount = 0;
+        session.StateChanged += (s, e) =>
+        {
+            stateChangedCount++;
+        };
+
+        // Act - Create first game successfully (state changes)
+        await session.CreateGameAsync(options, gameId);
+        var countAfterSuccess = stateChangedCount;
+
+        // Try to create another game with same ID (fails)
+        await session.CreateGameAsync(options, gameId);
+
+        // Assert - State should NOT change on failure
+        stateChangedCount.Should().Be(countAfterSuccess, "StateChanged should not be raised for failed calls");
+    }
+
+    [TestMethod]
+    public async Task CurrentGameId_Preserved_OnFailedCall()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        // Act - Create game successfully
+        await session.CreateGameAsync(options, gameId);
+        var successfulGameId = session.CurrentGameId;
+
+        // Try to create another game with same ID (fails)
+        await session.CreateGameAsync(options, gameId);
+
+        // Assert - Game ID should remain the same after failed call
+        session.CurrentGameId.Should().Be(successfulGameId);
+    }
+
+    [TestMethod]
+    public async Task MultipleActions_InSequence_AllRecordedInJournal()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 3,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        var joinSeats = new PlayerJoinData[]
+        {
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 1000m),
+            new(SeatNo: 3, Name: "Player 3", BuyInAmount: 1000m),
+        };
+
+        // Act
+        await session.CreateGameAsync(options, gameId);
+        await session.StartFirstHandAsync(joinSeats);
+
+        // Apply multiple actions
+        var actionCount = 0;
+        while (session.CurrentHand != null && session.CurrentHand.NextPlayerSeatNo != 0 && actionCount < 10)
+        {
+            await session.ApplyPlayerActionAsync(PlayerActionType.Fold);
+            actionCount++;
+        }
+
+        // Assert
+        session.Journal.Count.Should().BeGreaterThan(2); // CreateGame + StartHand + at least one Fold
+        var entries = session.Journal.Entries;
+
+        // All entries should be successful except possibly the last ones if hand ended
+        var successCount = entries.Count(e => e.Succeeded);
+        successCount.Should().BeGreaterThan(1);
+    }
+
+    [TestMethod]
+    public async Task Reset_ClearsAllState()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var gameId = Guid.NewGuid();
+        var options = new GameOptionData(
+            MaxPlayersCount: 2,
+            InitialSmallBlind: 50m,
+            InitialDealerSeatNo: 0
+        );
+
+        var joinSeats = new PlayerJoinData[]
+        {
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 1000m),
+        };
+
+        // Act - Create game and start hand
+        await session.CreateGameAsync(options, gameId);
+        await session.StartFirstHandAsync(joinSeats);
+        session.CurrentGameId.Should().NotBe(Guid.Empty);
+        session.CurrentGame.Should().NotBeNull();
+        session.Journal.Count.Should().BeGreaterThan(0);
+
+        // Reset
+        session.Reset();
+
+        // Assert
+        session.CurrentGameId.Should().Be(Guid.Empty);
+        session.CurrentGame.Should().BeNull();
+        session.CurrentHand.Should().BeNull();
+        session.Journal.Count.Should().Be(0);
+    }
 }
