@@ -29,7 +29,7 @@ internal static class GameDataMapper
             HandData: currentHand.No != default
                 ? new HandData(
                     No: currentHand.No,
-                    Seats: [.. game.Players.Select(player => new SeatData(
+                    Seats: [.. game.Players.OrderBy(player => player.SeatNo).Select(player => new SeatData(
                             SeatNo: player.SeatNo,
                             Name: player.Name,
                             Hole: currentHand.GetSeatHoleCards(player.SeatNo),

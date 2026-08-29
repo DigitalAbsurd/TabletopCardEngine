@@ -234,6 +234,72 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void PokerTable_WithSixSeats_RendersRowsClockwise()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+            .Add(p => p.HandData, BuildHandDataWithSeats(6)));
+
+        // Assert
+        var rows = component.FindAll("div.table-seats-row");
+        rows.Should().HaveCount(2);
+        rows[0].QuerySelectorAll(".seat-name").Select(name => name.TextContent)
+            .Should().Equal("Player 1", "Player 2", "Player 3");
+        rows[1].QuerySelectorAll(".seat-name").Select(name => name.TextContent)
+            .Should().Equal("Player 6", "Player 5", "Player 4");
+    }
+
+    [TestMethod]
+    public void PokerTable_WithFiveSeats_SplitsRowsUnevenly()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+            .Add(p => p.HandData, BuildHandDataWithSeats(5)));
+
+        // Assert
+        var rows = component.FindAll("div.table-seats-row");
+        rows.Should().HaveCount(2);
+        rows[0].QuerySelectorAll(".seat-name").Select(name => name.TextContent)
+            .Should().Equal("Player 1", "Player 2", "Player 3");
+        rows[1].QuerySelectorAll(".seat-name").Select(name => name.TextContent)
+            .Should().Equal("Player 5", "Player 4");
+    }
+
+    private static HandData BuildHandDataWithSeats(int seatCount)
+    {
+        var seats = Enumerable.Range(1, seatCount)
+            .Select(seatNo => new SeatData(
+                SeatNo: (byte)seatNo,
+                Name: $"Player {seatNo}",
+                StartHandStack: 1000m,
+                Stack: 1000m))
+            .ToArray();
+
+        return new HandData(
+            No: 1,
+            Seats: seats,
+            DealerSeatNo: 1,
+            SmallBlindSeatNo: 0,
+            BigBlindSeatNo: 0,
+            NextPlayerSeatNo: 0,
+            Street: Street.PreFlop,
+            StreetPot: 0m,
+            Pot: 0m,
+            CommunityCards: [],
+            Evaluations: []);
+    }
+
+    [TestMethod]
     public void StreetIndicator_Renders_WithoutException()
     {
         // Arrange
