@@ -46,6 +46,7 @@
 
 .engine-calls-list {
     flex: 1;
+    max-height: min(60vh, 30rem);
     overflow-y: auto;
     padding: 12px;
 }
