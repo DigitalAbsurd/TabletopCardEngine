@@ -4,7 +4,6 @@
 
 <div class="engine-calls-panel">
     <div class="engine-calls-header">
-        <h3>Engine Calls</h3>
         @if (Session.Journal.Count > 0)
         {
             <button class="copy-session-btn" @onclick="CopyWholeSessionAsync" title="Copy entire session as compilable C# code">
