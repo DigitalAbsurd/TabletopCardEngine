@@ -76,7 +76,8 @@ docs/demo-tasks.md                    # this document
 ## Engine facts every task depends on
 
 These are the behaviours that are surprising, undocumented in the public API, or actively misleading.
-Every one of them was verified against the code at `b7c09ea`.
+Every one of them was verified against the code at `b7c09ea`. Phase H added fact 23 and
+Phase I fact 24, both measured against `8a44cbb` — in a browser and in the build tree.
 
 1. **`HoldemDbContext` is `internal` and declares no `DbSet<>`.** An outside consumer cannot call
    `Database.EnsureCreated()`. That is the single reason the demo needs `InternalsVisibleTo`.
@@ -184,6 +185,22 @@ browser against `6c90304`, and Phase G adds one, verified against
     (issue #65); until that lands, the checks in
     [End-to-end verification](#end-to-end-verification) are the only thing standing behind it, and a
     Definition of done for a layout task must name a measurement, not an impression.
+24. **A `:root` in a scoped stylesheet never matches, so the demo's colour palette does not exist.**
+    Blazor's scoped-CSS rewriter appends the component's `[b-xxxxxxxxxx]` attribute to *every*
+    selector in a `.razor.css` file, `:root` included. `EngineCalls.razor.css` defines eleven
+    `--color-*` properties on `:root` inside two `prefers-color-scheme` blocks; the generated
+    `obj/Debug/net8.0/scopedcss/.../EngineCalls.razor.rz.scp.css` emits them under
+    `:root[b-4jmrgijl9i]`, and the scope attribute is stamped only on elements the component renders
+    — `<html>` is not one of them — so not one of those properties is ever set. Compounding it, the
+    nine `--ant-*` names used by `DatabaseInspector.razor.css` were invented and defined nowhere:
+    AntDesign Blazor 0.17.0 ships a compiled Less stylesheet with hard-coded colours and publishes no
+    custom properties under those names.
+    <br>The cost is **32 dead declarations**, 16 in each of those two files. A `var()` with no
+    fallback and no definition makes the whole declaration invalid at computed-value time, so
+    `border: 1px solid var(--ant-border-color)` computes to *no border at all* rather than to a
+    default one. Nothing reports this: the build does not analyse CSS, and bUnit computes no styles,
+    so it reads as "the stylesheet was never written" rather than as a defect. Define custom
+    properties in the global `wwwroot/css/app.css`, never in a `.razor.css` (issue #76).
 
 ## A known, deliberate duplication
 
@@ -304,3 +321,31 @@ and paste the probe into the browser console rather than judging by eye.
 24. Once issue #65 has landed, the browser gate covers checks 18 to 21 automatically. Revert one of
     the four fixes in a working tree and confirm the gate fails — a gate that has never been seen to
     fail has not been shown to work — then put it back.
+
+### After Phase I
+
+Phase H made the game page usable. Phase I is about the panels beside it, and about a class of defect
+one step below the last one: CSS that parses, ships and does nothing, because the values it names were
+never defined. Fact 24 is the reason checks 25 and 27 measure a *computed* value rather than reading
+the stylesheet.
+
+Each of these ends with stopping the dev server. A run is not finished while a listener is still up —
+check with `Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyContinue`,
+which must return nothing (issue #75).
+
+25. Read `getComputedStyle(document.documentElement).getPropertyValue('--ant-border-color')` and the
+    same for the other nineteen `--ant-*` / `--color-*` names. Every one must be non-empty. Before
+    issue #76 all twenty resolved to `""`, taking 32 declarations down with them silently.
+26. Open the Database Inspector's table dropdown: it lists the engine's tables and shows no `No Data`,
+    and picking a different table swaps the columns and rows below it (issue #77).
+27. On a `.simple-table` cell, no computed border reports `none`, and the header row's
+    `backgroundColor` is a visible grey rather than `rgba(0, 0, 0, 0)` (issue #78).
+28. Take six or more actions, then read `.engine-calls-list`: `scrollHeight > clientHeight`, the panel
+    has stopped growing with each action, and the newest entry is in view. Scroll the list to the top
+    by hand, take one more action, and confirm it returns to the bottom. Before issue #79 the list
+    never overflowed, so `scrollTop = scrollHeight` was clamped straight back to `0` and the auto-scroll
+    — which was already written and already correct — could not do anything.
+29. When it is a seat's turn a prominent trigger button is visible and is its own hit target; opening
+    it reveals the action controls, applying an action closes it, and with it closed nothing invisible
+    is left over the page — `document.scrollingElement` neither scrolls nor overflows sideways
+    (issue #80). Play a hand to showdown entirely through the drawer with the console open.
