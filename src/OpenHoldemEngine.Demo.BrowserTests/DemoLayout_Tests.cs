@@ -92,15 +92,61 @@ public sealed class DemoLayout_Tests
         await page.CreateGameAsync();
 
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
-        ScrollMetrics pageScroller = await page.ReadScrollMetricsAsync(DemoPage.PageScrollerSelector);
 
         layoutContent.Found.Should().BeTrue($"{DemoPage.LayoutContentSelector} renders the routed page");
         layoutContent.ScrollWidth.Should().Be(
             layoutContent.ClientWidth,
             $"the game page must not overflow horizontally at {viewportWidth}px ({layoutContent})");
-        pageScroller.ScrollWidth.Should().Be(
-            pageScroller.ClientWidth,
-            $"the page must not overflow horizontally at {viewportWidth}px ({pageScroller})");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// main.layout-content is the page's only scroll container, and the header stays put while
+    /// it scrolls.
+    /// </summary>
+    /// <remarks>
+    /// Until issue #72 it was not a scroll container at all: MainLayout's scoped rules are all
+    /// ::deep, no element carried the scope attribute, and the document scrolled instead —
+    /// taking the header with it while every probe against main.layout-content read zeroes and
+    /// looked healthy. Both halves are asserted here: that the container scrolls, and that the
+    /// document does not.
+    /// </remarks>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_GamePage_LayoutContentIsTheOnlyScrollContainer(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.CreateGameAsync();
+
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        ScrollMetrics documentScroller = await page.ReadScrollMetricsAsync(DemoPage.DocumentScrollerSelector);
+
+        layoutContent.Overflow.Should().Be(
+            "auto",
+            $"the routed page's container is what scrolls at {viewportWidth}px ({layoutContent})");
+        layoutContent.ScrollHeight.Should().BeGreaterThan(
+            layoutContent.ClientHeight,
+            $"the game page is taller than the viewport, so there is something to scroll ({layoutContent})");
+        documentScroller.ScrollHeight.Should().Be(
+            documentScroller.ClientHeight,
+            $"the document itself must not scroll at {viewportWidth}px ({documentScroller})");
+        documentScroller.ScrollWidth.Should().Be(
+            documentScroller.ClientWidth,
+            $"the document itself must not overflow sideways at {viewportWidth}px ({documentScroller})");
+
+        double headerTopBefore = await page.ReadElementTopAsync(DemoPage.HeaderSelector);
+        await page.ScrollToBottomAsync(DemoPage.LayoutContentSelector);
+        ScrollMetrics scrolled = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        double headerTopAfter = await page.ReadElementTopAsync(DemoPage.HeaderSelector);
+
+        scrolled.ScrollTop.Should().BeGreaterThan(
+            0,
+            $"scrolling the container to its bottom must move it ({scrolled})");
+        headerTopAfter.Should().Be(
+            headerTopBefore,
+            "the header must stay in place while the content scrolls under it "
+            + $"(before: {headerTopBefore}; after: {headerTopAfter})");
         AssertNoConsoleErrors(page);
     }
 
@@ -128,29 +174,24 @@ public sealed class DemoLayout_Tests
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GamePage_ActionDoesNotMoveThePageScroller(int viewportWidth)
+    public async Task DemoLayout_GamePage_ActionDoesNotMoveTheScrollContainer(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
         await page.CreateGameAsync();
         await page.ScrollActionPanelIntoViewAsync();
 
-        ScrollMetrics layoutContentBefore = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
-        ScrollMetrics pageScrollerBefore = await page.ReadScrollMetricsAsync(DemoPage.PageScrollerSelector);
+        ScrollMetrics before = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
 
         await page.TakeGameActionAsync();
 
         // Only the horizontal axis is asserted. scrollTop has a legitimate reason to move —
         // Chrome's scroll anchoring adjusts it when content above the viewport grows, and every
         // action grows the page — while nothing should ever move the page sideways.
-        ScrollMetrics layoutContentAfter = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
-        ScrollMetrics pageScrollerAfter = await page.ReadScrollMetricsAsync(DemoPage.PageScrollerSelector);
+        ScrollMetrics after = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
 
-        layoutContentAfter.ScrollLeft.Should().Be(
-            layoutContentBefore.ScrollLeft,
-            $"a re-render must not scroll the page sideways (before: {layoutContentBefore}; after: {layoutContentAfter})");
-        pageScrollerAfter.ScrollLeft.Should().Be(
-            pageScrollerBefore.ScrollLeft,
-            $"a re-render must not scroll the page sideways (before: {pageScrollerBefore}; after: {pageScrollerAfter})");
+        after.ScrollLeft.Should().Be(
+            before.ScrollLeft,
+            $"a re-render must not scroll the page sideways (before: {before}; after: {after})");
         AssertNoConsoleErrors(page);
     }
 

@@ -1,4 +1,4 @@
-# Browser layout gate
+﻿# Browser layout gate
 
 A headless-browser smoke gate over the **published** demo: is the page usable, measured in a real
 browser rather than in a renderer that computes no geometry.
@@ -13,14 +13,18 @@ invisible to it. This project is the layer that can see them.
 On `Game Setup` and on the game page, at **1500px and 1280px** wide (the grid-row defect only
 appeared below 1366px and the horizontal overflow only mattered above it):
 
-1. **No horizontal overflow** — `scrollWidth === clientWidth`, on `main.layout-content` and on
-   `document.scrollingElement`.
-2. **Every action button is its own hit target** — `document.elementFromPoint` at the centre of each
+1. **No horizontal overflow** — `scrollWidth === clientWidth` on `main.layout-content`.
+2. **`main.layout-content` is the page's only scroll container** — its computed `overflow` is
+   `auto`, it has more content than it can show, `document.scrollingElement` neither scrolls nor
+   overflows, and the header does not move when the container is scrolled to its bottom. Before
+   issue #72 none of MainLayout's scoped rules applied, so the document scrolled and took the
+   header with it while every probe against `main.layout-content` read zeroes.
+3. **Every action button is its own hit target** — `document.elementFromPoint` at the centre of each
    of Fold / Check / Call / Raise returns that button or a descendant of it. Same for
    `Create and Start Game` on `Game Setup`.
-3. **A render does not move the page scroller sideways** — `scrollLeft` before an action equals
+4. **A render does not move the scroll container sideways** — `scrollLeft` before an action equals
    `scrollLeft` after it.
-4. **No console errors** — during load, during game creation, and while a hand is played out.
+5. **No console errors** — during load, during game creation, and while a hand is played out.
 
 ## What it does not cover
 
@@ -37,8 +41,8 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 ## Running it
 
 The gate is **off by default**, because the first run downloads a browser and publishes the
-WebAssembly app. `dotnet test` at the repository root reports its ten browser checks as skipped and
-runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
+WebAssembly app. `dotnet test` at the repository root reports its twelve browser checks as skipped
+and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
 
 ```bash
 # once: install the browser (the fixture also does this, with the same effect)
@@ -51,8 +55,8 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about one minute for the ten browser checks, plus the browser
-download on a cold machine.
+`wasm-tools` workload is required) and about one minute for the twelve browser checks, plus the
+browser download on a cold machine.
 
 Environment variables:
 
