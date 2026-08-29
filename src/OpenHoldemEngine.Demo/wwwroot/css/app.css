@@ -199,7 +199,7 @@ code {
 @media (min-width: 1366px) {
     /* At 1366x768 and above, show the table prominently and side panels */
     .home-container {
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.3fr);
         grid-template-rows: auto auto;
     }
 
@@ -212,7 +212,7 @@ code {
     .companion-panels {
         grid-column: 2;
         grid-row: 1 / 3;
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 1rem;
     }
 
