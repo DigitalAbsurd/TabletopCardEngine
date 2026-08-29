@@ -79,7 +79,16 @@ This launches the Blazor dev server and watches for changes.
 
 ### Accessing the demo
 
-Once running, open the demo in your browser at `https://localhost:5001`.
+Once running, open the demo in your browser at `http://localhost:5170` (HTTP profile) or `https://localhost:7226` (HTTPS profile).
+
+After you are done, stop the development server by pressing `Ctrl+C` in the terminal where it is running. Verify no process is listening on ports 5170 or 7226 with:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyContinue |
+    Select-Object LocalPort, OwningProcess
+```
+
+An empty result means the ports are free and the server has stopped.
 
 ## Known limitations
 
@@ -117,7 +126,7 @@ If the demo does not respond:
 
 ### Verify the engine with the diagnostics page
 
-Run the demo locally with `dotnet watch run`, then navigate to `https://localhost:5001/diagnostics`.
+Run the demo locally with `dotnet watch run`, then navigate to `http://localhost:5170/diagnostics` (or `https://localhost:7226/diagnostics` if using the HTTPS profile).
 
 This page:
 1. Creates a test game via `HoldemEngine.ApplyHoldemActionAsync`

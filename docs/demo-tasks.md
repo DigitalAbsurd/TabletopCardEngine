@@ -241,6 +241,15 @@ at that option.
 These are the checks no automated gate performs. Run them by hand once a phase closes, and treat a
 failure here as a new issue in the `Blazor demo` milestone rather than as a note in a pull request.
 
+**Important: Any check requiring the dev server must be followed by stopping it and verifying the ports are free.** After running `dotnet run` or `dotnet watch run`, stop the server by pressing `Ctrl+C` in its terminal. Then verify no process is listening on ports 5170 or 7226 with this command:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyContinue |
+    Select-Object LocalPort, OwningProcess
+```
+
+An empty result means the ports are free and the server has stopped. A run is not finished while a listener is still up.
+
 1. `dotnet build` and `dotnet test` from the repository root — the analyzer relaxations for the demo
    must not have loosened anything for the library or the tests.
 2. `dotnet run --project src/OpenHoldemEngine.Demo`, then in the browser: create a six-handed game,
