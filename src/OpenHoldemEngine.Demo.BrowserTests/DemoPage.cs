@@ -129,6 +129,8 @@ internal sealed class DemoPage : IAsyncDisposable
     /// Drawer renders its ChildContent unconditionally and only moves it off-screen when
     /// closed), so counting them would report actions as available even with a closed Drawer,
     /// and clicking one at that point would silently miss — it sits outside the viewport.
+    /// The Engine Calls panel may be collapsed, so it is expanded before opening the Drawer,
+    /// and before waiting for the new entry to be visible.
     /// </remarks>
     public async Task<bool> TryTakeGameActionAsync()
     {
@@ -136,6 +138,27 @@ internal sealed class DemoPage : IAsyncDisposable
         if (await trigger.CountAsync() == 0)
         {
             return false;
+        }
+
+        // Expand the Engine Calls panel before opening the drawer, so the new entry will be visible
+        // after the action is taken
+        ILocator engineCallsPanel = _page.Locator(".ant-collapse-item").Filter(new LocatorFilterOptions { HasText = "Engine Calls" });
+        if (await engineCallsPanel.CountAsync() > 0)
+        {
+            ILocator panelItem = engineCallsPanel.Nth(0);
+            ILocator panelHeader = panelItem.Locator(".ant-collapse-header");
+            if (await panelHeader.CountAsync() > 0)
+            {
+                // Check if the panel is inactive (collapsed) by checking for the active class
+                string? classList = await _page.EvaluateAsync<string>(
+                    "el => el.className",
+                    await panelItem.ElementHandleAsync());
+                if (classList != null && !classList.Contains("ant-collapse-item-active"))
+                {
+                    await panelHeader.ClickAsync();
+                    await _page.WaitForTimeoutAsync(SettleMilliseconds);
+                }
+            }
         }
 
         await OpenActionDrawerAsync();
