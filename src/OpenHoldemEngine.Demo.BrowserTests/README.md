@@ -18,13 +18,22 @@ appeared below 1366px and the horizontal overflow only mattered above it):
    `auto`, it has more content than it can show, `document.scrollingElement` neither scrolls nor
    overflows, and the header does not move when the container is scrolled to its bottom. Before
    issue #72 none of MainLayout's scoped rules applied, so the document scrolled and took the
-   header with it while every probe against `main.layout-content` read zeroes.
-3. **Every action button is its own hit target** — `document.elementFromPoint` at the centre of each
-   of Fold / Check / Call / Raise returns that button or a descendant of it. Same for
-   `Create and Start Game` on `Game Setup`.
+   header with it while every probe against `main.layout-content` read zeroes. This is also
+   checked with the action Drawer open (issue #80): a Drawer is a `position: fixed`, full-viewport
+   overlay, and AntDesign sets `overflow: hidden` on `<body>` while one is open — a documented way
+   to break exactly this invariant.
+3. **The action trigger and every action button are their own hit target** —
+   `document.elementFromPoint` at the centre of each returns that element or a descendant of it.
+   Since issue #80, the primary actions, the raise controls and the confirm button live inside an
+   AntDesign `Drawer`, closed by default: the seat on the clock instead sees a single gold trigger
+   button (`.action-trigger-btn`) in `.action-panel`, and clicking it opens the Drawer. The gate
+   checks the trigger's hit target on its own, then opens the Drawer and checks the action buttons
+   inside it the same way `Create and Start Game` on `Game Setup` is checked.
 4. **A render does not move the scroll container sideways** — `scrollLeft` before an action equals
    `scrollLeft` after it.
-5. **No console errors** — during load, during game creation, and while a hand is played out.
+5. **No console errors** — during load, during game creation, and while a hand is played out. Each
+   action taken by the gate opens the Drawer, clicks a button and lets it close again, exactly as a
+   visitor would.
 
 ## What it does not cover
 

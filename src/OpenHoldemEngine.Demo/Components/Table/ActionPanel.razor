@@ -11,119 +11,133 @@
     }
     else
     {
-        <div class="actions-container">
-            <div class="primary-actions">
-                @if (HasAction(PlayerActionType.Fold))
-                {
-                    <Button
-                        Type="primary"
-                        Danger="true"
-                        OnClick="@OnFoldAsync"
-                        Loading="_isSubmitting"
-                        Class="action-btn fold-btn">
-                        Fold
-                    </Button>
-                }
-
-                @if (HasAction(PlayerActionType.Check))
-                {
-                    <Button
-                        Type="primary"
-                        OnClick="@OnCheckAsync"
-                        Loading="_isSubmitting"
-                        Class="action-btn check-btn">
-                        Check
-                    </Button>
-                }
-
-                @if (HasAction(PlayerActionType.Call))
-                {
-                    <Button
-                        Type="primary"
-                        OnClick="@OnCallAsync"
-                        Loading="_isSubmitting"
-                        Class="action-btn call-btn">
-                        @GetCallLabel()
-                    </Button>
-                }
-            </div>
-
-            @if (HasAction(PlayerActionType.Raise))
-            {
-                <div class="raise-section">
-                    @if (IsAllInOnly())
-                    {
-                        <Button
-                            Type="primary"
-                            OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
-                            Loading="_isSubmitting"
-                            Class="action-btn allin-btn">
-                            All-in @GetAllInAmount().ToString("F2")
-                        </Button>
-                    }
-                    else
-                    {
-                        <div class="raise-controls">
-                            <div class="raise-input-group">
-                                <span class="raise-label">Raise to:</span>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value="@_raiseAmount.ToString("F2")"
-                                    @onchange="@((ChangeEventArgs e) => OnRaiseInputChanged(e))"
-                                    class="raise-input" />
-                            </div>
-
-                            <div class="raise-slider">
-                                <input
-                                    type="range"
-                                    min="@GetRaiseWindow().Min.ToString("F2")"
-                                    max="@GetRaiseWindow().Max.ToString("F2")"
-                                    step="0.01"
-                                    value="@_raiseAmount.ToString("F2")"
-                                    @onchange="@((ChangeEventArgs e) => OnRaiseSliderChanged(e))"
-                                    class="slider-input" />
-                            </div>
-
-                            <div class="raise-shortcuts">
-                                <Button
-                                    Size="large"
-                                    OnClick="@(async () => { _raiseAmount = GetHalfPotRaise(); await OnRaiseAsync(_raiseAmount); })"
-                                    Loading="_isSubmitting"
-                                    Class="shortcut-btn">
-                                    1/2 Pot
-                                </Button>
-                                <Button
-                                    Size="large"
-                                    OnClick="@(async () => { _raiseAmount = GetPotRaise(); await OnRaiseAsync(_raiseAmount); })"
-                                    Loading="_isSubmitting"
-                                    Class="shortcut-btn">
-                                    Pot
-                                </Button>
-                                <Button
-                                    Size="large"
-                                    OnClick="@(async () => { _raiseAmount = GetAllInRaise(); await OnRaiseAsync(_raiseAmount); })"
-                                    Loading="_isSubmitting"
-                                    Class="shortcut-btn">
-                                    All-in
-                                </Button>
-                            </div>
-
-                            <Button
-                                Type="primary"
-                                Size="large"
-                                OnClick="@(async () => await OnRaiseAsync(_raiseAmount))"
-                                Loading="_isSubmitting"
-                                Class="action-btn raise-btn">
-                                Raise to @_raiseAmount.ToString("F2")
-                            </Button>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
+        <button
+            type="button"
+            class="action-trigger-btn"
+            @onclick="OnTriggerClick">
+            Seat @HandData.NextPlayerSeatNo to act
+        </button>
     }
 </div>
+
+<Drawer
+    Placement="bottom"
+    Title="@DrawerTitle"
+    Height="340"
+    Closable="true"
+    @bind-Visible="_drawerVisible">
+    <div class="actions-container">
+        <div class="primary-actions">
+            @if (HasAction(PlayerActionType.Fold))
+            {
+                <Button
+                    Type="primary"
+                    Danger="true"
+                    OnClick="@OnFoldAsync"
+                    Loading="_isSubmitting"
+                    Class="action-btn fold-btn">
+                    Fold
+                </Button>
+            }
+
+            @if (HasAction(PlayerActionType.Check))
+            {
+                <Button
+                    Type="primary"
+                    OnClick="@OnCheckAsync"
+                    Loading="_isSubmitting"
+                    Class="action-btn check-btn">
+                    Check
+                </Button>
+            }
+
+            @if (HasAction(PlayerActionType.Call))
+            {
+                <Button
+                    Type="primary"
+                    OnClick="@OnCallAsync"
+                    Loading="_isSubmitting"
+                    Class="action-btn call-btn">
+                    @GetCallLabel()
+                </Button>
+            }
+        </div>
+
+        @if (HasAction(PlayerActionType.Raise))
+        {
+            <div class="raise-section">
+                @if (IsAllInOnly())
+                {
+                    <Button
+                        Type="primary"
+                        OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
+                        Loading="_isSubmitting"
+                        Class="action-btn allin-btn">
+                        All-in @GetAllInAmount().ToString("F2")
+                    </Button>
+                }
+                else
+                {
+                    <div class="raise-controls">
+                        <div class="raise-input-group">
+                            <span class="raise-label">Raise to:</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value="@_raiseAmount.ToString("F2")"
+                                @onchange="@((ChangeEventArgs e) => OnRaiseInputChanged(e))"
+                                class="raise-input" />
+                        </div>
+
+                        <div class="raise-slider">
+                            <input
+                                type="range"
+                                min="@GetRaiseWindow().Min.ToString("F2")"
+                                max="@GetRaiseWindow().Max.ToString("F2")"
+                                step="0.01"
+                                value="@_raiseAmount.ToString("F2")"
+                                @onchange="@((ChangeEventArgs e) => OnRaiseSliderChanged(e))"
+                                class="slider-input" />
+                        </div>
+
+                        <div class="raise-shortcuts">
+                            <Button
+                                Size="large"
+                                OnClick="@(async () => { _raiseAmount = GetHalfPotRaise(); await OnRaiseAsync(_raiseAmount); })"
+                                Loading="_isSubmitting"
+                                Class="shortcut-btn">
+                                1/2 Pot
+                            </Button>
+                            <Button
+                                Size="large"
+                                OnClick="@(async () => { _raiseAmount = GetPotRaise(); await OnRaiseAsync(_raiseAmount); })"
+                                Loading="_isSubmitting"
+                                Class="shortcut-btn">
+                                Pot
+                            </Button>
+                            <Button
+                                Size="large"
+                                OnClick="@(async () => { _raiseAmount = GetAllInRaise(); await OnRaiseAsync(_raiseAmount); })"
+                                Loading="_isSubmitting"
+                                Class="shortcut-btn">
+                                All-in
+                            </Button>
+                        </div>
+
+                        <Button
+                            Type="primary"
+                            Size="large"
+                            OnClick="@(async () => await OnRaiseAsync(_raiseAmount))"
+                            Loading="_isSubmitting"
+                            Class="action-btn raise-btn">
+                            Raise to @_raiseAmount.ToString("F2")
+                        </Button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</Drawer>
 
 @code {
     // Component logic is in ActionPanel.razor.cs
