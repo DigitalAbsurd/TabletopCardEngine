@@ -102,9 +102,10 @@
 
 .table-grid-container {
     flex: 1;
+    max-height: min(60vh, 30rem);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     border: 1px solid var(--ant-border-color);
     border-radius: 4px;
 }
