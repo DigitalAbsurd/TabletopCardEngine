@@ -33,3 +33,11 @@ jobs:
         env:
           OHE_TEST_PHH_HAND_LIMIT: 100
         run: dotnet test
+
+      - name: Install Playwright browsers
+        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: Run browser layout gate
+        env:
+          OHE_TEST_BROWSER_GATE: "1"
+        run: dotnet test src/OpenHoldemEngine.Demo.BrowserTests
