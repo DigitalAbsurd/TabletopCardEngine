@@ -142,37 +142,3 @@
     color: #ff4d4f;
     font-size: 13px;
 }
-
-/* Light theme color variables */
-@media (prefers-color-scheme: light) {
-    :root {
-        --color-background: #f5f5f5;
-        --color-surface: #ffffff;
-        --color-text: #262626;
-        --color-text-secondary: #8c8c8c;
-        --color-border: #d9d9d9;
-        --color-primary: #1890ff;
-        --color-primary-hover: #40a9ff;
-        --color-secondary: #606060;
-        --color-secondary-hover: #262626;
-        --color-code-background: #fafafa;
-        --color-code-text: #262626;
-    }
-}
-
-/* Dark theme color variables */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-background: #141414;
-        --color-surface: #1f1f1f;
-        --color-text: #e6e6e6;
-        --color-text-secondary: #8c8c8c;
-        --color-border: #434343;
-        --color-primary: #1890ff;
-        --color-primary-hover: #40a9ff;
-        --color-secondary: #d9d9d9;
-        --color-secondary-hover: #ffffff;
-        --color-code-background: #0a0a0a;
-        --color-code-text: #e6e6e6;
-    }
-}

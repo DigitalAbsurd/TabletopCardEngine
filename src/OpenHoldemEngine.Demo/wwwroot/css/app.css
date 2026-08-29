@@ -6,6 +6,62 @@
     margin: 0;
 }
 
+/* CSS custom properties for the demo components (issue #76) */
+:root {
+    /* AntDesign light theme tokens */
+    --ant-border-color: #f0f0f0;
+    --ant-bg-container: #ffffff;
+    --ant-bg-layout: #f5f5f5;
+    --ant-table-header-bg: #fafafa;
+    --ant-table-row-hover-bg: #fafafa;
+    --ant-text-color: rgba(0, 0, 0, 0.88);
+    --ant-text-color-secondary: rgba(0, 0, 0, 0.45);
+    --ant-primary-color: #1890ff;
+    --ant-warning-color: #faad14;
+
+    /* Color palette for Engine Calls panel (light theme) */
+    --color-background: #f5f5f5;
+    --color-surface: #ffffff;
+    --color-text: #262626;
+    --color-text-secondary: #8c8c8c;
+    --color-border: #d9d9d9;
+    --color-primary: #1890ff;
+    --color-primary-hover: #40a9ff;
+    --color-secondary: #606060;
+    --color-secondary-hover: #262626;
+    --color-code-background: #fafafa;
+    --color-code-text: #262626;
+}
+
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* AntDesign dark theme tokens */
+        --ant-border-color: #434343;
+        --ant-bg-container: #1f1f1f;
+        --ant-bg-layout: #141414;
+        --ant-table-header-bg: #1f1f1f;
+        --ant-table-row-hover-bg: #262626;
+        --ant-text-color: rgba(255, 255, 255, 0.88);
+        --ant-text-color-secondary: rgba(255, 255, 255, 0.45);
+        --ant-primary-color: #1890ff;
+        --ant-warning-color: #faad14;
+
+        /* Color palette for Engine Calls panel (dark theme) */
+        --color-background: #141414;
+        --color-surface: #1f1f1f;
+        --color-text: #e6e6e6;
+        --color-text-secondary: #8c8c8c;
+        --color-border: #434343;
+        --color-primary: #1890ff;
+        --color-primary-hover: #40a9ff;
+        --color-secondary: #d9d9d9;
+        --color-secondary-hover: #ffffff;
+        --color-code-background: #0a0a0a;
+        --color-code-text: #e6e6e6;
+    }
+}
+
 h1:focus {
     outline: none;
 }
