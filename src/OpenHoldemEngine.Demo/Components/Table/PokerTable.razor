@@ -2,10 +2,10 @@
 @using OpenHoldemEngine.Data
 
 <div class="poker-table">
-    <div class="table-seats">
-        @if (HandData is not null)
-        {
-            @foreach (var seat in HandData.Seats)
+    @if (HandData is not null)
+    {
+        <div class="table-seats-row">
+            @foreach (var seat in TopRowSeats(HandData))
             {
                 var isDealer = seat.SeatNo == HandData.DealerSeatNo;
                 var isSmallBlind = seat.SeatNo == HandData.SmallBlindSeatNo;
@@ -19,8 +19,8 @@
                     IsBigBlind="isBigBlind"
                     IsActing="isActing" />
             }
-        }
-    </div>
+        </div>
+    }
 
     <div class="table-center">
         <div class="table-info">
@@ -68,12 +68,48 @@
             </div>
         </div>
     </div>
+
+    @if (HandData is not null)
+    {
+        <div class="table-seats-row">
+            @foreach (var seat in BottomRowSeats(HandData))
+            {
+                var isDealer = seat.SeatNo == HandData.DealerSeatNo;
+                var isSmallBlind = seat.SeatNo == HandData.SmallBlindSeatNo;
+                var isBigBlind = seat.SeatNo == HandData.BigBlindSeatNo;
+                var isActing = seat.SeatNo == HandData.NextPlayerSeatNo;
+
+                <Seat
+                    SeatData="seat"
+                    IsDealer="isDealer"
+                    IsSmallBlind="isSmallBlind"
+                    IsBigBlind="isBigBlind"
+                    IsActing="isActing" />
+            }
+        </div>
+    }
 </div>
 
 @code {
     /// <summary>The current hand data to display, or null if no hand is in progress.</summary>
     [Parameter]
     public HandData? HandData { get; set; }
+
+    /// <summary>
+    /// The top row, read left to right: the first half of the seats (rounded up), ascending by seat
+    /// number. Paired with <see cref="BottomRowSeats"/>, reading the two rows in order is clockwise.
+    /// </summary>
+    private static IEnumerable<SeatData> TopRowSeats(HandData handData)
+        => handData.Seats.Take(TopRowCount(handData));
+
+    /// <summary>
+    /// The bottom row, read left to right: the remaining seats, descending by seat number, so the seat
+    /// after the top-right one is the next one clockwise rather than a jump back across the table.
+    /// </summary>
+    private static IEnumerable<SeatData> BottomRowSeats(HandData handData)
+        => handData.Seats.Skip(TopRowCount(handData)).Reverse();
+
+    private static int TopRowCount(HandData handData) => (handData.Seats.Length + 1) / 2;
 
     private static string FormatStreet(Street street)
     {
