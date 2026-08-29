@@ -11,6 +11,33 @@
     gap: 12px;
 }
 
+/*
+    Written directly in ActionPanel.razor (a raw <button>, not an AntDesign component), so it
+    gets the [b-xxxxxxxxxx] scope attribute and this rule actually applies — unlike .action-btn
+    and friends below, which target AntDesign Buttons and never match anything (see the
+    scoped-CSS trap noted in ActionPanel.razor.cs).
+*/
+.action-trigger-btn {
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    padding: 12px 24px;
+    background-color: #ffd700;
+    color: #1f1f1f;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.action-trigger-btn:hover {
+    background-color: #ffe14d;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.7);
+}
+
 .primary-actions {
     display: flex;
     gap: 8px;
