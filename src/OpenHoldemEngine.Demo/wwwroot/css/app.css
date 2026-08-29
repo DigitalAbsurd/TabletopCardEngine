@@ -1,5 +1,9 @@
-html, body {
+﻿html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    /* The layout is 100vh tall and main.layout-content is the page's only scroll container;
+       the default body margin would add 16px the document has to scroll, which scrolls the
+       header away with it (issue #72). */
+    margin: 0;
 }
 
 h1:focus {

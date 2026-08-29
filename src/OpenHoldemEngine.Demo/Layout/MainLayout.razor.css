@@ -1,4 +1,9 @@
-/* Layout container styles */
+﻿/* Layout container styles.
+
+   Every rule here is ::deep, which compiles to [b-hash] X and therefore needs an ancestor
+   carrying this component's scope attribute. Blazor emits that attribute only on elements
+   written as markup in MainLayout.razor, so the div.layout-root wrapper there is what makes
+   these rules match the AntDesign components underneath it (issue #72). */
 ::deep .layout-full-height {
     height: 100vh;
     display: flex;

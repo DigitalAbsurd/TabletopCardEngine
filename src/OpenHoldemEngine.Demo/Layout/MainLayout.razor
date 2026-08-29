@@ -4,37 +4,45 @@
 @using OpenHoldemEngine.Demo.Components
 @inject WalkthroughState WalkthroughState
 
-<Layout Class="layout-full-height">
-    <Header Class="layout-header">
-        <div class="layout-header-content">
-            <h1 class="layout-title">
-                <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
-            </h1>
-            <div class="layout-header-actions">
-                <Tooltip Title="Show the walkthrough">
-                    <Button Type="@ButtonType.Text" Shape="@ButtonShape.Circle" AriaLabel="Show the walkthrough" OnClick="ShowWalkthrough" Class="layout-walkthrough-button">
-                        <Icon Type="question" Theme="outline" />
-                    </Button>
-                </Tooltip>
-                <a href="https://github.com/miekhra/OpenHoldemEngine" target="_blank" rel="noopener noreferrer" class="layout-github-link">
-                    GitHub Repository
-                </a>
+@* The plain <div> is what makes MainLayout.razor.css work at all. A scoped stylesheet compiles
+   ::deep X to [b-hash] X, and Blazor only puts the scope attribute on elements written as markup
+   in this file — never on the AntDesign components below. Without an element of our own wrapping
+   them, .layout-full-height, .layout-header, .layout-header-content, .layout-body and
+   .layout-content match nothing, and the document scrolls instead of main.layout-content
+   (issue #72). Do not remove it. *@
+<div class="layout-root">
+    <Layout Class="layout-full-height">
+        <Header Class="layout-header">
+            <div class="layout-header-content">
+                <h1 class="layout-title">
+                    <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
+                </h1>
+                <div class="layout-header-actions">
+                    <Tooltip Title="Show the walkthrough">
+                        <Button Type="@ButtonType.Text" Shape="@ButtonShape.Circle" AriaLabel="Show the walkthrough" OnClick="ShowWalkthrough" Class="layout-walkthrough-button">
+                            <Icon Type="question" Theme="outline" />
+                        </Button>
+                    </Tooltip>
+                    <a href="https://github.com/miekhra/OpenHoldemEngine" target="_blank" rel="noopener noreferrer" class="layout-github-link">
+                        GitHub Repository
+                    </a>
+                </div>
             </div>
-        </div>
-    </Header>
-    <Layout Class="layout-body">
-        <Content Class="layout-content">
-            <ErrorBoundary @ref="_bodyErrorBoundary">
-                <ChildContent>
-                    @Body
-                </ChildContent>
-                <ErrorContent Context="ex">
-                    <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnBodyErrorRetryAsync())" />
-                </ErrorContent>
-            </ErrorBoundary>
-        </Content>
+        </Header>
+        <Layout Class="layout-body">
+            <Content Class="layout-content">
+                <ErrorBoundary @ref="_bodyErrorBoundary">
+                    <ChildContent>
+                        @Body
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnBodyErrorRetryAsync())" />
+                    </ErrorContent>
+                </ErrorBoundary>
+            </Content>
+        </Layout>
     </Layout>
-</Layout>
+</div>
 
 <AntContainer />
 
