@@ -50,6 +50,40 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Called when the Max Players value changes. Handles trimming the player list if the
+    /// value is lowered below the current player count, or adds empty slots if raised.
+    /// </summary>
+    private Task OnMaxPlayersChangedAsync(int newMaxPlayers)
+    {
+        if (newMaxPlayers < _maxPlayers)
+        {
+            // Lowering max players: trim the list to fit and renumber seats
+            while (_players.Count > newMaxPlayers)
+            {
+                _players.RemoveAt(_players.Count - 1);
+            }
+
+            // Renumber the remaining players' seats to be sequential 1..newMaxPlayers
+            for (int i = 0; i < _players.Count; i++)
+            {
+                _players[i].SeatNo = (byte)(i + 1);
+                _players[i].Name = $"Player {i + 1}";
+            }
+        }
+        else if (newMaxPlayers > _maxPlayers)
+        {
+            // Raising max players: add new players to fill the gap
+            for (byte i = (byte)(_players.Count + 1); i <= newMaxPlayers; i++)
+            {
+                _players.Add(new PlayerSetup { Name = $"Player {i}", SeatNo = i, BuyInAmount = 100m });
+            }
+        }
+
+        _maxPlayers = newMaxPlayers;
+        return Task.CompletedTask;
+    }
+
     private void OnEngineError(object? sender, EngineErrorEventArgs e)
     {
         _errorMessage = e.Message;
