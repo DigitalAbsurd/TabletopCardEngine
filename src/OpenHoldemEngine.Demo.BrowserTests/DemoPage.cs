@@ -14,14 +14,18 @@ namespace OpenHoldemEngine.Demo.BrowserTests;
 internal sealed class DemoPage : IAsyncDisposable
 {
     /// <summary>
-    /// The element the routed page renders into. It is meant to be the page's only scroll
-    /// container; in the published app it is not one, so both it and the page scroller below
-    /// are measured.
+    /// The element the routed page renders into, and the page's only scroll container.
     /// </summary>
     public const string LayoutContentSelector = "main.layout-content";
 
-    /// <summary>document.scrollingElement, which is what actually scrolls the demo today.</summary>
-    public const string PageScrollerSelector = "";
+    /// <summary>
+    /// document.scrollingElement. It scrolled the whole demo until issue #72; now it is the
+    /// element that must <em>not</em> scroll, which is what keeps the header in place.
+    /// </summary>
+    public const string DocumentScrollerSelector = "";
+
+    /// <summary>The header bar, which stays put while the content scrolls underneath it.</summary>
+    public const string HeaderSelector = "header.layout-header";
 
     /// <summary>The action buttons, in the order the action panel renders them.</summary>
     public static readonly string[] ActionButtonSelectors =
@@ -112,8 +116,8 @@ internal sealed class DemoPage : IAsyncDisposable
     }
 
     /// <summary>
-    /// Reads the scroll offsets and sizes of one element, or of the page scroller when the
-    /// selector is <see cref="PageScrollerSelector"/>.
+    /// Reads the computed overflow, scroll offsets and sizes of one element, or of the document
+    /// scroller when the selector is <see cref="DocumentScrollerSelector"/>.
     /// </summary>
     public async Task<ScrollMetrics> ReadScrollMetricsAsync(string selector)
     {
@@ -127,6 +131,7 @@ internal sealed class DemoPage : IAsyncDisposable
 
                 return JSON.stringify({
                     found: true,
+                    overflow: window.getComputedStyle(element).overflow,
                     scrollLeft: element.scrollLeft,
                     scrollTop: element.scrollTop,
                     scrollWidth: element.scrollWidth,
@@ -142,6 +147,40 @@ internal sealed class DemoPage : IAsyncDisposable
             ?? throw new InvalidOperationException("The scroll probe returned nothing.");
 
         return metrics with { Selector = selector };
+    }
+
+    /// <summary>Reads the viewport-relative top edge of one element.</summary>
+    public async Task<double> ReadElementTopAsync(string selector)
+    {
+        double? top = await _page.EvaluateAsync<double?>(
+            """
+            (selector) => {
+                const element = document.querySelector(selector);
+                return element === null ? null : element.getBoundingClientRect().top;
+            }
+            """,
+            selector);
+
+        return top ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>
+    /// Scrolls one element to its bottom, the way a visitor reading down the page does, and
+    /// waits for the re-renders that follow.
+    /// </summary>
+    public async Task ScrollToBottomAsync(string selector)
+    {
+        await _page.EvaluateAsync(
+            """
+            (selector) => {
+                const element = selector === '' ? document.scrollingElement : document.querySelector(selector);
+                if (element !== null) {
+                    element.scrollTop = element.scrollHeight;
+                }
+            }
+            """,
+            selector);
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
     /// <summary>Hit-tests the centre of every element matching one of the given selectors.</summary>
