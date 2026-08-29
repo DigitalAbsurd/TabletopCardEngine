@@ -11,5 +11,6 @@
 
 *.md        text eol=lf
 *.phhs      text eol=lf
+*.json      text eol=lf
 
 *.gz        binary
