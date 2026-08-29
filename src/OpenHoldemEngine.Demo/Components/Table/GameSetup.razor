@@ -22,16 +22,19 @@
                     <div class="form-group">
                         <label>Max Players</label>
                         <Select
-                            @bind-Value="@_maxPlayers"
+                            Value="@_maxPlayers"
+                            ValueChanged="@OnMaxPlayersChangedAsync"
                             Disabled="@_isLoading"
                             Style="width: 100%;"
                             TItemValue="int"
                             TItem="int">
-                            <SelectOption TItemValue="int" TItem="int" Value="2">2 (Heads-up)</SelectOption>
-                            <SelectOption TItemValue="int" TItem="int" Value="3">3</SelectOption>
-                            <SelectOption TItemValue="int" TItem="int" Value="4">4</SelectOption>
-                            <SelectOption TItemValue="int" TItem="int" Value="5">5</SelectOption>
-                            <SelectOption TItemValue="int" TItem="int" Value="6">6</SelectOption>
+                            <SelectOptions>
+                                <SelectOption TItemValue="int" TItem="int" Value="2" Label="2 (Heads-up)" />
+                                <SelectOption TItemValue="int" TItem="int" Value="3" Label="3" />
+                                <SelectOption TItemValue="int" TItem="int" Value="4" Label="4" />
+                                <SelectOption TItemValue="int" TItem="int" Value="5" Label="5" />
+                                <SelectOption TItemValue="int" TItem="int" Value="6" Label="6" />
+                            </SelectOptions>
                         </Select>
                     </div>
                 </AntDesign.Col>
