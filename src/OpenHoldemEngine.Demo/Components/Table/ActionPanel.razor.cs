@@ -22,6 +22,12 @@ public partial class ActionPanel : ComponentBase
 
     private decimal _raiseAmount;
     private bool _isSubmitting;
+    private bool _drawerVisible;
+
+    /// <summary>
+    /// Gets the Drawer title, naming the seat whose decision is owed.
+    /// </summary>
+    private string DrawerTitle => HandData is null ? string.Empty : $"Seat {HandData.NextPlayerSeatNo}'s action";
 
     /// <summary>
     /// Gets the street value for raise calculations.
@@ -150,6 +156,14 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
+    /// Opens the Drawer holding the action controls for the seat on the clock.
+    /// </summary>
+    private void OnTriggerClick()
+    {
+        _drawerVisible = true;
+    }
+
+    /// <summary>
     /// Applies a Fold action through the session.
     /// </summary>
     private async Task OnFoldAsync()
@@ -162,6 +176,7 @@ public partial class ActionPanel : ComponentBase
         finally
         {
             _isSubmitting = false;
+            _drawerVisible = false;
         }
     }
 
@@ -178,6 +193,7 @@ public partial class ActionPanel : ComponentBase
         finally
         {
             _isSubmitting = false;
+            _drawerVisible = false;
         }
     }
 
@@ -196,6 +212,7 @@ public partial class ActionPanel : ComponentBase
         finally
         {
             _isSubmitting = false;
+            _drawerVisible = false;
         }
     }
 
@@ -213,6 +230,7 @@ public partial class ActionPanel : ComponentBase
         finally
         {
             _isSubmitting = false;
+            _drawerVisible = false;
         }
     }
 

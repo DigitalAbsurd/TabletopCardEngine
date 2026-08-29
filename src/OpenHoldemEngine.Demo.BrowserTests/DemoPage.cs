@@ -31,6 +31,15 @@ internal sealed class DemoPage : IAsyncDisposable
     public static readonly string[] ActionButtonSelectors =
         [".action-btn.fold-btn", ".action-btn.check-btn", ".action-btn.call-btn", ".action-btn.raise-btn"];
 
+    /// <summary>
+    /// The trigger button that opens the action Drawer. It exists only when the seat to act has
+    /// legal actions — the same condition that used to gate <c>.action-panel .primary-actions</c>.
+    /// </summary>
+    public const string ActionTriggerSelector = ".action-trigger-btn";
+
+    /// <summary>The Drawer's open state, set by AntDesign once its opening transition starts.</summary>
+    public const string ActionDrawerOpenSelector = ".ant-drawer-open";
+
     private const string CreateGameLabel = "Create and Start Game";
     private const int BootTimeoutMilliseconds = 120_000;
 
@@ -68,11 +77,35 @@ internal sealed class DemoPage : IAsyncDisposable
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
-    /// <summary>Creates the pre-filled game and waits for the action panel of the first hand.</summary>
+    /// <summary>Creates the pre-filled game and waits for the action trigger of the first hand.</summary>
+    /// <remarks>
+    /// This used to wait for <c>.action-panel .primary-actions</c>, but that selector no longer
+    /// exists: the primary actions live inside the Drawer now, which is not a descendant of
+    /// <c>.action-panel</c>. Waiting on the trigger is also the correct fix rather than a
+    /// workaround — the trigger, not the (always-rendered-but-off-canvas) Drawer content, is
+    /// what a visitor actually sees and can click once a game starts.
+    /// </remarks>
     public async Task CreateGameAsync()
     {
         await _page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = CreateGameLabel }).ClickAsync();
-        await _page.Locator(".action-panel .primary-actions").WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.Locator(ActionTriggerSelector).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Opens the action Drawer by clicking its trigger, and waits for it to finish opening.
+    /// A no-op if it is already open — the trigger stays in the DOM behind an open Drawer and a
+    /// click on it there would hit the Drawer's own body instead.
+    /// </summary>
+    public async Task OpenActionDrawerAsync()
+    {
+        if (await _page.Locator(ActionDrawerOpenSelector).CountAsync() > 0)
+        {
+            return;
+        }
+
+        await _page.Locator(ActionTriggerSelector).ClickAsync();
+        await _page.Locator(ActionDrawerOpenSelector).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
@@ -87,11 +120,26 @@ internal sealed class DemoPage : IAsyncDisposable
     }
 
     /// <summary>
-    /// Takes the first available game action, or reports that the action panel offers none —
-    /// which is how the hand ends.
+    /// Opens the Drawer and takes the first available game action, or reports that the trigger
+    /// is absent — which is how the hand ends.
     /// </summary>
+    /// <remarks>
+    /// Checking for the trigger rather than the action buttons themselves matters: the buttons
+    /// are always present in the DOM once a hand has offered them at least once (AntDesign's
+    /// Drawer renders its ChildContent unconditionally and only moves it off-screen when
+    /// closed), so counting them would report actions as available even with a closed Drawer,
+    /// and clicking one at that point would silently miss — it sits outside the viewport.
+    /// </remarks>
     public async Task<bool> TryTakeGameActionAsync()
     {
+        ILocator trigger = _page.Locator(ActionTriggerSelector);
+        if (await trigger.CountAsync() == 0)
+        {
+            return false;
+        }
+
+        await OpenActionDrawerAsync();
+
         ILocator buttons = _page.Locator(string.Join(", ", ActionButtonSelectors));
         if (await buttons.CountAsync() == 0)
         {

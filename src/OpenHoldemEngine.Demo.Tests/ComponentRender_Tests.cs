@@ -280,10 +280,16 @@ public sealed class ComponentRender_Tests
         var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, session.CurrentHand));
 
-        // Assert
+        // Assert - the trigger button is what the seat on the clock sees before opening the Drawer.
         component.Markup.Should().Contain("action-panel");
-        // Should have some action buttons visible
-        component.Markup.Should().Match("*actions-container*");
+        component.Markup.Should().Contain("action-trigger-btn");
+
+        // Act - click the trigger, the way a visitor would, to open the Drawer.
+        component.Find("button.action-trigger-btn").Click();
+
+        // Assert - the action controls live inside the Drawer, and it is now open.
+        component.Markup.Should().Contain("actions-container");
+        component.Markup.Should().Contain("ant-drawer-open");
     }
 
     [TestMethod]

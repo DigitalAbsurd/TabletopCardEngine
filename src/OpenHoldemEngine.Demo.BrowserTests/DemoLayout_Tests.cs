@@ -147,6 +147,19 @@ public sealed class DemoLayout_Tests
             headerTopBefore,
             "the header must stay in place while the content scrolls under it "
             + $"(before: {headerTopBefore}; after: {headerTopAfter})");
+
+        // A Drawer is a position: fixed, full-viewport overlay, and AntDesign sets overflow:
+        // hidden on <body> while one is open — a documented way to break exactly this
+        // invariant, and the reason it is checked with the Drawer open, not only closed.
+        await page.OpenActionDrawerAsync();
+        ScrollMetrics documentScrollerWithDrawerOpen = await page.ReadScrollMetricsAsync(DemoPage.DocumentScrollerSelector);
+
+        documentScrollerWithDrawerOpen.ScrollHeight.Should().Be(
+            documentScrollerWithDrawerOpen.ClientHeight,
+            $"the document itself must not scroll while the action Drawer is open ({documentScrollerWithDrawerOpen})");
+        documentScrollerWithDrawerOpen.ScrollWidth.Should().Be(
+            documentScrollerWithDrawerOpen.ClientWidth,
+            $"the document itself must not overflow sideways while the action Drawer is open ({documentScrollerWithDrawerOpen})");
         AssertNoConsoleErrors(page);
     }
 
@@ -159,8 +172,16 @@ public sealed class DemoLayout_Tests
         await page.CreateGameAsync();
 
         // The action panel sits below the fold in a 900px viewport, so a visitor scrolls to it
-        // before clicking. Where the buttons end up is the question; getting there is not.
+        // before clicking. Where the trigger ends up is the question; getting there is not.
         await page.ScrollActionPanelIntoViewAsync();
+
+        // The trigger is what a visitor actually sees when it becomes their turn — it must be
+        // clickable on its own, before the Drawer holding the real action buttons ever opens.
+        IReadOnlyList<HitProbe> triggerProbes = await page.ProbeHitTargetsAsync(DemoPage.ActionTriggerSelector);
+        triggerProbes.Should().HaveCount(1, "exactly one trigger is shown for the seat on the clock");
+        AssertOwnHitTargets(triggerProbes);
+
+        await page.OpenActionDrawerAsync();
 
         IReadOnlyList<HitProbe> probes = await page.ProbeHitTargetsAsync(DemoPage.ActionButtonSelectors);
 
