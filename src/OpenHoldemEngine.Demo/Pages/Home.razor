@@ -4,6 +4,7 @@
 @using OpenHoldemEngine.Demo.Components.Database
 @using OpenHoldemEngine.Demo.Components.Phh
 @using OpenHoldemEngine.Demo.Components
+@using OpenHoldemEngine.Demo.Components.EngineCalls
 @implements IAsyncDisposable
 @inject BrowserStorage Storage
 @inject DemoGameSession Session
@@ -91,29 +92,37 @@
         {
             <!-- Show database inspector and engine calls when game is active -->
             <div class="companion-panel database-panel">
-                <ErrorBoundary @ref="_databaseErrorBoundary">
-                    <ChildContent>
-                        <DatabaseInspector />
-                    </ChildContent>
-                    <ErrorContent Context="ex">
-                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
-                        </div>
-                    </ErrorContent>
-                </ErrorBoundary>
+                <Collapse>
+                    <Panel Header="Database Inspector" Key="database">
+                        <ErrorBoundary @ref="_databaseErrorBoundary">
+                            <ChildContent>
+                                <DatabaseInspector />
+                            </ChildContent>
+                            <ErrorContent Context="ex">
+                                <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                                    <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
+                                </div>
+                            </ErrorContent>
+                        </ErrorBoundary>
+                    </Panel>
+                </Collapse>
             </div>
 
             <div class="companion-panel engine-calls-panel">
-                <ErrorBoundary @ref="_engineCallsErrorBoundary">
-                    <ChildContent>
-                        <EngineCalls />
-                    </ChildContent>
-                    <ErrorContent Context="ex">
-                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
-                        </div>
-                    </ErrorContent>
-                </ErrorBoundary>
+                <Collapse>
+                    <Panel Header="Engine Calls" Key="engine-calls" OnActiveChange="@OnEngineCallsPanelActiveChange">
+                        <ErrorBoundary @ref="_engineCallsErrorBoundary">
+                            <ChildContent>
+                                <EngineCalls @ref="_engineCallsComponent" />
+                            </ChildContent>
+                            <ErrorContent Context="ex">
+                                <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                                    <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
+                                </div>
+                            </ErrorContent>
+                        </ErrorBoundary>
+                    </Panel>
+                </Collapse>
             </div>
 
             <div class="companion-panel">
@@ -131,6 +140,7 @@
     private ErrorBoundary? _databaseErrorBoundary;
     private ErrorBoundary? _engineCallsErrorBoundary;
     private ErrorBoundary? _walkthroughErrorBoundary;
+    private EngineCalls? _engineCallsComponent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -214,6 +224,14 @@
     {
         _walkthroughErrorBoundary?.Recover();
         await Task.CompletedTask;
+    }
+
+    private async Task OnEngineCallsPanelActiveChange(bool active)
+    {
+        if (active && _engineCallsComponent != null)
+        {
+            await _engineCallsComponent.ScrollToLatestEntryAsync();
+        }
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

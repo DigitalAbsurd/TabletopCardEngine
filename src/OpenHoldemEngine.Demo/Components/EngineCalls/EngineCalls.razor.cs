@@ -72,6 +72,18 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         InvokeAsync(StateHasChanged);
     }
 
+    /// <summary>
+    /// Scrolls the engine calls list to show the latest entry.
+    /// Called when the Engine Calls panel is opened/expanded.
+    /// </summary>
+    public async Task ScrollToLatestEntryAsync()
+    {
+        if (_jsModule != null)
+        {
+            await _jsModule.InvokeVoidAsync("scrollToLatestEntry", _listElement);
+        }
+    }
+
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         if (_jsModule != null)
