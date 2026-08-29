@@ -11,10 +11,12 @@
                     Value="SelectedTable"
                     OnSelectedItemChanged="@(async (value) => await OnTableSelectedAsync(value))"
                     Style="width: 100%">
-                @foreach (var tableName in TableNames)
-                {
-                    <SelectOption TItemValue="string" TItem="string" Value="@tableName" Label="@tableName" />
-                }
+                <SelectOptions>
+                    @foreach (var tableName in TableNames)
+                    {
+                        <SelectOption TItemValue="string" TItem="string" Value="@tableName" Label="@tableName" />
+                    }
+                </SelectOptions>
             </Select>
         </div>
 

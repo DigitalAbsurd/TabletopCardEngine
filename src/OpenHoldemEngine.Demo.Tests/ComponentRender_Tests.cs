@@ -503,6 +503,33 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void DatabaseInspector_TableDropdown_RendersTableNameOptions()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Initialize the engine to create the database tables
+        var serviceProvider = ctx.Services.BuildServiceProvider();
+        CreateAndInitializeEngine(serviceProvider);
+
+        // Act - DatabaseInspector will load table names in OnInitializedAsync
+        var component = ctx.RenderComponent<DatabaseInspector>();
+
+        // Assert - The rendered markup should contain real table names as aria-label attributes or option content.
+        // The engine creates multiple tables. Check for at least the primary ones.
+        component.Markup.Should().Contain("aria-label=\"Game\"");
+        component.Markup.Should().Contain("aria-label=\"Hand\"");
+        component.Markup.Should().Contain("aria-label=\"HandAction\"");
+        component.Markup.Should().Contain("aria-label=\"HandPlayerEndState\"");
+        component.Markup.Should().Contain("aria-label=\"HandDeckCard\"");
+
+        // Also verify the dropdown doesn't show the "No Data" empty state
+        component.Markup.Should().NotContain("<div class=\"ant-empty\"");
+    }
+
+    [TestMethod]
     public async Task EngineCalls_Renders_WithoutException()
     {
         // Arrange
