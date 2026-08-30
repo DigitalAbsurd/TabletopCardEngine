@@ -8,7 +8,7 @@ namespace OpenHoldemEngine.Demo.Phh;
 ///
 /// This is a port of <c>OpenHoldemEngine.Tests.Phh.PhhHandDeck</c> into the demo project.
 /// See the related test project for the original definition and the possible future consolidation
-/// into a shared <c>OpenHoldemEngine.Phh</c> project (see task 11 notes in docs/demo-tasks.md).
+/// into a shared <c>OpenHoldemEngine.Phh</c> project (see docs/task-run.md).
 ///
 /// A history need not name every card — hole cards can be <c>??</c>, and a hand that ends before the
 /// river simply has no board left to record. Those gaps are filled from the unused part of the deck
