@@ -84,11 +84,16 @@ Two additions to the batch that are easy to forget:
 Every issue carries exactly one of these labels. They say which model the runner should hand the
 task to.
 
-| Label | Model | The issue is this size when… |
+| Label | Model tier | The issue is this size when… |
 |---|---|---|
-| `7b` | Haiku | The cause is established, the issue names every file (roughly one to three), the fix is described concretely enough that implementing it is transcription plus care, and verification is either a gate that already exists or a probe written out verbatim in the body. **No design decision is left open.** |
-| `35b` | Sonnet | The outcome is stated but the approach is the implementer's to pick: more than about three files, a new component or service, a trade-off deliberately left open ("trim the list or refuse the change — say which and why"), or a new test whose shape the issue does not spell out. |
-| `70b` | Opus | Either the answer is not known yet — diagnosis is part of the task — or getting it wrong is expensive: new infrastructure (a project, a toolchain, CI wiring), a change to the engine's rules or public surface, or a deliverable that is worse than nothing when botched, such as a gate that would certify breakage. |
+| `7b` | Haiku-class | The cause is established, the issue names every file (roughly one to three), the fix is described concretely enough that implementing it is transcription plus care, and verification is either a gate that already exists or a probe written out verbatim in the body. **No design decision is left open.** |
+| `35b` | Sonnet-class | The outcome is stated but the approach is the implementer's to pick: more than about three files, a new component or service, a trade-off deliberately left open ("trim the list or refuse the change — say which and why"), or a new test whose shape the issue does not spell out. |
+| `70b` | Opus-class | Either the answer is not known yet — diagnosis is part of the task — or getting it wrong is expensive: new infrastructure (a project, a toolchain, CI wiring), a change to the engine's rules or public surface, or a deliverable that is worse than nothing when botched, such as a gate that would certify breakage. |
+
+The runner turns a label into an actual model through `agent.<name>.json`, the assistant-specific
+settings file in the repository root — `agent.claude.json.example` is the committed template, and
+`agent.*.json` is git-ignored. Which model each tier resolves to is that file's business; an issue
+only has to carry the right label.
 
 **Most of a batch must be `7b`.** That is not a hope about the work; it is a constraint on the
 decomposition, and the label is how you test it. If more than about a third of a batch sits above

@@ -399,3 +399,8 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /.runsettings
+
+# AI code-assistant settings for run-next-task.ps1 (agent.<name>.json).
+# Local, per-machine and possibly holding credentials - never committed.
+# The committed template is agent.claude.json.example.
+agent.*.json
