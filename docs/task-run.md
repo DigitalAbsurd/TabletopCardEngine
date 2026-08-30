@@ -1,20 +1,152 @@
-# Blazor WebAssembly demo — shared background for the milestone issues
+# Working a task in this repository
 
-## Purpose of this document
+## What this document is
 
-`OpenHoldemEngine` ships as a class library with no executable. Today the only way to see it work is
-to read its tests. The `Blazor demo` milestone builds a public demo, published to GitHub Pages, that
-doubles as a teaching aid: a visitor plays a hand, watches the rows the engine writes to its database,
-and reads the exact `ApplyHoldemActionAsync` calls that produced them.
+Every issue in this repository links here. This is the execution contract an AI assistant works
+under: the gates that must pass, what "done" means, how a change reaches `main`, the
+repository-wide traps that turn legal code into a failed build, the engine behaviours surprising
+enough to mislead an implementer, and the checks no automated gate can run.
 
-**This document is background, not a task list, and it is kept short on purpose.** Each task lives in
-its own GitHub issue and is self-contained: an AI assistant implements it from the issue text plus the
-repository. What is collected here is only the material that would otherwise be repeated in every
-issue — the product scope, the target layout, the engine behaviours surprising enough to trip up an
-implementer, and the browser checks no automated gate can run. Everything else, including the story of
-how a defect was found and what it measured before the fix, belongs in the issue that fixes it.
+It holds no task text. **What** to change lives in the issue; **how** to work lives here. If you
+are writing issues rather than implementing one, read
+[docs/tasks-planning.md](tasks-planning.md) instead.
 
-## Product scope
+The engine facts below are a lookup table, not a reading list. Consult the ones your task can trip
+over; the issue names them.
+
+## Gates
+
+Three commands, from the repository root. All three must be green before anything is committed,
+and green again before anything is merged.
+
+```
+dotnet build
+dotnet format OpenHoldemEngine.sln --verify-no-changes
+dotnet test
+```
+
+Style is enforced at build time, so a formatting or naming violation **fails `dotnet build`**.
+Do not hand-tune whitespace to chase a diagnostic — run the formatter and re-read the diff:
+
+```
+dotnet format OpenHoldemEngine.sln
+```
+
+**`dotnet test --filter` is silently ignored here** (MSTest.Sdk 3.6.1 / Microsoft.Testing.Platform).
+It exits 0 having run everything, and tells you nothing. Pass the filter to the test application
+instead:
+
+```
+dotnet run --project src/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
+dotnet run --project src/OpenHoldemEngine.Tests -- --list-tests
+```
+
+Test-only environment variables:
+
+| Variable | Effect |
+|---|---|
+| `OHE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. |
+| `OHE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
+| `OHE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
+| `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
+
+The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
+for any task that touches layout:
+
+```
+OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
+```
+
+**Any step that starts the dev server must end by stopping it.** `Ctrl+C` in its terminal, then
+confirm nothing is left listening:
+
+```powershell
+Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyContinue |
+    Select-Object LocalPort, OwningProcess
+```
+
+An empty result means the ports are free. A run is not finished while a listener is still up.
+
+## What "done" means
+
+The issue's **Scope**, **Files**, **Definition of done** and **Notes for the implementer** are
+acceptance criteria, not suggestions. A task is done when every line of the Definition of done is
+satisfied and the three gates are green — not when the code compiles and looks right.
+
+- **Do not merge a partial.** If the Definition of done cannot be met, stop, merge nothing, and
+  comment on the issue saying exactly what blocks it. A half-done merge is worse than no merge:
+  the issue closes, the runner moves on, and nobody looks again.
+- **Do not weaken a check to make it pass.** If an assertion fails, you have found either a defect
+  in your change or a real defect in the product. Narrowing the assertion until it goes green
+  certifies the breakage. Open a follow-up issue and say so in the pull request.
+- **Do not widen the scope.** Something else being obviously broken nearby is a follow-up issue,
+  not an extra commit. One issue, one change.
+- **"It looks right in the browser" is not a Definition of done.** Where a task is outside the
+  gates' reach, the issue carries a console probe with the measured before-value. Run the probe,
+  and quote what it printed in the pull request.
+- **If you find a fact in this document to be wrong**, say so in the pull request and open an issue
+  to correct it. The document is only useful while it is true.
+
+## Git and pull request protocol
+
+1. Branch from a freshly fetched `main`. The branch name is
+   `<milestone-slug>/issue-<number>-<short-slug>`, or `task/issue-<number>-<short-slug>` when the
+   issue has no milestone.
+2. Commit in **English**, with a message that says what changed and why.
+3. Open the pull request against `main`. Its body **must** contain `Closes #<number>` so the merge
+   closes the issue.
+4. If the repository has required checks, wait for them. Then merge it yourself — squash, and
+   delete the branch:
+
+   ```
+   gh pr merge <number> --squash --delete-branch --auto
+   ```
+
+5. Confirm the issue actually closed (`gh issue view <number> --json state`). If it did not, close
+   it explicitly with a comment saying why.
+6. **Never leave an open pull request behind.** The task runner refuses to start while one exists
+   on an `*/issue-*` branch, so an abandoned branch blocks every later task, not just yours.
+
+## Repository traps
+
+These fail the build, or fail review, for reasons that are not obvious from the code.
+
+- **`TreatWarningsAsErrors`, `EnforceCodeStyleInBuild` and `AnalysisMode=Recommended` are set
+  repository-wide** in `Directory.Build.props`, with an empty `WarningsNotAsErrors`. Every
+  `IDExxxx` style rule and every `CAxxxx` quality rule is a build error. To reject one, set its
+  severity in `.editorconfig` with a comment saying why — never a blanket `NoWarn` in a `.csproj`.
+- **A broad `catch (Exception)` trips `CA1031`**, which is therefore a build error. Catch what the
+  call can actually throw.
+- **`GenerateDocumentationFile` is on for the library, so `CS1591` is an error**: every public type
+  and member needs an XML doc comment. `Engine/` is the reference for tone — say why, not what the
+  name already says. The test projects generate the file too (that is what makes `IDE0005` run at
+  build) but suppress `CS1591`/`CS1573`.
+- **English only, everywhere in the codebase.** Code, comments, XML docs, commit messages, pull
+  request bodies, resource strings, UI text and `.editorconfig` annotations. No analyzer catches
+  this; it is a review rule without exceptions.
+- **Encodings are pinned** by `.editorconfig` and `.gitattributes`: `.cs`, `.razor`, `.css`,
+  `.csproj`, `.props`, `.sln`, `.ps1` and `.resx` are **UTF-8 with BOM, CRLF**, with a final
+  newline; `.md`, `.json` and `.phhs` are **LF**. Check `.gitattributes` rather than assuming.
+- **Naming**: private fields are `_camelCase` **whether or not they are static**;
+  `internal`/`public` fields, constants and enum members are PascalCase; parameters and locals are
+  `camelCase`, including primary-constructor parameters. Braces are mandatory on every `if`, `else`
+  and loop, even a one-liner. File-scoped namespaces, `using` outside the namespace, namespace
+  matching folder, explicit accessibility modifiers. `var` is allowed but not required.
+  <br>One gap: the naming rules **do not reject underscores** — Roslyn's `pascal_case` check only
+  looks at the first letter. `CA1707` catches them, but only on externally visible members.
+  Underscores inside `internal` and `private` names are a review matter.
+- **Test method names keep their underscores.** `Subject_Scenario[_Expected]`. The `.editorconfig`
+  section that turns `CA1707` off matches **`*Tests.cs` only** — a helper, fixture or harness file
+  follows the normal naming rules.
+- **FluentAssertions is pinned at 6.1.0.** `AllSatisfy` and `BeGreaterThanOrEqualTo` do not exist.
+  Object comparisons use `actual.ShouldAsJToken().BeEquivalentToAsJToken(expected)`, actual first.
+- **There are no EF migrations.** The schema comes from `HoldemDbContext.OnModelCreating`
+  (composite keys throughout) plus `Database.EnsureCreated()`. An entity shape change needs no
+  migration but does need the model configuration updated by hand.
+- **`HoldemEngineOptions.Instance` is a process-wide singleton**, which is why the test assemblies
+  are marked `[assembly: DoNotParallelize]`. Leave that marker alone.
+
+## Product scope of the demo
 
 | Area | Decision |
 |---|---|
@@ -29,9 +161,11 @@ comfortably, and persisting to IndexedDB or OPFS needs a JS interop synchronisat
 project of its own. That is why the database lives in the tab's memory, the UI warns that a reload
 discards it, and `.phh` export is the durable artefact.
 
-## Target layout
+## Layout of the tree
 
 ```
+src/OpenHoldemEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
+src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net8.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge
 ├── Services/                           # DemoGameSession, EngineCallJournal, SqliteBrowser
@@ -44,13 +178,16 @@ src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net8.0
 └── wwwroot/                            # prism.js and prism.css are vendored, not from a CDN
 src/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus service tests
 src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
-docs/demo-tasks.md                      # this document
+docs/tasks-planning.md                  # how requirements become issues
+docs/task-run.md                        # this document
 .github/workflows/                      # ci.yml and deploy-demo.yml
 ```
 
-## Engine facts every task depends on
+## Engine facts
 
-These are the behaviours that are surprising, undocumented in the public API, or actively misleading.
+These are the behaviours that are surprising, undocumented in the public API, or actively
+misleading. An issue names the ones its task can trip over. The numbering is stable — append, never
+renumber.
 
 1. **`HoldemDbContext` is `internal` and declares no `DbSet<>`.** An outside consumer cannot call
    `Database.EnsureCreated()`. That is the single reason the demo needs `InternalsVisibleTo`.
@@ -95,10 +232,10 @@ These are the behaviours that are surprising, undocumented in the public API, or
     uninstalled, not merely emptied.
 17. **Only three validation failures exist**, all from `Resources/PackResource.resx`: the game id
     already exists, the current hand is completed, the previous hand is not completed.
-18. **`Directory.Build.props` sets `TreatWarningsAsErrors` and `AnalysisMode=Recommended`
-    repository-wide**, with an empty `WarningsNotAsErrors`. Generated Razor code will fail the build
-    without relaxations, and per CLAUDE.md those relaxations belong in `.editorconfig` with a
-    justifying comment, never in a `NoWarn` in the csproj.
+18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
+    posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
+    also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
+    `Size` keeps the nominal blind.
 19. **`.github/` holds `ci.yml` and `deploy-demo.yml`.** `deploy-demo.yml` declares a `permissions:`
     block, which means every scope it does not list is dropped to *none*.
 20. **AntDesign has no catch-all for unknown parameters.** The base chain `AntDomComponentBase` to
@@ -148,42 +285,14 @@ foreign namespace into the demo assembly (breaking `IDE0130`, an error here) and
 demo to a test project. If it becomes a maintenance problem, extract a shared `OpenHoldemEngine.Phh`
 project that both consumers reference.
 
-## Issue conventions
-
-- Labels: `demo` on every issue, plus one of `blazor`, `phh`, `ci` or `docs`. Milestone: `Blazor demo`.
-- **The issue is the task.** This document holds no task text, so an issue body must stand entirely on
-  its own: why the defect exists, what to change, which files, how it is verified, and the subset of
-  [Engine facts every task depends on](#engine-facts-every-task-depends-on) that the task can trip
-  over. Do not write an issue that only makes sense after reading something else.
-- **Issues are created in the order they should be implemented.** `run-next-demo-task.ps1` takes the
-  open issues of the milestone in ascending issue number and picks the first one that is ready, so
-  creation order *is* execution order. Create a whole batch in one pass, in the order it should run.
-- **No dependency lines.** The runner still parses a `Depends on:` line if it is there, but a wrong
-  number in it does not fail loudly — it makes the runner skip the task forever. Order the work
-  instead of declaring a graph.
-- Where a task cannot be settled by `dotnet build` / `dotnet format --verify-no-changes` /
-  `dotnet test` — see fact 21 — the issue must carry the exact browser probe that settles it, with the
-  measured before-values quoted. "It looks right in the browser" is not a Definition of done.
-- **Keep this document small.** A new batch of issues adds a fact here only if it is a repository-wide
-  trap the next task would otherwise re-learn, and a verification check only if no gate can run it.
-  Per-defect measurements, before-values and history stay in the issue.
-
 ## End-to-end verification
 
-These are the checks no automated gate performs. Run them by hand once a batch closes, and treat a
-failure here as a new issue in the `Blazor demo` milestone rather than as a note in a pull request.
+These are the checks no automated gate performs. Run them by hand once a batch of issues closes, and
+treat a failure here as a **new issue**, not as a note in a pull request.
+
 Run the layout ones at **1500px and at 1280px wide**: the layout switches to a single column below
-1366px, so a defect on either side of that breakpoint hides from a single width.
-
-**Any check that starts the dev server must end by stopping it.** Press `Ctrl+C` in its terminal, then
-confirm nothing is left listening:
-
-```powershell
-Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyContinue |
-    Select-Object LocalPort, OwningProcess
-```
-
-An empty result means the ports are free. A run is not finished while a listener is still up.
+1366px, so a defect on either side of that breakpoint hides from a single width. And the dev server
+has to be stopped afterwards — see [Gates](#gates).
 
 1. `dotnet build` and `dotnet test` from the repository root — the analyzer relaxations for the demo
    must not have loosened anything for the library or the tests.

@@ -12,7 +12,7 @@ namespace OpenHoldemEngine.Demo.Phh;
 ///
 /// This is a port of <c>OpenHoldemEngine.Tests.Phh.PhhReader</c> into the demo project.
 /// See the related test project for the original definition and the possible future consolidation
-/// into a shared <c>OpenHoldemEngine.Phh</c> project (see task 11 notes in docs/demo-tasks.md).
+/// into a shared <c>OpenHoldemEngine.Phh</c> project (see docs/task-run.md).
 /// </summary>
 public static partial class PhhReader
 {
