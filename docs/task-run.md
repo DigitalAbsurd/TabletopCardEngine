@@ -181,6 +181,8 @@ src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TES
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 .github/workflows/                      # ci.yml and deploy-demo.yml
+run-next-task.ps1                       # the unattended runner: picks a ready issue, drives an agent
+agent.<name>.json                       # that agent's settings (models, command line); git-ignored
 ```
 
 ## Engine facts

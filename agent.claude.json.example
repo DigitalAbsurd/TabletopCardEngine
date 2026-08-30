@@ -1,0 +1,28 @@
+{
+  "name": "Claude Code",
+  "description": "Settings for run-next-task.ps1. Copy this file to agent.claude.json (agent.*.json is git-ignored) and adjust it. Run the script with -Agent <name> to pick agent.<name>.json.",
+  "command": "claude",
+  "args": [
+    "-p",
+    "{prompt}",
+    "--model",
+    "{model}",
+    "--permission-mode",
+    "bypassPermissions"
+  ],
+  "models": {
+    "Haiku": "claude-haiku-4-5-20251001",
+    "Sonnet": "claude-sonnet-5",
+    "Opus": "claude-opus-5"
+  },
+  "modelBySizeLabel": {
+    "7b": "Haiku",
+    "35b": "Sonnet",
+    "70b": "Opus"
+  },
+  "fallbackModel": "Sonnet",
+  "contextFiles": [
+    "CLAUDE.md"
+  ],
+  "env": {}
+}
