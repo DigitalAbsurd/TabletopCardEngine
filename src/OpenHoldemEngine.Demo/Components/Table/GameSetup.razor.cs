@@ -5,9 +5,10 @@ using OpenHoldemEngine.Dto;
 namespace OpenHoldemEngine.Demo.Components.Table;
 
 /// <summary>
-/// Game setup form component. Allows the user to configure the game options
-/// (player count, blinds, dealer seat) and the participating players,
-/// then creates and starts the game through the DemoGameSession.
+/// The settings form for a new game: the game options (player count, blinds, dealer seat) and the
+/// participating players. It is never a screen of its own — the host renders it inside the New Game
+/// modal and drives it through <see cref="ApplyAsync"/>, which is why there is no submit button of
+/// its own in the markup.
 /// </summary>
 public partial class GameSetup : ComponentBase, IAsyncDisposable
 {
@@ -15,9 +16,17 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     [Inject]
     public required DemoGameSession Session { get; set; }
 
-    private int _maxPlayers = 6;
-    private decimal _smallBlind = 1;
-    private byte _dealerSeat = 1;
+    /// <summary>The replay controller, whose card shuffler has to be uninstalled before a normal game.</summary>
+    [Inject]
+    public required PhhReplayController ReplayController { get; set; }
+
+    /// <summary>The engine's rows, which a new game starts without.</summary>
+    [Inject]
+    public required DemoDatabase Database { get; set; }
+
+    private int _maxPlayers = DemoGameDefaults.MaxPlayers;
+    private decimal _smallBlind = DemoGameDefaults.SmallBlind;
+    private byte _dealerSeat = DemoGameDefaults.DealerSeatNo;
     private readonly List<PlayerSetup> _players = [];
     private string? _errorMessage;
     private bool _isLoading;
@@ -32,7 +41,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         public byte SeatNo { get; set; } = 1;
 
         /// <summary>Gets or sets the buy-in amount.</summary>
-        public decimal BuyInAmount { get; set; } = 100m;
+        public decimal BuyInAmount { get; set; } = DemoGameDefaults.BuyIn;
     }
 
     protected override void OnInitialized()
@@ -41,12 +50,27 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         Session.EngineError += OnEngineError;
     }
 
+    /// <summary>
+    /// Puts the form back to the demo's defaults and clears any error left by an earlier attempt,
+    /// so reopening the modal never shows the previous visitor's half-filled state.
+    /// </summary>
+    public void ResetToDefaults()
+    {
+        _maxPlayers = DemoGameDefaults.MaxPlayers;
+        _smallBlind = DemoGameDefaults.SmallBlind;
+        _dealerSeat = DemoGameDefaults.DealerSeatNo;
+        _errorMessage = null;
+        _isLoading = false;
+        InitializeDefaultPlayers();
+        StateHasChanged();
+    }
+
     private void InitializeDefaultPlayers()
     {
         _players.Clear();
         for (byte i = 1; i <= _maxPlayers; i++)
         {
-            _players.Add(new PlayerSetup { Name = $"Player {i}", SeatNo = i, BuyInAmount = 100m });
+            _players.Add(new PlayerSetup { Name = $"Player {i}", SeatNo = i, BuyInAmount = DemoGameDefaults.BuyIn });
         }
     }
 
@@ -76,11 +100,18 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             // Raising max players: add new players to fill the gap
             for (byte i = (byte)(_players.Count + 1); i <= newMaxPlayers; i++)
             {
-                _players.Add(new PlayerSetup { Name = $"Player {i}", SeatNo = i, BuyInAmount = 100m });
+                _players.Add(new PlayerSetup { Name = $"Player {i}", SeatNo = i, BuyInAmount = DemoGameDefaults.BuyIn });
             }
         }
 
         _maxPlayers = newMaxPlayers;
+
+        // The dealer seat is bounded by the table size, and shrinking the table can leave it outside.
+        if (_dealerSeat > _maxPlayers)
+        {
+            _dealerSeat = (byte)_maxPlayers;
+        }
+
         return Task.CompletedTask;
     }
 
@@ -101,7 +132,12 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         if (_players.Count < _maxPlayers)
         {
             var nextSeatNo = (byte)(_players.Count + 1);
-            _players.Add(new PlayerSetup { Name = $"Player {nextSeatNo}", SeatNo = nextSeatNo, BuyInAmount = 100m });
+            _players.Add(new PlayerSetup
+            {
+                Name = $"Player {nextSeatNo}",
+                SeatNo = nextSeatNo,
+                BuyInAmount = DemoGameDefaults.BuyIn,
+            });
         }
     }
 
@@ -160,12 +196,21 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         }
     }
 
-    private async Task CreateAndStartAsync()
+    /// <summary>
+    /// Wipes everything the previous game left behind and starts a new one under the settings
+    /// currently in the form.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for the engine calls.</param>
+    /// <returns>
+    /// <c>true</c> once the new game's first hand has been dealt; <c>false</c> when the form is
+    /// invalid or an engine call failed, in which case the form shows the reason itself.
+    /// </returns>
+    public async Task<bool> ApplyAsync(CancellationToken cancellationToken = default)
     {
         if (!IsFormValid)
         {
             _errorMessage = "Please fill all fields with valid values";
-            return;
+            return false;
         }
 
         _isLoading = true;
@@ -173,28 +218,34 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
 
         try
         {
-            // Create game with options
+            // Order matters. Unload() is what sets HoldemEngineOptions.Instance.CardShuffler back to
+            // null, and that singleton is process-wide: a normal game dealt while a replay's deck is
+            // still installed would deal the replayed hand's cards again.
+            ReplayController.Unload();
+            Session.Reset();
+            Database.ClearAllData();
+
             var gameOptions = new GameOptionData(
                 MaxPlayersCount: _maxPlayers,
                 InitialSmallBlind: _smallBlind,
                 InitialDealerSeatNo: _dealerSeat);
 
-            var createSuccess = await Session.CreateGameAsync(gameOptions);
+            var createSuccess = await Session.CreateGameAsync(gameOptions, cancellationToken: cancellationToken);
             if (!createSuccess)
             {
-                return; // Error will be shown by OnEngineError
+                return false; // The reason is on screen already, raised through Session.EngineError.
             }
 
-            // Prepare join seats in ascending order (required by engine)
+            // Ascending seat order is a requirement: the engine walks the array to resolve the button.
             var joinSeats = _players
                 .OrderBy(p => p.SeatNo)
                 .Select(p => new PlayerJoinData(p.Name, p.SeatNo, p.BuyInAmount))
                 .ToArray();
 
-            var startSuccess = await Session.StartFirstHandAsync(joinSeats);
+            var startSuccess = await Session.StartFirstHandAsync(joinSeats, cancellationToken);
             if (!startSuccess)
             {
-                return; // Error will be shown by OnEngineError
+                return false;
             }
 
             _errorMessage = null;
@@ -203,6 +254,8 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         {
             _isLoading = false;
         }
+
+        return true;
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

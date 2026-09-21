@@ -1,0 +1,63 @@
+@using AntDesign
+@using OpenHoldemEngine.Dto
+
+@* The settings the running session was created with. GameData.Options is the only record of them,
+   and nothing else on the page renders it, so a visitor who never opened the New Game form would
+   otherwise have no way of knowing what they are playing. *@
+<div class="game-summary">
+    <div class="game-summary-items">
+        <div class="game-summary-item">
+            <span class="game-summary-label">Players</span>
+            <span class="game-summary-value">@PlayerCount</span>
+        </div>
+        <div class="game-summary-item">
+            <span class="game-summary-label">Blinds</span>
+            <span class="game-summary-value">@FormatAmount(SmallBlind) / @FormatAmount(BigBlind)</span>
+        </div>
+        <div class="game-summary-item">
+            <span class="game-summary-label">Initial dealer seat</span>
+            <span class="game-summary-value">@InitialDealerSeatNo</span>
+        </div>
+        <div class="game-summary-item">
+            <span class="game-summary-label">Hand</span>
+            <span class="game-summary-value">@HandNumber</span>
+        </div>
+    </div>
+
+    <Button Type="@ButtonType.Default" OnClick="OnNewGameClickedAsync" Class="new-game-btn">
+        New Game
+    </Button>
+</div>
+
+@code {
+    /// <summary>The game whose settings are summarised, or null before the first successful call.</summary>
+    [Parameter]
+    public GameData? GameData { get; set; }
+
+    /// <summary>Raised when the visitor asks for a new game; the host opens the settings modal.</summary>
+    [Parameter]
+    public EventCallback OnNewGame { get; set; }
+
+    /// <summary>
+    /// How many seats are in play. The dealt hand is the truth once there is one; before that the
+    /// only number on record is what the game was created with.
+    /// </summary>
+    private int PlayerCount =>
+        GameData?.HandData is { No: > 0 } hand ? hand.Seats.Length : GameData?.Options.MaxPlayersCount ?? 0;
+
+    private decimal SmallBlind => GameData?.Options.InitialSmallBlind ?? 0m;
+
+    /// <summary>The engine has no big-blind option: it is twice the small blind.</summary>
+    private decimal BigBlind => SmallBlind * 2;
+
+    private int InitialDealerSeatNo => GameData?.Options.InitialDealerSeatNo ?? 0;
+
+    private int HandNumber => GameData?.HandData is { No: > 0 } hand ? hand.No : 0;
+
+    private static string FormatAmount(decimal amount) => amount.ToString("0.##");
+
+    private async Task OnNewGameClickedAsync()
+    {
+        await OnNewGame.InvokeAsync();
+    }
+}

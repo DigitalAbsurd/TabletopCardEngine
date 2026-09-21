@@ -150,18 +150,6 @@
             </Space>
         </div>
 
-        <!-- Create and Start Button -->
-        <div style="padding-top: 16px;">
-            <Button
-                Type="@ButtonType.Primary"
-                Loading="@_isLoading"
-                OnClick="@CreateAndStartAsync"
-                Disabled="@(!IsFormValid)"
-                Block>
-                Create and Start Game
-            </Button>
-        </div>
-
         <!-- Ignored Options Notice -->
         <Alert
             Message="Engine Limitations"
