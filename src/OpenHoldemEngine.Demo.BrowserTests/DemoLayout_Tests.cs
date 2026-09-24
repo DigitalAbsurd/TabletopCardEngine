@@ -36,6 +36,22 @@ public sealed class DemoLayout_Tests
 
     private const int LaptopViewportHeight = 768;
 
+    /// <summary>
+    /// Short enough that the table's own content is taller than the space under the tab bar, so
+    /// main.layout-content has something to scroll. Since issue #106 nothing stacks under the table
+    /// any more, and at 1280x900 the page fits.
+    /// </summary>
+    private const int ShortViewportHeight = 560;
+
+    /// <summary>Sub-pixel rounding between the pane's and the container's edges.</summary>
+    private const double EdgeTolerancePixels = 1;
+
+    /// <summary>
+    /// How far above the container's bottom edge the table may end: the pane's own bottom padding,
+    /// with room to spare, and far less than the 240px band the table left before issue #106.
+    /// </summary>
+    private const double PanePaddingAllowancePixels = 32;
+
     /// <summary>Fold, Call and Raise are always offered to the first seat to act pre-flop.</summary>
     private const int MinimumActionButtons = 3;
 
@@ -98,41 +114,110 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
-    /// The companions share one column behind a rail of tabs, Visual Studio style: the Database
-    /// Inspector is in front when the page opens, each tab is a click target of its own, and a
-    /// click shows exactly that companion. The panes are all mounted, so "shown" is measured as a
-    /// visible box rather than read from the markup.
+    /// The game table and its companions are tabs on one horizontal bar under the header: Game
+    /// Table is in front when the page opens, each tab is a click target of its own, and a click
+    /// shows exactly that pane. The panes are all mounted, so "shown" is measured as a visible box
+    /// rather than read from the markup.
     /// </summary>
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GamePage_CompanionTabsShowOnePaneAtATime(int viewportWidth)
+    public async Task DemoLayout_GamePage_TabsShowOnePaneAtATime(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
-        await page.ScrollCompanionTabsIntoViewAsync();
 
-        IReadOnlyList<HitProbe> tabProbes = await page.ProbeHitTargetsAsync(DemoPage.CompanionTabSelector);
-        tabProbes.Should().HaveCount(DemoPage.CompanionKeys.Length, "the rail has one tab per companion");
+        IReadOnlyList<HitProbe> tabProbes = await page.ProbeHitTargetsAsync(DemoPage.TabSelector);
+        tabProbes.Should().HaveCount(DemoPage.TabKeys.Length, "the bar has one tab per pane");
         AssertOwnHitTargets(tabProbes);
 
-        IReadOnlyList<string> visibleOnOpen = await page.ReadVisibleCompanionPanesAsync();
-        visibleOnOpen.Should().Equal(
-            [DemoPage.DatabaseCompanion],
-            "only the Database Inspector is shown when the game page opens");
-
-        foreach (string companion in DemoPage.CompanionKeys.Reverse())
+        double headerBottom = await page.ReadElementBottomAsync(DemoPage.HeaderSelector);
+        foreach (HitProbe tab in tabProbes)
         {
-            await page.SelectCompanionTabAsync(companion);
+            tab.Top.Should().BeGreaterOrEqualTo(headerBottom, $"the tabs sit under the header: {tab}");
+            tab.Top.Should().Be(tabProbes[0].Top, $"the tabs are one horizontal row: {tab}");
+        }
 
-            IReadOnlyList<string> visible = await page.ReadVisibleCompanionPanesAsync();
-            visible.Should().Equal([companion], $"selecting the {companion} tab shows that companion alone");
+        IReadOnlyList<string> visibleOnOpen = await page.ReadVisibleTabPanesAsync();
+        visibleOnOpen.Should().Equal(
+            [DemoPage.GameTableTab],
+            "only the Game Table is shown when the game page opens");
+
+        foreach (string tabKey in DemoPage.TabKeys.Reverse())
+        {
+            await page.SelectTabAsync(tabKey);
+
+            IReadOnlyList<string> visible = await page.ReadVisibleTabPanesAsync();
+            visible.Should().Equal([tabKey], $"selecting the {tabKey} tab shows that pane alone");
 
             ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
             layoutContent.ScrollWidth.Should().Be(
                 layoutContent.ClientWidth,
-                $"the {companion} companion must not push the page sideways at {viewportWidth}px ({layoutContent})");
+                $"the {tabKey} pane must not push the page sideways at {viewportWidth}px ({layoutContent})");
         }
 
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Every tab's pane is at least as tall as the space under the header and the tab bar. Before
+    /// issue #106 the table ended at 660px of a 900px screen and the companion column at 754px,
+    /// leaving an empty band under both.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth, ViewportHeight)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight)]
+    public async Task DemoLayout_GamePage_ActivePaneFillsTheViewportHeight(int viewportWidth, int viewportHeight)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight);
+
+        foreach (string tabKey in DemoPage.TabKeys)
+        {
+            await page.SelectTabAsync(tabKey);
+
+            double paneBottom = await page.ReadElementBottomAsync(DemoPage.ActiveTabPaneSelector);
+            double contentBottom = await page.ReadElementBottomAsync(DemoPage.LayoutContentSelector);
+            ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+
+            paneBottom.Should().BeGreaterOrEqualTo(
+                contentBottom - EdgeTolerancePixels,
+                $"the {tabKey} pane must reach the bottom of the screen at {viewportWidth}x{viewportHeight} "
+                + $"(pane bottom: {paneBottom}px; content bottom: {contentBottom}px)");
+            layoutContent.ScrollWidth.Should().Be(
+                layoutContent.ClientWidth,
+                $"the {tabKey} pane must not push the page sideways at {viewportWidth}px ({layoutContent})");
+        }
+
+        await page.SelectTabAsync(DemoPage.GameTableTab);
+        double tableBottom = await page.ReadElementBottomAsync(DemoPage.PokerTableSelector);
+        double gameContentBottom = await page.ReadElementBottomAsync(DemoPage.LayoutContentSelector);
+        tableBottom.Should().BeGreaterThan(
+            gameContentBottom - PanePaddingAllowancePixels,
+            "the green table itself stretches to the bottom of its pane, not only the pane behind it "
+            + $"(table bottom: {tableBottom}px; content bottom: {gameContentBottom}px)");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// The "in-memory only" warning is an AntDesign notification since issue #106, not a banner
+    /// above the table: it is shown on load, takes no height from the page, and closes itself.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    public async Task DemoLayout_GamePage_StorageWarningIsANotification(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, keepNotification: true);
+
+        int notices = await page.CountAsync(DemoPage.StorageNoticeSelector);
+        int banners = await page.CountAsync(DemoPage.StorageAlertSelector);
+
+        notices.Should().Be(1, "every load opens the in-memory notification");
+        banners.Should().Be(0, "the warning no longer takes a line above the table");
+
+        double noticeTop = await page.ReadElementTopAsync(DemoPage.StorageNoticeSelector);
+        double tabBarBottom = await page.ReadElementBottomAsync(".demo-tab-bar");
+        noticeTop.Should().BeGreaterOrEqualTo(
+            tabBarBottom,
+            "the notification opens below the header and the tabs, so it covers neither New Game nor a tab");
         AssertNoConsoleErrors(page);
     }
 
@@ -158,7 +243,8 @@ public sealed class DemoLayout_Tests
     /// stacked blocks into it because the table alone measured 904px against 836px of scroll
     /// container at 900px high. Issue #104 found that on a 1366x768 laptop, with the first-visit
     /// banner above it, the table measured 758px against 704px and the bar ended at 893px — off the
-    /// bottom of the screen — so the bar's own bottom edge is asserted too, with the banner showing.
+    /// bottom of the screen — so the bar's own bottom edge is asserted too. Since issue #106 the banner
+    /// is a notification in an overlay, so it no longer takes height from the table.
     /// </summary>
     [TestMethod]
     [DataRow(WideViewportWidth, ViewportHeight)]
@@ -167,9 +253,6 @@ public sealed class DemoLayout_Tests
     public async Task DemoLayout_GamePage_PokerTableFitsTheViewportHeight(int viewportWidth, int viewportHeight)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight);
-
-        int banners = await page.CountAsync(DemoPage.StorageAlertSelector);
-        banners.Should().Be(1, "a first visit shows the in-memory banner above the table, and that is the page measured");
 
         double tableHeight = await page.ReadElementHeightAsync(DemoPage.PokerTableSelector);
         double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
@@ -199,16 +282,15 @@ public sealed class DemoLayout_Tests
     /// looked healthy. Both halves are asserted here: that the container scrolls, and that the
     /// document does not.
     /// <para>
-    /// Only the narrow width is taller than the viewport, and so only it can show the container
-    /// scrolling: below 1366px the companions stack under the table. Above it, since issue #100,
-    /// the table fits the viewport by design and the companion column is bounded beside it.
+    /// Since issue #106 every tab's pane fits a 900px-high screen by design, so the check runs on
+    /// a short one, where the table's own content is taller than the space under the tab bar.
     /// </para>
     /// </remarks>
     [TestMethod]
-    [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GamePage_LayoutContentIsTheOnlyScrollContainer(int viewportWidth)
+    [DataRow(NarrowViewportWidth, ShortViewportHeight)]
+    public async Task DemoLayout_GamePage_LayoutContentIsTheOnlyScrollContainer(int viewportWidth, int viewportHeight)
     {
-        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight);
 
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
         ScrollMetrics documentScroller = await page.ReadScrollMetricsAsync(DemoPage.DocumentScrollerSelector);
@@ -274,9 +356,8 @@ public sealed class DemoLayout_Tests
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
 
-        // The first-visit storage alert sits above the table and can push the bar's bottom edge
-        // past the fold, so the bar is scrolled into view the way a visitor would reach for it.
-        // Where the buttons end up is the question; getting there is not.
+        // The bar is scrolled into view the way a visitor would reach for it. Where the buttons
+        // end up is the question; getting there is not.
         await page.ScrollActionPanelIntoViewAsync();
 
         IReadOnlyList<HitProbe> probes = await page.ProbeHitTargetsAsync(DemoPage.ActionButtonSelectors);
@@ -361,7 +442,10 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
-    private static async Task<DemoPage> OpenDemoAsync(int viewportWidth, int viewportHeight = ViewportHeight)
+    private static async Task<DemoPage> OpenDemoAsync(
+        int viewportWidth,
+        int viewportHeight = ViewportHeight,
+        bool keepNotification = false)
     {
         if (!DemoSite.IsEnabled)
         {
@@ -373,7 +457,7 @@ public sealed class DemoLayout_Tests
         DemoSite site = _site ?? throw new InvalidOperationException("The demo site was not started.");
 
         DemoPage page = await site.NewPageAsync(viewportWidth, viewportHeight);
-        await page.OpenAsync();
+        await page.OpenAsync(keepNotification);
         return page;
     }
 

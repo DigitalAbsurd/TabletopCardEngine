@@ -45,10 +45,16 @@ internal sealed class DemoPage : IAsyncDisposable
     public const string ActionBarSelector = ".action-bar";
 
     /// <summary>
-    /// The first-visit "in-memory only" banner above the table. A fresh browser context has not
-    /// dismissed it, so every page the gate opens shows it, which is the first visit being measured.
+    /// The banner the "in-memory only" warning used to be, above the table. It must be gone: the
+    /// warning is a notification now, which takes no height from the table.
     /// </summary>
     public const string StorageAlertSelector = ".storage-alert";
+
+    /// <summary>
+    /// The "in-memory only" notification, which every load opens and which closes itself after ten
+    /// seconds. AntDesign renders it in an overlay outside the page's own markup.
+    /// </summary>
+    public const string StorageNoticeSelector = ".ant-notification-notice.storage-notice";
 
     /// <summary>The button that opens the raise presets on the action bar.</summary>
     public const string QuickActionsButtonSelector = ".action-bar .quick-actions-btn";
@@ -71,21 +77,26 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     public const string NewGameButtonSelector = ".new-game-btn";
 
-    /// <summary>The tabs on the companion column's rail, one per companion.</summary>
-    public const string CompanionTabSelector = ".companion-tab";
+    /// <summary>The tabs on the horizontal tab bar under the header.</summary>
+    public const string TabSelector = ".demo-tab-bar .demo-tab";
 
-    /// <summary>The companion panes behind the rail; all are in the DOM, one is displayed.</summary>
-    public const string CompanionPaneSelector = ".companion-pane";
+    /// <summary>The panes behind the tabs; all are in the DOM, one is displayed.</summary>
+    public const string TabPaneSelector = ".demo-tab-pane";
 
-    /// <summary>The companion shown when the game page opens.</summary>
-    public const string DatabaseCompanion = "database";
+    /// <summary>The pane currently displayed.</summary>
+    public const string ActiveTabPaneSelector = ".demo-tab-pane-active";
 
-    public const string EngineCallsCompanion = "engine-calls";
+    /// <summary>The tab shown when the game page opens, and after every new game.</summary>
+    public const string GameTableTab = "game-table";
 
-    public const string HandHistoryCompanion = "hand-history";
+    public const string DatabaseTab = "database";
 
-    /// <summary>Every companion key, in the order the rail shows them.</summary>
-    public static readonly string[] CompanionKeys = [DatabaseCompanion, EngineCallsCompanion, HandHistoryCompanion];
+    public const string EngineCallsTab = "engine-calls";
+
+    public const string HandHistoryTab = "hand-history";
+
+    /// <summary>Every tab key, in the order the bar shows them.</summary>
+    public static readonly string[] TabKeys = [GameTableTab, DatabaseTab, EngineCallsTab, HandHistoryTab];
 
     private const int BootTimeoutMilliseconds = 120_000;
 
@@ -120,12 +131,32 @@ internal sealed class DemoPage : IAsyncDisposable
     /// There is nothing to click on the way in any more: the page deals a default game as it loads,
     /// so the boot signal is the first action button on the bar — the only signal that means a hand
     /// is on the clock rather than merely rendered.
+    /// <para>
+    /// Unless asked to keep it, the storage notification is then closed with its X, the way a
+    /// visitor would, so that its overlay cannot answer a hit-test meant for the page under it.
+    /// </para>
     /// </remarks>
-    public async Task OpenAsync()
+    public async Task OpenAsync(bool keepNotification = false)
     {
         await _page.GotoAsync(_baseUrl);
         await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
+
+        if (!keepNotification)
+        {
+            await DismissNotificationsAsync();
+        }
+    }
+
+    /// <summary>Closes every open AntDesign notification with its close button.</summary>
+    public async Task DismissNotificationsAsync()
+    {
+        ILocator closeButtons = _page.Locator(".ant-notification-notice-close");
+        while (await closeButtons.CountAsync() > 0)
+        {
+            await closeButtons.First.ClickAsync();
+            await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        }
     }
 
     /// <summary>Takes the first available game action and waits for the re-renders it causes.</summary>
@@ -143,8 +174,9 @@ internal sealed class DemoPage : IAsyncDisposable
     /// none — which is how the hand ends: a finished hand's bar shows Next Hand instead.
     /// </summary>
     /// <remarks>
-    /// The Engine Calls pane is hidden while another companion tab is in front, so its tab is
-    /// selected before the action, and before waiting for the new entry to be visible.
+    /// The action bar is on the Game Table tab and the call log on its own, hidden one. The log is
+    /// mounted while hidden, so the new entry is waited for as attached rather than as visible —
+    /// switching to its tab would hide the very bar the next action is taken from.
     /// </remarks>
     public async Task<bool> TryTakeGameActionAsync()
     {
@@ -154,25 +186,25 @@ internal sealed class DemoPage : IAsyncDisposable
             return false;
         }
 
-        await SelectCompanionTabAsync(EngineCallsCompanion);
+        await SelectTabAsync(GameTableTab);
 
-        ILocator entries = _page.Locator(".engine-call-entry");
+        ILocator entries = _page.Locator(EngineCallEntrySelector);
         int before = await entries.CountAsync();
 
         await buttons.First.ClickAsync();
 
-        await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
         return true;
     }
 
     /// <summary>
-    /// Clicks one companion's tab on the rail, unless it is already the selected one, and waits for
-    /// the re-render.
+    /// Clicks one tab on the bar, unless it is already the selected one, and waits for the
+    /// re-render.
     /// </summary>
-    public async Task SelectCompanionTabAsync(string companion)
+    public async Task SelectTabAsync(string tabKey)
     {
-        ILocator tab = _page.Locator($"{CompanionTabSelector}[data-companion=\"{companion}\"]");
+        ILocator tab = _page.Locator($"{TabSelector}[data-tab=\"{tabKey}\"]");
         if (await tab.GetAttributeAsync("aria-selected") == "true")
         {
             return;
@@ -183,9 +215,9 @@ internal sealed class DemoPage : IAsyncDisposable
     }
 
     /// <summary>
-    /// The <c>data-companion</c> key of every companion pane that currently has a visible box.
+    /// The <c>data-tab</c> key of every tab pane that currently has a visible box.
     /// </summary>
-    public async Task<IReadOnlyList<string>> ReadVisibleCompanionPanesAsync()
+    public async Task<IReadOnlyList<string>> ReadVisibleTabPanesAsync()
     {
         string json = await _page.EvaluateAsync<string>(
             """
@@ -195,19 +227,12 @@ internal sealed class DemoPage : IAsyncDisposable
                         const rect = pane.getBoundingClientRect();
                         return rect.width > 0 && rect.height > 0;
                     })
-                    .map(pane => pane.dataset.companion))
+                    .map(pane => pane.dataset.tab))
             """,
-            CompanionPaneSelector);
+            TabPaneSelector);
 
         return JsonSerializer.Deserialize<string[]>(json, _jsonOptions)
-            ?? throw new InvalidOperationException("The companion pane probe returned nothing.");
-    }
-
-    /// <summary>Scrolls the companion tab rail into view; below 1366px it sits under the table.</summary>
-    public async Task ScrollCompanionTabsIntoViewAsync()
-    {
-        await _page.Locator(".companion-tab-rail").ScrollIntoViewIfNeededAsync();
-        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+            ?? throw new InvalidOperationException("The tab pane probe returned nothing.");
     }
 
     /// <summary>Scrolls the action panel into view, the way a visitor reaching for a button would.</summary>
