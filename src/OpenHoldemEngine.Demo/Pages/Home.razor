@@ -51,24 +51,10 @@
 <div class="home-container">
     <ErrorBoundary @ref="_tableErrorBoundary">
         <ChildContent>
+            @* The table is the whole region: the street, the session's settings, the hand's outcome
+               and the action bar are all drawn on it, so nothing about the hand is shown twice. *@
             <div class="main-region">
-                <GameSummary GameData="@Session.CurrentGame" OnNewGame="@OpenNewGameModalAsync" />
-
-                @if (Session.CurrentHand is not null)
-                {
-                    <StreetIndicator Street="@Session.CurrentHand.Street" />
-                }
-
-                <PokerTable HandData="@Session.CurrentHand" />
-
-                @if (Session.CurrentHand is not null)
-                {
-                    <ActionPanel HandData="@Session.CurrentHand" />
-                }
-
-                <HandHistory CurrentGameData="@Session.CurrentGame" />
-
-                <HandResult
+                <PokerTable
                     GameData="@Session.CurrentGame"
                     OnNextHand="@OnNextHandAsync"
                     OnNewGame="@OpenNewGameModalAsync" />

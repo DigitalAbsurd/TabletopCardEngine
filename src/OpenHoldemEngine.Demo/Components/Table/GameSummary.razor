@@ -3,28 +3,25 @@
 
 @* The settings the running session was created with. GameData.Options is the only record of them,
    and nothing else on the page renders it, so a visitor who never opened the New Game form would
-   otherwise have no way of knowing what they are playing. *@
+   otherwise have no way of knowing what they are playing. It sits in the table's top bar, so it is
+   one line rather than a panel; the initial dealer seat is left to the table's D badge. *@
 <div class="game-summary">
     <div class="game-summary-items">
-        <div class="game-summary-item">
-            <span class="game-summary-label">Players</span>
-            <span class="game-summary-value">@PlayerCount</span>
-        </div>
-        <div class="game-summary-item">
+        <span class="game-summary-item">
             <span class="game-summary-label">Blinds</span>
             <span class="game-summary-value">@FormatAmount(SmallBlind) / @FormatAmount(BigBlind)</span>
-        </div>
-        <div class="game-summary-item">
-            <span class="game-summary-label">Initial dealer seat</span>
-            <span class="game-summary-value">@InitialDealerSeatNo</span>
-        </div>
-        <div class="game-summary-item">
+        </span>
+        <span class="game-summary-item">
             <span class="game-summary-label">Hand</span>
-            <span class="game-summary-value">@HandNumber</span>
-        </div>
+            <span class="game-summary-value">#@HandNumber</span>
+        </span>
+        <span class="game-summary-item">
+            <span class="game-summary-label">Players</span>
+            <span class="game-summary-value">@PlayerCount</span>
+        </span>
     </div>
 
-    <Button Type="@ButtonType.Default" OnClick="OnNewGameClickedAsync" Class="new-game-btn">
+    <Button Type="@ButtonType.Default" Size="small" OnClick="OnNewGameClickedAsync" Class="new-game-btn">
         New Game
     </Button>
 </div>
@@ -49,8 +46,6 @@
 
     /// <summary>The engine has no big-blind option: it is twice the small blind.</summary>
     private decimal BigBlind => SmallBlind * 2;
-
-    private int InitialDealerSeatNo => GameData?.Options.InitialDealerSeatNo ?? 0;
 
     private int HandNumber => GameData?.HandData is { No: > 0 } hand ? hand.No : 0;
 

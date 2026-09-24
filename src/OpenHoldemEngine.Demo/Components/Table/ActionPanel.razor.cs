@@ -2,13 +2,15 @@
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
+using System.Globalization;
 
 namespace OpenHoldemEngine.Demo.Components.Table;
 
 /// <summary>
-/// Renders action controls for the current seat based on HandData.Evaluations.
-/// Fold, Check, Call, and Raise buttons are shown only when the matching action
-/// is available in the evaluations. Raise uses a slider with pot, half-pot, and all-in shortcuts.
+/// The action bar along the bottom of the poker table. Fold, Check, Call and Raise are shown only
+/// when the matching action is available in HandData.Evaluations; the raise is sized with a slider,
+/// −/+ steps of one big blind and half-pot, pot and all-in presets that set the amount without
+/// submitting it. Once the hand is finished the bar offers Next Hand and New Game instead.
 /// </summary>
 public partial class ActionPanel : ComponentBase
 {
@@ -16,18 +18,61 @@ public partial class ActionPanel : ComponentBase
     [Parameter]
     public HandData? HandData { get; set; }
 
+    /// <summary>
+    /// The size of one −/+ step on the raise amount. The hand carries no blinds, so the table
+    /// passes the game's own.
+    /// </summary>
+    [Parameter]
+    public decimal BigBlind { get; set; }
+
+    /// <summary>Raised by Next Hand once the hand is finished.</summary>
+    [Parameter]
+    public EventCallback OnNextHand { get; set; }
+
+    /// <summary>Raised by New Game once the hand is finished; the host opens the settings modal.</summary>
+    [Parameter]
+    public EventCallback OnNewGame { get; set; }
+
     /// <summary>The demo session to apply actions through.</summary>
     [Inject]
     public DemoGameSession Session { get; set; } = null!;
 
     private decimal _raiseAmount;
     private bool _isSubmitting;
-    private bool _drawerVisible;
 
     /// <summary>
-    /// Gets the Drawer title, naming the seat whose decision is owed.
+    /// The hand the raise amount was last reset for. The table re-renders this component whenever
+    /// the page does — switching a companion tab is enough — and a record parameter always counts as
+    /// changed, so resetting on every parameter set would throw away an amount the visitor is still
+    /// dialling in.
     /// </summary>
-    private string DrawerTitle => HandData is null ? string.Empty : $"Seat {HandData.NextPlayerSeatNo}'s action";
+    private HandData? _raiseAmountResetFor;
+
+    private bool IsHandFinished => HandData?.Street == Street.Finished;
+
+    private bool HasActions => HandData is not null && HandData.NextPlayerSeatNo != 0 && HandData.Evaluations.Length > 0;
+
+    /// <summary>
+    /// The box on the right of the bar: whose decision is owed, or that the hand is over.
+    /// </summary>
+    private string InfoText
+    {
+        get
+        {
+            if (IsHandFinished)
+            {
+                return "Hand complete";
+            }
+
+            if (HandData is null || HandData.NextPlayerSeatNo == 0)
+            {
+                return "Waiting for the next hand";
+            }
+
+            var name = HandData.Seats.FirstOrDefault(s => s.SeatNo == HandData.NextPlayerSeatNo)?.Name;
+            return $"{(string.IsNullOrWhiteSpace(name) ? $"Seat {HandData.NextPlayerSeatNo}" : name)} to act";
+        }
+    }
 
     /// <summary>
     /// Gets the street value for raise calculations.
@@ -141,13 +186,19 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
-    /// Initializes the raise amount to the minimum when a new evaluation is shown.
+    /// Resets the raise amount to the minimum when a new hand state arrives — a new hand, or the
+    /// next decision within one, both of which the engine hands back as a new HandData instance.
     /// </summary>
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
-        // Reset raise amount when hand changes
+        if (ReferenceEquals(HandData, _raiseAmountResetFor))
+        {
+            return;
+        }
+
+        _raiseAmountResetFor = HandData;
         if (HandData is not null && HasAction(PlayerActionType.Raise))
         {
             var (min, _) = GetRaiseWindow();
@@ -156,28 +207,11 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
-    /// Opens the Drawer holding the action controls for the seat on the clock.
-    /// </summary>
-    private void OnTriggerClick()
-    {
-        _drawerVisible = true;
-    }
-
-    /// <summary>
     /// Applies a Fold action through the session.
     /// </summary>
     private async Task OnFoldAsync()
     {
-        _isSubmitting = true;
-        try
-        {
-            await Session.ApplyPlayerActionAsync(PlayerActionType.Fold, 0);
-        }
-        finally
-        {
-            _isSubmitting = false;
-            _drawerVisible = false;
-        }
+        await SubmitAsync(PlayerActionType.Fold, 0);
     }
 
     /// <summary>
@@ -185,16 +219,7 @@ public partial class ActionPanel : ComponentBase
     /// </summary>
     private async Task OnCheckAsync()
     {
-        _isSubmitting = true;
-        try
-        {
-            await Session.ApplyPlayerActionAsync(PlayerActionType.Check, 0);
-        }
-        finally
-        {
-            _isSubmitting = false;
-            _drawerVisible = false;
-        }
+        await SubmitAsync(PlayerActionType.Check, 0);
     }
 
     /// <summary>
@@ -204,16 +229,7 @@ public partial class ActionPanel : ComponentBase
     /// </summary>
     private async Task OnCallAsync()
     {
-        _isSubmitting = true;
-        try
-        {
-            await Session.ApplyPlayerActionAsync(PlayerActionType.Call, 0);
-        }
-        finally
-        {
-            _isSubmitting = false;
-            _drawerVisible = false;
-        }
+        await SubmitAsync(PlayerActionType.Call, 0);
     }
 
     /// <summary>
@@ -222,16 +238,57 @@ public partial class ActionPanel : ComponentBase
     /// </summary>
     private async Task OnRaiseAsync(decimal amount)
     {
+        await SubmitAsync(PlayerActionType.Raise, amount);
+    }
+
+    private async Task SubmitAsync(PlayerActionType actionType, decimal size)
+    {
         _isSubmitting = true;
         try
         {
-            await Session.ApplyPlayerActionAsync(PlayerActionType.Raise, amount);
+            await Session.ApplyPlayerActionAsync(actionType, size);
         }
         finally
         {
             _isSubmitting = false;
-            _drawerVisible = false;
         }
+    }
+
+    private async Task OnNextHandAsync()
+    {
+        _isSubmitting = true;
+        try
+        {
+            await OnNextHand.InvokeAsync();
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task OnNewGameAsync()
+    {
+        await OnNewGame.InvokeAsync();
+    }
+
+    /// <summary>
+    /// Sets the raise amount from a preset, clamped to the legal window. Presets only size the
+    /// raise; Raise is what submits it.
+    /// </summary>
+    private void SetRaiseAmount(decimal amount)
+    {
+        _raiseAmount = amount;
+        ClampRaiseAmount();
+    }
+
+    /// <summary>
+    /// Moves the raise amount by one big blind in either direction, clamped to the legal window.
+    /// </summary>
+    private void StepRaiseAmount(int direction)
+    {
+        var step = BigBlind > 0 ? BigBlind : 1m;
+        SetRaiseAmount(_raiseAmount + (direction * step));
     }
 
     /// <summary>
@@ -251,21 +308,26 @@ public partial class ActionPanel : ComponentBase
     /// </summary>
     private void OnRaiseInputChanged(ChangeEventArgs e)
     {
-        if (decimal.TryParse(e.Value?.ToString(), out var value))
+        if (decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
         {
-            _raiseAmount = value;
-            ClampRaiseAmount();
+            SetRaiseAmount(value);
         }
     }
 
     /// <summary>
-    /// Handles changes to the raise amount slider.
+    /// Handles the raise amount slider while it is being dragged.
     /// </summary>
     private void OnRaiseSliderChanged(ChangeEventArgs e)
     {
-        if (decimal.TryParse(e.Value?.ToString(), out var value))
+        if (decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
         {
             _raiseAmount = value;
         }
     }
+
+    /// <summary>
+    /// Formats an amount for an input's value, min or max attribute, which the browser only parses
+    /// with a dot for the decimal separator.
+    /// </summary>
+    private static string FormatInvariant(decimal amount) => amount.ToString("0.00", CultureInfo.InvariantCulture);
 }

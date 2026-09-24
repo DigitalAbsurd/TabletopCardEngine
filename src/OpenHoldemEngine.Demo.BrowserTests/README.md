@@ -14,26 +14,26 @@ On `Game Setup` and on the game page, at **1500px and 1280px** wide (the grid-ro
 appeared below 1366px and the horizontal overflow only mattered above it):
 
 1. **No horizontal overflow** — `scrollWidth === clientWidth` on `main.layout-content`.
-2. **`main.layout-content` is the page's only scroll container** — its computed `overflow` is
-   `auto`, it has more content than it can show, `document.scrollingElement` neither scrolls nor
-   overflows, and the header does not move when the container is scrolled to its bottom. Before
-   issue #72 none of MainLayout's scoped rules applied, so the document scrolled and took the
-   header with it while every probe against `main.layout-content` read zeroes. This is also
-   checked with the action Drawer open (issue #80): a Drawer is a `position: fixed`, full-viewport
-   overlay, and AntDesign sets `overflow: hidden` on `<body>` while one is open — a documented way
-   to break exactly this invariant.
-3. **The action trigger and every action button are their own hit target** —
-   `document.elementFromPoint` at the centre of each returns that element or a descendant of it.
-   Since issue #80, the primary actions, the raise controls and the confirm button live inside an
-   AntDesign `Drawer`, closed by default: the seat on the clock instead sees a single gold trigger
-   button (`.action-trigger-btn`) in `.action-panel`, and clicking it opens the Drawer. The gate
-   checks the trigger's hit target on its own, then opens the Drawer and checks the action buttons
-   inside it the same way `Create and Start Game` on `Game Setup` is checked.
-4. **A render does not move the scroll container sideways** — `scrollLeft` before an action equals
+2. **`main.layout-content` is the page's only scroll container** — at both widths its computed
+   `overflow` is `auto` and `document.scrollingElement` neither scrolls nor overflows. At 1280px,
+   where the companions stack under the table and the page is taller than the viewport, the
+   container is also scrolled to its bottom and the header must not move. Before issue #72 none of
+   MainLayout's scoped rules applied, so the document scrolled and took the header with it while
+   every probe against `main.layout-content` read zeroes. At 1500px the page is meant to fit since
+   issue #100, so there is nothing to scroll there.
+3. **The poker table fits the viewport's height** — `.poker-table` is no taller than
+   `main.layout-content`'s `clientHeight` in a 900px-high viewport. Issue #100 folded the street,
+   the game summary, the hand's outcome and the actions onto the table because the table alone
+   measured 904px against 836px of container.
+4. **Every action button is its own hit target** — `document.elementFromPoint` at the centre of
+   each returns that element or a descendant of it. Since issue #100 the actions sit on an inline
+   action bar along the bottom of the table (`.action-bar`), rendered only while a seat is on the
+   clock; the Drawer and its trigger of issue #80 are gone.
+5. **A render does not move the scroll container sideways** — `scrollLeft` before an action equals
    `scrollLeft` after it.
-5. **No console errors** — during load, during game creation, and while a hand is played out. Each
-   action taken by the gate opens the Drawer, clicks a button and lets it close again, exactly as a
-   visitor would.
+6. **No console errors** — during load, during game creation, and while a hand is played out. Each
+   action taken by the gate clicks a button on the action bar, exactly as a visitor would; the hand
+   is over when the bar offers Next Hand instead.
 
 ## What it does not cover
 
@@ -50,7 +50,7 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 ## Running it
 
 The gate is **off by default**, because the first run downloads a browser and publishes the
-WebAssembly app. `dotnet test` at the repository root reports its twelve browser checks as skipped
+WebAssembly app. `dotnet test` at the repository root reports its seventeen browser checks as skipped
 and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
 
 ```bash
@@ -64,7 +64,7 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about one minute for the twelve browser checks, plus the
+`wasm-tools` workload is required) and about one minute for the seventeen browser checks, plus the
 browser download on a cold machine.
 
 Environment variables:

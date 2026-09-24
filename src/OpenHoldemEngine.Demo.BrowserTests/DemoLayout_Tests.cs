@@ -145,6 +145,28 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
+    /// The table is the whole game area — street, seats, board, pot and action bar — and it has to
+    /// be readable and playable without scrolling. Issue #100 folded six stacked blocks into it
+    /// because the table alone measured 904px against 836px of scroll container at 900px high.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_GamePage_PokerTableFitsTheViewportHeight(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+
+        double tableHeight = await page.ReadElementHeightAsync(DemoPage.PokerTableSelector);
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+
+        tableHeight.Should().BeLessOrEqualTo(
+            layoutContent.ClientHeight,
+            $"the poker table must fit the space under the header at {viewportWidth}x{ViewportHeight} "
+            + $"(table: {tableHeight}px; {layoutContent})");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
     /// main.layout-content is the page's only scroll container, and the header stays put while
     /// it scrolls.
     /// </summary>
@@ -154,9 +176,13 @@ public sealed class DemoLayout_Tests
     /// taking the header with it while every probe against main.layout-content read zeroes and
     /// looked healthy. Both halves are asserted here: that the container scrolls, and that the
     /// document does not.
+    /// <para>
+    /// Only the narrow width is taller than the viewport, and so only it can show the container
+    /// scrolling: below 1366px the companions stack under the table. Above it, since issue #100,
+    /// the table fits the viewport by design and the companion column is bounded beside it.
+    /// </para>
     /// </remarks>
     [TestMethod]
-    [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
     public async Task DemoLayout_GamePage_LayoutContentIsTheOnlyScrollContainer(int viewportWidth)
     {
@@ -190,19 +216,32 @@ public sealed class DemoLayout_Tests
             headerTopBefore,
             "the header must stay in place while the content scrolls under it "
             + $"(before: {headerTopBefore}; after: {headerTopAfter})");
+        AssertNoConsoleErrors(page);
+    }
 
-        // A Drawer is a position: fixed, full-viewport overlay, and AntDesign sets overflow:
-        // hidden on <body> while one is open — a documented way to break exactly this
-        // invariant, and the reason it is checked with the Drawer open, not only closed.
-        await page.OpenActionDrawerAsync();
-        ScrollMetrics documentScrollerWithDrawerOpen = await page.ReadScrollMetricsAsync(DemoPage.DocumentScrollerSelector);
+    /// <summary>
+    /// The half of the scroll-container check that holds at every width: whatever the page's
+    /// height, it is main.layout-content that owns the overflow, never the document.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_GamePage_DocumentNeverScrolls(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
 
-        documentScrollerWithDrawerOpen.ScrollHeight.Should().Be(
-            documentScrollerWithDrawerOpen.ClientHeight,
-            $"the document itself must not scroll while the action Drawer is open ({documentScrollerWithDrawerOpen})");
-        documentScrollerWithDrawerOpen.ScrollWidth.Should().Be(
-            documentScrollerWithDrawerOpen.ClientWidth,
-            $"the document itself must not overflow sideways while the action Drawer is open ({documentScrollerWithDrawerOpen})");
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        ScrollMetrics documentScroller = await page.ReadScrollMetricsAsync(DemoPage.DocumentScrollerSelector);
+
+        layoutContent.Overflow.Should().Be(
+            "auto",
+            $"the routed page's container is what scrolls at {viewportWidth}px ({layoutContent})");
+        documentScroller.ScrollHeight.Should().Be(
+            documentScroller.ClientHeight,
+            $"the document itself must not scroll at {viewportWidth}px ({documentScroller})");
+        documentScroller.ScrollWidth.Should().Be(
+            documentScroller.ClientWidth,
+            $"the document itself must not overflow sideways at {viewportWidth}px ({documentScroller})");
         AssertNoConsoleErrors(page);
     }
 
@@ -213,17 +252,10 @@ public sealed class DemoLayout_Tests
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
 
-        // The action panel sits below the fold in a 900px viewport, so a visitor scrolls to it
-        // before clicking. Where the trigger ends up is the question; getting there is not.
+        // The first-visit storage alert sits above the table and can push the bar's bottom edge
+        // past the fold, so the bar is scrolled into view the way a visitor would reach for it.
+        // Where the buttons end up is the question; getting there is not.
         await page.ScrollActionPanelIntoViewAsync();
-
-        // The trigger is what a visitor actually sees when it becomes their turn — it must be
-        // clickable on its own, before the Drawer holding the real action buttons ever opens.
-        IReadOnlyList<HitProbe> triggerProbes = await page.ProbeHitTargetsAsync(DemoPage.ActionTriggerSelector);
-        triggerProbes.Should().HaveCount(1, "exactly one trigger is shown for the seat on the clock");
-        AssertOwnHitTargets(triggerProbes);
-
-        await page.OpenActionDrawerAsync();
 
         IReadOnlyList<HitProbe> probes = await page.ProbeHitTargetsAsync(DemoPage.ActionButtonSelectors);
 

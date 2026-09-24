@@ -336,19 +336,22 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void PokerTable_WithoutHandData_Renders_Empty()
+    public void PokerTable_WithoutGameData_Renders_Empty()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
+        RegisterDemoServices(ctx.Services);
 
         // Act
         var component = ctx.RenderComponent<PokerTable>(parameters => parameters
-            .Add(p => p.HandData, null));
+            .Add(p => p.GameData, null));
 
-        // Assert
+        // Assert - no hand, so no seats and no action bar, but the top bar and New Game are there
         component.Markup.Should().Contain("poker-table");
+        component.Markup.Should().Contain("new-game-btn");
+        component.FindAll(".seat").Should().BeEmpty();
+        component.FindAll(".action-bar").Should().BeEmpty();
     }
 
     [TestMethod]
@@ -363,15 +366,74 @@ public sealed class ComponentRender_Tests
 
         // Act
         var component = ctx.RenderComponent<PokerTable>(parameters => parameters
-            .Add(p => p.HandData, session.CurrentHand));
+            .Add(p => p.GameData, session.CurrentGame));
 
-        // Assert
-        component.Markup.Should().Contain("poker-table");
-        component.Markup.Should().Contain("Hand:");
-        component.Markup.Should().Contain("Street:");
-        // Should render 2 seats
+        // Assert - both seats, and the street, the summary and the action bar all on the table
         component.Markup.Should().Contain("Player 1");
         component.Markup.Should().Contain("Player 2");
+        component.FindAll(".table-top-bar .street-indicator").Should().HaveCount(1);
+        component.FindAll(".table-top-bar .game-summary").Should().HaveCount(1);
+        component.FindAll(".poker-table > .action-bar").Should().HaveCount(1);
+    }
+
+    [TestMethod]
+    public void PokerTable_Center_ShowsTheBoardAndPotButNotTheStreet()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var seats = BuildHandDataWithSeats(6).Seats;
+        var hand = BuildHandDataWithSeats(6) with
+        {
+            // Every seat holds cards and seat 6 has folded, so five of six are still in the hand
+            Seats = seats.Select(s => s with
+            {
+                Hole = [Card.FromString("2h"), Card.FromString("3h")],
+                LastAction = s.SeatNo == 6 ? new PlayerActionData(Street.Flop, PlayerActionType.Fold, 0m, 1) : null,
+            }).ToArray(),
+            Street = Street.Flop,
+            Pot = 12m,
+            StreetPot = 4m,
+            CommunityCards = [Card.FromString("ah"), Card.FromString("kd"), Card.FromString("2c")],
+        };
+
+        // Act
+        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildGameData(hand)));
+
+        // Assert - the street and the hand number live in the top bar, so the centre repeats neither
+        var center = component.Find(".table-center");
+        center.QuerySelectorAll(".playing-card").Should().HaveCount(3);
+        center.TextContent.Should().Contain("16.00");
+        center.TextContent.Should().Contain("Prior: 12.00");
+        center.TextContent.Should().Contain("Street: 4.00");
+        center.TextContent.Should().Contain("Active: 5/6");
+        center.TextContent.Should().NotContain("Flop");
+        center.TextContent.Should().NotContain("Hand:");
+    }
+
+    [TestMethod]
+    public void PokerTable_WithFinishedHand_ListsEachSeatsResult()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, CreateFinishedHandGameData()));
+
+        // Assert - the outcome is on the table itself, not in an overlay over the page
+        component.FindAll(".hand-result-container").Should().BeEmpty();
+        var results = component.FindAll(".table-center .hand-result");
+        results.Should().HaveCount(2);
+        results[0].ClassList.Should().Contain("result-winner");
+        results[0].TextContent.Should().Contain("Test Player 1").And.Contain("Pair").And.Contain("+100.00");
+        results[1].ClassList.Should().Contain("result-loser");
+        results[1].TextContent.Should().Contain("Test Player 2").And.Contain("High Card").And.Contain("-100.00");
     }
 
     [TestMethod]
@@ -380,11 +442,11 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
+        RegisterDemoServices(ctx.Services);
 
         // Act
         var component = ctx.RenderComponent<PokerTable>(parameters => parameters
-            .Add(p => p.HandData, BuildHandDataWithSeats(6)));
+            .Add(p => p.GameData, BuildGameData(BuildHandDataWithSeats(6))));
 
         // Assert
         var rows = component.FindAll("div.table-seats-row");
@@ -401,11 +463,11 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
+        RegisterDemoServices(ctx.Services);
 
         // Act
         var component = ctx.RenderComponent<PokerTable>(parameters => parameters
-            .Add(p => p.HandData, BuildHandDataWithSeats(5)));
+            .Add(p => p.GameData, BuildGameData(BuildHandDataWithSeats(5))));
 
         // Assert
         var rows = component.FindAll("div.table-seats-row");
@@ -440,8 +502,21 @@ public sealed class ComponentRender_Tests
             Evaluations: []);
     }
 
+    private static GameData BuildGameData(HandData handData)
+    {
+        return new GameData(
+            GameId: Guid.NewGuid(),
+            Options: new GameOptionData(MaxPlayersCount: handData.Seats.Length, InitialSmallBlind: 1m, InitialDealerSeatNo: 1),
+            HandData: handData);
+    }
+
     [TestMethod]
-    public void StreetIndicator_Renders_WithoutException()
+    [DataRow(Street.PreFlop, 0)]
+    [DataRow(Street.Flop, 1)]
+    [DataRow(Street.Turn, 2)]
+    [DataRow(Street.River, 3)]
+    [DataRow(Street.Showdown, 4)]
+    public void StreetIndicator_MarksTheCurrentStreetAsTheCurrentStep(Street street, int expectedIndex)
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -450,10 +525,32 @@ public sealed class ComponentRender_Tests
 
         // Act
         var component = ctx.RenderComponent<StreetIndicator>(parameters => parameters
-            .Add(p => p.Street, Street.PreFlop));
+            .Add(p => p.Street, street));
+
+        // Assert - AntDesign Steps, one step per street, and only the current one in progress
+        component.Markup.Should().Contain("street-indicator");
+        component.Markup.Should().Contain("ant-steps");
+        component.FindComponent<AntDesign.Steps>().Instance.Current.Should().Be(expectedIndex);
+        component.FindComponents<AntDesign.Step>().Select(step => step.Instance.Title)
+            .Should().Equal("Pre-Flop", "Flop", "Turn", "River", "Showdown");
+        component.FindAll(".ant-steps-item-process").Should().HaveCount(1);
+    }
+
+    [TestMethod]
+    public void StreetIndicator_WithFinishedHand_MarksEveryStepDone()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<StreetIndicator>(parameters => parameters
+            .Add(p => p.Street, Street.Finished));
 
         // Assert
-        component.Markup.Should().Contain("street-indicator");
+        component.FindAll(".ant-steps-item-process").Should().BeEmpty();
+        component.FindAll(".ant-steps-item-finish").Should().HaveCount(5);
     }
 
     [TestMethod]
@@ -469,7 +566,7 @@ public sealed class ComponentRender_Tests
             .Add(p => p.HandData, null));
 
         // Assert
-        component.Markup.Should().Contain("action-panel");
+        component.Markup.Should().Contain("action-bar");
         component.Markup.Should().Contain("No actions available");
     }
 
@@ -482,21 +579,95 @@ public sealed class ComponentRender_Tests
         RegisterDemoServices(ctx.Services);
 
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
+        var hand = session.CurrentHand!;
+        var actor = hand.Seats.Single(s => s.SeatNo == hand.NextPlayerSeatNo);
 
         // Act
         var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
-            .Add(p => p.HandData, session.CurrentHand));
+            .Add(p => p.HandData, hand)
+            .Add(p => p.BigBlind, 100m));
 
-        // Assert - the trigger button is what the seat on the clock sees before opening the Drawer.
-        component.Markup.Should().Contain("action-panel");
-        component.Markup.Should().Contain("action-trigger-btn");
+        // Assert - the controls are on the bar itself: no trigger to click, no Drawer to open
+        component.Markup.Should().NotContain("action-trigger-btn");
+        component.Markup.Should().NotContain("ant-drawer");
+        component.FindAll(".action-bar .fold-btn").Should().HaveCount(1);
+        component.FindAll(".action-bar .call-btn").Should().HaveCount(1);
+        component.FindAll(".action-bar .raise-btn").Should().HaveCount(1);
+        component.FindAll(".action-bar .slider-input").Should().HaveCount(1);
+        component.FindAll(".action-bar .raise-step-btn").Should().HaveCount(2);
+        component.FindAll(".action-bar .shortcut-btn").Should().HaveCount(3);
+        component.Find(".action-bar-info").TextContent.Should().Be($"{actor.Name} to act");
+    }
 
-        // Act - click the trigger, the way a visitor would, to open the Drawer.
-        component.Find("button.action-trigger-btn").Click();
+    [TestMethod]
+    public async Task ActionPanel_RaiseStepsAndPresets_SetTheAmountWithoutSubmitting()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
 
-        // Assert - the action controls live inside the Drawer, and it is now open.
-        component.Markup.Should().Contain("actions-container");
-        component.Markup.Should().Contain("ant-drawer-open");
+        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
+        var hand = session.CurrentHand!;
+        var raise = hand.Evaluations.Single(e => e.PlayerActionType == PlayerActionType.Raise);
+        var callsBefore = session.Journal.Entries.Count;
+
+        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+            .Add(p => p.HandData, hand)
+            .Add(p => p.BigBlind, 100m));
+
+        // Assert - the amount starts at the minimum raise-to
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:F2}");
+
+        // Act - one big blind up
+        component.Find(".raise-increase-btn").Click();
+
+        // Assert
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue + 100m:F2}");
+
+        // Act - down twice: the second step would go under the window and is clamped
+        component.Find(".raise-decrease-btn").Click();
+        component.Find(".raise-decrease-btn").Click();
+
+        // Assert
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:F2}");
+
+        // Act - the All-in preset sizes the raise to the top of the window
+        component.FindAll(".shortcut-btn").Single(b => b.TextContent.Trim() == "All-in").Click();
+
+        // Assert - sized, but nothing was sent to the engine
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:F2}");
+        session.Journal.Entries.Should().HaveCount(callsBefore);
+    }
+
+    [TestMethod]
+    public void ActionPanel_WithFinishedHand_OffersNextHandAndNewGame()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var nextHandRaised = false;
+        var newGameRaised = false;
+
+        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+            .Add(p => p.HandData, CreateFinishedHandGameData().HandData)
+            .Add(p => p.OnNextHand, () => nextHandRaised = true)
+            .Add(p => p.OnNewGame, () => newGameRaised = true));
+
+        // Assert - the bar swaps the betting controls for what comes after the hand
+        component.FindAll(".action-bar .action-btn").Should().BeEmpty();
+        component.FindAll(".action-bar .slider-input").Should().BeEmpty();
+        component.Find(".action-bar-info").TextContent.Should().Be("Hand complete");
+
+        // Act
+        component.Find(".next-hand-btn").Click();
+        component.Find(".bar-new-game-btn").Click();
+
+        // Assert
+        nextHandRaised.Should().BeTrue();
+        newGameRaised.Should().BeTrue();
     }
 
     [TestMethod]
@@ -547,24 +718,6 @@ public sealed class ComponentRender_Tests
         component.Markup.Should().Contain("seat");
         component.Markup.Should().Contain("Player 1");
         component.Markup.Should().Contain("1000.00");
-    }
-
-    [TestMethod]
-    public async Task HandHistory_WithGameData_Renders_Hands()
-    {
-        // Arrange
-        using var ctx = new Bunit.TestContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterDemoServices(ctx.Services);
-
-        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
-
-        // Act
-        var component = ctx.RenderComponent<HandHistory>(parameters => parameters
-            .Add(p => p.CurrentGameData, session.CurrentGame));
-
-        // Assert
-        component.Markup.Should().Contain("hand-history");
     }
 
     private static GameData CreateFinishedHandGameData()
@@ -626,70 +779,6 @@ public sealed class ComponentRender_Tests
             Options: options,
             HandData: handData
         );
-    }
-
-    [TestMethod]
-    public void HandResult_WithoutHandData_DoesNotRenderContainer()
-    {
-        // Arrange
-        using var ctx = new Bunit.TestContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
-
-        // Act
-        var component = ctx.RenderComponent<HandResult>(parameters => parameters
-            .Add(p => p.GameData, null));
-
-        // Assert - mid-hand or null state should produce no container div element
-        // (the style block is always present, so we check for the actual div element)
-        var containerDivs = component.FindAll("div.hand-result-container");
-        containerDivs.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public async Task HandResult_WithInProgressHand_DoesNotRenderContainer()
-    {
-        // Arrange
-        using var ctx = new Bunit.TestContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterDemoServices(ctx.Services);
-
-        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
-
-        // Act - render with a game that has an in-progress hand
-        var component = ctx.RenderComponent<HandResult>(parameters => parameters
-            .Add(p => p.GameData, session.CurrentGame)
-            .Add(p => p.OnNextHand, EventCallback.Factory.Create(this, async () => await Task.CompletedTask))
-            .Add(p => p.OnNewGame, EventCallback.Factory.Create(this, async () => await Task.CompletedTask)));
-
-        // Assert - mid-hand should produce no container div element
-        var containerDivs = component.FindAll("div.hand-result-container");
-        containerDivs.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void HandResult_WithFinishedHand_RendersContainer()
-    {
-        // Arrange
-        using var ctx = new Bunit.TestContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
-
-        var gameData = CreateFinishedHandGameData();
-
-        // Act - render with a finished hand
-        var component = ctx.RenderComponent<HandResult>(parameters => parameters
-            .Add(p => p.GameData, gameData)
-            .Add(p => p.OnNextHand, EventCallback.Factory.Create(this, async () => await Task.CompletedTask))
-            .Add(p => p.OnNewGame, EventCallback.Factory.Create(this, async () => await Task.CompletedTask)));
-
-        // Assert - finished hand should render the container div and content
-        var containerDivs = component.FindAll("div.hand-result-container");
-        containerDivs.Should().NotBeEmpty();
-        component.Markup.Should().Contain("hand-result-overlay");
-        component.Markup.Should().Contain("Hand Complete");
-        component.Markup.Should().Contain("Next Hand");
-        component.Markup.Should().Contain("New Game");
     }
 
     [TestMethod]
@@ -855,6 +944,29 @@ public sealed class ComponentRender_Tests
         session.CurrentGame.Should().NotBeNull();
         session.CurrentHand.Should().NotBeNull();
         session.CurrentHand!.Seats.Should().HaveCount(DemoGameDefaults.MaxPlayers);
+    }
+
+    [TestMethod]
+    public void Home_MainRegion_HoldsOnlyThePokerTable()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<Pages.Home>();
+
+        // Assert - the street, the summary, the outcome and the actions are all drawn on the table
+        var mainRegion = component.Find(".main-region");
+        mainRegion.Children.Select(child => child.ClassName).Should().Equal("poker-table");
+        mainRegion.QuerySelectorAll(".street-indicator").Should().HaveCount(1);
+        mainRegion.QuerySelectorAll(".game-summary").Should().HaveCount(1);
+        mainRegion.QuerySelectorAll(".action-bar").Should().HaveCount(1);
+        component.Markup.Should().NotContain("hand-result-container");
+        component.Markup.Should().NotContain("action-trigger-btn");
     }
 
     [TestMethod]

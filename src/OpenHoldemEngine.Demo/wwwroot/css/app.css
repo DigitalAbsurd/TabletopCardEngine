@@ -258,42 +258,152 @@ code {
     background: var(--ant-bg-container);
 }
 
-/* The running session's settings, above the table. It wraps rather than overflowing, because the
-   main region is a grid column that narrows with the viewport. */
+/* The running session's settings, on the right of the table's top bar. It wraps rather than
+   overflowing, because the main region is a grid column that narrows with the viewport. */
 .game-summary {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
-    border: 1px solid #d9d9d9;
-    border-radius: 4px;
-    background: #fafafa;
+    gap: 0.5rem 1rem;
+    margin-left: auto;
+    color: #fff;
 }
 
 .game-summary-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 1.5rem;
+    gap: 0.25rem 1rem;
 }
 
 .game-summary-item {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
 }
 
 .game-summary-label {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #666;
+    color: rgba(255, 255, 255, 0.65);
 }
 
 .game-summary-value {
     font-weight: 600;
-    font-size: 1rem;
+}
+
+/* The street, as small AntDesign Steps on the left of the table's top bar. AntDesign draws Steps
+   for a light background; on the green table its grey titles and tails would disappear. */
+.street-indicator {
+    flex: 1 1 420px;
+    min-width: 0;
+    max-width: 640px;
+}
+
+/* AntDesign styles each state through the full child path (item > container > icon, item >
+   container > content > title), so the overrides spell the same path out to win on specificity
+   rather than on !important. */
+.street-steps .ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.street-steps .ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: #fff;
+    font-weight: 600;
+}
+
+.street-steps .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.street-steps .ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-icon {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+.street-steps .ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-icon > .ant-steps-icon {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.street-steps .ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-icon {
+    background: #ffd700;
+    border-color: #ffd700;
+}
+
+.street-steps .ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-icon > .ant-steps-icon {
+    color: #1f1f1f;
+}
+
+.street-steps .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-icon {
+    background: transparent;
+    border-color: #95de64;
+}
+
+.street-steps .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-icon > .ant-steps-icon {
+    color: #95de64;
+}
+
+.street-steps .ant-steps-item-wait > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title::after,
+.street-steps .ant-steps-item-process > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title::after {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.street-steps .ant-steps-item-finish > .ant-steps-item-container > .ant-steps-item-content > .ant-steps-item-title::after {
+    background-color: #95de64;
+}
+
+/* The action bar's AntDesign Buttons. ActionPanel's scoped stylesheet cannot reach them (fact 22);
+   the colours follow the reference layout: red Fold, grey Check/Call, green Raise. */
+.action-bar .action-btn,
+.action-bar .action-bar-btn {
+    min-width: 110px;
+    font-weight: 600;
+}
+
+.action-bar .ant-btn.fold-btn {
+    background: #a8071a;
+    border-color: #a8071a;
+}
+
+.action-bar .ant-btn.fold-btn:hover {
+    background: #cf1322;
+    border-color: #cf1322;
+}
+
+.action-bar .ant-btn.check-btn,
+.action-bar .ant-btn.call-btn {
+    background: #595959;
+    border-color: #595959;
+}
+
+.action-bar .ant-btn.check-btn:hover,
+.action-bar .ant-btn.call-btn:hover {
+    background: #737373;
+    border-color: #737373;
+}
+
+.action-bar .ant-btn.raise-btn,
+.action-bar .ant-btn.allin-btn,
+.action-bar .ant-btn.next-hand-btn {
+    background: #237804;
+    border-color: #237804;
+}
+
+.action-bar .ant-btn.raise-btn:hover,
+.action-bar .ant-btn.allin-btn:hover,
+.action-bar .ant-btn.next-hand-btn:hover {
+    background: #389e0d;
+    border-color: #389e0d;
+}
+
+.action-bar .ant-btn.shortcut-btn {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.action-bar .ant-btn.raise-step-btn {
+    flex: 0 0 auto;
+    font-weight: 700;
 }
 
 /* Responsive design */
