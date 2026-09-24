@@ -11,6 +11,7 @@
 @inject BrowserStorage Storage
 @inject DemoGameSession Session
 @inject PhhReplayController ReplayController
+@inject NewGameState NewGameState
 
 <PageTitle>OpenHoldemEngine Demo</PageTitle>
 
@@ -27,9 +28,10 @@
 
 @if (_showStorageAlert)
 {
+    @* One line on purpose: it sits above the table on the first visit, and every pixel it takes is
+       one the action bar loses at the bottom of a 768px-high screen. *@
     <Alert
-        Message="Database is in-memory only"
-        Description="This demo stores your game in your browser's memory. If you reload the page, your game will be lost. Use the .phh export feature to save hands for later."
+        Message="The game lives in this tab's memory only: a reload discards it. Export hands to .phh to keep them."
         Type="@AlertType.Info"
         Closable="true"
         OnClose="@OnAlertClose"
@@ -229,6 +231,7 @@
 
         Session.StateChanged += OnSessionStateChanged;
         Session.EngineError += OnBootEngineError;
+        NewGameState.ShowRequested += OpenNewGameModalAsync;
 
         await StartDefaultGameIfNeededAsync();
 
@@ -354,6 +357,7 @@
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         Session.StateChanged -= OnSessionStateChanged;
+        NewGameState.ShowRequested -= OpenNewGameModalAsync;
         await Task.CompletedTask;
     }
 }

@@ -2,6 +2,7 @@
 using Bunit;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,7 @@ public sealed class ComponentRender_Tests
         services.AddAntDesign();
         services.AddScoped<BrowserStorage>();
         services.AddScoped<WalkthroughState>();
+        services.AddScoped<NewGameState>();
     }
 
     private static void RegisterDemoServices(IServiceCollection services)
@@ -117,7 +119,7 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
+        RegisterDemoServices(ctx.Services);
 
         // Act
         var component = ctx.RenderComponent<MainLayout>();
@@ -347,9 +349,10 @@ public sealed class ComponentRender_Tests
         var component = ctx.RenderComponent<PokerTable>(parameters => parameters
             .Add(p => p.GameData, null));
 
-        // Assert - no hand, so no seats and no action bar, but the top bar and New Game are there
+        // Assert - no hand, so no seats, no street and no action bar; New Game is in the page header
         component.Markup.Should().Contain("poker-table");
-        component.Markup.Should().Contain("new-game-btn");
+        component.Markup.Should().NotContain("new-game-btn");
+        component.FindAll(".street-indicator").Should().BeEmpty();
         component.FindAll(".seat").Should().BeEmpty();
         component.FindAll(".action-bar").Should().BeEmpty();
     }
@@ -368,11 +371,16 @@ public sealed class ComponentRender_Tests
         var component = ctx.RenderComponent<PokerTable>(parameters => parameters
             .Add(p => p.GameData, session.CurrentGame));
 
-        // Assert - both seats, and the street, the summary and the action bar all on the table
+        // Assert - both seats, the street between the top row and the board, and the action bar on
+        // the table; the session's summary is in the page header, not here
         component.Markup.Should().Contain("Player 1");
         component.Markup.Should().Contain("Player 2");
-        component.FindAll(".table-top-bar .street-indicator").Should().HaveCount(1);
-        component.FindAll(".table-top-bar .game-summary").Should().HaveCount(1);
+        component.FindAll(".table-top-bar").Should().BeEmpty();
+        component.FindAll(".game-summary").Should().BeEmpty();
+        component.FindAll(".street-indicator").Should().HaveCount(1);
+        var street = component.Find(".poker-table > .street-indicator");
+        street.PreviousElementSibling!.ClassList.Should().Contain("table-seats-row");
+        street.NextElementSibling!.ClassList.Should().Contain("table-center");
         component.FindAll(".poker-table > .action-bar").Should().HaveCount(1);
     }
 
@@ -595,7 +603,9 @@ public sealed class ComponentRender_Tests
         component.FindAll(".action-bar .raise-btn").Should().HaveCount(1);
         component.FindAll(".action-bar .slider-input").Should().HaveCount(1);
         component.FindAll(".action-bar .raise-step-btn").Should().HaveCount(2);
-        component.FindAll(".action-bar .shortcut-btn").Should().HaveCount(3);
+        component.FindAll(".action-bar .shortcut-btn").Should().BeEmpty();
+        component.FindAll(".action-bar .quick-actions-btn").Should().HaveCount(1);
+        component.FindAll(".action-bar .raise-shortcuts").Should().BeEmpty();
         component.Find(".action-bar-info").TextContent.Should().Be($"{actor.Name} to act");
     }
 
@@ -632,8 +642,9 @@ public sealed class ComponentRender_Tests
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:F2}");
 
-        // Act - the All-in preset sizes the raise to the top of the window
-        component.FindAll(".shortcut-btn").Single(b => b.TextContent.Trim() == "All-in").Click();
+        // Act - the All-in preset in the Quick Actions menu sizes the raise to the top of the window
+        component.Find(".quick-actions-btn").Click();
+        component.FindAll(".quick-action-item").Single(item => item.TextContent.Trim() == "All-in").Click();
 
         // Assert - sized, but nothing was sent to the engine
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:F2}");
@@ -718,6 +729,77 @@ public sealed class ComponentRender_Tests
         component.Markup.Should().Contain("seat");
         component.Markup.Should().Contain("Player 1");
         component.Markup.Should().Contain("1000.00");
+    }
+
+    [TestMethod]
+    public void Seat_BadgesShareTheStackRow()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var seatData = new SeatData(SeatNo: 1, Name: "Player 1", Stack: 998m, StartHandStack: 1000m);
+
+        // Act
+        var component = ctx.RenderComponent<Seat>(parameters => parameters
+            .Add(p => p.SeatData, seatData)
+            .Add(p => p.IsDealer, true)
+            .Add(p => p.IsBigBlind, true));
+
+        // Assert - no row of its own for the badges: they sit beside the stack and its delta
+        component.FindAll(".seat-badges").Should().BeEmpty();
+        var stackRow = component.Find(".seat-stack");
+        stackRow.QuerySelectorAll(".badge-dealer").Should().HaveCount(1);
+        stackRow.QuerySelectorAll(".badge-big-blind").Should().HaveCount(1);
+        stackRow.QuerySelector(".stack-amount")!.TextContent.Should().Be("998.00");
+        stackRow.QuerySelector(".delta-negative")!.TextContent.Should().Be("(-2.00)");
+    }
+
+    [TestMethod]
+    public void Seat_WithoutBadges_RendersNoEmptyBadgeRow()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var seatData = new SeatData(SeatNo: 6, Name: "Player 6", Stack: 100m, StartHandStack: 100m);
+
+        // Act
+        var component = ctx.RenderComponent<Seat>(parameters => parameters
+            .Add(p => p.SeatData, seatData));
+
+        // Assert - the name is the seat's first line, with nothing reserved above it
+        component.Find(".seat").FirstElementChild!.ClassList.Should().Contain("seat-content");
+        component.Find(".seat-content").FirstElementChild!.ClassList.Should().Contain("seat-name");
+        component.FindAll(".badge").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Seat_LastAction_IsOneRowOfTypeAndSize()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var seatData = new SeatData(
+            SeatNo: 2,
+            Name: "Player 2",
+            Stack: 99m,
+            StartHandStack: 100m,
+            LastAction: new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 1m, 1));
+
+        // Act
+        var component = ctx.RenderComponent<Seat>(parameters => parameters
+            .Add(p => p.SeatData, seatData)
+            .Add(p => p.IsSmallBlind, true));
+
+        // Assert - the type and the size are the row's two children, side by side
+        var lastAction = component.Find(".seat-last-action");
+        lastAction.Children.Select(child => child.ClassName).Should().Equal("action-type", "action-size");
+        lastAction.Children.Select(child => child.TextContent).Should().Equal("SB", "1.00");
     }
 
     private static GameData CreateFinishedHandGameData()
@@ -940,7 +1022,7 @@ public sealed class ComponentRender_Tests
 
         // Assert
         component.Markup.Should().Contain("home-container");
-        component.Markup.Should().Contain("game-summary");
+        component.FindAll(".poker-table .seat").Should().HaveCount(DemoGameDefaults.MaxPlayers);
         session.CurrentGame.Should().NotBeNull();
         session.CurrentHand.Should().NotBeNull();
         session.CurrentHand!.Seats.Should().HaveCount(DemoGameDefaults.MaxPlayers);
@@ -963,7 +1045,7 @@ public sealed class ComponentRender_Tests
         var mainRegion = component.Find(".main-region");
         mainRegion.Children.Select(child => child.ClassName).Should().Equal("poker-table");
         mainRegion.QuerySelectorAll(".street-indicator").Should().HaveCount(1);
-        mainRegion.QuerySelectorAll(".game-summary").Should().HaveCount(1);
+        mainRegion.QuerySelectorAll(".game-summary").Should().BeEmpty();
         mainRegion.QuerySelectorAll(".action-bar").Should().HaveCount(1);
         component.Markup.Should().NotContain("hand-result-container");
         component.Markup.Should().NotContain("action-trigger-btn");
@@ -982,9 +1064,9 @@ public sealed class ComponentRender_Tests
         // Act
         var component = ctx.RenderComponent<Pages.Home>();
 
-        // Assert - the settings form is only ever reached through the New Game modal
+        // Assert - the settings form is only ever reached through the New Game modal, whose button
+        // is in the page header (MainLayout)
         component.Markup.Should().NotContain("game-setup-card");
-        component.Markup.Should().Contain("new-game-btn");
     }
 
     [TestMethod]
@@ -1042,6 +1124,10 @@ public sealed class ComponentRender_Tests
         CreateAndInitializeEngine(ctx.Services);
         var component = ctx.RenderComponent<Pages.Home>();
 
+        // The page deals its default hand as it loads; a click that lands while that boot render is
+        // still in flight is re-rendered only after it, so wait for the dealt hand first.
+        component.WaitForElement(".action-bar .action-btn");
+
         // Act
         component.Find(".companion-tab[data-companion=engine-calls]").Click();
 
@@ -1085,7 +1171,7 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterCommonServices(ctx.Services);
+        RegisterDemoServices(ctx.Services);
 
         // Act - Render MainLayout which contains an ErrorBoundary around @Body
         var component = ctx.RenderComponent<MainLayout>();
@@ -1095,6 +1181,50 @@ public sealed class ComponentRender_Tests
         component.Markup.Should().Contain("GitHub Repository");
         // The layout should render successfully
         component.Markup.Should().Contain("layout-full-height");
+    }
+
+    [TestMethod]
+    public async Task MainLayout_RendersTheGameSummaryInTheHeader()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var component = ctx.RenderComponent<MainLayout>();
+        component.FindAll(".layout-header .game-summary").Should().HaveCount(1);
+
+        // Act - a game starts after the layout rendered; the summary follows the session
+        await CreateGameWithHandAsync(ctx.Services);
+
+        // Assert
+        component.WaitForAssertion(() =>
+            component.Find(".layout-header .game-summary").TextContent.Should().Contain("50 / 100"));
+        component.FindAll(".layout-header .new-game-btn").Should().HaveCount(1);
+    }
+
+    [TestMethod]
+    public async Task MainLayout_NewGameButton_RequestsTheNewGameModal()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var requested = 0;
+        ctx.Services.GetRequiredService<NewGameState>().ShowRequested += () =>
+        {
+            requested++;
+            return Task.CompletedTask;
+        };
+
+        var component = ctx.RenderComponent<MainLayout>();
+
+        // Act
+        await component.Find(".layout-header .new-game-btn").ClickAsync(new MouseEventArgs());
+
+        // Assert - the header only asks; the game page owns the modal
+        requested.Should().Be(1);
     }
 
     [TestMethod]

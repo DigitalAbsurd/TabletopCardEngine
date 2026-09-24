@@ -306,9 +306,11 @@ has to be stopped afterwards — see [Gates](#gates).
 4. Create a six-handed game and play a hand to showdown, then start the next one. The table, the
    database inspector and the call log stay consistent at every step, and the console stays clean.
 5. Take every action through the action bar along the bottom of the table: it names the player on the
-   clock, the −/+ steps and the ½ Pot / Pot / All-in presets only size the raise, and once the hand is
-   finished it offers Next Hand and New Game instead. At 1500px and at 1280px wide and 900px high the
-   whole table — street steps, seats, board, pot and bar — is on screen without scrolling.
+   clock, the −/+ steps and the ½ Pot / Pot / All-in presets of the Quick Actions dropdown only size
+   the raise, and once the hand is finished it offers Next Hand and New Game instead. At 1500×900,
+   1280×900 and 1366×768, with the first-visit banner showing, the whole table — seats, street steps,
+   board, pot and bar — is on screen without scrolling, and the session's summary with New Game is in
+   the page header.
 6. In the inspector after that hand: `HandAction` holds rows keyed on `(GameId, HandNo, No, SeatNo)`,
    with `Street` and `ActionType` stored as text and cards as two-character strings.
 7. `getComputedStyle(document.documentElement).getPropertyValue(name)` is non-empty for every

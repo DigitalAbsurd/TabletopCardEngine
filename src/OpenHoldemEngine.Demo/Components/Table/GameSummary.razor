@@ -1,10 +1,11 @@
-@using AntDesign
+﻿@using AntDesign
 @using OpenHoldemEngine.Dto
 
 @* The settings the running session was created with. GameData.Options is the only record of them,
    and nothing else on the page renders it, so a visitor who never opened the New Game form would
-   otherwise have no way of knowing what they are playing. It sits in the table's top bar, so it is
-   one line rather than a panel; the initial dealer seat is left to the table's D badge. *@
+   otherwise have no way of knowing what they are playing. It sits in the page header, so it is one
+   line rather than a panel and costs the table no height; the initial dealer seat is left to the
+   table's D badge. *@
 <div class="game-summary">
     <div class="game-summary-items">
         <span class="game-summary-item">

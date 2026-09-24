@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using AntDesign;
+using Microsoft.AspNetCore.Components;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
@@ -9,8 +10,8 @@ namespace OpenHoldemEngine.Demo.Components.Table;
 /// <summary>
 /// The action bar along the bottom of the poker table. Fold, Check, Call and Raise are shown only
 /// when the matching action is available in HandData.Evaluations; the raise is sized with a slider,
-/// −/+ steps of one big blind and half-pot, pot and all-in presets that set the amount without
-/// submitting it. Once the hand is finished the bar offers Next Hand and New Game instead.
+/// −/+ steps of one big blind and a Quick Actions dropdown of half-pot, pot and all-in presets that
+/// set the amount without submitting it. Once the hand is finished the bar offers Next Hand and New Game instead.
 /// </summary>
 public partial class ActionPanel : ComponentBase
 {
@@ -36,6 +37,9 @@ public partial class ActionPanel : ComponentBase
     /// <summary>The demo session to apply actions through.</summary>
     [Inject]
     public DemoGameSession Session { get; set; } = null!;
+
+    /// <summary>The Quick Actions menu opens on a click, not on hover, so it never covers the bar uninvited.</summary>
+    private static readonly Trigger[] _quickActionsTrigger = [Trigger.Click];
 
     private decimal _raiseAmount;
     private bool _isSubmitting;
