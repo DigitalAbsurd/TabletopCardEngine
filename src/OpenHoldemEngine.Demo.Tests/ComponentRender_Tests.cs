@@ -1,4 +1,5 @@
-﻿using Bunit;
+﻿using AntDesign.JsInterop;
+using Bunit;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Data.Sqlite;
@@ -14,6 +15,7 @@ using OpenHoldemEngine.Demo.Layout;
 using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine.Demo.Tests;
 
@@ -21,6 +23,29 @@ namespace OpenHoldemEngine.Demo.Tests;
 [DoNotParallelize]
 public sealed class ComponentRender_Tests
 {
+    /// <summary>
+    /// Answers the three browser questions AntDesign asks on its first render — the window size for
+    /// Row's breakpoints, and the element geometry Select needs to size its dropdown.
+    /// </summary>
+    /// <remarks>
+    /// Loose JS interop hands each of them back as null, which the components then dereference: that
+    /// NullReferenceException is what the older tests here caught and ignored, and with it whatever
+    /// else was wrong with the render. Only <c>GetWindow</c> is a public constant in AntDesign
+    /// 0.17.0; the other two identifiers are built inside the library, so they are spelled out.
+    /// </remarks>
+    private static void SetupBrowserGeometryInterop(Bunit.TestContext ctx)
+    {
+        ctx.JSInterop
+            .Setup<Window>(AntDesign.JSInteropConstants.GetWindow)
+            .SetResult(new Window { InnerWidth = 1920, InnerHeight = 1080 });
+        ctx.JSInterop
+            .Setup<DomRect>("AntDesign.interop.domInfoHelper.getBoundingClientRect", _ => true)
+            .SetResult(new DomRect { Width = 320, Height = 32 });
+        ctx.JSInterop
+            .Setup<HtmlElement>("AntDesign.interop.domInfoHelper.getInfo", _ => true)
+            .SetResult(new HtmlElement());
+    }
+
     private static void RegisterCommonServices(IServiceCollection services)
     {
         services.AddAntDesign();
@@ -44,6 +69,7 @@ public sealed class ComponentRender_Tests
         // Register the connection for SqliteBrowser and other services
         services.AddSingleton(connection);
         services.AddScoped<SqliteBrowser>();
+        services.AddScoped<DemoDatabase>();
         services.AddScoped<DemoGameSession>();
         services.AddScoped<EngineCallSnippetWriter>();
         services.AddScoped<PhhCardShuffler>();
@@ -151,20 +177,29 @@ public sealed class ComponentRender_Tests
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
 
-        try
-        {
-            // Act - GameSetup depends on async session operations, so it may fail during render
-            var component = ctx.RenderComponent<GameSetup>();
+        // Act
+        var component = ctx.RenderComponent<GameSetup>();
 
-            // Assert - if it renders without throwing, check the content
-            component.Markup.Should().Contain("Game Setup");
-        }
-        catch (System.NullReferenceException)
-        {
-            // GameSetup may fail during initialization due to null session state
-            // This is acceptable as we're testing component render coverage, not full functionality
-        }
+        // Assert
+        component.Markup.Should().Contain("Game Setup");
+    }
+
+    [TestMethod]
+    public void GameSetup_HasNoSubmitButtonOfItsOwn()
+    {
+        // Arrange - the host drives the form through ApplyAsync, from the modal's OK button
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+
+        // Act
+        var component = ctx.RenderComponent<GameSetup>();
+
+        // Assert
+        component.Markup.Should().NotContain("Create and Start Game");
     }
 
     [TestMethod]
@@ -174,24 +209,130 @@ public sealed class ComponentRender_Tests
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
 
-        try
-        {
-            // Act
-            var component = ctx.RenderComponent<GameSetup>();
+        // Act
+        var component = ctx.RenderComponent<GameSetup>();
 
-            // Assert - all five option labels should be present in the rendered markup
-            component.Markup.Should().Contain("2 (Heads-up)");
-            component.Markup.Should().Contain("Label=\"3\"");
-            component.Markup.Should().Contain("Label=\"4\"");
-            component.Markup.Should().Contain("Label=\"5\"");
-            component.Markup.Should().Contain("Label=\"6\"");
-        }
-        catch (System.NullReferenceException)
-        {
-            // GameSetup may fail during initialization due to null session state
-            // This is acceptable as we're testing component render coverage, not full functionality
-        }
+        // Assert - one option per supported table size, two through six
+        var options = component.FindComponents<AntDesign.SelectOption<int, int>>();
+        options.Should().HaveCount(5);
+        options.Select(option => option.Instance.Value).Should().Equal(2, 3, 4, 5, 6);
+        options.Select(option => option.Instance.Label).Should().Equal("2 (Heads-up)", "3", "4", "5", "6");
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_StartsAGameUnderTheFormSettings()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        var component = ctx.RenderComponent<GameSetup>();
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
+
+        // Act - the defaults are what the untouched form carries
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        session.CurrentGame.Should().NotBeNull();
+        session.CurrentGame!.Options.MaxPlayersCount.Should().Be(DemoGameDefaults.MaxPlayers);
+        session.CurrentGame.Options.InitialSmallBlind.Should().Be(DemoGameDefaults.SmallBlind);
+        session.CurrentHand.Should().NotBeNull();
+        session.CurrentHand!.Seats.Should().HaveCount(DemoGameDefaults.MaxPlayers);
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_ClearsThePreviousGamesRowsAndCalls()
+    {
+        // Arrange - a game is already running, as it always is on the single-screen demo
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        // The component resolves its services from bUnit's own provider, so the running game has to
+        // be created through that one too — a second provider would hand it a second session.
+        var (session, _) = await CreateGameWithHandAsync(ctx.Services);
+        var browser = ctx.Services.GetRequiredService<SqliteBrowser>();
+        var firstGameId = session.CurrentGameId;
+
+        var component = ctx.RenderComponent<GameSetup>();
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert - one game, one hand, and a journal holding only the two calls that started it
+        applied.Should().BeTrue();
+        session.CurrentGameId.Should().NotBe(firstGameId);
+        browser.GetRowCount("Game").Should().Be(1);
+        browser.GetRowCount("Hand").Should().Be(1);
+        session.Journal.Entries.Should().HaveCount(2);
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_UninstallsAReplaysCardShuffler()
+    {
+        // Arrange - a replay leaves its deck in the process-wide options singleton (fact 16)
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        var shuffler = ctx.Services.GetRequiredService<PhhCardShuffler>();
+        _ = new HoldemEngineOptionsBuilder().WithCardShuffler(shuffler);
+        HoldemEngineOptions.Instance.CardShuffler.Should().NotBeNull();
+
+        var component = ctx.RenderComponent<GameSetup>();
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert - the new game deals at random, rather than replaying the imported hand's cards
+        applied.Should().BeTrue();
+        HoldemEngineOptions.Instance.CardShuffler.Should().BeNull();
+    }
+
+    [TestMethod]
+    public void GameSummary_RendersTheOptionsItIsGiven()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var gameData = new GameData(
+            GameId: Guid.NewGuid(),
+            Options: new GameOptionData(MaxPlayersCount: 6, InitialSmallBlind: 5m, InitialDealerSeatNo: 3),
+            HandData: BuildHandDataWithSeats(6));
+
+        // Act
+        var component = ctx.RenderComponent<GameSummary>(parameters => parameters
+            .Add(p => p.GameData, gameData));
+
+        // Assert - blinds are the small blind and twice it, and the New Game button is on the bar
+        component.Markup.Should().Contain("5 / 10");
+        component.Markup.Should().Contain("new-game-btn");
+        component.Markup.Should().Contain("New Game");
+    }
+
+    [TestMethod]
+    public void GameSummary_WithoutGameData_RendersWithoutException()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<GameSummary>();
+
+        // Assert
+        component.Markup.Should().Contain("game-summary");
     }
 
     [TestMethod]
@@ -695,26 +836,63 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_Renders_WithoutException()
+    public void Home_OnFirstRender_DealsTheDefaultGame()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
 
-        try
-        {
-            // Act - Home page renders with or without a game
-            var component = ctx.RenderComponent<Pages.Home>();
+        // Act - no click, no form: opening the page is what starts the game
+        var component = ctx.RenderComponent<Pages.Home>();
 
-            // Assert - Should render with either GameSetup (no game) or table components
-            component.Markup.Should().Contain("home-container");
-        }
-        catch (System.NullReferenceException)
-        {
-            // Home page may fail during initialization due to null session state or dependencies
-            // This is acceptable as we're testing component render coverage
-        }
+        // Assert
+        component.Markup.Should().Contain("home-container");
+        component.Markup.Should().Contain("game-summary");
+        session.CurrentGame.Should().NotBeNull();
+        session.CurrentHand.Should().NotBeNull();
+        session.CurrentHand!.Seats.Should().HaveCount(DemoGameDefaults.MaxPlayers);
+    }
+
+    [TestMethod]
+    public void Home_RendersNoGameSetupScreen()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<Pages.Home>();
+
+        // Assert - the settings form is only ever reached through the New Game modal
+        component.Markup.Should().NotContain("game-setup-card");
+        component.Markup.Should().Contain("new-game-btn");
+    }
+
+    [TestMethod]
+    public void Home_KeepsTheCompanionPanelsWhileAGameRuns()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<Pages.Home>();
+
+        // Assert - import stays reachable now that a game is always running
+        component.Markup.Should().Contain("Database Inspector");
+        component.Markup.Should().Contain("Engine Calls");
+        component.Markup.Should().Contain("Hand History Import");
+        component.Markup.Should().Contain("Hand History Export");
     }
 
     [TestMethod]
@@ -760,19 +938,13 @@ public sealed class ComponentRender_Tests
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
 
-        try
-        {
-            // Act - Render Home page, which should render without throwing
-            var component = ctx.RenderComponent<Pages.Home>();
+        // Act - Render Home page, which should render without throwing
+        var component = ctx.RenderComponent<Pages.Home>();
 
-            // Assert - The home container should render
-            component.Markup.Should().Contain("home-container");
-        }
-        catch (System.NullReferenceException)
-        {
-            // Home page may fail during initialization due to null session state
-            // This is acceptable as we're testing the error boundary structure
-        }
+        // Assert - The home container should render
+        component.Markup.Should().Contain("home-container");
     }
 }

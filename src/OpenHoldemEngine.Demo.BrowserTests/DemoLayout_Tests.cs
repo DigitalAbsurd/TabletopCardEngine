@@ -69,16 +69,22 @@ public sealed class DemoLayout_Tests
             $"the browser gate publishes {DemoSite.DemoProjectPath}");
     }
 
+    /// <summary>
+    /// The demo has no setup screen: the game page is what loads, and New Game is the only way
+    /// back to the settings. The button is new markup above the table, so it is hit-tested for the
+    /// same reason the Create and Start Game button was — an overlay painted over it would leave a
+    /// visitor with a running game they cannot reconfigure.
+    /// </summary>
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GameSetup_CreateButtonIsItsOwnHitTarget(int viewportWidth)
+    public async Task DemoLayout_GamePage_NewGameButtonIsItsOwnHitTarget(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
 
-        IReadOnlyList<HitProbe> probes = await page.ProbeCreateGameButtonAsync();
+        IReadOnlyList<HitProbe> probes = await page.ProbeNewGameButtonAsync();
 
-        probes.Should().HaveCount(1, "Game Setup renders exactly one Create and Start Game button");
+        probes.Should().HaveCount(1, "the settings summary renders exactly one New Game button");
         AssertOwnHitTargets(probes);
         AssertNoConsoleErrors(page);
     }
@@ -89,7 +95,6 @@ public sealed class DemoLayout_Tests
     public async Task DemoLayout_GamePage_HasNoHorizontalOverflow(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
-        await page.CreateGameAsync();
 
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
 
@@ -117,7 +122,6 @@ public sealed class DemoLayout_Tests
     public async Task DemoLayout_GamePage_LayoutContentIsTheOnlyScrollContainer(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
-        await page.CreateGameAsync();
 
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
         ScrollMetrics documentScroller = await page.ReadScrollMetricsAsync(DemoPage.DocumentScrollerSelector);
@@ -169,7 +173,6 @@ public sealed class DemoLayout_Tests
     public async Task DemoLayout_GamePage_ActionButtonsAreTheirOwnHitTargets(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
-        await page.CreateGameAsync();
 
         // The action panel sits below the fold in a 900px viewport, so a visitor scrolls to it
         // before clicking. Where the trigger ends up is the question; getting there is not.
@@ -198,7 +201,6 @@ public sealed class DemoLayout_Tests
     public async Task DemoLayout_GamePage_ActionDoesNotMoveTheScrollContainer(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
-        await page.CreateGameAsync();
         await page.ScrollActionPanelIntoViewAsync();
 
         ScrollMetrics before = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
@@ -222,7 +224,6 @@ public sealed class DemoLayout_Tests
     public async Task DemoLayout_PlayingAHand_LogsNoConsoleErrors(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
-        await page.CreateGameAsync();
 
         int actions = 0;
         while (actions < MaximumActionsPerHand && await page.TryTakeGameActionAsync())

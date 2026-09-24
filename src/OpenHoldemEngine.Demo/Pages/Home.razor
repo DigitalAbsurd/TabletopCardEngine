@@ -1,10 +1,12 @@
 ﻿@page "/"
 @using AntDesign
+@using Microsoft.AspNetCore.Components.Web
 @using OpenHoldemEngine.Demo.Services
 @using OpenHoldemEngine.Demo.Components.Database
 @using OpenHoldemEngine.Demo.Components.Phh
 @using OpenHoldemEngine.Demo.Components
 @using OpenHoldemEngine.Demo.Components.EngineCalls
+@using OpenHoldemEngine.Demo.Components.Table
 @implements IAsyncDisposable
 @inject BrowserStorage Storage
 @inject DemoGameSession Session
@@ -35,35 +37,41 @@
         ShowIcon="true" />
 }
 
+@if (!string.IsNullOrEmpty(_bootErrorMessage))
+{
+    <Alert
+        Message="The demo game could not be started"
+        Description="@_bootErrorMessage"
+        Type="@AlertType.Error"
+        Closable="false"
+        Class="storage-alert"
+        ShowIcon="true" />
+}
+
 <div class="home-container">
     <ErrorBoundary @ref="_tableErrorBoundary">
         <ChildContent>
             <div class="main-region">
-                @if (Session.CurrentGame is not null)
+                <GameSummary GameData="@Session.CurrentGame" OnNewGame="@OpenNewGameModalAsync" />
+
+                @if (Session.CurrentHand is not null)
                 {
-                    @if (Session.CurrentHand is not null)
-                    {
-                        <StreetIndicator Street="@Session.CurrentHand.Street" />
-                    }
-
-                    <PokerTable HandData="@Session.CurrentHand" />
-
-                    @if (Session.CurrentHand is not null)
-                    {
-                        <ActionPanel HandData="@Session.CurrentHand" />
-                    }
-
-                    <HandHistory CurrentGameData="@Session.CurrentGame" />
-
-                    <HandResult
-                        GameData="@Session.CurrentGame"
-                        OnNextHand="@OnNextHandAsync"
-                        OnNewGame="@OnNewGameAsync" />
+                    <StreetIndicator Street="@Session.CurrentHand.Street" />
                 }
-                else
+
+                <PokerTable HandData="@Session.CurrentHand" />
+
+                @if (Session.CurrentHand is not null)
                 {
-                    <GameSetup />
+                    <ActionPanel HandData="@Session.CurrentHand" />
                 }
+
+                <HandHistory CurrentGameData="@Session.CurrentGame" />
+
+                <HandResult
+                    GameData="@Session.CurrentGame"
+                    OnNextHand="@OnNextHandAsync"
+                    OnNewGame="@OpenNewGameModalAsync" />
             </div>
         </ChildContent>
         <ErrorContent Context="ex">
@@ -74,63 +82,72 @@
     </ErrorBoundary>
 
     <div class="companion-panels">
-        @if (Session.CurrentGame is null)
+        <div class="companion-panel database-panel">
+            <Collapse>
+                <Panel Header="Database Inspector" Key="database">
+                    <ErrorBoundary @ref="_databaseErrorBoundary">
+                        <ChildContent>
+                            <DatabaseInspector />
+                        </ChildContent>
+                        <ErrorContent Context="ex">
+                            <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                                <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
+                            </div>
+                        </ErrorContent>
+                    </ErrorBoundary>
+                </Panel>
+            </Collapse>
+        </div>
+
+        <div class="companion-panel engine-calls-panel">
+            <Collapse>
+                <Panel Header="Engine Calls" Key="engine-calls" OnActiveChange="@OnEngineCallsPanelActiveChange">
+                    <ErrorBoundary @ref="_engineCallsErrorBoundary">
+                        <ChildContent>
+                            <EngineCalls @ref="_engineCallsComponent" />
+                        </ChildContent>
+                        <ErrorContent Context="ex">
+                            <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                                <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
+                            </div>
+                        </ErrorContent>
+                    </ErrorBoundary>
+                </Panel>
+            </Collapse>
+        </div>
+
+        <div class="companion-panel">
+            <HandHistoryImport OnHandSelected="@OnHandSelected" />
+        </div>
+
+        @if (_selectedHistoryHand is not null)
         {
-            <!-- Show hand history import when no game is active -->
             <div class="companion-panel">
-                <HandHistoryImport OnHandSelected="@OnHandSelected" />
-            </div>
-
-            @if (_selectedHistoryHand is not null)
-            {
-                <div class="companion-panel">
-                    <ReplayControls SelectedHand="@_selectedHistoryHand" />
-                </div>
-            }
-        }
-        else
-        {
-            <!-- Show database inspector and engine calls when game is active -->
-            <div class="companion-panel database-panel">
-                <Collapse>
-                    <Panel Header="Database Inspector" Key="database">
-                        <ErrorBoundary @ref="_databaseErrorBoundary">
-                            <ChildContent>
-                                <DatabaseInspector />
-                            </ChildContent>
-                            <ErrorContent Context="ex">
-                                <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                                    <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
-                                </div>
-                            </ErrorContent>
-                        </ErrorBoundary>
-                    </Panel>
-                </Collapse>
-            </div>
-
-            <div class="companion-panel engine-calls-panel">
-                <Collapse>
-                    <Panel Header="Engine Calls" Key="engine-calls" OnActiveChange="@OnEngineCallsPanelActiveChange">
-                        <ErrorBoundary @ref="_engineCallsErrorBoundary">
-                            <ChildContent>
-                                <EngineCalls @ref="_engineCallsComponent" />
-                            </ChildContent>
-                            <ErrorContent Context="ex">
-                                <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                                    <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
-                                </div>
-                            </ErrorContent>
-                        </ErrorBoundary>
-                    </Panel>
-                </Collapse>
-            </div>
-
-            <div class="companion-panel">
-                <HandHistoryExport />
+                <ReplayControls SelectedHand="@_selectedHistoryHand" />
             </div>
         }
+
+        <div class="companion-panel">
+            <HandHistoryExport />
+        </div>
     </div>
 </div>
+
+@* The settings form lives here and nowhere else: reconfiguring the session is a modal over the
+   running game, not a screen the demo navigates to. MaskClosable is off so the only ways out are
+   Apply, Cancel and the close button. *@
+<Modal Visible="_newGameVisible"
+    Title="New Game"
+    OkText="@ApplyLabel"
+    CancelText="@CancelLabel"
+    OnOk="OnNewGameOkAsync"
+    OnCancel="OnNewGameCancelAsync"
+    ConfirmLoading="_isApplying"
+    Width="720"
+    MaskClosable="false"
+    Closable="true">
+    <GameSetup @ref="_gameSetup" />
+</Modal>
 
 @code {
     private bool _showStorageAlert = false;
@@ -141,6 +158,13 @@
     private ErrorBoundary? _engineCallsErrorBoundary;
     private ErrorBoundary? _walkthroughErrorBoundary;
     private EngineCalls? _engineCallsComponent;
+    private GameSetup? _gameSetup;
+    private bool _newGameVisible;
+    private bool _isApplying;
+    private string? _bootErrorMessage;
+
+    private const string ApplyLabel = "Apply";
+    private const string CancelLabel = "Cancel";
 
     protected override async Task OnInitializedAsync()
     {
@@ -156,6 +180,35 @@
         }
 
         Session.StateChanged += OnSessionStateChanged;
+        Session.EngineError += OnBootEngineError;
+
+        await StartDefaultGameIfNeededAsync();
+
+        Session.EngineError -= OnBootEngineError;
+    }
+
+    /// <summary>
+    /// Deals the demo's default game on arrival. DemoGameSession is scoped and outlives a re-render
+    /// of this page, so an existing game is left alone rather than replaced.
+    /// </summary>
+    private async Task StartDefaultGameIfNeededAsync()
+    {
+        if (Session.CurrentGame is not null)
+        {
+            return;
+        }
+
+        if (!await Session.CreateGameAsync(DemoGameDefaults.CreateOptions()))
+        {
+            return;
+        }
+
+        await Session.StartFirstHandAsync(DemoGameDefaults.CreateJoinSeats());
+    }
+
+    private void OnBootEngineError(object? sender, EngineErrorEventArgs e)
+    {
+        _bootErrorMessage = e.Message;
     }
 
     private void OnSessionStateChanged(object? sender, EventArgs e)
@@ -181,19 +234,43 @@
         await Session.StartNextHandAsync();
     }
 
-    private async Task OnNewGameAsync()
+    /// <summary>Opens the New Game modal on a form that starts from the defaults every time.</summary>
+    private Task OpenNewGameModalAsync()
     {
-        // Unload any active replay and clear the shuffler from the engine options singleton
-        ReplayController.Unload();
-
-        // Clear the selected hand so replay controls disappear
-        _selectedHistoryHand = null;
-
-        // Reset the game session
-        Session.Reset();
-
-        await Task.CompletedTask;
+        _gameSetup?.ResetToDefaults();
+        _newGameVisible = true;
         StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task OnNewGameOkAsync(MouseEventArgs args)
+    {
+        if (_gameSetup is null)
+        {
+            return;
+        }
+
+        _isApplying = true;
+        try
+        {
+            // A failed apply keeps the modal open: the form is where the reason is shown.
+            if (await _gameSetup.ApplyAsync())
+            {
+                _bootErrorMessage = null;
+                _selectedHistoryHand = null;
+                _newGameVisible = false;
+            }
+        }
+        finally
+        {
+            _isApplying = false;
+        }
+    }
+
+    private Task OnNewGameCancelAsync(MouseEventArgs args)
+    {
+        _newGameVisible = false;
+        return Task.CompletedTask;
     }
 
     private Task OnHandSelected(HandHistoryImport.HandHistoryItem hand)

@@ -40,7 +40,12 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The Drawer's open state, set by AntDesign once its opening transition starts.</summary>
     public const string ActionDrawerOpenSelector = ".ant-drawer-open";
 
-    private const string CreateGameLabel = "Create and Start Game";
+    /// <summary>
+    /// The New Game button on the game page's settings summary. It is the only way into the
+    /// settings form now that the demo has no setup screen.
+    /// </summary>
+    public const string NewGameButtonSelector = ".new-game-btn";
+
     private const int BootTimeoutMilliseconds = 120_000;
 
     /// <summary>
@@ -69,25 +74,16 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>Console errors and unhandled exceptions seen since the tab was opened.</summary>
     public IReadOnlyList<string> ConsoleErrors => _consoleErrors;
 
-    /// <summary>Loads the demo and waits for the WebAssembly runtime to render Game Setup.</summary>
+    /// <summary>Loads the demo and waits for the hand it deals on arrival.</summary>
+    /// <remarks>
+    /// There is nothing to click on the way in any more: the page deals a default game as it loads,
+    /// so the boot signal is the action trigger — the same one that used to mean "the game this
+    /// test just created is running", and the only signal that means a hand is on the clock rather
+    /// than merely rendered.
+    /// </remarks>
     public async Task OpenAsync()
     {
         await _page.GotoAsync(_baseUrl);
-        await _page.Locator(".game-setup-card").WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
-        await _page.WaitForTimeoutAsync(SettleMilliseconds);
-    }
-
-    /// <summary>Creates the pre-filled game and waits for the action trigger of the first hand.</summary>
-    /// <remarks>
-    /// This used to wait for <c>.action-panel .primary-actions</c>, but that selector no longer
-    /// exists: the primary actions live inside the Drawer now, which is not a descendant of
-    /// <c>.action-panel</c>. Waiting on the trigger is also the correct fix rather than a
-    /// workaround — the trigger, not the (always-rendered-but-off-canvas) Drawer content, is
-    /// what a visitor actually sees and can click once a game starts.
-    /// </remarks>
-    public async Task CreateGameAsync()
-    {
-        await _page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = CreateGameLabel }).ClickAsync();
         await _page.Locator(ActionTriggerSelector).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
@@ -266,10 +262,10 @@ internal sealed class DemoPage : IAsyncDisposable
         return ProbeAsync(["button"], textPrefix);
     }
 
-    /// <summary>Hit-tests the Create and Start Game button of Game Setup.</summary>
-    public Task<IReadOnlyList<HitProbe>> ProbeCreateGameButtonAsync()
+    /// <summary>Hit-tests the New Game button on the game page's settings summary.</summary>
+    public Task<IReadOnlyList<HitProbe>> ProbeNewGameButtonAsync()
     {
-        return ProbeButtonByLabelAsync(CreateGameLabel);
+        return ProbeHitTargetsAsync(NewGameButtonSelector);
     }
 
     public async ValueTask DisposeAsync()

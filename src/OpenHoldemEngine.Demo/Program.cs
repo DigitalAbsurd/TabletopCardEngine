@@ -25,6 +25,7 @@ internal sealed class Program
         builder.Services.AddScoped<WalkthroughState>();
         builder.Services.AddScoped<DemoGameSession>();
         builder.Services.AddScoped<SqliteBrowser>();
+        builder.Services.AddScoped<DemoDatabase>();
         builder.Services.AddScoped<PhhCardShuffler>();
         builder.Services.AddScoped<PhhReplayController>();
 
