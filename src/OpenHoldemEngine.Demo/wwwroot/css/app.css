@@ -174,8 +174,12 @@ code {
 }
 
 /* Home page layout */
+/* A single line: on the first visit it sits above the table, and its height comes out of the space
+   the action bar needs at the bottom of a 768px-high screen. */
 .storage-alert {
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .home-container {
@@ -258,21 +262,28 @@ code {
     background: var(--ant-bg-container);
 }
 
-/* The running session's settings, on the right of the table's top bar. It wraps rather than
-   overflowing, because the main region is a grid column that narrows with the viewport. */
+/* The running session's settings, in the page header between the title and the header actions.
+   The header is one 64px line, so the summary never wraps; its items give way first. */
 .game-summary {
     display: flex;
-    flex-wrap: wrap;
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: 0.5rem 1rem;
-    margin-left: auto;
-    color: #fff;
+    gap: 1rem;
+    min-width: 0;
+    line-height: 1.5;
+    /* The header is always white (MainLayout.razor.css), so the colours follow its title rather than
+       the theme tokens, which turn light in dark mode. */
+    color: rgba(0, 0, 0, 0.85);
 }
 
 .game-summary-items {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .game-summary-item {
@@ -285,17 +296,17 @@ code {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(0, 0, 0, 0.45);
 }
 
 .game-summary-value {
     font-weight: 600;
 }
 
-/* The street, as small AntDesign Steps on the left of the table's top bar. AntDesign draws Steps
-   for a light background; on the green table its grey titles and tails would disappear. */
+/* The street, as small AntDesign Steps between the top seat row and the board. AntDesign draws
+   Steps for a light background; on the green table its grey titles and tails would disappear. */
 .street-indicator {
-    flex: 1 1 420px;
+    width: 100%;
     min-width: 0;
     max-width: 640px;
 }
@@ -396,9 +407,8 @@ code {
     border-color: #389e0d;
 }
 
-.action-bar .ant-btn.shortcut-btn {
-    flex: 1 1 0;
-    min-width: 0;
+.action-bar .ant-btn.quick-actions-btn {
+    flex: 0 0 auto;
 }
 
 .action-bar .ant-btn.raise-step-btn {
@@ -433,7 +443,11 @@ code {
     }
 }
 
-@media (max-width: 1366px) {
+/* 1365.98px, not 1366px: media ranges are inclusive at both ends, so at exactly 1366px the two
+   queries used to match together. This one then won with a single column, the companion's
+   grid-column: 2 from the one above opened an implicit auto-sized column beside it, and the table
+   was squeezed to 769px of a 1366px screen. */
+@media (max-width: 1365.98px) {
     /* Below 1366px, stack everything vertically */
     .home-container {
         grid-template-columns: 1fr;

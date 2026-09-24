@@ -41,6 +41,30 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The table, which holds the whole game area and must fit the viewport's height.</summary>
     public const string PokerTableSelector = ".poker-table";
 
+    /// <summary>The action bar along the bottom of the table, whose bottom edge must be on screen.</summary>
+    public const string ActionBarSelector = ".action-bar";
+
+    /// <summary>
+    /// The first-visit "in-memory only" banner above the table. A fresh browser context has not
+    /// dismissed it, so every page the gate opens shows it, which is the first visit being measured.
+    /// </summary>
+    public const string StorageAlertSelector = ".storage-alert";
+
+    /// <summary>The button that opens the raise presets on the action bar.</summary>
+    public const string QuickActionsButtonSelector = ".action-bar .quick-actions-btn";
+
+    /// <summary>
+    /// One preset in the Quick Actions menu. AntDesign renders the menu in an overlay outside the
+    /// bar, so the selector does not start from <see cref="ActionBarSelector"/>.
+    /// </summary>
+    public const string QuickActionItemSelector = ".quick-action-item";
+
+    /// <summary>The Raise button, whose label carries the amount the raise is sized to.</summary>
+    public const string RaiseButtonSelector = ".action-bar .raise-btn";
+
+    /// <summary>One entry in the engine-call log; the log is mounted even while its tab is hidden.</summary>
+    public const string EngineCallEntrySelector = ".engine-call-entry";
+
     /// <summary>
     /// The New Game button on the game page's settings summary. It is the only way into the
     /// settings form now that the demo has no setup screen.
@@ -240,6 +264,48 @@ internal sealed class DemoPage : IAsyncDisposable
             selector);
 
         return height ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>Reads the viewport-relative bottom edge of one element.</summary>
+    public async Task<double> ReadElementBottomAsync(string selector)
+    {
+        double? bottom = await _page.EvaluateAsync<double?>(
+            """
+            (selector) => {
+                const element = document.querySelector(selector);
+                return element === null ? null : element.getBoundingClientRect().bottom;
+            }
+            """,
+            selector);
+
+        return bottom ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>Counts the elements matching one selector.</summary>
+    public Task<int> CountAsync(string selector)
+    {
+        return _page.Locator(selector).CountAsync();
+    }
+
+    /// <summary>Reads the trimmed text of the first element matching one selector.</summary>
+    public async Task<string> ReadTextAsync(string selector)
+    {
+        string text = await _page.Locator(selector).First.InnerTextAsync();
+        return text.Trim();
+    }
+
+    /// <summary>
+    /// Opens the Quick Actions menu and picks one preset by its label, the way a visitor would, then
+    /// waits for the re-render.
+    /// </summary>
+    public async Task PickQuickActionAsync(string label)
+    {
+        await _page.Locator(QuickActionsButtonSelector).ClickAsync();
+
+        ILocator item = _page.Locator(QuickActionItemSelector).Filter(new LocatorFilterOptions { HasText = label });
+        await item.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+        await item.First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
     /// <summary>Reads the viewport-relative top edge of one element.</summary>

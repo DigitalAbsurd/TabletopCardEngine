@@ -22,9 +22,13 @@ appeared below 1366px and the horizontal overflow only mattered above it):
    every probe against `main.layout-content` read zeroes. At 1500px the page is meant to fit since
    issue #100, so there is nothing to scroll there.
 3. **The poker table fits the viewport's height** — `.poker-table` is no taller than
-   `main.layout-content`'s `clientHeight` in a 900px-high viewport. Issue #100 folded the street,
-   the game summary, the hand's outcome and the actions onto the table because the table alone
-   measured 904px against 836px of container.
+   `main.layout-content`'s `clientHeight`, and the bottom edge of `.action-bar` is above the
+   container's bottom edge, at 1500×900, 1280×900 and 1366×768 with the first-visit banner showing
+   and nothing scrolled. Issue #104 added the laptop size and the bar's edge: at 1366×768 the table
+   measured 758px against 704px and the bar ended off the bottom of the screen. Issue #100 had
+   folded the street, the game summary, the hand's outcome and the actions onto the table because
+   the table alone measured 904px against 836px of container; #104 moved the summary on into the
+   page header.
 4. **Every action button is its own hit target** — `document.elementFromPoint` at the centre of
    each returns that element or a descendant of it. Since issue #100 the actions sit on an inline
    action bar along the bottom of the table (`.action-bar`), rendered only while a seat is on the
@@ -34,6 +38,10 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 6. **No console errors** — during load, during game creation, and while a hand is played out. Each
    action taken by the gate clicks a button on the action bar, exactly as a visitor would; the hand
    is over when the bar offers Next Hand instead.
+7. **The Quick Actions presets size the raise and submit nothing** — the ½ Pot / Pot / All-in
+   presets are one AntDesign dropdown whose menu is an overlay outside the bar. The gate opens it,
+   picks All-in, and checks that the Raise button's amount changed while the engine-call log did
+   not grow.
 
 ## What it does not cover
 
@@ -50,7 +58,7 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 ## Running it
 
 The gate is **off by default**, because the first run downloads a browser and publishes the
-WebAssembly app. `dotnet test` at the repository root reports its seventeen browser checks as skipped
+WebAssembly app. `dotnet test` at the repository root reports its twenty browser checks as skipped
 and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
 
 ```bash
@@ -64,7 +72,7 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about one minute for the seventeen browser checks, plus the
+`wasm-tools` workload is required) and about one minute for the twenty browser checks, plus the
 browser download on a cold machine.
 
 Environment variables:

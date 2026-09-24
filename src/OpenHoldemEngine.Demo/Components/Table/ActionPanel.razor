@@ -1,4 +1,4 @@
-@using AntDesign
+﻿@using AntDesign
 @using OpenHoldemEngine.Data
 @using OpenHoldemEngine.Dto
 
@@ -98,12 +98,24 @@
 
             @if (HasAction(PlayerActionType.Raise) && !IsAllInOnly())
             {
+                @* One row: the presets behind a single dropdown, then the slider and the amount. A
+                   preset only sizes the raise; Raise is what submits it. The menu opens upwards,
+                   because the bar is the last thing on the table. *@
                 <div class="raise-controls">
-                    <div class="raise-shortcuts">
-                        <Button Size="small" OnClick="@(() => SetRaiseAmount(GetHalfPotRaise()))" Class="shortcut-btn">1/2 Pot</Button>
-                        <Button Size="small" OnClick="@(() => SetRaiseAmount(GetPotRaise()))" Class="shortcut-btn">Pot</Button>
-                        <Button Size="small" OnClick="@(() => SetRaiseAmount(GetAllInRaise()))" Class="shortcut-btn">All-in</Button>
-                    </div>
+                    <Dropdown Trigger="@_quickActionsTrigger" Placement="@Placement.TopLeft" OverlayClassName="quick-actions-menu">
+                        <Overlay>
+                            <Menu>
+                                <MenuItem Key="half-pot" Class="quick-action-item" OnClick="@(() => SetRaiseAmount(GetHalfPotRaise()))">1/2 Pot</MenuItem>
+                                <MenuItem Key="pot" Class="quick-action-item" OnClick="@(() => SetRaiseAmount(GetPotRaise()))">Pot</MenuItem>
+                                <MenuItem Key="all-in" Class="quick-action-item" OnClick="@(() => SetRaiseAmount(GetAllInRaise()))">All-in</MenuItem>
+                            </Menu>
+                        </Overlay>
+                        <ChildContent>
+                            <Button Size="small" Class="quick-actions-btn">
+                                Quick Actions <Icon Type="down" Theme="outline" />
+                            </Button>
+                        </ChildContent>
+                    </Dropdown>
 
                     <div class="raise-slider-row">
                         <Button

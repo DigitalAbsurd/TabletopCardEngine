@@ -28,6 +28,14 @@ public sealed class DemoLayout_Tests
     private const int NarrowViewportWidth = 1280;
     private const int ViewportHeight = 900;
 
+    /// <summary>
+    /// A common laptop screen. It is also the breakpoint itself: at exactly 1366px both of the
+    /// layout's media queries used to match, which squeezed the table to 769px (issue #104).
+    /// </summary>
+    private const int LaptopViewportWidth = 1366;
+
+    private const int LaptopViewportHeight = 768;
+
     /// <summary>Fold, Call and Raise are always offered to the first seat to act pre-flop.</summary>
     private const int MinimumActionButtons = 3;
 
@@ -71,9 +79,9 @@ public sealed class DemoLayout_Tests
 
     /// <summary>
     /// The demo has no setup screen: the game page is what loads, and New Game is the only way
-    /// back to the settings. The button is new markup above the table, so it is hit-tested for the
-    /// same reason the Create and Start Game button was — an overlay painted over it would leave a
-    /// visitor with a running game they cannot reconfigure.
+    /// back to the settings. Since issue #104 the button is in the page header, beside the session's
+    /// summary, so it is hit-tested for the same reason the Create and Start Game button was — an
+    /// overlay painted over it would leave a visitor with a running game they cannot reconfigure.
     /// </summary>
     [TestMethod]
     [DataRow(WideViewportWidth)]
@@ -145,24 +153,38 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
-    /// The table is the whole game area — street, seats, board, pot and action bar — and it has to
-    /// be readable and playable without scrolling. Issue #100 folded six stacked blocks into it
-    /// because the table alone measured 904px against 836px of scroll container at 900px high.
+    /// The table is the whole game area — seats, street, board, pot and action bar — and it has to
+    /// be readable and playable the moment the page opens, without scrolling. Issue #100 folded six
+    /// stacked blocks into it because the table alone measured 904px against 836px of scroll
+    /// container at 900px high. Issue #104 found that on a 1366x768 laptop, with the first-visit
+    /// banner above it, the table measured 758px against 704px and the bar ended at 893px — off the
+    /// bottom of the screen — so the bar's own bottom edge is asserted too, with the banner showing.
     /// </summary>
     [TestMethod]
-    [DataRow(WideViewportWidth)]
-    [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GamePage_PokerTableFitsTheViewportHeight(int viewportWidth)
+    [DataRow(WideViewportWidth, ViewportHeight)]
+    [DataRow(NarrowViewportWidth, ViewportHeight)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight)]
+    public async Task DemoLayout_GamePage_PokerTableFitsTheViewportHeight(int viewportWidth, int viewportHeight)
     {
-        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight);
+
+        int banners = await page.CountAsync(DemoPage.StorageAlertSelector);
+        banners.Should().Be(1, "a first visit shows the in-memory banner above the table, and that is the page measured");
 
         double tableHeight = await page.ReadElementHeightAsync(DemoPage.PokerTableSelector);
+        double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
+        double contentBottom = await page.ReadElementBottomAsync(DemoPage.LayoutContentSelector);
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
 
+        layoutContent.ScrollTop.Should().Be(0, $"nothing has been scrolled yet ({layoutContent})");
         tableHeight.Should().BeLessOrEqualTo(
             layoutContent.ClientHeight,
-            $"the poker table must fit the space under the header at {viewportWidth}x{ViewportHeight} "
+            $"the poker table must fit the space under the header at {viewportWidth}x{viewportHeight} "
             + $"(table: {tableHeight}px; {layoutContent})");
+        barBottom.Should().BeLessOrEqualTo(
+            contentBottom,
+            $"the action bar must be on screen when the page opens at {viewportWidth}x{viewportHeight} "
+            + $"(bar bottom: {barBottom}px; content bottom: {contentBottom}px)");
         AssertNoConsoleErrors(page);
     }
 
@@ -263,6 +285,36 @@ public sealed class DemoLayout_Tests
             MinimumActionButtons,
             "the first seat to act pre-flop is offered Fold, Call and Raise");
         AssertOwnHitTargets(probes);
+
+        IReadOnlyList<HitProbe> quickActions = await page.ProbeHitTargetsAsync(DemoPage.QuickActionsButtonSelector);
+        quickActions.Should().HaveCount(1, "the raise presets sit behind one Quick Actions button");
+        AssertOwnHitTargets(quickActions);
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// The ½ Pot / Pot / All-in presets are one dropdown since issue #104. Its menu is an AntDesign
+    /// overlay rendered outside the bar, which bUnit can only see as markup: this is where it is
+    /// opened and clicked for real. A preset sizes the raise and submits nothing.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_QuickActions_AllInSizesTheRaiseWithoutSubmitting(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+
+        string raiseBefore = await page.ReadTextAsync(DemoPage.RaiseButtonSelector);
+        int callsBefore = await page.CountAsync(DemoPage.EngineCallEntrySelector);
+
+        await page.PickQuickActionAsync("All-in");
+
+        string raiseAfter = await page.ReadTextAsync(DemoPage.RaiseButtonSelector);
+        int callsAfter = await page.CountAsync(DemoPage.EngineCallEntrySelector);
+
+        raiseAfter.Should().StartWith("Raise to ");
+        raiseAfter.Should().NotBe(raiseBefore, "All-in sizes the raise to the top of the window");
+        callsAfter.Should().Be(callsBefore, "a preset only sizes the raise; Raise is what submits it");
         AssertNoConsoleErrors(page);
     }
 
@@ -309,7 +361,7 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
-    private static async Task<DemoPage> OpenDemoAsync(int viewportWidth)
+    private static async Task<DemoPage> OpenDemoAsync(int viewportWidth, int viewportHeight = ViewportHeight)
     {
         if (!DemoSite.IsEnabled)
         {
@@ -320,7 +372,7 @@ public sealed class DemoLayout_Tests
 
         DemoSite site = _site ?? throw new InvalidOperationException("The demo site was not started.");
 
-        DemoPage page = await site.NewPageAsync(viewportWidth, ViewportHeight);
+        DemoPage page = await site.NewPageAsync(viewportWidth, viewportHeight);
         await page.OpenAsync();
         return page;
     }

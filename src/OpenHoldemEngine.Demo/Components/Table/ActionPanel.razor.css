@@ -1,24 +1,29 @@
-/*
+﻿/*
     Only the raw elements ActionPanel.razor writes itself are styled here: they carry the
     [b-xxxxxxxxxx] scope attribute, so these rules match. The AntDesign Buttons inside the bar do
     not, which is why their colours and sizes are in wwwroot/css/app.css (fact 22).
 */
+/* Edge to edge across the table, and one row wide enough for the buttons, the raise sizing and the
+   turn box side by side: a wrapped bar is a second row of height the table cannot spare. */
 .action-bar {
     display: flex;
     flex-wrap: wrap;
+    align-self: stretch;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem 1rem;
+    gap: 0.5rem 1rem;
     width: 100%;
-    padding: 0.6rem 0.75rem;
+    padding: 0.5rem 0.75rem;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
 }
 
+/* A zero basis, so the controls share the row with the turn box and wrap inside themselves on a
+   narrow screen rather than pushing the box onto a line of its own. */
 .action-bar-controls {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 0;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem 1.25rem;
@@ -27,28 +32,26 @@
 
 .action-bar-buttons {
     display: flex;
-    flex-wrap: wrap;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
     gap: 0.5rem;
 }
 
 .raise-controls {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    flex: 1 1 260px;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 300px;
     min-width: 0;
-    max-width: 420px;
-}
-
-.raise-shortcuts {
-    display: flex;
-    gap: 0.35rem;
 }
 
 .raise-slider-row {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     gap: 0.4rem;
+    min-width: 0;
 }
 
 .slider-input {
@@ -76,7 +79,7 @@
 
 /* The reference layout's text box: whose turn it is, in a panel of its own at the bar's right end. */
 .action-bar-info {
-    flex: 0 1 220px;
+    flex: 0 1 200px;
     min-width: 160px;
     padding: 0.5rem 0.75rem;
     border-radius: 6px;

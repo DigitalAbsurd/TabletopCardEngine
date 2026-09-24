@@ -2,7 +2,11 @@
 @using AntDesign
 @using OpenHoldemEngine.Demo.Services
 @using OpenHoldemEngine.Demo.Components
+@using OpenHoldemEngine.Demo.Components.Table
+@implements IDisposable
 @inject WalkthroughState WalkthroughState
+@inject NewGameState NewGameState
+@inject DemoGameSession Session
 
 @* The plain <div> is what makes MainLayout.razor.css work at all. A scoped stylesheet compiles
    ::deep X to [b-hash] X, and Blazor only puts the scope attribute on elements written as markup
@@ -17,6 +21,9 @@
                 <h1 class="layout-title">
                     <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
                 </h1>
+                @* The running session's settings are in the header rather than on the table, so the
+                   table's height goes to the seats, the board and the action bar. *@
+                <GameSummary GameData="@Session.CurrentGame" OnNewGame="RequestNewGame" />
                 <div class="layout-header-actions">
                     <Tooltip Title="Show the walkthrough">
                         <Button Type="@ButtonType.Text" Shape="@ButtonShape.Circle" AriaLabel="Show the walkthrough" OnClick="ShowWalkthrough" Class="layout-walkthrough-button">
@@ -49,6 +56,25 @@
 @code {
     private ErrorBoundary? _bodyErrorBoundary;
 
+    protected override void OnInitialized()
+    {
+        Session.StateChanged += OnSessionStateChanged;
+    }
+
+    /// <summary>
+    /// The session can raise this from outside the renderer's dispatcher, so the re-render is
+    /// marshalled onto it rather than requested directly.
+    /// </summary>
+    private void OnSessionStateChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RequestNewGame()
+    {
+        await NewGameState.RequestShowAsync();
+    }
+
     private async Task ShowWalkthrough()
     {
         await WalkthroughState.RequestShowAsync();
@@ -58,5 +84,10 @@
     {
         _bodyErrorBoundary?.Recover();
         await Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose()
+    {
+        Session.StateChanged -= OnSessionStateChanged;
     }
 }

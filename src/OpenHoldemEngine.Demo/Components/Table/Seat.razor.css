@@ -1,9 +1,9 @@
-.seat {
+﻿.seat {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.5rem 0.6rem;
+    gap: 0.25rem;
+    padding: 0.4rem 0.6rem;
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
@@ -30,18 +30,13 @@
     border-color: rgba(220, 20, 60, 0.5);
 }
 
-.seat-badges {
-    display: flex;
-    gap: 0.25rem;
-    min-height: 20px;
-}
-
 .badge {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     font-size: 10px;
     font-weight: 700;
@@ -68,7 +63,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.25rem;
+    flex: 1 1 auto;
     width: 100%;
     text-align: center;
 }
@@ -82,11 +78,16 @@
     max-width: 100%;
 }
 
+/* One line: the badges, the stack and the hand's delta. */
 .seat-stack {
     display: flex;
-    align-items: baseline;
-    gap: 0.35rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    min-height: 18px;
     font-size: 12px;
+    white-space: nowrap;
 }
 
 .stack-amount {
@@ -109,9 +110,16 @@
     gap: 0.35rem;
 }
 
+/* A single line pinned to the bottom of the seat: seats in a row share its height, so one without
+   a last action leaves its spare space under the cards rather than between them and the name. */
 .seat-last-action {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
     justify-content: center;
+    margin-top: auto;
+    white-space: nowrap;
     gap: 0.35rem;
     font-size: 12px;
     background: rgba(0, 0, 0, 0.3);
@@ -146,8 +154,8 @@
     }
 
     .badge {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         font-size: 10px;
     }
 }
