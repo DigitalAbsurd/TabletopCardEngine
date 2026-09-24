@@ -319,8 +319,8 @@ has to be stopped afterwards — see [Gates](#gates).
 9. The inspector's grid and the engine-call list each scroll inside their own bounded box: the panels
    stop growing as rows and calls accumulate, and neither pushes the page sideways. The call log
    follows the newest entry after each action, and returns to it after the list is scrolled by hand.
-10. Both companion panels are collapsed when the game page opens, and expanding one does not disturb
-    the table beside it.
+10. The Database Inspector tab is in front when the game page opens, exactly one companion is shown at
+    a time, and switching tabs on the rail does not disturb the table beside it.
 11. Reading the seats clockwise from the top-left of the table gives ascending seat numbers.
 12. The companion column beside the table is no wider than 30% of the table's own width, and no table,
     code block or button inside it pushes the page into a horizontal scrollbar.

@@ -89,6 +89,45 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
+    /// <summary>
+    /// The companions share one column behind a rail of tabs, Visual Studio style: the Database
+    /// Inspector is in front when the page opens, each tab is a click target of its own, and a
+    /// click shows exactly that companion. The panes are all mounted, so "shown" is measured as a
+    /// visible box rather than read from the markup.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_GamePage_CompanionTabsShowOnePaneAtATime(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.ScrollCompanionTabsIntoViewAsync();
+
+        IReadOnlyList<HitProbe> tabProbes = await page.ProbeHitTargetsAsync(DemoPage.CompanionTabSelector);
+        tabProbes.Should().HaveCount(DemoPage.CompanionKeys.Length, "the rail has one tab per companion");
+        AssertOwnHitTargets(tabProbes);
+
+        IReadOnlyList<string> visibleOnOpen = await page.ReadVisibleCompanionPanesAsync();
+        visibleOnOpen.Should().Equal(
+            [DemoPage.DatabaseCompanion],
+            "only the Database Inspector is shown when the game page opens");
+
+        foreach (string companion in DemoPage.CompanionKeys.Reverse())
+        {
+            await page.SelectCompanionTabAsync(companion);
+
+            IReadOnlyList<string> visible = await page.ReadVisibleCompanionPanesAsync();
+            visible.Should().Equal([companion], $"selecting the {companion} tab shows that companion alone");
+
+            ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+            layoutContent.ScrollWidth.Should().Be(
+                layoutContent.ClientWidth,
+                $"the {companion} companion must not push the page sideways at {viewportWidth}px ({layoutContent})");
+        }
+
+        AssertNoConsoleErrors(page);
+    }
+
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]

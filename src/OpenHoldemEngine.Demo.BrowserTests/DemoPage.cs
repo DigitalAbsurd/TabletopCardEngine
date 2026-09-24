@@ -46,6 +46,22 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     public const string NewGameButtonSelector = ".new-game-btn";
 
+    /// <summary>The tabs on the companion column's rail, one per companion.</summary>
+    public const string CompanionTabSelector = ".companion-tab";
+
+    /// <summary>The companion panes behind the rail; all are in the DOM, one is displayed.</summary>
+    public const string CompanionPaneSelector = ".companion-pane";
+
+    /// <summary>The companion shown when the game page opens.</summary>
+    public const string DatabaseCompanion = "database";
+
+    public const string EngineCallsCompanion = "engine-calls";
+
+    public const string HandHistoryCompanion = "hand-history";
+
+    /// <summary>Every companion key, in the order the rail shows them.</summary>
+    public static readonly string[] CompanionKeys = [DatabaseCompanion, EngineCallsCompanion, HandHistoryCompanion];
+
     private const int BootTimeoutMilliseconds = 120_000;
 
     /// <summary>
@@ -125,8 +141,8 @@ internal sealed class DemoPage : IAsyncDisposable
     /// Drawer renders its ChildContent unconditionally and only moves it off-screen when
     /// closed), so counting them would report actions as available even with a closed Drawer,
     /// and clicking one at that point would silently miss — it sits outside the viewport.
-    /// The Engine Calls panel may be collapsed, so it is expanded before opening the Drawer,
-    /// and before waiting for the new entry to be visible.
+    /// The Engine Calls pane is hidden while another companion tab is in front, so its tab is
+    /// selected before opening the Drawer, and before waiting for the new entry to be visible.
     /// </remarks>
     public async Task<bool> TryTakeGameActionAsync()
     {
@@ -136,26 +152,9 @@ internal sealed class DemoPage : IAsyncDisposable
             return false;
         }
 
-        // Expand the Engine Calls panel before opening the drawer, so the new entry will be visible
-        // after the action is taken
-        ILocator engineCallsPanel = _page.Locator(".ant-collapse-item").Filter(new LocatorFilterOptions { HasText = "Engine Calls" });
-        if (await engineCallsPanel.CountAsync() > 0)
-        {
-            ILocator panelItem = engineCallsPanel.Nth(0);
-            ILocator panelHeader = panelItem.Locator(".ant-collapse-header");
-            if (await panelHeader.CountAsync() > 0)
-            {
-                // Check if the panel is inactive (collapsed) by checking for the active class
-                string? classList = await _page.EvaluateAsync<string>(
-                    "el => el.className",
-                    await panelItem.ElementHandleAsync());
-                if (classList != null && !classList.Contains("ant-collapse-item-active"))
-                {
-                    await panelHeader.ClickAsync();
-                    await _page.WaitForTimeoutAsync(SettleMilliseconds);
-                }
-            }
-        }
+        // Bring the Engine Calls tab to the front before opening the drawer, so the new entry
+        // will be visible after the action is taken.
+        await SelectCompanionTabAsync(EngineCallsCompanion);
 
         await OpenActionDrawerAsync();
 
@@ -173,6 +172,50 @@ internal sealed class DemoPage : IAsyncDisposable
         await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
         return true;
+    }
+
+    /// <summary>
+    /// Clicks one companion's tab on the rail, unless it is already the selected one, and waits for
+    /// the re-render.
+    /// </summary>
+    public async Task SelectCompanionTabAsync(string companion)
+    {
+        ILocator tab = _page.Locator($"{CompanionTabSelector}[data-companion=\"{companion}\"]");
+        if (await tab.GetAttributeAsync("aria-selected") == "true")
+        {
+            return;
+        }
+
+        await tab.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// The <c>data-companion</c> key of every companion pane that currently has a visible box.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> ReadVisibleCompanionPanesAsync()
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => JSON.stringify(
+                Array.from(document.querySelectorAll(selector))
+                    .filter(pane => {
+                        const rect = pane.getBoundingClientRect();
+                        return rect.width > 0 && rect.height > 0;
+                    })
+                    .map(pane => pane.dataset.companion))
+            """,
+            CompanionPaneSelector);
+
+        return JsonSerializer.Deserialize<string[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The companion pane probe returned nothing.");
+    }
+
+    /// <summary>Scrolls the companion tab rail into view; below 1366px it sits under the table.</summary>
+    public async Task ScrollCompanionTabsIntoViewAsync()
+    {
+        await _page.Locator(".companion-tab-rail").ScrollIntoViewIfNeededAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
     /// <summary>Scrolls the action panel into view, the way a visitor reaching for a button would.</summary>
