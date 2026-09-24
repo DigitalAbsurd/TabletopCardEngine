@@ -75,60 +75,73 @@
             </div>
         </ChildContent>
         <ErrorContent Context="ex">
-            <div class="companion-panel" style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+            <div class="main-region" style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
                 <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnTableErrorRetryAsync())" />
             </div>
         </ErrorContent>
     </ErrorBoundary>
 
+    @* Visual Studio's tool-window layout: the table is the workspace, the companions share one
+       column behind a rail of named tabs, and exactly one of them is shown. Every pane stays
+       mounted and the inactive ones are only hidden, so the inspector keeps its selected table
+       and the call log its entries while another tab is in front. *@
     <div class="companion-panels">
-        <div class="companion-panel database-panel">
-            <Collapse>
-                <Panel Header="Database Inspector" Key="database">
-                    <ErrorBoundary @ref="_databaseErrorBoundary">
-                        <ChildContent>
-                            <DatabaseInspector />
-                        </ChildContent>
-                        <ErrorContent Context="ex">
-                            <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                                <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
-                            </div>
-                        </ErrorContent>
-                    </ErrorBoundary>
-                </Panel>
-            </Collapse>
-        </div>
-
-        <div class="companion-panel engine-calls-panel">
-            <Collapse>
-                <Panel Header="Engine Calls" Key="engine-calls" OnActiveChange="@OnEngineCallsPanelActiveChange">
-                    <ErrorBoundary @ref="_engineCallsErrorBoundary">
-                        <ChildContent>
-                            <EngineCalls @ref="_engineCallsComponent" />
-                        </ChildContent>
-                        <ErrorContent Context="ex">
-                            <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                                <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
-                            </div>
-                        </ErrorContent>
-                    </ErrorBoundary>
-                </Panel>
-            </Collapse>
-        </div>
-
-        <div class="companion-panel">
-            <HandHistoryImport OnHandSelected="@OnHandSelected" />
-        </div>
-
-        @if (_selectedHistoryHand is not null)
-        {
-            <div class="companion-panel">
-                <ReplayControls SelectedHand="@_selectedHistoryHand" />
+        <div class="companion-content">
+            <div id="companion-pane-@DatabaseCompanion" class="@PaneClass(DatabaseCompanion)" role="tabpanel" data-companion="@DatabaseCompanion">
+                <ErrorBoundary @ref="_databaseErrorBoundary">
+                    <ChildContent>
+                        <DatabaseInspector />
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
+                        </div>
+                    </ErrorContent>
+                </ErrorBoundary>
             </div>
-        }
 
-        <div class="companion-panel">
-            <HandHistoryExport />
+            <div id="companion-pane-@EngineCallsCompanion" class="@PaneClass(EngineCallsCompanion)" role="tabpanel" data-companion="@EngineCallsCompanion">
+                <ErrorBoundary @ref="_engineCallsErrorBoundary">
+                    <ChildContent>
+                        <EngineCalls @ref="_engineCallsComponent" />
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
+                        </div>
+                    </ErrorContent>
+                </ErrorBoundary>
+            </div>
+
+            <div id="companion-pane-@HandHistoryCompanion" class="@PaneClass(HandHistoryCompanion)" role="tabpanel" data-companion="@HandHistoryCompanion">
+                <HandHistoryImport OnHandSelected="@OnHandSelected" />
+
+                @if (_selectedHistoryHand is not null)
+                {
+                    <ReplayControls SelectedHand="@_selectedHistoryHand" />
+                }
+
+                <HandHistoryExport />
+            </div>
+        </div>
+
+        <div class="companion-tab-rail" role="tablist" aria-orientation="vertical">
+            @foreach (var tab in _companionTabs)
+            {
+                var isActive = tab.Key == _activeCompanion;
+                <button type="button"
+                    class="@(isActive ? "companion-tab companion-tab-active" : "companion-tab")"
+                    role="tab"
+                    data-companion="@tab.Key"
+                    aria-selected="@(isActive ? "true" : "false")"
+                    aria-controls="companion-pane-@tab.Key"
+                    aria-label="@tab.Title"
+                    title="@tab.Title"
+                    @onclick="@(() => SelectCompanion(tab.Key))">
+                    <Icon Type="@tab.Icon" Theme="outline" />
+                    <span class="companion-tab-label">@tab.Title</span>
+                </button>
+            }
         </div>
     </div>
 </div>
@@ -165,6 +178,55 @@
 
     private const string ApplyLabel = "Apply";
     private const string CancelLabel = "Cancel";
+
+    private const string DatabaseCompanion = "database";
+    private const string EngineCallsCompanion = "engine-calls";
+    private const string HandHistoryCompanion = "hand-history";
+
+    private static readonly CompanionTab[] _companionTabs =
+    [
+        new(DatabaseCompanion, "Database Inspector", "database"),
+        new(EngineCallsCompanion, "Engine Calls", "code"),
+        new(HandHistoryCompanion, "Hand History", "history"),
+    ];
+
+    private string _activeCompanion = DatabaseCompanion;
+
+    /// <summary>
+    /// Set when the Engine Calls tab comes to the front. The call log can only be scrolled once
+    /// its pane is displayed again, which is after the render that un-hides it.
+    /// </summary>
+    private bool _scrollEngineCallsAfterRender;
+
+    private sealed record CompanionTab(string Key, string Title, string Icon);
+
+    private string PaneClass(string key)
+    {
+        return key == _activeCompanion ? "companion-pane companion-pane-active" : "companion-pane";
+    }
+
+    private void SelectCompanion(string key)
+    {
+        if (key == _activeCompanion)
+        {
+            return;
+        }
+
+        _activeCompanion = key;
+        _scrollEngineCallsAfterRender = key == EngineCallsCompanion;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollEngineCallsAfterRender)
+        {
+            _scrollEngineCallsAfterRender = false;
+            if (_engineCallsComponent != null)
+            {
+                await _engineCallsComponent.ScrollToLatestEntryAsync();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -301,14 +363,6 @@
     {
         _walkthroughErrorBoundary?.Recover();
         await Task.CompletedTask;
-    }
-
-    private async Task OnEngineCallsPanelActiveChange(bool active)
-    {
-        if (active && _engineCallsComponent != null)
-        {
-            await _engineCallsComponent.ScrollToLatestEntryAsync();
-        }
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()
