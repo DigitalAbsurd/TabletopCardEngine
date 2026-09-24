@@ -27,18 +27,19 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The header bar, which stays put while the content scrolls underneath it.</summary>
     public const string HeaderSelector = "header.layout-header";
 
-    /// <summary>The action buttons, in the order the action panel renders them.</summary>
+    /// <summary>The action buttons, in the order the action bar renders them.</summary>
     public static readonly string[] ActionButtonSelectors =
         [".action-btn.fold-btn", ".action-btn.check-btn", ".action-btn.call-btn", ".action-btn.raise-btn"];
 
     /// <summary>
-    /// The trigger button that opens the action Drawer. It exists only when the seat to act has
-    /// legal actions — the same condition that used to gate <c>.action-panel .primary-actions</c>.
+    /// Any action button on the bar along the bottom of the table. The bar renders them only while
+    /// a seat is on the clock, so their presence means a hand is waiting for a decision, and their
+    /// absence that the hand is over.
     /// </summary>
-    public const string ActionTriggerSelector = ".action-trigger-btn";
+    public const string ActionBarButtonSelector = ".action-bar .action-btn";
 
-    /// <summary>The Drawer's open state, set by AntDesign once its opening transition starts.</summary>
-    public const string ActionDrawerOpenSelector = ".ant-drawer-open";
+    /// <summary>The table, which holds the whole game area and must fit the viewport's height.</summary>
+    public const string PokerTableSelector = ".poker-table";
 
     /// <summary>
     /// The New Game button on the game page's settings summary. It is the only way into the
@@ -93,31 +94,13 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>Loads the demo and waits for the hand it deals on arrival.</summary>
     /// <remarks>
     /// There is nothing to click on the way in any more: the page deals a default game as it loads,
-    /// so the boot signal is the action trigger — the same one that used to mean "the game this
-    /// test just created is running", and the only signal that means a hand is on the clock rather
-    /// than merely rendered.
+    /// so the boot signal is the first action button on the bar — the only signal that means a hand
+    /// is on the clock rather than merely rendered.
     /// </remarks>
     public async Task OpenAsync()
     {
         await _page.GotoAsync(_baseUrl);
-        await _page.Locator(ActionTriggerSelector).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
-        await _page.WaitForTimeoutAsync(SettleMilliseconds);
-    }
-
-    /// <summary>
-    /// Opens the action Drawer by clicking its trigger, and waits for it to finish opening.
-    /// A no-op if it is already open — the trigger stays in the DOM behind an open Drawer and a
-    /// click on it there would hit the Drawer's own body instead.
-    /// </summary>
-    public async Task OpenActionDrawerAsync()
-    {
-        if (await _page.Locator(ActionDrawerOpenSelector).CountAsync() > 0)
-        {
-            return;
-        }
-
-        await _page.Locator(ActionTriggerSelector).ClickAsync();
-        await _page.Locator(ActionDrawerOpenSelector).WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
@@ -132,37 +115,22 @@ internal sealed class DemoPage : IAsyncDisposable
     }
 
     /// <summary>
-    /// Opens the Drawer and takes the first available game action, or reports that the trigger
-    /// is absent — which is how the hand ends.
+    /// Takes the first available game action on the action bar, or reports that the bar offers
+    /// none — which is how the hand ends: a finished hand's bar shows Next Hand instead.
     /// </summary>
     /// <remarks>
-    /// Checking for the trigger rather than the action buttons themselves matters: the buttons
-    /// are always present in the DOM once a hand has offered them at least once (AntDesign's
-    /// Drawer renders its ChildContent unconditionally and only moves it off-screen when
-    /// closed), so counting them would report actions as available even with a closed Drawer,
-    /// and clicking one at that point would silently miss — it sits outside the viewport.
     /// The Engine Calls pane is hidden while another companion tab is in front, so its tab is
-    /// selected before opening the Drawer, and before waiting for the new entry to be visible.
+    /// selected before the action, and before waiting for the new entry to be visible.
     /// </remarks>
     public async Task<bool> TryTakeGameActionAsync()
     {
-        ILocator trigger = _page.Locator(ActionTriggerSelector);
-        if (await trigger.CountAsync() == 0)
-        {
-            return false;
-        }
-
-        // Bring the Engine Calls tab to the front before opening the drawer, so the new entry
-        // will be visible after the action is taken.
-        await SelectCompanionTabAsync(EngineCallsCompanion);
-
-        await OpenActionDrawerAsync();
-
-        ILocator buttons = _page.Locator(string.Join(", ", ActionButtonSelectors));
+        ILocator buttons = _page.Locator(ActionBarButtonSelector);
         if (await buttons.CountAsync() == 0)
         {
             return false;
         }
+
+        await SelectCompanionTabAsync(EngineCallsCompanion);
 
         ILocator entries = _page.Locator(".engine-call-entry");
         int before = await entries.CountAsync();
@@ -257,6 +225,21 @@ internal sealed class DemoPage : IAsyncDisposable
             ?? throw new InvalidOperationException("The scroll probe returned nothing.");
 
         return metrics with { Selector = selector };
+    }
+
+    /// <summary>Reads the rendered height of one element.</summary>
+    public async Task<double> ReadElementHeightAsync(string selector)
+    {
+        double? height = await _page.EvaluateAsync<double?>(
+            """
+            (selector) => {
+                const element = document.querySelector(selector);
+                return element === null ? null : element.getBoundingClientRect().height;
+            }
+            """,
+            selector);
+
+        return height ?? throw new InvalidOperationException($"No element matched {selector}.");
     }
 
     /// <summary>Reads the viewport-relative top edge of one element.</summary>

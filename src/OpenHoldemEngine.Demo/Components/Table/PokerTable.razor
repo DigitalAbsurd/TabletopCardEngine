@@ -1,99 +1,124 @@
 @using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
 
+@* The whole game area in one piece: the street and the session's settings along the top, the seats
+   around the board, and the action bar along the bottom. Nothing about the running hand is shown
+   anywhere else on the page, so nothing here is shown twice. *@
 <div class="poker-table">
-    @if (HandData is not null)
+    <div class="table-top-bar">
+        @if (Hand is not null)
+        {
+            <StreetIndicator Street="@Hand.Street" />
+        }
+        <GameSummary GameData="@GameData" OnNewGame="@OnNewGame" />
+    </div>
+
+    @if (Hand is not null)
     {
         <div class="table-seats-row">
-            @foreach (var seat in TopRowSeats(HandData))
+            @foreach (var seat in TopRowSeats(Hand))
             {
-                var isDealer = seat.SeatNo == HandData.DealerSeatNo;
-                var isSmallBlind = seat.SeatNo == HandData.SmallBlindSeatNo;
-                var isBigBlind = seat.SeatNo == HandData.BigBlindSeatNo;
-                var isActing = seat.SeatNo == HandData.NextPlayerSeatNo;
-
                 <Seat
                     SeatData="seat"
-                    IsDealer="isDealer"
-                    IsSmallBlind="isSmallBlind"
-                    IsBigBlind="isBigBlind"
-                    IsActing="isActing" />
+                    IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
+                    IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
+                    IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
+                    IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)" />
             }
         </div>
     }
 
     <div class="table-center">
-        <div class="table-info">
-            <div class="hand-info">
-                @if (HandData is not null)
-                {
-                    <div class="info-row">
-                        <span class="info-label">Hand:</span>
-                        <span class="info-value">@HandData.No</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Street:</span>
-                        <span class="info-value">@FormatStreet(HandData.Street)</span>
-                    </div>
-                }
-            </div>
-
-            <div class="community-cards">
-                @if (HandData?.CommunityCards is not null && HandData.CommunityCards.Length > 0)
-                {
-                    @foreach (var card in HandData.CommunityCards)
-                    {
-                        <PlayingCard Card="card" />
-                    }
-                }
-                else
-                {
-                    <div class="empty-board">No community cards</div>
-                }
-            </div>
-
-            <div class="pot-info">
-                @if (HandData is not null)
-                {
-                    var totalPot = HandData.Pot + HandData.StreetPot;
-                    <div class="pot-row">
-                        <span class="pot-label">Pot:</span>
-                        <span class="pot-value">@totalPot.ToString("F2")</span>
-                    </div>
-                    <div class="pot-breakdown">
-                        <span class="pot-small">Prior: @HandData.Pot.ToString("F2")</span>
-                        <span class="pot-small">Street: @HandData.StreetPot.ToString("F2")</span>
-                    </div>
-                }
-            </div>
-        </div>
-    </div>
-
-    @if (HandData is not null)
-    {
-        <div class="table-seats-row">
-            @foreach (var seat in BottomRowSeats(HandData))
+        <div class="community-cards">
+            @if (Hand?.CommunityCards is not null && Hand.CommunityCards.Length > 0)
             {
-                var isDealer = seat.SeatNo == HandData.DealerSeatNo;
-                var isSmallBlind = seat.SeatNo == HandData.SmallBlindSeatNo;
-                var isBigBlind = seat.SeatNo == HandData.BigBlindSeatNo;
-                var isActing = seat.SeatNo == HandData.NextPlayerSeatNo;
-
-                <Seat
-                    SeatData="seat"
-                    IsDealer="isDealer"
-                    IsSmallBlind="isSmallBlind"
-                    IsBigBlind="isBigBlind"
-                    IsActing="isActing" />
+                @foreach (var card in Hand.CommunityCards)
+                {
+                    <PlayingCard Card="card" />
+                }
+            }
+            else
+            {
+                <div class="empty-board">No community cards</div>
             }
         </div>
+
+        @if (Hand is not null)
+        {
+            <div class="pot-info">
+                <div class="pot-row">
+                    <span class="pot-label">Pot:</span>
+                    <span class="pot-value">@((Hand.Pot + Hand.StreetPot).ToString("F2"))</span>
+                </div>
+                <div class="pot-breakdown">
+                    <span class="pot-small">Prior: @Hand.Pot.ToString("F2")</span>
+                    <span class="pot-small">Street: @Hand.StreetPot.ToString("F2")</span>
+                    <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Length</span>
+                </div>
+            </div>
+
+            @if (IsHandFinished)
+            {
+                <div class="hand-results">
+                    @foreach (var seat in Hand.Seats.Where(s => s.HandResult is not null).OrderBy(s => s.SeatNo))
+                    {
+                        var net = seat.HandResult!.Net;
+                        <div class="hand-result @ResultClass(net)">
+                            <span class="hand-result-name">@seat.Name</span>
+                            <span class="hand-result-rank">@FormatRankType(seat.HandResult.RankType)</span>
+                            <span class="hand-result-net">@(net > 0 ? "+" : "")@net.ToString("F2")</span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    @if (Hand is not null)
+    {
+        <div class="table-seats-row">
+            @foreach (var seat in BottomRowSeats(Hand))
+            {
+                <Seat
+                    SeatData="seat"
+                    IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
+                    IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
+                    IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
+                    IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)" />
+            }
+        </div>
+
+        <ActionPanel
+            HandData="@Hand"
+            BigBlind="@BigBlind"
+            OnNextHand="@OnNextHand"
+            OnNewGame="@OnNewGame" />
     }
 </div>
 
 @code {
-    /// <summary>The current hand data to display, or null if no hand is in progress.</summary>
+    /// <summary>The game to display, or null before the first successful engine call.</summary>
     [Parameter]
-    public HandData? HandData { get; set; }
+    public GameData? GameData { get; set; }
+
+    /// <summary>Raised from the action bar once a hand is finished, to deal the next one.</summary>
+    [Parameter]
+    public EventCallback OnNextHand { get; set; }
+
+    /// <summary>Raised from the top bar or the finished-hand action bar; the host opens the settings modal.</summary>
+    [Parameter]
+    public EventCallback OnNewGame { get; set; }
+
+    /// <summary>
+    /// The dealt hand, or null. GameData.HandData is declared non-nullable but is <c>default!</c>
+    /// between CreateGame and the first StartHand (fact 3), and hand 0 is that same placeholder.
+    /// </summary>
+    private HandData? Hand => GameData?.HandData is { No: > 0 } hand ? hand : null;
+
+    /// <summary>The engine has no big-blind option: it is twice the small blind.</summary>
+    private decimal BigBlind => (GameData?.Options.InitialSmallBlind ?? 0m) * 2;
+
+    private bool IsHandFinished => Hand?.Street == Street.Finished;
 
     /// <summary>
     /// The top row, read left to right: the first half of the seats (rounded up), ascending by seat
@@ -111,17 +136,23 @@
 
     private static int TopRowCount(HandData handData) => (handData.Seats.Length + 1) / 2;
 
-    private static string FormatStreet(Street street)
+    private static string ResultClass(decimal net)
+        => net > 0 ? "result-winner" : net < 0 ? "result-loser" : "result-neutral";
+
+    private static string FormatRankType(HandRankType rankType)
     {
-        return street switch
+        return rankType switch
         {
-            Street.PreFlop => "Pre-Flop",
-            Street.Flop => "Flop",
-            Street.Turn => "Turn",
-            Street.River => "River",
-            Street.Showdown => "Showdown",
-            Street.Finished => "Finished",
-            _ => street.ToString()
+            HandRankType.HighCard => "High Card",
+            HandRankType.Pair => "Pair",
+            HandRankType.TwoPair => "Two Pair",
+            HandRankType.Trips => "Three of a Kind",
+            HandRankType.Straight => "Straight",
+            HandRankType.Flush => "Flush",
+            HandRankType.FullHouse => "Full House",
+            HandRankType.FourOfAKind => "Four of a Kind",
+            HandRankType.StraightFlush => "Straight Flush",
+            _ => "No Hand"
         };
     }
 }
