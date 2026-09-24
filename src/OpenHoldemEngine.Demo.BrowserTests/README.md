@@ -15,16 +15,15 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 
 1. **No horizontal overflow** — `scrollWidth === clientWidth` on `main.layout-content`.
 2. **`main.layout-content` is the page's only scroll container** — at both widths its computed
-   `overflow` is `auto` and `document.scrollingElement` neither scrolls nor overflows. At 1280px,
-   where the companions stack under the table and the page is taller than the viewport, the
-   container is also scrolled to its bottom and the header must not move. Before issue #72 none of
-   MainLayout's scoped rules applied, so the document scrolled and took the header with it while
-   every probe against `main.layout-content` read zeroes. At 1500px the page is meant to fit since
-   issue #100, so there is nothing to scroll there.
+   `overflow` is `auto` and `document.scrollingElement` neither scrolls nor overflows. At 1280×560,
+   where the table is taller than the space under the tab bar, the container is also scrolled to its
+   bottom and the header must not move. Before issue #72 none of MainLayout's scoped rules applied,
+   so the document scrolled and took the header with it while every probe against
+   `main.layout-content` read zeroes. Since issue #106 every pane fits a 900px-high screen, so the
+   scrolling half needs the short viewport.
 3. **The poker table fits the viewport's height** — `.poker-table` is no taller than
    `main.layout-content`'s `clientHeight`, and the bottom edge of `.action-bar` is above the
-   container's bottom edge, at 1500×900, 1280×900 and 1366×768 with the first-visit banner showing
-   and nothing scrolled. Issue #104 added the laptop size and the bar's edge: at 1366×768 the table
+   container's bottom edge, at 1500×900, 1280×900 and 1366×768 with nothing scrolled. Issue #104 added the laptop size and the bar's edge: at 1366×768 the table
    measured 758px against 704px and the bar ended off the bottom of the screen. Issue #100 had
    folded the street, the game summary, the hand's outcome and the actions onto the table because
    the table alone measured 904px against 836px of container; #104 moved the summary on into the
@@ -42,6 +41,15 @@ appeared below 1366px and the horizontal overflow only mattered above it):
    presets are one AntDesign dropdown whose menu is an overlay outside the bar. The gate opens it,
    picks All-in, and checks that the Raise button's amount changed while the engine-call log did
    not grow.
+8. **Tabs** — since issue #106 the table and its companions are four tabs on one horizontal bar
+   under the header. Each tab is its own hit target, Game Table is the only pane shown on open, a
+   click shows exactly that pane, and no pane pushes the page sideways.
+9. **Every pane fills the screen** — at 1500×900 and 1366×768 each tab's pane reaches the bottom of
+   `main.layout-content`, and the green table stretches with it. Before #106 the table ended at
+   660px of a 900px screen.
+10. **The storage warning is a notification** — an AntDesign notification below the tab bar, not a
+    banner above the table. The gate closes it on open everywhere else, so its overlay cannot answer
+    a hit-test meant for the page.
 
 ## What it does not cover
 
@@ -58,7 +66,7 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 ## Running it
 
 The gate is **off by default**, because the first run downloads a browser and publishes the
-WebAssembly app. `dotnet test` at the repository root reports its twenty browser checks as skipped
+WebAssembly app. `dotnet test` at the repository root reports its twenty-three browser checks as skipped
 and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
 
 ```bash
@@ -72,7 +80,7 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about one minute for the twenty browser checks, plus the
+`wasm-tools` workload is required) and about one minute for the twenty-three browser checks, plus the
 browser download on a cold machine.
 
 Environment variables:
