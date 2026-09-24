@@ -31,6 +31,12 @@
     --color-secondary-hover: #262626;
     --color-code-background: #fafafa;
     --color-code-text: #262626;
+
+    /* The page's vertical budget: the 64px header (MainLayout.razor.css), the tab bar under it, and
+       what is left for a tab's pane, which is the height every pane fills. */
+    --demo-header-height: 64px;
+    --demo-tab-bar-height: 44px;
+    --demo-pane-height: calc(100vh - var(--demo-header-height) - var(--demo-tab-bar-height));
 }
 
 /* Dark theme overrides */
@@ -173,93 +179,122 @@ code {
     text-align: start;
 }
 
-/* Home page layout */
-/* A single line: on the first visit it sits above the table, and its height comes out of the space
-   the action bar needs at the bottom of a 768px-high screen. */
-.storage-alert {
-    margin-bottom: 0.5rem;
-    padding-top: 4px;
-    padding-bottom: 4px;
-}
-
+/* Home page layout: one horizontal tab bar under the header, and the active tab's pane below it.
+   main.layout-content is the scroll container, so the bar sticks to its top when a tall pane
+   scrolls. */
 .home-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-}
-
-
-/* The companion column follows Visual Studio's tool windows: one content area and, on its right
-   edge, a rail of named tabs. Exactly one pane is displayed; the others stay mounted but hidden,
-   so switching tabs keeps each companion's own state. */
-.companion-panels {
-    display: flex;
-    align-items: stretch;
-    min-width: 0;
-}
-
-.companion-content {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-.companion-pane {
-    display: none;
-}
-
-.companion-pane-active {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    min-height: 100%;
 }
 
-.companion-tab-rail {
+.demo-tab-bar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    flex: 0 0 var(--demo-tab-bar-height);
+    align-items: stretch;
+    gap: 2px;
+    height: var(--demo-tab-bar-height);
+    box-sizing: border-box;
+    padding: 0 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--ant-bg-container);
+}
+
+.demo-tab {
     display: flex;
     flex: 0 0 auto;
-    flex-direction: column;
-    gap: 2px;
-    padding: 0 0 0 2px;
-    border-left: 1px solid var(--color-border);
-}
-
-.companion-tab {
-    display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 0.4rem;
-    writing-mode: vertical-rl;
+    padding: 0 0.9rem;
     border: none;
-    border-left: 3px solid transparent;
+    border-bottom: 3px solid transparent;
     background: transparent;
     color: var(--ant-text-color-secondary);
     font: inherit;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     white-space: nowrap;
     cursor: pointer;
 }
 
-/* An icon in vertical text would be rotated with the letters; keep it upright. */
-.companion-tab .anticon {
-    writing-mode: horizontal-tb;
+.demo-tab .anticon {
     font-size: 1rem;
 }
 
-.companion-tab:hover {
+.demo-tab:hover {
     color: var(--ant-text-color);
     background: var(--ant-table-row-hover-bg);
 }
 
-.companion-tab:focus-visible {
+.demo-tab:focus-visible {
     outline: 2px solid var(--ant-primary-color);
     outline-offset: -2px;
 }
 
-.companion-tab-active {
+.demo-tab-active {
     color: var(--ant-primary-color);
-    border-left-color: var(--ant-primary-color);
-    background: var(--ant-bg-container);
+    border-bottom-color: var(--ant-primary-color);
+}
+
+.demo-tab-content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* Exactly one pane is displayed; the others stay mounted but hidden, so switching tabs keeps each
+   one's own state. A pane is at least as tall as the space under the tab bar, so no tab leaves an
+   empty band at the bottom of the screen. */
+.demo-tab-pane {
+    display: none;
+}
+
+.demo-tab-pane-active {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    min-height: var(--demo-pane-height);
+    box-sizing: border-box;
+    padding: 0.75rem 16px;
+}
+
+/* The inspector and the call log are exactly one screen tall rather than at least one: their grid
+   and their list then have a bounded box to grow into and scroll inside, instead of growing the
+   page with every row and every call. */
+.demo-tab-pane-active[data-tab="database"],
+.demo-tab-pane-active[data-tab="engine-calls"] {
+    height: var(--demo-pane-height);
+    overflow: hidden;
+}
+
+/* The inspector's AntDesign Card carries no scoped attribute (fact 22), so the flex chain from the
+   pane down to its grid is written here. */
+.database-inspector-card {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.database-inspector-card > .ant-card-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* The table grows to the bottom of its pane. */
+.main-region {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
 }
 
 /* The running session's settings, in the page header between the title and the header actions.
@@ -416,78 +451,13 @@ code {
     font-weight: 700;
 }
 
-/* Responsive design */
-@media (min-width: 1366px) {
-    /* At 1366x768 and above, show the table prominently and side panels */
-    .home-container {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 0.3fr);
-        grid-template-rows: auto auto;
-    }
-
-    .main-region {
-        grid-column: 1;
-        grid-row: 1 / 3;
-        min-height: auto;
-    }
-
-    /* The column stays beside the table while the page scrolls, and is never taller than the
-       space under the 64px header, so the table remains the workspace and the rail stays in
-       reach. */
-    .companion-panels {
-        grid-column: 2;
-        grid-row: 1 / 3;
-        position: sticky;
-        top: 0;
-        align-self: start;
-        max-height: calc(100vh - 64px);
-    }
-}
-
-/* 1365.98px, not 1366px: media ranges are inclusive at both ends, so at exactly 1366px the two
-   queries used to match together. This one then won with a single column, the companion's
-   grid-column: 2 from the one above opened an implicit auto-sized column beside it, and the table
-   was squeezed to 769px of a 1366px screen. */
-@media (max-width: 1365.98px) {
-    /* Below 1366px, stack everything vertically */
-    .home-container {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .main-region {
-        order: 1;
-    }
-
-    /* In a single column the rail reads as an ordinary tab bar above the content. */
-    .companion-panels {
-        order: 2;
-        flex-direction: column-reverse;
-    }
-
-    .companion-tab-rail {
-        flex-direction: row;
-        flex-wrap: wrap;
-        padding: 0 0 2px 0;
-        border-left: none;
-        border-bottom: 1px solid var(--color-border);
-        margin-bottom: 1rem;
-    }
-
-    .companion-tab {
-        writing-mode: horizontal-tb;
-        padding: 0.5rem 0.75rem;
-        border-left: none;
-        border-bottom: 3px solid transparent;
-    }
-
-    .companion-tab-active {
-        border-bottom-color: var(--ant-primary-color);
-    }
-}
-
 @media (max-width: 768px) {
     /* Mobile layout */
-    .home-container {
-        gap: 1rem;
+    .demo-tab-bar {
+        padding: 0 8px;
+    }
+
+    .demo-tab-pane-active {
+        padding: 0.5rem 8px;
     }
 }

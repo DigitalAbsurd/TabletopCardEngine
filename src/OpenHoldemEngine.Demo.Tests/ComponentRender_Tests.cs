@@ -1090,7 +1090,7 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_CompanionTabs_DatabaseInspectorIsActiveOnOpen()
+    public void Home_Tabs_GameTableIsActiveOnOpen()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -1103,18 +1103,20 @@ public sealed class ComponentRender_Tests
         var component = ctx.RenderComponent<Pages.Home>();
 
         // Assert
-        var tabs = component.FindAll(".companion-tab");
-        tabs.Select(t => t.GetAttribute("data-companion")).Should().Equal("database", "engine-calls", "hand-history");
-        tabs.Select(t => t.GetAttribute("title")).Should().Equal("Database Inspector", "Engine Calls", "Hand History");
-        component.FindAll(".companion-tab[aria-selected=true]")
-            .Select(t => t.GetAttribute("data-companion")).Should().Equal("database");
-        component.FindAll(".companion-pane").Should().HaveCount(3, "every companion stays mounted behind the rail");
-        component.FindAll(".companion-pane-active")
-            .Select(p => p.GetAttribute("data-companion")).Should().Equal("database");
+        var tabs = component.FindAll(".demo-tab-bar .demo-tab");
+        tabs.Select(t => t.GetAttribute("data-tab")).Should().Equal("game-table", "database", "engine-calls", "hand-history");
+        tabs.Select(t => t.GetAttribute("title")).Should().Equal("Game Table", "Database Inspector", "Engine Calls", "Hand History");
+        component.FindAll(".demo-tab[aria-selected=true]")
+            .Select(t => t.GetAttribute("data-tab")).Should().Equal("game-table");
+        component.FindAll(".demo-tab-pane").Should().HaveCount(4, "every tab's pane stays mounted");
+        var active = component.Find(".demo-tab-pane-active");
+        active.GetAttribute("data-tab").Should().Be("game-table");
+        active.QuerySelectorAll(".poker-table").Should().HaveCount(1, "the table is the Game Table tab's content");
+        component.FindAll(".companion-tab-rail").Should().BeEmpty();
     }
 
     [TestMethod]
-    public void Home_CompanionTabs_ClickingATabShowsOnlyItsPane()
+    public void Home_Tabs_ClickingATabShowsOnlyItsPane()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -1129,22 +1131,67 @@ public sealed class ComponentRender_Tests
         component.WaitForElement(".action-bar .action-btn");
 
         // Act
-        component.Find(".companion-tab[data-companion=engine-calls]").Click();
+        component.Find(".demo-tab[data-tab=engine-calls]").Click();
 
         // Assert
-        component.FindAll(".companion-tab[aria-selected=true]")
-            .Select(t => t.GetAttribute("data-companion")).Should().Equal("engine-calls");
-        component.FindAll(".companion-pane-active")
-            .Select(p => p.GetAttribute("data-companion")).Should().Equal("engine-calls");
-        component.FindAll(".companion-pane").Should().HaveCount(3, "switching hides the other panes rather than unmounting them");
+        component.FindAll(".demo-tab[aria-selected=true]")
+            .Select(t => t.GetAttribute("data-tab")).Should().Equal("engine-calls");
+        component.FindAll(".demo-tab-pane-active")
+            .Select(p => p.GetAttribute("data-tab")).Should().Equal("engine-calls");
+        component.FindAll(".demo-tab-pane").Should().HaveCount(4, "switching hides the other panes rather than unmounting them");
+        component.FindAll(".poker-table").Should().HaveCount(1, "the hidden table stays mounted");
 
         // Act - the import, replay and export tools live together behind one tab
-        component.Find(".companion-tab[data-companion=hand-history]").Click();
+        component.Find(".demo-tab[data-tab=hand-history]").Click();
 
         // Assert
-        var active = component.Find(".companion-pane-active");
-        active.GetAttribute("data-companion").Should().Be("hand-history");
+        var active = component.Find(".demo-tab-pane-active");
+        active.GetAttribute("data-tab").Should().Be("hand-history");
         active.TextContent.Should().Contain("Hand History Import").And.Contain("Hand History Export");
+    }
+
+    [TestMethod]
+    public async Task Home_Tabs_ApplyingANewGameBringsTheGameTableToFront()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+        var component = ctx.RenderComponent<Pages.Home>();
+        component.WaitForElement(".action-bar .action-btn");
+        component.Find(".demo-tab[data-tab=database]").Click();
+
+        // Act - the header's New Game button asks through NewGameState; Apply is the modal's OK
+        await component.InvokeAsync(() => ctx.Services.GetRequiredService<NewGameState>().RequestShowAsync());
+        // The walkthrough is a modal too and is open under loose interop, so pick Apply by its label
+        var apply = component.FindAll(".ant-modal-footer button").Single(b => b.TextContent.Trim() == "Apply");
+        await apply.ClickAsync(new MouseEventArgs());
+
+        // Assert
+        component.WaitForAssertion(() =>
+            component.FindAll(".demo-tab[aria-selected=true]")
+                .Select(t => t.GetAttribute("data-tab")).Should().Equal("game-table"));
+        component.Find(".demo-tab-pane-active").GetAttribute("data-tab").Should().Be("game-table");
+    }
+
+    [TestMethod]
+    public void Home_RendersNoStorageBanner()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<Pages.Home>();
+
+        // Assert - the in-memory warning is an AntDesign notification now, which takes no height
+        // from the table; the browser gate sees it open
+        component.FindAll(".storage-alert").Should().BeEmpty();
     }
 
     [TestMethod]

@@ -292,9 +292,9 @@ project that both consumers reference.
 These are the checks no automated gate performs. Run them by hand once a batch of issues closes, and
 treat a failure here as a **new issue**, not as a note in a pull request.
 
-Run the layout ones at **1500px and at 1280px wide**: the layout switches to a single column below
-1366px, so a defect on either side of that breakpoint hides from a single width. And the dev server
-has to be stopped afterwards — see [Gates](#gates).
+Run the layout ones at **1500px and at 1280px wide**, and at 1366×768: a laptop screen is where the
+table's height budget is tightest. And the dev server has to be stopped afterwards — see
+[Gates](#gates).
 
 1. `dotnet build` and `dotnet test` from the repository root — the analyzer relaxations for the demo
    must not have loosened anything for the library or the tests.
@@ -308,9 +308,10 @@ has to be stopped afterwards — see [Gates](#gates).
 5. Take every action through the action bar along the bottom of the table: it names the player on the
    clock, the −/+ steps and the ½ Pot / Pot / All-in presets of the Quick Actions dropdown only size
    the raise, and once the hand is finished it offers Next Hand and New Game instead. At 1500×900,
-   1280×900 and 1366×768, with the first-visit banner showing, the whole table — seats, street steps,
-   board, pot and bar — is on screen without scrolling, and the session's summary with New Game is in
-   the page header.
+   1280×900 and 1366×768 the whole table — seats, street steps, board, pot and bar — is on screen
+   without scrolling, and the session's summary with New Game is in the page header. The "in-memory
+   only" warning is a notification below the tab bar that closes itself after ten seconds, not a
+   banner above the table.
 6. In the inspector after that hand: `HandAction` holds rows keyed on `(GameId, HandNo, No, SeatNo)`,
    with `Street` and `ActionType` stored as text and cards as two-character strings.
 7. `getComputedStyle(document.documentElement).getPropertyValue(name)` is non-empty for every
@@ -322,11 +323,12 @@ has to be stopped afterwards — see [Gates](#gates).
 9. The inspector's grid and the engine-call list each scroll inside their own bounded box: the panels
    stop growing as rows and calls accumulate, and neither pushes the page sideways. The call log
    follows the newest entry after each action, and returns to it after the list is scrolled by hand.
-10. The Database Inspector tab is in front when the game page opens, exactly one companion is shown at
-    a time, and switching tabs on the rail does not disturb the table beside it.
+10. The tabs — Game Table, Database Inspector, Engine Calls, Hand History — are one horizontal bar
+    under the header. Game Table is in front when the page opens and again after New Game is applied,
+    exactly one pane is shown at a time, and switching tabs does not disturb the hand on the table.
 11. Reading the seats clockwise from the top-left of the table gives ascending seat numbers.
-12. The companion column beside the table is no wider than 30% of the table's own width, and no table,
-    code block or button inside it pushes the page into a horizontal scrollbar.
+12. Every tab's pane reaches the bottom of the screen, with no empty band under it, and no table, code
+    block or button inside any pane pushes the page into a horizontal scrollbar.
 13. Import the bundled sample, replay a hand step by step, and confirm the final stacks match the
     recorded `finishing_stacks`. Then export that hand to `.phh`, re-import it, and confirm the action
     sequence is identical.

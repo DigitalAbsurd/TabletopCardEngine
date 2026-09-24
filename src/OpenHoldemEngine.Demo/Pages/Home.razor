@@ -8,7 +8,7 @@
 @using OpenHoldemEngine.Demo.Components.EngineCalls
 @using OpenHoldemEngine.Demo.Components.Table
 @implements IAsyncDisposable
-@inject BrowserStorage Storage
+@inject INotificationService Notice
 @inject DemoGameSession Session
 @inject PhhReplayController ReplayController
 @inject NewGameState NewGameState
@@ -26,110 +26,94 @@
     </ErrorContent>
 </ErrorBoundary>
 
-@if (_showStorageAlert)
-{
-    @* One line on purpose: it sits above the table on the first visit, and every pixel it takes is
-       one the action bar loses at the bottom of a 768px-high screen. *@
-    <Alert
-        Message="The game lives in this tab's memory only: a reload discards it. Export hands to .phh to keep them."
-        Type="@AlertType.Info"
-        Closable="true"
-        OnClose="@OnAlertClose"
-        Class="storage-alert"
-        ShowIcon="true" />
-}
-
-@if (!string.IsNullOrEmpty(_bootErrorMessage))
-{
-    <Alert
-        Message="The demo game could not be started"
-        Description="@_bootErrorMessage"
-        Type="@AlertType.Error"
-        Closable="false"
-        Class="storage-alert"
-        ShowIcon="true" />
-}
-
 <div class="home-container">
-    <ErrorBoundary @ref="_tableErrorBoundary">
-        <ChildContent>
-            @* The table is the whole region: the street, the session's settings, the hand's outcome
-               and the action bar are all drawn on it, so nothing about the hand is shown twice. *@
-            <div class="main-region">
-                <PokerTable
-                    GameData="@Session.CurrentGame"
-                    OnNextHand="@OnNextHandAsync"
-                    OnNewGame="@OpenNewGameModalAsync" />
-            </div>
-        </ChildContent>
-        <ErrorContent Context="ex">
-            <div class="main-region" style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnTableErrorRetryAsync())" />
-            </div>
-        </ErrorContent>
-    </ErrorBoundary>
-
-    @* Visual Studio's tool-window layout: the table is the workspace, the companions share one
-       column behind a rail of named tabs, and exactly one of them is shown. Every pane stays
+    @* One horizontal tab bar under the header, and one pane per tab below it. Every pane stays
        mounted and the inactive ones are only hidden, so the inspector keeps its selected table
        and the call log its entries while another tab is in front. *@
-    <div class="companion-panels">
-        <div class="companion-content">
-            <div id="companion-pane-@DatabaseCompanion" class="@PaneClass(DatabaseCompanion)" role="tabpanel" data-companion="@DatabaseCompanion">
-                <ErrorBoundary @ref="_databaseErrorBoundary">
-                    <ChildContent>
-                        <DatabaseInspector />
-                    </ChildContent>
-                    <ErrorContent Context="ex">
-                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
-                        </div>
-                    </ErrorContent>
-                </ErrorBoundary>
-            </div>
+    <div class="demo-tab-bar" role="tablist" aria-orientation="horizontal">
+        @foreach (var tab in _tabs)
+        {
+            var isActive = tab.Key == _activeTab;
+            <button type="button"
+                class="@(isActive ? "demo-tab demo-tab-active" : "demo-tab")"
+                role="tab"
+                data-tab="@tab.Key"
+                aria-selected="@(isActive ? "true" : "false")"
+                aria-controls="demo-pane-@tab.Key"
+                title="@tab.Title"
+                @onclick="@(() => SelectTab(tab.Key))">
+                <Icon Type="@tab.Icon" Theme="outline" />
+                <span class="demo-tab-label">@tab.Title</span>
+            </button>
+        }
+    </div>
 
-            <div id="companion-pane-@EngineCallsCompanion" class="@PaneClass(EngineCallsCompanion)" role="tabpanel" data-companion="@EngineCallsCompanion">
-                <ErrorBoundary @ref="_engineCallsErrorBoundary">
-                    <ChildContent>
-                        <EngineCalls @ref="_engineCallsComponent" />
-                    </ChildContent>
-                    <ErrorContent Context="ex">
-                        <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
-                            <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
-                        </div>
-                    </ErrorContent>
-                </ErrorBoundary>
-            </div>
+    <div class="demo-tab-content">
+        <div id="demo-pane-@GameTableTab" class="@PaneClass(GameTableTab)" role="tabpanel" data-tab="@GameTableTab">
+            @if (!string.IsNullOrEmpty(_bootErrorMessage))
+            {
+                <Alert
+                    Message="The demo game could not be started"
+                    Description="@_bootErrorMessage"
+                    Type="@AlertType.Error"
+                    Closable="false"
+                    ShowIcon="true" />
+            }
 
-            <div id="companion-pane-@HandHistoryCompanion" class="@PaneClass(HandHistoryCompanion)" role="tabpanel" data-companion="@HandHistoryCompanion">
-                <HandHistoryImport OnHandSelected="@OnHandSelected" />
-
-                @if (_selectedHistoryHand is not null)
-                {
-                    <ReplayControls SelectedHand="@_selectedHistoryHand" />
-                }
-
-                <HandHistoryExport />
-            </div>
+            <ErrorBoundary @ref="_tableErrorBoundary">
+                <ChildContent>
+                    @* The table is the whole pane: the street, the hand's outcome and the action bar
+                       are all drawn on it, so nothing about the hand is shown twice. *@
+                    <div class="main-region">
+                        <PokerTable
+                            GameData="@Session.CurrentGame"
+                            OnNextHand="@OnNextHandAsync"
+                            OnNewGame="@OpenNewGameModalAsync" />
+                    </div>
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    <div class="main-region" style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                        <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnTableErrorRetryAsync())" />
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
         </div>
 
-        <div class="companion-tab-rail" role="tablist" aria-orientation="vertical">
-            @foreach (var tab in _companionTabs)
+        <div id="demo-pane-@DatabaseTab" class="@PaneClass(DatabaseTab)" role="tabpanel" data-tab="@DatabaseTab">
+            <ErrorBoundary @ref="_databaseErrorBoundary">
+                <ChildContent>
+                    <DatabaseInspector />
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                        <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnDatabaseErrorRetryAsync())" />
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </div>
+
+        <div id="demo-pane-@EngineCallsTab" class="@PaneClass(EngineCallsTab)" role="tabpanel" data-tab="@EngineCallsTab">
+            <ErrorBoundary @ref="_engineCallsErrorBoundary">
+                <ChildContent>
+                    <EngineCalls @ref="_engineCallsComponent" />
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    <div style="background: #fff2f0; border: 1px solid #ffccc7; border-radius: 4px; padding: 16px; color: #cf1322;">
+                        <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnEngineCallsErrorRetryAsync())" />
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </div>
+
+        <div id="demo-pane-@HandHistoryTab" class="@PaneClass(HandHistoryTab)" role="tabpanel" data-tab="@HandHistoryTab">
+            <HandHistoryImport OnHandSelected="@OnHandSelected" />
+
+            @if (_selectedHistoryHand is not null)
             {
-                var isActive = tab.Key == _activeCompanion;
-                <button type="button"
-                    class="@(isActive ? "companion-tab companion-tab-active" : "companion-tab")"
-                    role="tab"
-                    data-companion="@tab.Key"
-                    aria-selected="@(isActive ? "true" : "false")"
-                    aria-controls="companion-pane-@tab.Key"
-                    aria-label="@tab.Title"
-                    title="@tab.Title"
-                    @onclick="@(() => SelectCompanion(tab.Key))">
-                    <Icon Type="@tab.Icon" Theme="outline" />
-                    <span class="companion-tab-label">@tab.Title</span>
-                </button>
+                <ReplayControls SelectedHand="@_selectedHistoryHand" />
             }
+
+            <HandHistoryExport />
         </div>
     </div>
 </div>
@@ -151,9 +135,7 @@
 </Modal>
 
 @code {
-    private bool _showStorageAlert = false;
     private HandHistoryImport.HandHistoryItem? _selectedHistoryHand;
-    private const string StorageAlertKey = "ohe-demo-storage-alert-dismissed";
     private ErrorBoundary? _tableErrorBoundary;
     private ErrorBoundary? _databaseErrorBoundary;
     private ErrorBoundary? _engineCallsErrorBoundary;
@@ -167,18 +149,32 @@
     private const string ApplyLabel = "Apply";
     private const string CancelLabel = "Cancel";
 
-    private const string DatabaseCompanion = "database";
-    private const string EngineCallsCompanion = "engine-calls";
-    private const string HandHistoryCompanion = "hand-history";
+    /// <summary>
+    /// The storage warning closes itself after this many seconds. It is a notification rather
+    /// than a banner so that it takes no height from the table.
+    /// </summary>
+    private const double StorageNoticeSeconds = 10;
 
-    private static readonly CompanionTab[] _companionTabs =
+    /// <summary>
+    /// The notification's distance from the top of the window: the 64px header and the 44px tab
+    /// bar (--demo-header-height and --demo-tab-bar-height in app.css), plus a small gap.
+    /// </summary>
+    private const double StorageNoticeTop = 64 + 44 + 12;
+
+    private const string GameTableTab = "game-table";
+    private const string DatabaseTab = "database";
+    private const string EngineCallsTab = "engine-calls";
+    private const string HandHistoryTab = "hand-history";
+
+    private static readonly DemoTab[] _tabs =
     [
-        new(DatabaseCompanion, "Database Inspector", "database"),
-        new(EngineCallsCompanion, "Engine Calls", "code"),
-        new(HandHistoryCompanion, "Hand History", "history"),
+        new(GameTableTab, "Game Table", "table"),
+        new(DatabaseTab, "Database Inspector", "database"),
+        new(EngineCallsTab, "Engine Calls", "code"),
+        new(HandHistoryTab, "Hand History", "history"),
     ];
 
-    private string _activeCompanion = DatabaseCompanion;
+    private string _activeTab = GameTableTab;
 
     /// <summary>
     /// Set when the Engine Calls tab comes to the front. The call log can only be scrolled once
@@ -186,26 +182,41 @@
     /// </summary>
     private bool _scrollEngineCallsAfterRender;
 
-    private sealed record CompanionTab(string Key, string Title, string Icon);
+    private sealed record DemoTab(string Key, string Title, string Icon);
 
     private string PaneClass(string key)
     {
-        return key == _activeCompanion ? "companion-pane companion-pane-active" : "companion-pane";
+        return key == _activeTab ? "demo-tab-pane demo-tab-pane-active" : "demo-tab-pane";
     }
 
-    private void SelectCompanion(string key)
+    private void SelectTab(string key)
     {
-        if (key == _activeCompanion)
+        if (key == _activeTab)
         {
             return;
         }
 
-        _activeCompanion = key;
-        _scrollEngineCallsAfterRender = key == EngineCallsCompanion;
+        _activeTab = key;
+        _scrollEngineCallsAfterRender = key == EngineCallsTab;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            // Every load, not only the first visit: a reload is exactly what discards the game.
+            // It opens below the header and the tab bar, so it never covers New Game or a tab.
+            Notice.Config(new NotificationGlobalConfig { Top = StorageNoticeTop });
+            await Notice.Open(new NotificationConfig
+            {
+                Message = "In-memory only",
+                Description = "The game lives in this tab's memory only: a reload discards it. Export hands to .phh to keep them.",
+                NotificationType = NotificationType.Info,
+                Duration = StorageNoticeSeconds,
+                ClassName = "storage-notice",
+            });
+        }
+
         if (_scrollEngineCallsAfterRender)
         {
             _scrollEngineCallsAfterRender = false;
@@ -218,17 +229,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var isDismissed = await Storage.GetFlagAsync(StorageAlertKey);
-            _showStorageAlert = !isDismissed;
-        }
-        catch
-        {
-            // If storage service fails, show the alert
-            _showStorageAlert = true;
-        }
-
         Session.StateChanged += OnSessionStateChanged;
         Session.EngineError += OnBootEngineError;
         NewGameState.ShowRequested += OpenNewGameModalAsync;
@@ -267,19 +267,6 @@
         StateHasChanged();
     }
 
-    private async Task OnAlertClose()
-    {
-        _showStorageAlert = false;
-        try
-        {
-            await Storage.SetFlagAsync(StorageAlertKey, true);
-        }
-        catch
-        {
-            // Ignore storage errors
-        }
-    }
-
     private async Task OnNextHandAsync()
     {
         await Session.StartNextHandAsync();
@@ -310,6 +297,7 @@
                 _bootErrorMessage = null;
                 _selectedHistoryHand = null;
                 _newGameVisible = false;
+                _activeTab = GameTableTab;
             }
         }
         finally

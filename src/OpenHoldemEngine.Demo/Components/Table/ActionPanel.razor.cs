@@ -46,7 +46,7 @@ public partial class ActionPanel : ComponentBase
 
     /// <summary>
     /// The hand the raise amount was last reset for. The table re-renders this component whenever
-    /// the page does — switching a companion tab is enough — and a record parameter always counts as
+    /// the page does — switching a tab is enough — and a record parameter always counts as
     /// changed, so resetting on every parameter set would throw away an amount the visitor is still
     /// dialling in.
     /// </summary>

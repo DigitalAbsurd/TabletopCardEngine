@@ -1,9 +1,13 @@
 ﻿/* The table, action bar included, has to fit the space under the header in a 1366x768 viewport
    with the first-visit banner above it (the browser gate asserts it), so the vertical rhythm is
-   deliberately tight: every rem here is paid for twice, once per seat row. */
+   deliberately tight: every rem here is paid for twice, once per seat row.
+   On a taller screen the table grows to the bottom of its tab pane, and the spare height goes
+   between the rows, so the action bar stays on the table's bottom edge. */
 .poker-table {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
+    justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
     padding: 0.6rem 0.75rem;
