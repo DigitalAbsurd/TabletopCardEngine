@@ -1,18 +1,11 @@
-@using OpenHoldemEngine.Dto
+﻿@using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
 
-@* The whole game area in one piece: the street and the session's settings along the top, the seats
-   around the board, and the action bar along the bottom. Nothing about the running hand is shown
-   anywhere else on the page, so nothing here is shown twice. *@
+@* The whole game area in one piece: the seats around the board, the street between the top row
+   and the board, and the action bar along the bottom. The session's settings are in the page
+   header, so every pixel of the table's height goes to the hand. Nothing about the running hand
+   is shown anywhere else on the page, so nothing here is shown twice. *@
 <div class="poker-table">
-    <div class="table-top-bar">
-        @if (Hand is not null)
-        {
-            <StreetIndicator Street="@Hand.Street" />
-        }
-        <GameSummary GameData="@GameData" OnNewGame="@OnNewGame" />
-    </div>
-
     @if (Hand is not null)
     {
         <div class="table-seats-row">
@@ -26,6 +19,8 @@
                     IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)" />
             }
         </div>
+
+        <StreetIndicator Street="@Hand.Street" />
     }
 
     <div class="table-center">
@@ -105,7 +100,7 @@
     [Parameter]
     public EventCallback OnNextHand { get; set; }
 
-    /// <summary>Raised from the top bar or the finished-hand action bar; the host opens the settings modal.</summary>
+    /// <summary>Raised from the finished-hand action bar; the host opens the settings modal.</summary>
     [Parameter]
     public EventCallback OnNewGame { get; set; }
 

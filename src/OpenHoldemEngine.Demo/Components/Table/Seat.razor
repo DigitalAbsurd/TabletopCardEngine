@@ -1,26 +1,25 @@
-@using OpenHoldemEngine.Dto
+﻿@using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
 
+@* The badges share the stack's row rather than a row of their own: most seats carry none, and a
+   reserved badge row was empty space in every one of them. *@
 <div class="seat @GetSeatClasses()">
-    <div class="seat-badges">
-        @if (IsDealer)
-        {
-            <span class="badge badge-dealer" title="Dealer Button">D</span>
-        }
-        @if (IsSmallBlind)
-        {
-            <span class="badge badge-small-blind" title="Small Blind">SB</span>
-        }
-        @if (IsBigBlind)
-        {
-            <span class="badge badge-big-blind" title="Big Blind">BB</span>
-        }
-    </div>
-
     <div class="seat-content">
         <div class="seat-name">@SeatData.Name</div>
 
         <div class="seat-stack">
+            @if (IsDealer)
+            {
+                <span class="badge badge-dealer" title="Dealer Button">D</span>
+            }
+            @if (IsSmallBlind)
+            {
+                <span class="badge badge-small-blind" title="Small Blind">SB</span>
+            }
+            @if (IsBigBlind)
+            {
+                <span class="badge badge-big-blind" title="Big Blind">BB</span>
+            }
             <span class="stack-amount">@SeatData.Stack.ToString("F2")</span>
             @if (StackDelta != 0)
             {
