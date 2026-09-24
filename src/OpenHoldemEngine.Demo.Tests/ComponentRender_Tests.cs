@@ -896,6 +896,60 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void Home_CompanionTabs_DatabaseInspectorIsActiveOnOpen()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<Pages.Home>();
+
+        // Assert
+        var tabs = component.FindAll(".companion-tab");
+        tabs.Select(t => t.GetAttribute("data-companion")).Should().Equal("database", "engine-calls", "hand-history");
+        tabs.Select(t => t.GetAttribute("title")).Should().Equal("Database Inspector", "Engine Calls", "Hand History");
+        component.FindAll(".companion-tab[aria-selected=true]")
+            .Select(t => t.GetAttribute("data-companion")).Should().Equal("database");
+        component.FindAll(".companion-pane").Should().HaveCount(3, "every companion stays mounted behind the rail");
+        component.FindAll(".companion-pane-active")
+            .Select(p => p.GetAttribute("data-companion")).Should().Equal("database");
+    }
+
+    [TestMethod]
+    public void Home_CompanionTabs_ClickingATabShowsOnlyItsPane()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+        var component = ctx.RenderComponent<Pages.Home>();
+
+        // Act
+        component.Find(".companion-tab[data-companion=engine-calls]").Click();
+
+        // Assert
+        component.FindAll(".companion-tab[aria-selected=true]")
+            .Select(t => t.GetAttribute("data-companion")).Should().Equal("engine-calls");
+        component.FindAll(".companion-pane-active")
+            .Select(p => p.GetAttribute("data-companion")).Should().Equal("engine-calls");
+        component.FindAll(".companion-pane").Should().HaveCount(3, "switching hides the other panes rather than unmounting them");
+
+        // Act - the import, replay and export tools live together behind one tab
+        component.Find(".companion-tab[data-companion=hand-history]").Click();
+
+        // Assert
+        var active = component.Find(".companion-pane-active");
+        active.GetAttribute("data-companion").Should().Be("hand-history");
+        active.TextContent.Should().Contain("Hand History Import").And.Contain("Hand History Export");
+    }
+
+    [TestMethod]
     public async Task Diagnostics_Renders_WithoutException()
     {
         // Arrange
