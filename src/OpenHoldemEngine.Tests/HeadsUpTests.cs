@@ -166,6 +166,44 @@ public sealed class HeadsUpTests
         handData.Seats.Sum(seat => seat.HandResult!.Net).Should().Be(0, "a hand neither creates nor destroys chips");
     }
 
+    /// <summary>
+    /// <see cref="HandData.StreetPot"/> is the street on the clock and <see cref="HandData.Pot"/> the
+    /// streets before it, so the two never overlap. A new street opens with nothing on it, and a
+    /// finished hand has everything in <see cref="HandData.Pot"/> — at both points the street that just
+    /// closed used to be counted in each of them, doubling the pot a pot-sized raise is built from.
+    /// </summary>
+    [TestMethod]
+    public async Task HeadsUp_StreetPotIsOnlyTheStreetOnTheClock()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+        await session.StartHandAsync();
+        await session.ActAsync(PlayerActionType.Call);
+
+        var handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+
+        handData.Street.Should().Be(Street.Flop);
+        handData.StreetPot.Should().Be(0, "nobody has put anything in on the flop yet");
+        handData.Pot.Should().Be(BigBlind * 2, "the pre-flop is a prior street now");
+
+        handData = (await session.ActAsync(PlayerActionType.Raise, BigBlind * 2)).HandData;
+        handData.StreetPot.Should().Be(BigBlind * 2, "the big blind's flop bet");
+        handData.Pot.Should().Be(BigBlind * 2);
+
+        handData = (await session.ActAsync(PlayerActionType.Call)).HandData;
+        handData.Street.Should().Be(Street.Turn);
+        handData.StreetPot.Should().Be(0, "nobody has put anything in on the turn yet");
+        handData.Pot.Should().Be(BigBlind * 6);
+
+        for (var check = 0; check < 4; check++)
+        {
+            handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+        }
+
+        handData.Street.Should().Be(Street.Finished);
+        handData.StreetPot.Should().Be(0, "a finished hand has no street on the clock");
+        handData.Pot.Should().Be(BigBlind * 6, "everything wagered, counted once");
+    }
+
     [TestMethod]
     public async Task HeadsUp_ButtonAlternatesEveryHand()
     {

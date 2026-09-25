@@ -52,17 +52,22 @@
 
                     @if (entry.Result is not null)
                     {
-                        @* A closed panel renders no tree at all, so a long session costs only what is open. *@
+                        @* A closed panel renders no tree at all, so a long session costs only what is open.
+                           availableActions is the snippet's second variable, so only a success has one. *@
                         <Collapse Class="result-dump" Bordered="false">
-                            <Panel Key="@entry.SequenceNumber.ToString(CultureInfo.InvariantCulture)"
-                                   Header="result"
-                                   Active="@_openDumps.Contains(entry)"
-                                   OnActiveChange="@(active => ToggleDump(entry, active))">
-                                @if (_openDumps.Contains(entry))
-                                {
-                                    <ObjectDumpView Root="@DumpFor(entry)" />
-                                }
-                            </Panel>
+                            @foreach (var kind in DumpKindsFor(entry))
+                            {
+                                var key = new DumpKey(entry, kind);
+                                <Panel Key="@($"{entry.SequenceNumber.ToString(CultureInfo.InvariantCulture)}-{kind}")"
+                                       Header="@DumpName(kind)"
+                                       Active="@_openDumps.Contains(key)"
+                                       OnActiveChange="@(active => ToggleDump(key, active))">
+                                    @if (_openDumps.Contains(key))
+                                    {
+                                        <ObjectDumpView Root="@DumpFor(key)" />
+                                    }
+                                </Panel>
+                            }
                         </Collapse>
                     }
                 </div>
