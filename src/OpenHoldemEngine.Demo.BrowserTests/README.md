@@ -37,10 +37,11 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 6. **No console errors** — during load, during game creation, and while a hand is played out. Each
    action taken by the gate clicks a button on the action bar, exactly as a visitor would; the hand
    is over when the bar offers Next Hand instead.
-7. **The Quick Actions presets size the raise and submit nothing** — the ½ Pot / Pot / All-in
-   presets are one AntDesign dropdown whose menu is an overlay outside the bar. The gate opens it,
-   picks All-in, and checks that the Raise button's amount changed while the engine-call log did
-   not grow.
+7. **The raise slider's marks size the raise and submit nothing** — since issue #112 the Min /
+   ½ Pot / Pot / All-in presets are marks on the AntDesign raise slider, not a Quick Actions
+   dropdown (which must be gone). Each mark is its own hit target. The gate clicks All-in and checks
+   that the Raise button's amount changed while the engine-call log did not grow, then clicks Min
+   and checks that the amount is exactly the minimum again.
 8. **Tabs** — since issue #106 the table and its companions are four tabs on one horizontal bar
    under the header. Each tab is its own hit target, Game Table is the only pane shown on open, a
    click shows exactly that pane, and no pane pushes the page sideways.
@@ -57,6 +58,11 @@ appeared below 1366px and the horizontal overflow only mattered above it):
     within one header gap of the ✓ Success / ✗ Failed text rather than at the far right edge.
 13. **The Hand History cards stop at 800px** — Import, Replay Controls (once a hand is picked) and
     Export are at most 800px wide and stay on the pane's left edge.
+14. **The New Game form does not overlap itself** — since issue #112 the gate opens the New Game
+    modal and checks that no text field's box intersects any text in the form, and that
+    "+ Add Player" is its own hit target. The probe finds fields and text without class names, so it
+    reads the old markup too. There the Seat input ran into the "Buy-In:" caption, and the Engine
+    Limitations alert sat over the button.
 
 ## What it does not cover
 
@@ -87,7 +93,7 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about one minute for the twenty-seven browser checks, plus the
+`wasm-tools` workload is required) and about three minutes for the thirty-four browser checks, plus the
 browser download on a cold machine.
 
 Environment variables:

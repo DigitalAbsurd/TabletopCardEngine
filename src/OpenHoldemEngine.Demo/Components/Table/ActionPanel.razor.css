@@ -57,13 +57,6 @@
     min-width: 0;
 }
 
-.slider-input {
-    flex: 1 1 auto;
-    min-width: 80px;
-    accent-color: #52c41a;
-    cursor: pointer;
-}
-
 .raise-input {
     width: 84px;
     padding: 2px 6px;
