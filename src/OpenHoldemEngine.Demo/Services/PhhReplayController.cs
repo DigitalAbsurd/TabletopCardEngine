@@ -294,7 +294,7 @@ public sealed class PhhReplayController
             if (Math.Abs(recordedStack - engineStack) > 0.01m)
             {
                 matches = false;
-                details.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Seat {seatNo}: recorded {recordedStack:F2}, engine {engineStack:F2}");
+                details.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Seat {seatNo}: recorded {AmountFormat.Format(recordedStack)}, engine {AmountFormat.Format(engineStack)}");
             }
         }
 

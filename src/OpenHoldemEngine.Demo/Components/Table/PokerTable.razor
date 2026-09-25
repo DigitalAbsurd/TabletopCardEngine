@@ -1,5 +1,6 @@
 ﻿@using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
+@using OpenHoldemEngine.Demo.Services
 
 @* The whole game area in one piece: the seats around the board, the street between the top row
    and the board, and the action bar along the bottom. The session's settings are in the page
@@ -43,11 +44,11 @@
             <div class="pot-info">
                 <div class="pot-row">
                     <span class="pot-label">Pot:</span>
-                    <span class="pot-value">@((Hand.Pot + Hand.StreetPot).ToString("F2"))</span>
+                    <span class="pot-value">@AmountFormat.Format(Hand.Pot + Hand.StreetPot)</span>
                 </div>
                 <div class="pot-breakdown">
-                    <span class="pot-small">Prior: @Hand.Pot.ToString("F2")</span>
-                    <span class="pot-small">Street: @Hand.StreetPot.ToString("F2")</span>
+                    <span class="pot-small">Prior: @AmountFormat.Format(Hand.Pot)</span>
+                    <span class="pot-small">Street: @AmountFormat.Format(Hand.StreetPot)</span>
                     <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Length</span>
                 </div>
             </div>
@@ -61,7 +62,7 @@
                         <div class="hand-result @ResultClass(net)">
                             <span class="hand-result-name">@seat.Name</span>
                             <span class="hand-result-rank">@FormatRankType(seat.HandResult.RankType)</span>
-                            <span class="hand-result-net">@(net > 0 ? "+" : "")@net.ToString("F2")</span>
+                            <span class="hand-result-net">@(net > 0 ? "+" : "")@AmountFormat.Format(net)</span>
                         </div>
                     }
                 </div>

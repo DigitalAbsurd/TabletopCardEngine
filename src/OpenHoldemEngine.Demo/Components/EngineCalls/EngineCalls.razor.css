@@ -89,10 +89,6 @@
     color: var(--color-text);
 }
 
-.entry-status {
-    flex: 1;
-}
-
 .status-success {
     color: #52c41a;
     font-weight: 500;

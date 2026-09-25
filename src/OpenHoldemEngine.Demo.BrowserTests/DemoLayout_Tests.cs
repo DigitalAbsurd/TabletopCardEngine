@@ -52,6 +52,14 @@ public sealed class DemoLayout_Tests
     /// </summary>
     private const double PanePaddingAllowancePixels = 32;
 
+    /// <summary>
+    /// The header's 12px gap between the status and Copy, with room for sub-pixel rounding. Far
+    /// less than the whole width of the entry that separated them before issue #108.
+    /// </summary>
+    private const double MaximumStatusToCopyGapPixels = 24;
+
+    private const double HandHistoryCardMaxWidthPixels = 800;
+
     /// <summary>Fold, Call and Raise are always offered to the first seat to act pre-flop.</summary>
     private const int MinimumActionButtons = 3;
 
@@ -396,6 +404,82 @@ public sealed class DemoLayout_Tests
         raiseAfter.Should().StartWith("Raise to ");
         raiseAfter.Should().NotBe(raiseBefore, "All-in sizes the raise to the top of the window");
         callsAfter.Should().Be(callsBefore, "a preset only sizes the raise; Raise is what submits it");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// The action bar is exactly as wide as a row of seats and centred under them (issue #108).
+    /// Before that it stretched from one edge of the table to the other, 1444px against the rows'
+    /// 1200px at 1500px, running past the seats on both sides.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_GamePage_ActionBarMatchesTheSeatRows(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+
+        ElementBox bar = (await page.ReadElementBoxesAsync(DemoPage.ActionBarSelector)).Single();
+        ElementBox bottomRow = (await page.ReadElementBoxesAsync(DemoPage.SeatRowSelector))[^1];
+
+        bar.Left.Should().BeApproximately(
+            bottomRow.Left,
+            EdgeTolerancePixels,
+            $"the action bar starts where the seat row above it does at {viewportWidth}px ({bar}; {bottomRow})");
+        bar.Right.Should().BeApproximately(
+            bottomRow.Right,
+            EdgeTolerancePixels,
+            $"the action bar ends where the seat row above it does at {viewportWidth}px ({bar}; {bottomRow})");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// An engine call's Copy button follows its status in the row, rather than being pushed to the
+    /// far right edge of the entry (issue #108), where it was 1247px away from the status at 1500px.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    public async Task DemoLayout_EngineCalls_CopyFollowsTheStatus(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.SelectTabAsync(DemoPage.EngineCallsTab);
+
+        ElementBox status = (await page.ReadElementBoxesAsync(DemoPage.EngineCallStatusTextSelector))[0];
+        ElementBox copy = (await page.ReadElementBoxesAsync(DemoPage.EngineCallCopyButtonSelector))[0];
+        double gap = copy.Left - status.Right;
+
+        gap.Should().BeInRange(
+            0,
+            MaximumStatusToCopyGapPixels,
+            $"Copy sits right after the status, one header gap away ({status}; {copy})");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// The Hand History cards stop at 800px instead of spanning the whole pane (issue #108), and
+    /// stay on its left edge. Before, both were 1468px wide at 1500px.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    public async Task DemoLayout_HandHistory_CardsAreAtMost800Wide(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.SelectTabAsync(DemoPage.HandHistoryTab);
+
+        IReadOnlyList<ElementBox> cards = await page.ReadElementBoxesAsync(DemoPage.HandHistoryCardSelectors);
+        ElementBox pane = (await page.ReadElementBoxesAsync(DemoPage.ActiveTabPaneSelector)).Single();
+
+        cards.Should().HaveCountGreaterOrEqualTo(2, "Import and Export are always on the tab");
+        foreach (ElementBox card in cards)
+        {
+            card.Width.Should().BeLessOrEqualTo(
+                HandHistoryCardMaxWidthPixels + EdgeTolerancePixels,
+                $"a Hand History card is at most {HandHistoryCardMaxWidthPixels}px wide ({card})");
+            card.Left.Should().BeLessThan(
+                pane.Left + PanePaddingAllowancePixels,
+                $"the cards stay on the pane's left edge ({card}; {pane})");
+        }
+
         AssertNoConsoleErrors(page);
     }
 
