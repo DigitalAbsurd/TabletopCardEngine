@@ -56,14 +56,20 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     public const string StorageNoticeSelector = ".ant-notification-notice.storage-notice";
 
-    /// <summary>The button that opens the raise presets on the action bar.</summary>
+    /// <summary>
+    /// The Quick Actions dropdown the raise presets used to sit behind. It must be gone: the
+    /// presets are marks on the raise slider now.
+    /// </summary>
     public const string QuickActionsButtonSelector = ".action-bar .quick-actions-btn";
 
-    /// <summary>
-    /// One preset in the Quick Actions menu. AntDesign renders the menu in an overlay outside the
-    /// bar, so the selector does not start from <see cref="ActionBarSelector"/>.
-    /// </summary>
-    public const string QuickActionItemSelector = ".quick-action-item";
+    /// <summary>One caption under the raise slider (Min, ½ Pot, Pot or All-in), each a button of its own.</summary>
+    public const string RaiseMarkSelector = ".action-bar .raise-slider .raise-mark";
+
+    /// <summary>The settings form inside the New Game modal.</summary>
+    public const string GameSetupSelector = ".ant-modal .game-setup-card";
+
+    /// <summary>The "+ Add Player" button under the players in the New Game modal.</summary>
+    public const string AddPlayerButtonSelector = ".ant-modal .game-setup-card .add-player-btn";
 
     /// <summary>The Raise button, whose label carries the amount the raise is sized to.</summary>
     public const string RaiseButtonSelector = ".action-bar .raise-btn";
@@ -374,17 +380,81 @@ internal sealed class DemoPage : IAsyncDisposable
     }
 
     /// <summary>
-    /// Opens the Quick Actions menu and picks one preset by its label, the way a visitor would, then
-    /// waits for the re-render.
+    /// Clicks one of the raise slider's marks by its caption, the way a visitor would, then waits
+    /// for the re-render.
     /// </summary>
-    public async Task PickQuickActionAsync(string label)
+    public async Task PickRaiseMarkAsync(string label)
     {
-        await _page.Locator(QuickActionsButtonSelector).ClickAsync();
-
-        ILocator item = _page.Locator(QuickActionItemSelector).Filter(new LocatorFilterOptions { HasText = label });
-        await item.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
-        await item.First.ClickAsync();
+        ILocator mark = _page.Locator(RaiseMarkSelector).Filter(new LocatorFilterOptions { HasTextString = label });
+        await mark.First.ClickAsync();
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>The exact amount one of the raise slider's marks stands for, from its caption's tooltip.</summary>
+    public async Task<string> ReadRaiseMarkAmountAsync(string label)
+    {
+        ILocator mark = _page.Locator(RaiseMarkSelector).Filter(new LocatorFilterOptions { HasTextString = label });
+        return await mark.First.GetAttributeAsync("title")
+            ?? throw new InvalidOperationException($"The {label} mark carries no amount.");
+    }
+
+    /// <summary>Opens the New Game modal from the header and waits for its form.</summary>
+    public async Task OpenNewGameModalAsync()
+    {
+        await _page.Locator(NewGameButtonSelector).First.ClickAsync();
+        await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Every pair of a text field and a piece of text inside <paramref name="containerSelector"/>
+    /// whose boxes intersect, one line each; empty when nothing overlaps. Text is any element with
+    /// a text node of its own, so the probe needs no class names and reads any markup. An
+    /// AntDesign Select counts as one field, and the text inside it is its own.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> ReadFieldTextOverlapsAsync(string containerSelector)
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (containerSelector) => {
+                const container = document.querySelector(containerSelector);
+                if (container === null) {
+                    return JSON.stringify(['no element matched ' + containerSelector]);
+                }
+
+                const visible = (rect) => rect.width > 0 && rect.height > 0;
+                const describe = (element) => element.tagName.toLowerCase()
+                    + ' "' + (element.value || element.textContent || '').trim().slice(0, 20) + '"';
+                const fields = Array.from(container.querySelectorAll('input, .ant-select'))
+                    .filter(element => element.classList.contains('ant-select') || element.closest('.ant-select') === null)
+                    .map(element => ({ element, rect: element.getBoundingClientRect() }))
+                    .filter(field => visible(field.rect));
+                const texts = Array.from(container.querySelectorAll('*'))
+                    .filter(element => element.closest('.ant-select') === null && element.closest('button') === null)
+                    .filter(element => Array.from(element.childNodes)
+                        .some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0))
+                    .map(element => ({ element, rect: element.getBoundingClientRect() }))
+                    .filter(text => visible(text.rect));
+
+                const overlaps = [];
+                for (const field of fields) {
+                    for (const text of texts) {
+                        const width = Math.min(field.rect.right, text.rect.right) - Math.max(field.rect.left, text.rect.left);
+                        const height = Math.min(field.rect.bottom, text.rect.bottom) - Math.max(field.rect.top, text.rect.top);
+                        if (width > 0.5 && height > 0.5) {
+                            overlaps.push(describe(field.element) + ' overlaps ' + describe(text.element)
+                                + ' by ' + width.toFixed(1) + 'x' + height.toFixed(1) + 'px');
+                        }
+                    }
+                }
+
+                return JSON.stringify(overlaps);
+            }
+            """,
+            containerSelector);
+
+        return JsonSerializer.Deserialize<string[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The overlap probe returned nothing.");
     }
 
     /// <summary>Moves the pointer onto the first element matching one selector and waits for its transition.</summary>

@@ -99,25 +99,10 @@
 
             @if (HasAction(PlayerActionType.Raise) && !IsAllInOnly())
             {
-                @* One row: the presets behind a single dropdown, then the slider and the amount. A
-                   preset only sizes the raise; Raise is what submits it. The menu opens upwards,
-                   because the bar is the last thing on the table. *@
+                @* One row: the slider with its Min / ½ Pot / Pot / All-in marks, the −/+ steps and
+                   the amount. A mark only sizes the raise; Raise is what submits it. The slider's
+                   scale is piecewise, one segment between each pair of marks (RaiseSizing). *@
                 <div class="raise-controls">
-                    <Dropdown Trigger="@_quickActionsTrigger" Placement="@Placement.TopLeft" OverlayClassName="quick-actions-menu">
-                        <Overlay>
-                            <Menu>
-                                <MenuItem Key="half-pot" Class="quick-action-item" OnClick="@(() => SetRaiseAmount(GetHalfPotRaise()))">1/2 Pot</MenuItem>
-                                <MenuItem Key="pot" Class="quick-action-item" OnClick="@(() => SetRaiseAmount(GetPotRaise()))">Pot</MenuItem>
-                                <MenuItem Key="all-in" Class="quick-action-item" OnClick="@(() => SetRaiseAmount(GetAllInRaise()))">All-in</MenuItem>
-                            </Menu>
-                        </Overlay>
-                        <ChildContent>
-                            <Button Size="small" Class="quick-actions-btn">
-                                Quick Actions <Icon Type="down" Theme="outline" />
-                            </Button>
-                        </ChildContent>
-                    </Dropdown>
-
                     <div class="raise-slider-row">
                         <Button
                             Size="small"
@@ -126,15 +111,15 @@
                             Class="raise-step-btn raise-decrease-btn">
                             −
                         </Button>
-                        <input
-                            type="range"
-                            min="@AmountFormat.Format(GetRaiseWindow().Min)"
-                            max="@AmountFormat.Format(GetRaiseWindow().Max)"
-                            step="0.01"
-                            value="@AmountFormat.Format(_raiseAmount)"
-                            @oninput="@OnRaiseSliderChanged"
-                            aria-label="Raise amount"
-                            class="slider-input" />
+                        <Slider TValue="double"
+                            Class="raise-slider"
+                            Min="0"
+                            Max="@((double)RaiseSizing.SliderMax(_marks))"
+                            Step="0.1"
+                            Value="@RaiseSizing.ToPosition(_marks, _raiseAmount)"
+                            ValueChanged="@OnRaiseSliderChanged"
+                            TipFormatter="@FormatSliderTip"
+                            Marks="@Marks" />
                         <Button
                             Size="small"
                             Shape="circle"
@@ -163,5 +148,18 @@
 </div>
 
 @code {
-    // Component logic is in ActionPanel.razor.cs
+    // Component logic is in ActionPanel.razor.cs; only the mark captions are here, because a
+    // RenderFragment is Razor markup.
+
+    /// <summary>
+    /// The slider's marks, with each caption a button of its own. A press on a caption is kept from
+    /// the slider, which would otherwise move to the step under the pointer — a few pixels off the
+    /// mark — and report that after the click has set the mark's exact amount.
+    /// </summary>
+    private SliderMark[] Marks => _marks
+        .Select(mark => new SliderMark(
+            RaiseSizing.ToPosition(_marks, mark.Amount),
+            @<span class="raise-mark" role="button" title="@AmountFormat.Format(mark.Amount)" aria-label="@($"{mark.Label}: raise to {AmountFormat.Format(mark.Amount)}")" @onmousedown:stopPropagation="true" @onclick="@(() => SetRaiseAmount(mark.Amount))">@mark.Label</span>,
+            string.Empty))
+        .ToArray();
 }

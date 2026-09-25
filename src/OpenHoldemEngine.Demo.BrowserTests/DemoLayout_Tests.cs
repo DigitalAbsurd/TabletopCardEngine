@@ -388,35 +388,68 @@ public sealed class DemoLayout_Tests
             "the first seat to act pre-flop is offered Fold, Call and Raise");
         AssertOwnHitTargets(probes);
 
-        IReadOnlyList<HitProbe> quickActions = await page.ProbeHitTargetsAsync(DemoPage.QuickActionsButtonSelector);
-        quickActions.Should().HaveCount(1, "the raise presets sit behind one Quick Actions button");
-        AssertOwnHitTargets(quickActions);
+        (await page.CountAsync(DemoPage.QuickActionsButtonSelector)).Should().Be(0, "the raise presets are marks on the slider, not a dropdown");
+        IReadOnlyList<HitProbe> marks = await page.ProbeHitTargetsAsync(DemoPage.RaiseMarkSelector);
+        marks.Select(mark => mark.Label).Should().Contain("Min", "the bottom of the raise window is always marked");
+        marks.Select(mark => mark.Label).Should().Contain("All-in", "the top of the raise window is always marked");
+        AssertOwnHitTargets(marks);
         AssertNoConsoleErrors(page);
     }
 
     /// <summary>
-    /// The ½ Pot / Pot / All-in presets are one dropdown since issue #104. Its menu is an AntDesign
-    /// overlay rendered outside the bar, which bUnit can only see as markup: this is where it is
-    /// opened and clicked for real. A preset sizes the raise and submits nothing.
+    /// The Min / ½ Pot / Pot / All-in presets are marks on the raise slider since issue #112. A
+    /// press on a mark also reaches the AntDesign Slider's own pointer handling, which bUnit cannot
+    /// run: this is where a mark is clicked for real. A mark sizes the raise and submits nothing.
     /// </summary>
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_QuickActions_AllInSizesTheRaiseWithoutSubmitting(int viewportWidth)
+    public async Task DemoLayout_RaiseMarks_AllInSizesTheRaiseWithoutSubmitting(int viewportWidth)
     {
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
 
         string raiseBefore = await page.ReadTextAsync(DemoPage.RaiseButtonSelector);
         int callsBefore = await page.CountAsync(DemoPage.EngineCallEntrySelector);
 
-        await page.PickQuickActionAsync("All-in");
+        await page.PickRaiseMarkAsync("All-in");
 
         string raiseAfter = await page.ReadTextAsync(DemoPage.RaiseButtonSelector);
         int callsAfter = await page.CountAsync(DemoPage.EngineCallEntrySelector);
 
-        raiseAfter.Should().StartWith("Raise to ");
+        raiseAfter.Should().Be(
+            "Raise to " + await page.ReadRaiseMarkAmountAsync("All-in"),
+            "the mark's own amount wins over the slider step nearest to where the pointer went down");
         raiseAfter.Should().NotBe(raiseBefore, "All-in sizes the raise to the top of the window");
-        callsAfter.Should().Be(callsBefore, "a preset only sizes the raise; Raise is what submits it");
+        callsAfter.Should().Be(callsBefore, "a mark only sizes the raise; Raise is what submits it");
+
+        // And back down to the minimum
+        await page.PickRaiseMarkAsync("Min");
+        (await page.ReadTextAsync(DemoPage.RaiseButtonSelector)).Should().Be(raiseBefore);
+        (await page.CountAsync(DemoPage.EngineCallEntrySelector)).Should().Be(callsBefore);
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Before issue #112 the New Game form overlapped itself. In each player row the Seat input ran
+    /// into the "Buy-In:" caption beside it, and the Engine Limitations alert sat over the
+    /// "+ Add Player" button. The overlap probe looks for any text field and any text whose boxes
+    /// intersect without relying on the form's class names, so it reads the old markup too.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_NewGameModal_FieldsAndCaptionsDoNotOverlap(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+
+        await page.OpenNewGameModalAsync();
+
+        IReadOnlyList<string> overlaps = await page.ReadFieldTextOverlapsAsync(DemoPage.GameSetupSelector);
+        overlaps.Should().BeEmpty("no caption may sit on a field in the New Game form");
+
+        IReadOnlyList<HitProbe> addPlayer = await page.ProbeHitTargetsAsync(DemoPage.AddPlayerButtonSelector);
+        addPlayer.Should().HaveCount(1);
+        AssertOwnHitTargets(addPlayer);
         AssertNoConsoleErrors(page);
     }
 

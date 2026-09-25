@@ -1,5 +1,4 @@
-﻿using AntDesign;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
@@ -9,9 +8,9 @@ namespace OpenHoldemEngine.Demo.Components.Table;
 
 /// <summary>
 /// The action bar along the bottom of the poker table. Fold, Check, Call and Raise are shown only
-/// when the matching action is available in HandData.Evaluations; the raise is sized with a slider,
-/// −/+ steps of one big blind and a Quick Actions dropdown of half-pot, pot and all-in presets that
-/// set the amount without submitting it. Once the hand is finished the bar offers Next Hand and New Game instead.
+/// when the matching action is available in HandData.Evaluations; the raise is sized with a slider
+/// whose Min, ½ Pot, Pot and All-in marks set the amount without submitting it, −/+ steps of one
+/// big blind and an amount box. Once the hand is finished the bar offers Next Hand and New Game instead.
 /// </summary>
 public partial class ActionPanel : ComponentBase
 {
@@ -38,10 +37,10 @@ public partial class ActionPanel : ComponentBase
     [Inject]
     public DemoGameSession Session { get; set; } = null!;
 
-    /// <summary>The Quick Actions menu opens on a click, not on hover, so it never covers the bar uninvited.</summary>
-    private static readonly Trigger[] _quickActionsTrigger = [Trigger.Click];
-
     private decimal _raiseAmount;
+
+    /// <summary>The slider's reference amounts for the current decision, from <see cref="RaiseSizing.Marks"/>.</summary>
+    private IReadOnlyList<RaiseMark> _marks = [];
     private bool _isSubmitting;
 
     /// <summary>
@@ -77,12 +76,6 @@ public partial class ActionPanel : ComponentBase
             return $"{(string.IsNullOrWhiteSpace(name) ? $"Seat {HandData.NextPlayerSeatNo}" : name)} to act";
         }
     }
-
-    /// <summary>
-    /// Gets the street value for raise calculations.
-    /// Raise MinValue/MaxValue are absolute totals (raise to this amount).
-    /// </summary>
-    private decimal TotalPot => (HandData?.Pot ?? 0) + (HandData?.StreetPot ?? 0);
 
     /// <summary>
     /// Gets the evaluation data for a specific action type, or null if not available.
@@ -151,45 +144,6 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
-    /// Calculates half-pot amount, clamped to the legal raise window.
-    /// </summary>
-    private decimal GetHalfPotRaise()
-    {
-        var (min, max) = GetRaiseWindow();
-        if (min == 0 && max == 0)
-        {
-            return 0;
-        }
-
-        var halfPot = (TotalPot / 2) + (HandData?.Seats.FirstOrDefault(s => s.SeatNo == HandData.NextPlayerSeatNo)?.Stack ?? 0);
-        return Math.Clamp(halfPot, min, max);
-    }
-
-    /// <summary>
-    /// Calculates pot amount, clamped to the legal raise window.
-    /// </summary>
-    private decimal GetPotRaise()
-    {
-        var (min, max) = GetRaiseWindow();
-        if (min == 0 && max == 0)
-        {
-            return 0;
-        }
-
-        var potAmount = TotalPot + (HandData?.Seats.FirstOrDefault(s => s.SeatNo == HandData.NextPlayerSeatNo)?.Stack ?? 0);
-        return Math.Clamp(potAmount, min, max);
-    }
-
-    /// <summary>
-    /// Gets the all-in amount for the current seat, which is its stack plus current street wager.
-    /// </summary>
-    private decimal GetAllInRaise()
-    {
-        var (_, max) = GetRaiseWindow();
-        return max; // MaxValue for raise is the all-in amount
-    }
-
-    /// <summary>
     /// Resets the raise amount to the minimum when a new hand state arrives — a new hand, or the
     /// next decision within one, both of which the engine hands back as a new HandData instance.
     /// </summary>
@@ -197,6 +151,7 @@ public partial class ActionPanel : ComponentBase
     {
         base.OnParametersSet();
 
+        _marks = RaiseSizing.Marks(HandData);
         if (ReferenceEquals(HandData, _raiseAmountResetFor))
         {
             return;
@@ -277,8 +232,8 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
-    /// Sets the raise amount from a preset, clamped to the legal window. Presets only size the
-    /// raise; Raise is what submits it.
+    /// Sets the raise amount, clamped to the legal window. Marks, steps and the amount box only size
+    /// the raise; Raise is what submits it.
     /// </summary>
     private void SetRaiseAmount(decimal amount)
     {
@@ -319,13 +274,14 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
-    /// Handles the raise amount slider while it is being dragged.
+    /// Handles the raise amount slider while it is being dragged. The slider works in positions on
+    /// the piecewise scale, not in chips.
     /// </summary>
-    private void OnRaiseSliderChanged(ChangeEventArgs e)
+    private void OnRaiseSliderChanged(double position)
     {
-        if (decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
-        {
-            _raiseAmount = value;
-        }
+        SetRaiseAmount(RaiseSizing.FromPosition(_marks, position));
     }
+
+    /// <summary>The slider's tooltip shows the amount, not the position on its scale.</summary>
+    private string FormatSliderTip(double position) => AmountFormat.Format(RaiseSizing.FromPosition(_marks, position));
 }
