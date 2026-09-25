@@ -1,0 +1,70 @@
+﻿/* Fixed layout with percentage columns: the table is exactly as wide as the call entry, and a long
+   value is cut rather than allowed to push the page into a horizontal scrollbar. */
+.object-dump {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-family: Consolas, "Cascadia Mono", Menlo, monospace;
+    font-size: 12px;
+    color: var(--color-text);
+}
+
+.dump-col-name {
+    width: 24%;
+}
+
+.dump-col-value {
+    width: 46%;
+}
+
+.dump-col-type {
+    width: 30%;
+}
+
+.object-dump th {
+    padding: 4px 6px;
+    text-align: left;
+    font-weight: 600;
+    background-color: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.object-dump td {
+    padding: 2px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+}
+
+.object-dump th + th,
+.object-dump td + td {
+    border-left: 1px solid var(--color-border);
+}
+
+.dump-row:hover td {
+    background-color: var(--color-background);
+}
+
+.dump-type {
+    color: var(--color-text-secondary);
+}
+
+.dump-toggle,
+.dump-toggle-spacer {
+    display: inline-block;
+    width: 16px;
+    margin-right: 2px;
+    text-align: center;
+}
+
+.dump-toggle {
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+}
