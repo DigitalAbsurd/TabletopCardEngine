@@ -51,6 +51,7 @@ public sealed class ComponentRender_Tests
     {
         services.AddAntDesign();
         services.AddScoped<BrowserStorage>();
+        services.AddScoped<DemoTheme>();
         services.AddScoped<WalkthroughState>();
         services.AddScoped<NewGameState>();
     }
@@ -127,6 +128,34 @@ public sealed class ComponentRender_Tests
         // Assert
         component.Markup.Should().Contain("OpenHoldemEngine Demo");
         component.Markup.Should().Contain("GitHub Repository");
+    }
+
+    [TestMethod]
+    public void MainLayout_Header_CarriesTheCommitAndTheThemeSwitch()
+    {
+        // Arrange - the script reports a dark page: the visitor's pick, or the OS setting
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        ctx.JSInterop.Setup<string>("demoTheme.get").SetResult("dark");
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<MainLayout>();
+
+        // Assert - the build is stamped with its commit by the SDK's Source Link
+        BuildInfo.ShortSha.Should().NotBeNullOrEmpty("the test assembly is built from a git checkout");
+        component.Find(".layout-commit-sha code").TextContent.Should().Be(BuildInfo.ShortSha);
+
+        // The switch starts from what the page shows, and that alone is not stored as a pick
+        component.WaitForAssertion(() => component.Find(".layout-theme-switch").ClassList.Should().Contain("ant-switch-checked"));
+        ctx.JSInterop.Invocations.Where(i => i.Identifier == "demoTheme.set").Should().BeEmpty();
+
+        // Act - the visitor turns it to Light
+        component.Find(".layout-theme-switch").Click();
+
+        // Assert
+        ctx.JSInterop.Invocations.Where(i => i.Identifier == "demoTheme.set")
+            .Select(i => i.Arguments.Single()).Should().Equal("light");
     }
 
     [TestMethod]
@@ -725,7 +754,7 @@ public sealed class ComponentRender_Tests
         // Act
         var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, hand)
-            .Add(p => p.BigBlind, 100m));
+            .Add(p => p.RaiseStep, 50m));
 
         // Assert - the controls are on the bar itself: no trigger to click, no Drawer to open
         component.Markup.Should().NotContain("action-trigger-btn");
@@ -743,7 +772,7 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public async Task ActionPanel_RaiseSlider_CarriesTheReferenceMarks()
+    public async Task ActionPanel_RaiseSlider_CarriesMinAndAllInWithThePotPresetsBeside()
     {
         // Arrange - heads-up at 50/100 with 1000 behind: the button acts first with 950 left and 50 in
         using var ctx = new Bunit.TestContext();
@@ -755,18 +784,24 @@ public sealed class ComponentRender_Tests
         // Act
         var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, session.CurrentHand!)
-            .Add(p => p.BigBlind, 100m));
+            .Add(p => p.RaiseStep, 50m));
 
-        // Assert - the button owes 50 to call 100: ½ Pot is 100 + (150 + 50) / 2 = 200 and Pot is
-        // 100 + 200 = 300, both strictly inside the engine's 150..1000 window
+        // Assert - only the ends of the window are marks on the slider
         component.FindAll(".raise-slider .raise-mark").Select(mark => mark.TextContent.Trim())
-            .Should().Equal("Min", "½ Pot", "Pot", "All-in");
+            .Should().Equal("Min", "All-in");
         component.FindAll(".raise-slider .raise-mark").Select(mark => mark.GetAttribute("title"))
-            .Should().Equal("150", "200", "300", "1000");
+            .Should().Equal("150", "1000");
+
+        // The button owes 50 to call 100: ½ Pot is 100 + (150 + 50) / 2 = 200 and Pot is
+        // 100 + 200 = 300, both strictly inside the engine's 150..1000 window, stacked beside the box
+        component.FindAll(".raise-presets .raise-preset-btn").Select(button => button.TextContent.Trim())
+            .Should().Equal("½ Pot", "Pot");
+        component.FindAll(".raise-presets .raise-preset-btn").Select(button => button.GetAttribute("aria-label"))
+            .Should().Equal("½ Pot: raise to 200", "Pot: raise to 300");
     }
 
     [TestMethod]
-    public async Task ActionPanel_RaiseStepsAndMarks_SetTheAmountWithoutSubmitting()
+    public async Task ActionPanel_RaiseStepsMarksAndPresets_SetTheAmountWithoutSubmitting()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -780,18 +815,20 @@ public sealed class ComponentRender_Tests
 
         var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, hand)
-            .Add(p => p.BigBlind, 100m));
+            .Add(p => p.RaiseStep, 50m));
 
         // Assert - the window is whole chips, so no decimals are shown; the amount starts at the minimum raise-to
         (raise.MinValue % 1).Should().Be(0);
         (raise.MaxValue % 1).Should().Be(0);
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
+        component.Find(".raise-input input").GetAttribute("value").Should().Be($"{raise.MinValue:0}");
 
-        // Act - one big blind up
+        // Act - one small blind up
         component.Find(".raise-increase-btn").Click();
 
-        // Assert
-        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue + 100m:0}");
+        // Assert - the button and the box both follow
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue + 50m:0}");
+        component.Find(".raise-input input").GetAttribute("value").Should().Be($"{raise.MinValue + 50m:0}");
 
         // Act - down twice: the second step would go under the window and is clamped
         component.Find(".raise-decrease-btn").Click();
@@ -807,6 +844,13 @@ public sealed class ComponentRender_Tests
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:0}");
         session.Journal.Entries.Should().HaveCount(callsBefore);
 
+        // Act - the Pot preset beside the box
+        component.FindAll(".raise-preset-btn").Single(button => button.TextContent.Trim() == "Pot").Click();
+
+        // Assert
+        component.Find(".raise-btn").TextContent.Trim().Should().Be("Raise to 300");
+        session.Journal.Entries.Should().HaveCount(callsBefore);
+
         // Act - and back down to the Min mark
         component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "Min").Click();
 
@@ -816,7 +860,54 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void ActionPanel_WithFinishedHand_OffersNextHandAndNewGame()
+    public async Task ActionPanel_IllegalAmount_DisablesRaiseUntilTheFixButtonCorrectsIt()
+    {
+        // Arrange - the window is 150..1000 in steps of 50
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
+        var callsBefore = session.Journal.Entries.Count;
+
+        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+            .Add(p => p.HandData, session.CurrentHand!)
+            .Add(p => p.RaiseStep, 50m));
+
+        component.FindAll(".raise-fix-btn").Should().BeEmpty("a legal amount needs no correcting");
+
+        // Act - an amount off the step
+        component.Find(".raise-input input").Input("333");
+
+        // Assert - red, Raise disabled, and the fix button offers the nearest step
+        component.FindAll(".raise-input.raise-input-invalid").Should().HaveCount(1);
+        component.Find(".raise-input input").GetAttribute("aria-invalid").Should().Be("true");
+        component.Find(".raise-btn").HasAttribute("disabled").Should().BeTrue();
+        component.Find(".raise-fix-btn").GetAttribute("aria-label").Should().Be("Correct the amount to 350");
+
+        // Act
+        component.Find(".raise-fix-btn").Click();
+
+        // Assert - corrected, legal again, and still nothing sent to the engine
+        component.Find(".raise-input input").GetAttribute("value").Should().Be("350");
+        component.Find(".raise-btn").TextContent.Trim().Should().Be("Raise to 350");
+        component.Find(".raise-btn").HasAttribute("disabled").Should().BeFalse();
+        component.FindAll(".raise-fix-btn").Should().BeEmpty();
+        session.Journal.Entries.Should().HaveCount(callsBefore);
+
+        // Act - not a number at all, then past the all-in
+        component.Find(".raise-input input").Input("abc");
+        component.Find(".raise-fix-btn").GetAttribute("aria-label").Should().Be("Correct the amount to 350", "a non-number goes back to the last legal amount");
+        component.Find(".raise-input input").Input("99999");
+        component.Find(".raise-fix-btn").Click();
+
+        // Assert
+        component.Find(".raise-btn").TextContent.Trim().Should().Be("Raise to 1000");
+        component.Find(".raise-btn").HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void ActionPanel_WithFinishedHand_OffersNextHandOnly()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -824,25 +915,24 @@ public sealed class ComponentRender_Tests
         RegisterDemoServices(ctx.Services);
 
         var nextHandRaised = false;
-        var newGameRaised = false;
 
         var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, CreateFinishedHandGameData().HandData)
-            .Add(p => p.OnNextHand, () => nextHandRaised = true)
-            .Add(p => p.OnNewGame, () => newGameRaised = true));
+            .Add(p => p.OnNextHand, () => nextHandRaised = true));
 
-        // Assert - the bar swaps the betting controls for what comes after the hand
+        // Assert - the bar swaps the betting controls for what comes after the hand; New Game is in
+        // the page header, not here
         component.FindAll(".action-bar .action-btn").Should().BeEmpty();
         component.FindAll(".action-bar .raise-slider").Should().BeEmpty();
+        component.FindAll(".action-bar .bar-new-game-btn").Should().BeEmpty();
+        component.FindAll(".action-bar .ant-btn").Select(button => button.TextContent.Trim()).Should().Equal("Next Hand");
         component.Find(".action-bar-info").TextContent.Should().Be("Hand complete");
 
         // Act
         component.Find(".next-hand-btn").Click();
-        component.Find(".bar-new-game-btn").Click();
 
         // Assert
         nextHandRaised.Should().BeTrue();
-        newGameRaised.Should().BeTrue();
     }
 
     [TestMethod]

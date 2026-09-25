@@ -32,6 +32,15 @@
     --color-code-background: #fafafa;
     --color-code-text: #262626;
 
+    /* The page header, and the plain grey panels and outlines of the demo's own markup. */
+    --demo-header-bg: #ffffff;
+    --demo-header-border: #f0f0f0;
+    --demo-header-text: rgba(0, 0, 0, 0.85);
+    --demo-header-text-secondary: rgba(0, 0, 0, 0.45);
+    --demo-muted-surface: #f5f5f5;
+    --demo-muted-text: #666666;
+    --demo-outline: #d9d9d9;
+
     /* The page's vertical budget: the 64px header (MainLayout.razor.css), the tab bar under it, and
        what is left for a tab's pane, which is the height every pane fills. */
     --demo-header-height: 64px;
@@ -43,33 +52,41 @@
     --demo-table-row-max-width: 1200px;
 }
 
-/* Dark theme overrides */
-@media (prefers-color-scheme: dark) {
-    :root {
-        /* AntDesign dark theme tokens */
-        --ant-border-color: #434343;
-        --ant-bg-container: #1f1f1f;
-        --ant-bg-layout: #141414;
-        --ant-table-header-bg: #1f1f1f;
-        --ant-table-row-hover-bg: #262626;
-        --ant-text-color: rgba(255, 255, 255, 0.88);
-        --ant-text-color-secondary: rgba(255, 255, 255, 0.45);
-        --ant-primary-color: #1890ff;
-        --ant-warning-color: #faad14;
+/* Dark theme overrides. wwwroot/js/theme.js puts data-theme on <html> before the first paint —
+   the visitor's pick from the header switch, or prefers-color-scheme until there is one — so the
+   attribute, not the media query, is what decides. */
+:root[data-theme="dark"] {
+    /* AntDesign dark theme tokens */
+    --ant-border-color: #434343;
+    --ant-bg-container: #1f1f1f;
+    --ant-bg-layout: #141414;
+    --ant-table-header-bg: #1f1f1f;
+    --ant-table-row-hover-bg: #262626;
+    --ant-text-color: rgba(255, 255, 255, 0.88);
+    --ant-text-color-secondary: rgba(255, 255, 255, 0.45);
+    --ant-primary-color: #1890ff;
+    --ant-warning-color: #faad14;
 
-        /* Color palette for Engine Calls panel (dark theme) */
-        --color-background: #141414;
-        --color-surface: #1f1f1f;
-        --color-text: #e6e6e6;
-        --color-text-secondary: #8c8c8c;
-        --color-border: #434343;
-        --color-primary: #1890ff;
-        --color-primary-hover: #40a9ff;
-        --color-secondary: #d9d9d9;
-        --color-secondary-hover: #ffffff;
-        --color-code-background: #0a0a0a;
-        --color-code-text: #e6e6e6;
-    }
+    /* Color palette for Engine Calls panel (dark theme) */
+    --color-background: #141414;
+    --color-surface: #1f1f1f;
+    --color-text: #e6e6e6;
+    --color-text-secondary: #8c8c8c;
+    --color-border: #434343;
+    --color-primary: #1890ff;
+    --color-primary-hover: #40a9ff;
+    --color-secondary: #d9d9d9;
+    --color-secondary-hover: #ffffff;
+    --color-code-background: #0a0a0a;
+    --color-code-text: #e6e6e6;
+
+    --demo-header-bg: #141414;
+    --demo-header-border: #303030;
+    --demo-header-text: rgba(255, 255, 255, 0.85);
+    --demo-header-text-secondary: rgba(255, 255, 255, 0.45);
+    --demo-muted-surface: #1f1f1f;
+    --demo-muted-text: #a6a6a6;
+    --demo-outline: #434343;
 }
 
 h1:focus {
@@ -322,9 +339,8 @@ code {
     gap: 1rem;
     min-width: 0;
     line-height: 1.5;
-    /* The header is always white (MainLayout.razor.css), so the colours follow its title rather than
-       the theme tokens, which turn light in dark mode. */
-    color: rgba(0, 0, 0, 0.85);
+    /* The header's own tokens, which follow the theme switch with the rest of the header. */
+    color: var(--demo-header-text);
 }
 
 .game-summary-items {
@@ -346,7 +362,7 @@ code {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: rgba(0, 0, 0, 0.45);
+    color: var(--demo-header-text-secondary);
 }
 
 .game-summary-value {
@@ -513,6 +529,84 @@ code {
 .action-bar .ant-btn.raise-step-btn {
     flex: 0 0 auto;
     font-weight: 700;
+}
+
+/* The rules above paint Raise green at a higher specificity than AntDesign's own [disabled] rule,
+   so an illegal amount in the box would leave it looking live. */
+.action-bar .ant-btn.raise-btn[disabled],
+.action-bar .ant-btn.raise-btn[disabled]:hover {
+    background: #3a3a3a;
+    border-color: #3a3a3a;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* The raise amount box, an AntDesign Input: large and bold, on the dark felt in either theme.
+   AntDesign 0.17 has no error status on Input, so the invalid state is this class of ours. */
+.action-bar .raise-input {
+    display: inline-block;
+    flex: 0 0 auto;
+}
+
+.action-bar .raise-input .ant-input {
+    width: 110px;
+    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-weight: 700;
+    text-align: right;
+}
+
+.action-bar .raise-input .ant-input:hover,
+.action-bar .raise-input .ant-input:focus {
+    border-color: #52c41a;
+    box-shadow: none;
+}
+
+.action-bar .raise-input.raise-input-invalid .ant-input,
+.action-bar .raise-input.raise-input-invalid .ant-input:hover,
+.action-bar .raise-input.raise-input-invalid .ant-input:focus {
+    border-color: #ff4d4f;
+    box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.3);
+}
+
+.action-bar .ant-btn.raise-fix-btn {
+    flex: 0 0 auto;
+    background: #faad14;
+    border-color: #faad14;
+    color: #1f1f1f;
+}
+
+.action-bar .ant-btn.raise-fix-btn:hover {
+    background: #ffc53d;
+    border-color: #ffc53d;
+    color: #1f1f1f;
+}
+
+/* ½ Pot over Pot: white pills stacked in the height of one large button, so the bar stays one row. */
+.action-bar .raise-presets {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.action-bar .ant-btn.raise-preset-btn {
+    height: 19px;
+    min-width: 56px;
+    padding: 0 10px;
+    background: #fff;
+    border-color: #fff;
+    color: #1f1f1f;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 17px;
+}
+
+.action-bar .ant-btn.raise-preset-btn:hover,
+.action-bar .ant-btn.raise-preset-btn:focus {
+    background: #f0f0f0;
+    border-color: #95de64;
+    color: #1f1f1f;
 }
 
 @media (max-width: 768px) {

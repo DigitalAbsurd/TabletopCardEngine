@@ -1,16 +1,17 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
-using System.Globalization;
 
 namespace OpenHoldemEngine.Demo.Components.Table;
 
 /// <summary>
 /// The action bar along the bottom of the poker table. Fold, Check, Call and Raise are shown only
 /// when the matching action is available in HandData.Evaluations; the raise is sized with a slider
-/// whose Min, ½ Pot, Pot and All-in marks set the amount without submitting it, −/+ steps of one
-/// big blind and an amount box. Once the hand is finished the bar offers Next Hand and New Game instead.
+/// whose Min and All-in marks set the amount without submitting it, −/+ steps of one small blind, a
+/// validated amount box with an auto-correct button, and ½ Pot / Pot buttons. Once the hand is
+/// finished the bar offers Next Hand instead; New Game is in the page header.
 /// </summary>
 public partial class ActionPanel : ComponentBase
 {
@@ -19,25 +20,32 @@ public partial class ActionPanel : ComponentBase
     public HandData? HandData { get; set; }
 
     /// <summary>
-    /// The size of one −/+ step on the raise amount. The hand carries no blinds, so the table
-    /// passes the game's own.
+    /// One step of the raise amount: the small blind, the smallest chip on the table. −/+ move by
+    /// it, and the slider, the presets and the auto-correct button round to it. The hand carries no
+    /// blinds, so the table passes the game's own.
     /// </summary>
     [Parameter]
-    public decimal BigBlind { get; set; }
+    public decimal RaiseStep { get; set; }
 
     /// <summary>Raised by Next Hand once the hand is finished.</summary>
     [Parameter]
     public EventCallback OnNextHand { get; set; }
 
-    /// <summary>Raised by New Game once the hand is finished; the host opens the settings modal.</summary>
-    [Parameter]
-    public EventCallback OnNewGame { get; set; }
-
     /// <summary>The demo session to apply actions through.</summary>
     [Inject]
     public DemoGameSession Session { get; set; } = null!;
 
+    /// <summary>The last legal "raise to" amount; what Raise submits.</summary>
     private decimal _raiseAmount;
+
+    /// <summary>What the amount box holds, which may not be a legal raise while the visitor types.</summary>
+    private string _raiseText = string.Empty;
+
+    /// <summary><see cref="_raiseText"/> read against the raise window.</summary>
+    private RaiseInput _raiseInput = new(null, null);
+
+    /// <summary>½ Pot and Pot for the current decision, from <see cref="RaiseSizing.Presets"/>.</summary>
+    private IReadOnlyList<RaiseMark> _presets = [];
 
     /// <summary>The slider's reference amounts for the current decision, from <see cref="RaiseSizing.Marks"/>.</summary>
     private IReadOnlyList<RaiseMark> _marks = [];
@@ -152,6 +160,7 @@ public partial class ActionPanel : ComponentBase
         base.OnParametersSet();
 
         _marks = RaiseSizing.Marks(HandData);
+        _presets = RaiseSizing.Presets(HandData, RaiseStep);
         if (ReferenceEquals(HandData, _raiseAmountResetFor))
         {
             return;
@@ -161,7 +170,7 @@ public partial class ActionPanel : ComponentBase
         if (HandData is not null && HasAction(PlayerActionType.Raise))
         {
             var (min, _) = GetRaiseWindow();
-            _raiseAmount = min;
+            SetRaiseAmount(min);
         }
     }
 
@@ -226,28 +235,42 @@ public partial class ActionPanel : ComponentBase
         }
     }
 
-    private async Task OnNewGameAsync()
-    {
-        await OnNewGame.InvokeAsync();
-    }
-
     /// <summary>
-    /// Sets the raise amount, clamped to the legal window. Marks, steps and the amount box only size
-    /// the raise; Raise is what submits it.
+    /// Sets the raise amount, clamped to the legal window, and writes it into the amount box. Marks,
+    /// steps, presets and the amount box only size the raise; Raise is what submits it.
     /// </summary>
     private void SetRaiseAmount(decimal amount)
     {
         _raiseAmount = amount;
         ClampRaiseAmount();
+        _raiseText = AmountFormat.Format(_raiseAmount);
+        _raiseInput = new RaiseInput(_raiseAmount, null);
     }
 
     /// <summary>
-    /// Moves the raise amount by one big blind in either direction, clamped to the legal window.
+    /// Moves the raise amount to the next multiple of the small blind in either direction, clamped to
+    /// the legal window. A box holding something illegal steps from the last legal amount.
     /// </summary>
     private void StepRaiseAmount(int direction)
     {
-        var step = BigBlind > 0 ? BigBlind : 1m;
-        SetRaiseAmount(_raiseAmount + (direction * step));
+        var (min, max) = GetRaiseWindow();
+        SetRaiseAmount(RaiseSizing.Step(_raiseAmount, direction, RaiseStep, min, max));
+    }
+
+    /// <summary>What the auto-correct button would put in the box.</summary>
+    private decimal CorrectedAmount
+    {
+        get
+        {
+            var (min, max) = GetRaiseWindow();
+            return RaiseSizing.Correct(_raiseText, _raiseAmount, RaiseStep, min, max);
+        }
+    }
+
+    /// <summary>The auto-correct button: puts the nearest legal amount in the box.</summary>
+    private void CorrectRaiseAmount()
+    {
+        SetRaiseAmount(CorrectedAmount);
     }
 
     /// <summary>
@@ -263,13 +286,27 @@ public partial class ActionPanel : ComponentBase
     }
 
     /// <summary>
-    /// Handles changes to the raise amount input field.
+    /// Reads the amount box on every keystroke. A legal amount becomes the raise at once; anything
+    /// else is left as typed, marked invalid and disables Raise until it is fixed — by typing, or by
+    /// the auto-correct button — rather than being rewritten under the visitor's cursor.
     /// </summary>
-    private void OnRaiseInputChanged(ChangeEventArgs e)
+    private void OnRaiseInput(ChangeEventArgs e)
     {
-        if (decimal.TryParse(e.Value?.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
+        _raiseText = e.Value?.ToString() ?? string.Empty;
+        var (min, max) = GetRaiseWindow();
+        _raiseInput = RaiseSizing.Validate(_raiseText, RaiseStep, min, max);
+        if (_raiseInput.Amount is decimal amount)
         {
-            SetRaiseAmount(value);
+            _raiseAmount = amount;
+        }
+    }
+
+    /// <summary>Enter in the amount box raises, when the amount is legal.</summary>
+    private async Task OnRaisePressEnterAsync(KeyboardEventArgs e)
+    {
+        if (_raiseInput.IsValid && !_isSubmitting)
+        {
+            await OnRaiseAsync(_raiseAmount);
         }
     }
 
@@ -279,9 +316,9 @@ public partial class ActionPanel : ComponentBase
     /// </summary>
     private void OnRaiseSliderChanged(double position)
     {
-        SetRaiseAmount(RaiseSizing.FromPosition(_marks, position));
+        SetRaiseAmount(RaiseSizing.FromPosition(_marks, position, RaiseStep));
     }
 
     /// <summary>The slider's tooltip shows the amount, not the position on its scale.</summary>
-    private string FormatSliderTip(double position) => AmountFormat.Format(RaiseSizing.FromPosition(_marks, position));
+    private string FormatSliderTip(double position) => AmountFormat.Format(RaiseSizing.FromPosition(_marks, position, RaiseStep));
 }

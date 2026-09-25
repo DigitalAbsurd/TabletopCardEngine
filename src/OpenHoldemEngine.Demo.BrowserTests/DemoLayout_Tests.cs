@@ -388,18 +388,27 @@ public sealed class DemoLayout_Tests
             "the first seat to act pre-flop is offered Fold, Call and Raise");
         AssertOwnHitTargets(probes);
 
-        (await page.CountAsync(DemoPage.QuickActionsButtonSelector)).Should().Be(0, "the raise presets are marks on the slider, not a dropdown");
+        (await page.CountAsync(DemoPage.QuickActionsButtonSelector)).Should().Be(0, "the raise presets are buttons beside the amount box, not a dropdown");
         IReadOnlyList<HitProbe> marks = await page.ProbeHitTargetsAsync(DemoPage.RaiseMarkSelector);
-        marks.Select(mark => mark.Label).Should().Contain("Min", "the bottom of the raise window is always marked");
-        marks.Select(mark => mark.Label).Should().Contain("All-in", "the top of the raise window is always marked");
+        marks.Select(mark => mark.Label).Should().Equal(["Min", "All-in"], "only the ends of the raise window are marks on the slider");
         AssertOwnHitTargets(marks);
+
+        // ½ Pot over Pot, each its own target even though they share one button's height
+        IReadOnlyList<HitProbe> presets = await page.ProbeHitTargetsAsync(DemoPage.RaisePresetSelector);
+        presets.Select(preset => preset.Label).Should().Equal(["½ Pot", "Pot"], "the first decision of a fresh 100-big-blind hand has room for both");
+        AssertOwnHitTargets(presets);
+
+        IReadOnlyList<HitProbe> input = await page.ProbeHitTargetsAsync(DemoPage.RaiseInputSelector);
+        input.Should().HaveCount(1);
+        AssertOwnHitTargets(input);
         AssertNoConsoleErrors(page);
     }
 
     /// <summary>
-    /// The Min / ½ Pot / Pot / All-in presets are marks on the raise slider since issue #112. A
-    /// press on a mark also reaches the AntDesign Slider's own pointer handling, which bUnit cannot
-    /// run: this is where a mark is clicked for real. A mark sizes the raise and submits nothing.
+    /// Min and All-in are marks on the raise slider (issue #112), and since issue #114 ½ Pot and Pot
+    /// are buttons beside the amount box. A press on a mark also reaches the AntDesign Slider's own
+    /// pointer handling, which bUnit cannot run: this is where a mark is clicked for real. A mark or
+    /// a preset sizes the raise and submits nothing.
     /// </summary>
     [TestMethod]
     [DataRow(WideViewportWidth)]
@@ -422,10 +431,79 @@ public sealed class DemoLayout_Tests
         raiseAfter.Should().NotBe(raiseBefore, "All-in sizes the raise to the top of the window");
         callsAfter.Should().Be(callsBefore, "a mark only sizes the raise; Raise is what submits it");
 
+        // A preset sizes the raise too, and the box follows it
+        await page.PickRaisePresetAsync("Pot");
+        string potRaise = await page.ReadTextAsync(DemoPage.RaiseButtonSelector);
+        potRaise.Should().NotBe(raiseAfter, "Pot is inside the window, below All-in");
+        potRaise.Should().Be("Raise to " + await page.ReadRaiseAmountAsync());
+        (await page.CountAsync(DemoPage.EngineCallEntrySelector)).Should().Be(callsBefore);
+
         // And back down to the minimum
         await page.PickRaiseMarkAsync("Min");
         (await page.ReadTextAsync(DemoPage.RaiseButtonSelector)).Should().Be(raiseBefore);
         (await page.CountAsync(DemoPage.EngineCallEntrySelector)).Should().Be(callsBefore);
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Issue #114: the raise amount box is validated as it is typed into. An illegal amount disables
+    /// Raise and brings up a round button beside the box that corrects it; the correction is the
+    /// nearest multiple of the small blind inside the window, and it submits nothing.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_RaiseAmount_IllegalValueIsCorrectedByTheFixButton(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        int callsBefore = await page.CountAsync(DemoPage.EngineCallEntrySelector);
+
+        (await page.CountAsync(DemoPage.RaiseFixButtonSelector)).Should().Be(0, "the box starts on the minimum raise, which is legal");
+
+        await page.TypeRaiseAmountAsync("abc");
+
+        (await page.IsDisabledAsync(DemoPage.RaiseButtonSelector)).Should().BeTrue("Raise cannot submit an amount that is not a number");
+        IReadOnlyList<HitProbe> fix = await page.ProbeHitTargetsAsync(DemoPage.RaiseFixButtonSelector);
+        fix.Should().HaveCount(1);
+        AssertOwnHitTargets(fix);
+
+        await page.ClickAsync(DemoPage.RaiseFixButtonSelector);
+
+        (await page.CountAsync(DemoPage.RaiseFixButtonSelector)).Should().Be(0, "the corrected amount is legal");
+        (await page.IsDisabledAsync(DemoPage.RaiseButtonSelector)).Should().BeFalse();
+        (await page.ReadTextAsync(DemoPage.RaiseButtonSelector)).Should().Be("Raise to " + await page.ReadRaiseAmountAsync());
+        (await page.CountAsync(DemoPage.EngineCallEntrySelector)).Should().Be(callsBefore, "correcting the amount submits nothing");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Issue #114: the header shows the build's commit and a Light / Dark switch. The switch puts
+    /// data-theme on the document and swaps AntDesign to its dark stylesheet, and the pick survives a
+    /// reload. Neither theme may push the page sideways.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_Header_ThemeSwitchFlipsThePageAndSurvivesAReload(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+
+        (await page.ReadTextAsync(DemoPage.CommitShaSelector)).Should().MatchRegex("^[0-9a-f]{7}$", "the build is stamped with its short commit SHA");
+
+        (string themeBefore, _) = await page.ReadThemeAsync();
+        themeBefore.Should().BeOneOf("light", "dark");
+        string flipped = themeBefore == "dark" ? "light" : "dark";
+
+        await page.ToggleThemeAsync();
+        (string theme, string stylesheet) = await page.ReadThemeAsync();
+        theme.Should().Be(flipped);
+        stylesheet.Should().EndWith(flipped == "dark" ? "ant-design-blazor.dark.css" : "ant-design-blazor.css");
+
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        layoutContent.ScrollWidth.Should().Be(layoutContent.ClientWidth, $"the {flipped} theme must not overflow horizontally ({layoutContent})");
+
+        await page.ReloadAsync();
+        (await page.ReadThemeAsync()).Theme.Should().Be(flipped, "the visitor's pick is kept for the next visit");
         AssertNoConsoleErrors(page);
     }
 

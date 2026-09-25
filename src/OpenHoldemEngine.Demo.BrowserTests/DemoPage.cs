@@ -62,8 +62,23 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     public const string QuickActionsButtonSelector = ".action-bar .quick-actions-btn";
 
-    /// <summary>One caption under the raise slider (Min, ½ Pot, Pot or All-in), each a button of its own.</summary>
+    /// <summary>One caption under the raise slider (Min or All-in), each a button of its own.</summary>
     public const string RaiseMarkSelector = ".action-bar .raise-slider .raise-mark";
+
+    /// <summary>The ½ Pot and Pot buttons stacked beside the raise amount box.</summary>
+    public const string RaisePresetSelector = ".action-bar .raise-presets .raise-preset-btn";
+
+    /// <summary>The raise amount box, an AntDesign Input inside a span of the demo's own.</summary>
+    public const string RaiseInputSelector = ".action-bar .raise-input input";
+
+    /// <summary>The round button that corrects an illegal raise amount; shown only while there is one.</summary>
+    public const string RaiseFixButtonSelector = ".action-bar .raise-fix-btn";
+
+    /// <summary>The header's Light / Dark switch.</summary>
+    public const string ThemeSwitchSelector = "header.layout-header .layout-theme-switch";
+
+    /// <summary>The short commit SHA beside the header's title.</summary>
+    public const string CommitShaSelector = "header.layout-header .layout-commit-sha code";
 
     /// <summary>The settings form inside the New Game modal.</summary>
     public const string GameSetupSelector = ".ant-modal .game-setup-card";
@@ -396,6 +411,64 @@ internal sealed class DemoPage : IAsyncDisposable
         ILocator mark = _page.Locator(RaiseMarkSelector).Filter(new LocatorFilterOptions { HasTextString = label });
         return await mark.First.GetAttributeAsync("title")
             ?? throw new InvalidOperationException($"The {label} mark carries no amount.");
+    }
+
+    /// <summary>Clicks one of the ½ Pot / Pot buttons beside the raise amount box.</summary>
+    public async Task PickRaisePresetAsync(string label)
+    {
+        ILocator preset = _page.Locator(RaisePresetSelector).Filter(new LocatorFilterOptions { HasTextString = label });
+        await preset.First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Replaces what the raise amount box holds by typing, the way a visitor would.</summary>
+    public async Task TypeRaiseAmountAsync(string text)
+    {
+        ILocator input = _page.Locator(RaiseInputSelector).First;
+        await input.FillAsync(string.Empty);
+        await input.PressSequentiallyAsync(text);
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>What the raise amount box holds now.</summary>
+    public Task<string> ReadRaiseAmountAsync()
+    {
+        return _page.Locator(RaiseInputSelector).First.InputValueAsync();
+    }
+
+    /// <summary>Whether the first element matching <paramref name="selector"/> is disabled.</summary>
+    public Task<bool> IsDisabledAsync(string selector)
+    {
+        return _page.Locator(selector).First.IsDisabledAsync();
+    }
+
+    /// <summary>Clicks the header's theme switch.</summary>
+    public async Task ToggleThemeAsync()
+    {
+        await _page.Locator(ThemeSwitchSelector).First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// The theme on <c>&lt;html data-theme&gt;</c>, and the AntDesign stylesheet the page loads —
+    /// the two things the switch changes.
+    /// </summary>
+    public async Task<(string Theme, string AntDesignStylesheet)> ReadThemeAsync()
+    {
+        string[] values = await _page.EvaluateAsync<string[]>(
+            @"() => [
+                document.documentElement.getAttribute('data-theme') ?? '',
+                document.querySelector(""link[href*='_content/AntDesign/css/ant-design-blazor']"")?.getAttribute('href') ?? ''
+            ]");
+        return (values[0], values[1]);
+    }
+
+    /// <summary>Reloads the page and waits for the action bar again.</summary>
+    public async Task ReloadAsync()
+    {
+        await _page.ReloadAsync();
+        await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
     /// <summary>Opens the New Game modal from the header and waits for its form.</summary>

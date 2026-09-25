@@ -1,4 +1,4 @@
-@using AntDesign
+﻿@using AntDesign
 @using OpenHoldemEngine.Demo.Phh
 @using OpenHoldemEngine.Demo.Services
 
@@ -8,7 +8,7 @@
         {
             <!-- File Upload Area -->
             <div class="upload-area"
-                 style="border: 2px dashed #d9d9d9;
+                 style="border: 2px dashed var(--demo-outline);
                         background: transparent;
                         border-radius: 4px;
                         padding: 32px;
@@ -16,7 +16,7 @@
                 <InputFile OnChange="@HandleFileSelect" multiple accept=".phh,.phhs" />
                 <div style="margin: 16px 0;">
                     <p style="margin: 0; font-size: 16px; font-weight: 500;">Click to select hand history files</p>
-                    <p style="margin: 8px 0 0 0; color: #666;">Accepts .phh and .phhs files</p>
+                    <p style="margin: 8px 0 0 0; color: var(--demo-muted-text);">Accepts .phh and .phhs files</p>
                 </div>
             </div>
 
@@ -26,7 +26,7 @@
                 <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
                     <div style="text-align: center;">
                         <Spin Size="@AntSizeLDSType.Large" />
-                        <p style="margin-top: 16px; color: #666;">Parsing hand histories...</p>
+                        <p style="margin-top: 16px; color: var(--demo-muted-text);">Parsing hand histories...</p>
                         @if (!string.IsNullOrEmpty(_progressMessage))
                         {
                             <p style="color: #999;">@_progressMessage</p>
@@ -74,7 +74,7 @@
                 <div class="hands-table-container">
                     <table class="hands-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
-                            <tr style="border-bottom: 1px solid #d9d9d9;">
+                            <tr style="border-bottom: 1px solid var(--demo-outline);">
                                 <th style="width: 60px; padding: 8px; text-align: left;">#</th>
                                 <th style="width: 200px; padding: 8px; text-align: left;">Source</th>
                                 <th style="width: 100px; padding: 8px; text-align: center;">Players</th>
@@ -86,7 +86,7 @@
                         <tbody>
                             @foreach (var hand in GetPagedHands())
                             {
-                                <tr style="cursor: pointer; border-bottom: 1px solid #f0f0f0; @(hand == _selectedHand ? "background-color: rgba(24, 144, 255, 0.1);" : "")"
+                                <tr style="cursor: pointer; border-bottom: 1px solid var(--ant-border-color); @(hand == _selectedHand ? "background-color: rgba(24, 144, 255, 0.1);" : "")"
                                     @onclick="@(async () => await SelectHand(hand))">
                                     <td style="padding: 8px;">@hand.Index</td>
                                     <td style="padding: 8px;">@hand.Source</td>

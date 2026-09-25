@@ -7,6 +7,7 @@
 @inject WalkthroughState WalkthroughState
 @inject NewGameState NewGameState
 @inject DemoGameSession Session
+@inject DemoTheme Theme
 
 @* The plain <div> is what makes MainLayout.razor.css work at all. A scoped stylesheet compiles
    ::deep X to [b-hash] X, and Blazor only puts the scope attribute on elements written as markup
@@ -18,13 +19,28 @@
     <Layout Class="layout-full-height">
         <Header Class="layout-header">
             <div class="layout-header-content">
-                <h1 class="layout-title">
-                    <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
-                </h1>
+                <div class="layout-title-group">
+                    <h1 class="layout-title">
+                        <a href="/" title="OpenHoldemEngine Demo">OpenHoldemEngine Demo</a>
+                    </h1>
+                    @* The build's commit, so a report about the demo can say which one it is. *@
+                    @if (BuildInfo.ShortSha is string shortSha)
+                    {
+                        <Tooltip Title="@($"Built from commit {BuildInfo.CommitSha}")">
+                            <Text Code="true" Class="layout-commit-sha">@shortSha</Text>
+                        </Tooltip>
+                    }
+                </div>
                 @* The running session's settings are in the header rather than on the table, so the
                    table's height goes to the seats, the board and the action bar. *@
                 <GameSummary GameData="@Session.CurrentGame" OnNewGame="RequestNewGame" />
                 <div class="layout-header-actions">
+                    <Switch
+                        Checked="@_isDark"
+                        CheckedChanged="@OnThemeChangedAsync"
+                        CheckedChildren="Dark"
+                        UnCheckedChildren="Light"
+                        Class="layout-theme-switch" />
                     <Tooltip Title="Show the walkthrough">
                         <Button Type="@ButtonType.Text" Shape="@ButtonShape.Circle" AriaLabel="Show the walkthrough" OnClick="ShowWalkthrough" Class="layout-walkthrough-button">
                             <Icon Type="question" Theme="outline" />
@@ -56,9 +72,47 @@
 @code {
     private ErrorBoundary? _bodyErrorBoundary;
 
+    /// <summary>Where the theme switch stands; read from the page once it has rendered.</summary>
+    private bool _isDark;
+
     protected override void OnInitialized()
     {
         Session.StateChanged += OnSessionStateChanged;
+    }
+
+    /// <summary>
+    /// theme.js has already put a theme on the page — the visitor's pick, or the OS setting — so the
+    /// switch starts from that rather than from a default of its own.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var isDark = await Theme.IsDarkAsync();
+        if (isDark != _isDark)
+        {
+            _isDark = isDark;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// AntDesign's Switch also raises CheckedChanged when <see cref="_isDark"/> is pushed into it
+    /// from <see cref="OnAfterRenderAsync"/>. Only a real toggle is the visitor's pick; storing the
+    /// echo would stop the page from following the OS setting before the visitor ever chose.
+    /// </summary>
+    private async Task OnThemeChangedAsync(bool isDark)
+    {
+        if (isDark == _isDark)
+        {
+            return;
+        }
+
+        _isDark = isDark;
+        await Theme.SetDarkAsync(isDark);
     }
 
     /// <summary>

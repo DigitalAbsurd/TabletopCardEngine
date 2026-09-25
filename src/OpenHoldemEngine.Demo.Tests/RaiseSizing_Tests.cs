@@ -30,68 +30,147 @@ public sealed class RaiseSizing_Tests
         RaiseSizing.PotRaise(hand).Should().Be(expectedPot);
     }
 
+    // The same decisions with the presets rounded to the 50 small blind at 50/100: 225 and 625 sit
+    // halfway between two steps and round up.
     [TestMethod]
-    public void Marks_PreFlopOpening_AreMinHalfPotPotAllIn()
+    [DataRow(0, 150, 10000, 100, 200, 10000, 250, 350, DisplayName = "PreFlop_Opening")]
+    [DataRow(0, 450, 900, 200, 500, 1000, 650, 950, DisplayName = "PreFlop_BigBlindFacingARaise")]
+    [DataRow(400, 150, 1000, 150, 300, 1000, 500, 850, DisplayName = "Flop_FacingABet")]
+    public void PotRaises_RoundToTheSmallBlind(
+        int pot, int streetPot, int stack, int call, int min, int max, int expectedHalfPot, int expectedPot)
+    {
+        // Arrange
+        var hand = Hand(pot, streetPot, stack, call, min, max);
+
+        // Act and Assert
+        RaiseSizing.HalfPotRaise(hand, 50m).Should().Be(expectedHalfPot);
+        RaiseSizing.PotRaise(hand, 50m).Should().Be(expectedPot);
+    }
+
+    [TestMethod]
+    public void Marks_AreOnlyTheEndsOfTheWindow()
     {
         // Act
         var marks = RaiseSizing.Marks(Hand(0, 150, 10000, 100, 200, 10000));
 
-        // Assert - ½ Pot and Pot sit strictly inside the window
-        marks.Should().Equal(
-            new RaiseMark(200, "Min"),
-            new RaiseMark(225, "½ Pot"),
-            new RaiseMark(350, "Pot"),
-            new RaiseMark(10000, "All-in"));
+        // Assert - ½ Pot and Pot are presets beside the slider, not marks on it
+        marks.Should().Equal(new RaiseMark(200, "Min"), new RaiseMark(10000, "All-in"));
     }
 
     [TestMethod]
-    public void Marks_NarrowWindow_CollapseToItsEnds()
+    public void Presets_PreFlopOpening_AreHalfPotAndPot()
     {
-        // Arrange - 250 behind on a 400 pot: both pot raises clamp onto the ends of 100..250
-        var hand = Hand(400, 0, 250, 0, 100, 250);
-
         // Act
-        var marks = RaiseSizing.Marks(hand);
+        var presets = RaiseSizing.Presets(Hand(0, 150, 10000, 100, 200, 10000), 50m);
 
-        // Assert - ½ Pot (200) survives, Pot clamps onto All-in and is dropped
-        marks.Select(mark => mark.Label).Should().Equal("Min", "½ Pot", "All-in");
-        // A half-pot of 150 clamps onto the 200 minimum, which is the Min mark itself
-        RaiseSizing.Marks(Hand(0, 150, 1000, 50, 200, 1000)).Select(mark => mark.Label)
-            .Should().Equal("Min", "Pot", "All-in");
+        // Assert - both strictly inside the window, on the step
+        presets.Should().Equal(new RaiseMark(250, "½ Pot"), new RaiseMark(350, "Pot"));
     }
 
     [TestMethod]
-    public void Marks_NoRaiseOrAllInOnly_AreEmpty()
+    public void Presets_NarrowWindow_DropWhatLandsOnAnEnd()
+    {
+        // Arrange - 250 behind on a 400 pot: Pot clamps onto All-in and is dropped, ½ Pot (200) stays
+        RaiseSizing.Presets(Hand(400, 0, 250, 0, 100, 250), 50m).Select(preset => preset.Label)
+            .Should().Equal("½ Pot");
+
+        // A half-pot of 150 clamps onto the 200 minimum, which Min already offers
+        RaiseSizing.Presets(Hand(0, 150, 1000, 50, 200, 1000), 50m).Select(preset => preset.Label)
+            .Should().Equal("Pot");
+    }
+
+    [TestMethod]
+    public void MarksAndPresets_NoRaiseOrAllInOnly_AreEmpty()
     {
         RaiseSizing.Marks(null).Should().BeEmpty();
         RaiseSizing.Marks(Hand(0, 150, 150, 100, 150, 150)).Should().BeEmpty();
         RaiseSizing.Marks(Hand(0, 150, 1000, 100, 0, 0) with { Evaluations = [new(PlayerActionType.Fold)] })
             .Should().BeEmpty();
+        RaiseSizing.Presets(null, 50m).Should().BeEmpty();
+        RaiseSizing.Presets(Hand(0, 150, 150, 100, 150, 150), 50m).Should().BeEmpty();
     }
 
     [TestMethod]
-    public void Positions_SpaceTheMarksEvenlyAndRoundTrip()
+    public void Positions_AreLinearBetweenTheEndsAndRoundToTheStep()
     {
         // Arrange
         var marks = RaiseSizing.Marks(Hand(0, 150, 10000, 100, 200, 10000));
 
-        // Act and Assert - one segment per pair of marks, whatever the amounts between them
-        RaiseSizing.SliderMax(marks).Should().Be(300);
-        marks.Select(mark => RaiseSizing.ToPosition(marks, mark.Amount)).Should().Equal(0d, 100d, 200d, 300d);
-        marks.Select(mark => RaiseSizing.FromPosition(marks, RaiseSizing.ToPosition(marks, mark.Amount)))
-            .Should().Equal(200m, 225m, 350m, 10000m);
+        // Act and Assert - one segment, from Min to All-in
+        RaiseSizing.SliderMax(marks).Should().Be(100);
+        marks.Select(mark => RaiseSizing.ToPosition(marks, mark.Amount)).Should().Equal(0d, 100d);
+        RaiseSizing.ToPosition(marks, 5100m).Should().Be(50d);
 
-        // Halfway along the last segment, rounded to whole chips because the window is whole
-        RaiseSizing.FromPosition(marks, 250).Should().Be(5175m);
-        RaiseSizing.FromPosition(marks, 205).Should().Be(833m);
+        // Halfway is 5100; without a step it is whole chips because the window is whole
+        RaiseSizing.FromPosition(marks, 50).Should().Be(5100m);
+        RaiseSizing.FromPosition(marks, 50.3).Should().Be(5129m);
 
-        // Near a mark is the mark: the slider reports where a press on a caption went down
-        RaiseSizing.FromPosition(marks, 201.5).Should().Be(350m);
-        RaiseSizing.FromPosition(marks, 298.6).Should().Be(10000m);
+        // With a step it lands on a multiple of the small blind
+        RaiseSizing.FromPosition(marks, 50.3, 50m).Should().Be(5150m);
+        RaiseSizing.FromPosition(marks, 10.1, 50m).Should().Be(1200m);
+
+        // Near an end is the end itself, even when the end is off the step
+        var odd = RaiseSizing.Marks(Hand(0, 150, 987, 100, 200, 987));
+        RaiseSizing.FromPosition(odd, 99, 50m).Should().Be(987m);
+        RaiseSizing.FromPosition(odd, 96, 50m).Should().Be(950m);
 
         // Out of range clamps to the window
-        RaiseSizing.FromPosition(marks, -5).Should().Be(200m);
-        RaiseSizing.ToPosition(marks, 20000m).Should().Be(300d);
+        RaiseSizing.FromPosition(marks, -5, 50m).Should().Be(200m);
+        RaiseSizing.ToPosition(marks, 20000m).Should().Be(100d);
+    }
+
+    [TestMethod]
+    [DataRow(200, 1, 250, DisplayName = "Up_FromAMultiple")]
+    [DataRow(250, -1, 200, DisplayName = "Down_FromAMultiple")]
+    [DataRow(230, 1, 250, DisplayName = "Up_FromOffTheStep_LandsOnTheNextMultiple")]
+    [DataRow(230, -1, 200, DisplayName = "Down_FromOffTheStep_LandsOnThePreviousMultiple")]
+    [DataRow(200, -1, 200, DisplayName = "Down_AtMin_Clamps")]
+    [DataRow(975, 1, 987, DisplayName = "Up_PastAllIn_ClampsToTheOddAllIn")]
+    public void Step_MovesToTheNextMultipleOfTheSmallBlind(int amount, int direction, int expected)
+    {
+        RaiseSizing.Step(amount, direction, 50m, 200m, 987m).Should().Be(expected);
+    }
+
+    [TestMethod]
+    [DataRow("250", 250, null, DisplayName = "Multiple")]
+    [DataRow(" 987 ", 987, null, DisplayName = "OddAllIn")]
+    [DataRow("201", null, "Raise in steps of 50", DisplayName = "OffTheStep")]
+    [DataRow("150", null, "The minimum raise is to 200", DisplayName = "BelowMin")]
+    [DataRow("1000", null, "All-in is 987", DisplayName = "AboveAllIn")]
+    [DataRow("abc", null, "Enter an amount", DisplayName = "NotANumber")]
+    [DataRow("", null, "Enter an amount", DisplayName = "Empty")]
+    public void Validate_ReadsTheAmountBox(string text, int? expectedAmount, string? expectedError)
+    {
+        // Act
+        var input = RaiseSizing.Validate(text, 50m, 200m, 987m);
+
+        // Assert
+        input.Amount.Should().Be(expectedAmount);
+        input.Error.Should().Be(expectedError);
+        input.IsValid.Should().Be(expectedError is null);
+    }
+
+    [TestMethod]
+    public void Validate_ReadsACommaAsTheDecimalPoint()
+    {
+        RaiseSizing.Validate("1,25", 0.25m, 0.75m, 50m).Amount.Should().Be(1.25m);
+        RaiseSizing.Validate("1,3", 0.25m, 0.75m, 50m).Error.Should().Be("Raise in steps of 0.25");
+    }
+
+    [TestMethod]
+    [DataRow("333", 350, DisplayName = "RoundsToTheNearestStep")]
+    [DataRow("320", 300, DisplayName = "RoundsDown")]
+    [DataRow("99999", 987, DisplayName = "ClampsToAllIn")]
+    [DataRow("-5", 200, DisplayName = "ClampsToMin")]
+    [DataRow("abc", 450, DisplayName = "NotANumber_KeepsTheLastLegalAmount")]
+    public void Correct_AlwaysGivesALegalAmount(string text, int expected)
+    {
+        // Act
+        var corrected = RaiseSizing.Correct(text, 450m, 50m, 200m, 987m);
+
+        // Assert
+        corrected.Should().Be(expected);
+        RaiseSizing.Validate(corrected.ToString(System.Globalization.CultureInfo.InvariantCulture), 50m, 200m, 987m).IsValid.Should().BeTrue();
     }
 
     private static HandData Hand(int pot, int streetPot, int stack, int call, int min, int max)
