@@ -1,4 +1,5 @@
 ﻿@using AntDesign
+@using OpenHoldemEngine.Demo.Services
 @using OpenHoldemEngine.Dto
 
 @* The settings the running session was created with. GameData.Options is the only record of them,
@@ -10,7 +11,7 @@
     <div class="game-summary-items">
         <span class="game-summary-item">
             <span class="game-summary-label">Blinds</span>
-            <span class="game-summary-value">@FormatAmount(SmallBlind) / @FormatAmount(BigBlind)</span>
+            <span class="game-summary-value">@AmountFormat.Format(SmallBlind) / @AmountFormat.Format(BigBlind)</span>
         </span>
         <span class="game-summary-item">
             <span class="game-summary-label">Hand</span>
@@ -22,7 +23,7 @@
         </span>
     </div>
 
-    <Button Type="@ButtonType.Default" Size="small" OnClick="OnNewGameClickedAsync" Class="new-game-btn">
+    <Button Type="@ButtonType.Primary" Size="large" OnClick="OnNewGameClickedAsync" Class="new-game-btn">
         New Game
     </Button>
 </div>
@@ -49,8 +50,6 @@
     private decimal BigBlind => SmallBlind * 2;
 
     private int HandNumber => GameData?.HandData is { No: > 0 } hand ? hand.No : 0;
-
-    private static string FormatAmount(decimal amount) => amount.ToString("0.##");
 
     private async Task OnNewGameClickedAsync()
     {

@@ -1,4 +1,4 @@
-﻿# Browser layout gate
+# Browser layout gate
 
 A headless-browser smoke gate over the **published** demo: is the page usable, measured in a real
 browser rather than in a renderer that computes no geometry.
@@ -50,6 +50,13 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 10. **The storage warning is a notification** — an AntDesign notification below the tab bar, not a
     banner above the table. The gate closes it on open everywhere else, so its overlay cannot answer
     a hit-test meant for the page.
+11. **The action bar lines up with the seats** — since issue #108 .action-bar's left and right
+    edges match the bottom .table-seats-row's, at 1500px and 1280px. Before, it stretched across
+    the whole table: 1444px against the rows' 1200px at 1500px.
+12. **Copy follows the status in the call log** — in an .engine-call-entry, .copy-btn starts
+    within one header gap of the ✓ Success / ✗ Failed text rather than at the far right edge.
+13. **The Hand History cards stop at 800px** — Import, Replay Controls (once a hand is picked) and
+    Export are at most 800px wide and stay on the pane's left edge.
 
 ## What it does not cover
 
@@ -66,7 +73,7 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 ## Running it
 
 The gate is **off by default**, because the first run downloads a browser and publishes the
-WebAssembly app. `dotnet test` at the repository root reports its twenty-three browser checks as skipped
+WebAssembly app. `dotnet test` at the repository root reports its twenty-seven browser checks as skipped
 and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
 
 ```bash
@@ -80,7 +87,7 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about one minute for the twenty-three browser checks, plus the
+`wasm-tools` workload is required) and about one minute for the twenty-seven browser checks, plus the
 browser download on a cold machine.
 
 Environment variables:

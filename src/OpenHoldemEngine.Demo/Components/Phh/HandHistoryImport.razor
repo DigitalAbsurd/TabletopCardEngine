@@ -1,6 +1,6 @@
 @using AntDesign
 @using OpenHoldemEngine.Demo.Phh
-@using System.Globalization
+@using OpenHoldemEngine.Demo.Services
 
 <Card Title="Hand History Import" Class="hand-history-import-card">
     <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
@@ -91,7 +91,7 @@
                                     <td style="padding: 8px;">@hand.Index</td>
                                     <td style="padding: 8px;">@hand.Source</td>
                                     <td style="padding: 8px; text-align: center;">@hand.PlayerCount</td>
-                                    <td style="padding: 8px; text-align: center;">@hand.SmallBlind.ToString("F0", CultureInfo.InvariantCulture)/@hand.BigBlind.ToString("F0", CultureInfo.InvariantCulture)</td>
+                                    <td style="padding: 8px; text-align: center;">@AmountFormat.Format(hand.SmallBlind)/@AmountFormat.Format(hand.BigBlind)</td>
                                     <td style="padding: 8px; text-align: center;">@hand.Hand.Actions.Length</td>
                                     <td style="padding: 8px;">
                                         @if (hand.IsSupported)

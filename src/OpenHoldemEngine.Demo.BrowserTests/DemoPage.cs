@@ -68,8 +68,24 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The Raise button, whose label carries the amount the raise is sized to.</summary>
     public const string RaiseButtonSelector = ".action-bar .raise-btn";
 
+    /// <summary>A row of seats on the table; the top row is first, the bottom row last.</summary>
+    public const string SeatRowSelector = ".table-seats-row";
+
     /// <summary>One entry in the engine-call log; the log is mounted even while its tab is hidden.</summary>
     public const string EngineCallEntrySelector = ".engine-call-entry";
+
+    /// <summary>
+    /// The ✓ Success / ✗ Failed text in an engine-call entry's header. It is the inner span that is
+    /// measured, because its wrapper is what used to stretch across the row.
+    /// </summary>
+    public const string EngineCallStatusTextSelector = ".engine-call-entry .entry-status > span";
+
+    /// <summary>The Copy button in an engine-call entry's header.</summary>
+    public const string EngineCallCopyButtonSelector = ".engine-call-entry .copy-btn";
+
+    /// <summary>The cards on the Hand History tab: Import, Replay Controls once a hand is picked, and Export.</summary>
+    public static readonly string[] HandHistoryCardSelectors =
+        [".hand-history-import-card", ".replay-controls-card", ".hand-history-export-card"];
 
     /// <summary>
     /// The New Game button on the game page's settings summary. It is the only way into the
@@ -304,6 +320,26 @@ internal sealed class DemoPage : IAsyncDisposable
             selector);
 
         return bottom ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>
+    /// Reads the horizontal box of every element matching one of the given selectors, in document
+    /// order per selector. An element with no box (a hidden pane's child) is left out.
+    /// </summary>
+    public async Task<IReadOnlyList<ElementBox>> ReadElementBoxesAsync(params string[] selectors)
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selectors) => JSON.stringify(selectors.flatMap(selector =>
+                Array.from(document.querySelectorAll(selector))
+                    .map(element => element.getBoundingClientRect())
+                    .filter(rect => rect.width > 0 && rect.height > 0)
+                    .map(rect => ({ selector: selector, left: rect.left, right: rect.right, width: rect.width }))))
+            """,
+            selectors);
+
+        return JsonSerializer.Deserialize<ElementBox[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The element box probe returned nothing.");
     }
 
     /// <summary>Counts the elements matching one selector.</summary>

@@ -113,7 +113,7 @@ public partial class ActionPanel : ComponentBase
         }
 
         // MinValue for Call is the increment (how much more to put in)
-        return eval.MinValue > 0 ? $"Call {eval.MinValue:F2}" : "Call";
+        return eval.MinValue > 0 ? $"Call {AmountFormat.Format(eval.MinValue)}" : "Call";
     }
 
     /// <summary>
@@ -328,10 +328,4 @@ public partial class ActionPanel : ComponentBase
             _raiseAmount = value;
         }
     }
-
-    /// <summary>
-    /// Formats an amount for an input's value, min or max attribute, which the browser only parses
-    /// with a dot for the decimal separator.
-    /// </summary>
-    private static string FormatInvariant(decimal amount) => amount.ToString("0.00", CultureInfo.InvariantCulture);
 }
