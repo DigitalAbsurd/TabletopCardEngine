@@ -315,7 +315,8 @@ code {
    scoped attribute (fact 22), so the rule is here. */
 .hand-history-import-card,
 .replay-controls-card,
-.hand-history-export-card {
+.hand-history-export-card,
+.phh-format-card {
     width: 100%;
     max-width: 800px;
     box-sizing: border-box;

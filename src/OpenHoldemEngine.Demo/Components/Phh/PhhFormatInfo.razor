@@ -1,0 +1,32 @@
+﻿@using AntDesign
+
+@* Static reference text: the tab imports and exports PHH but never said what it is, and it is easy
+   to mistake for the unrelated JSON-based Open Hand History (OHH) format. *@
+<Card Title="About the PHH format" Class="phh-format-card">
+    <p>
+        <strong>PHH</strong> (Poker Hand History) is an open, plain-text hand history format built on TOML,
+        published by the University of Toronto Computer Poker Research Group.
+        A <code>.phh</code> file holds one hand; a <code>.phhs</code> file holds several, each in a numbered <code>[N]</code> section.
+    </p>
+    <p>
+        A hand is a handful of keys — <code>variant</code>, <code>blinds_or_straddles</code>, <code>starting_stacks</code>,
+        <code>players</code>, <code>actions</code> and <code>finishing_stacks</code>. Players are positions <code>p1</code>…<code>pN</code>,
+        and <code>actions</code> is a compact list:
+    </p>
+    <ul>
+        <li><code>d dh p1 AhKs</code> — deal hole cards to p1</li>
+        <li><code>d db 7c8d9h</code> — deal the board</li>
+        <li><code>p2 cbr 300</code> — p2 bets or raises to 300</li>
+        <li><code>p3 cc</code> — p3 checks or calls</li>
+        <li><code>p4 f</code> — p4 folds</li>
+    </ul>
+    <p>
+        Unlike the hand histories poker sites write for one player, PHH records every hole card, which is
+        what lets this demo replay a hand exactly.
+    </p>
+    <p class="phh-format-links">
+        <a href="https://phh.readthedocs.io/en/stable/spec.html" target="_blank" rel="noopener">Specification</a>
+        ·
+        <a href="https://github.com/uoftcprg/phh-dataset" target="_blank" rel="noopener">Dataset</a>
+    </p>
+</Card>

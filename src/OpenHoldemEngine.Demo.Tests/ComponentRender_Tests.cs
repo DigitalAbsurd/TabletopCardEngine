@@ -1307,6 +1307,29 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void PhhFormatInfo_Renders_DescriptionAndSpecLink()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        // Act
+        var component = ctx.RenderComponent<PhhFormatInfo>();
+
+        // Assert
+        component.Find(".phh-format-card").TextContent.Should()
+            .Contain("About the PHH format")
+            .And.Contain("Poker Hand History")
+            .And.NotContain("Pluribus Hand History");
+        var links = component.FindAll(".phh-format-card a");
+        links.Select(a => a.GetAttribute("href")).Should().Equal(
+            "https://phh.readthedocs.io/en/stable/spec.html",
+            "https://github.com/uoftcprg/phh-dataset");
+        links.Select(a => a.GetAttribute("target")).Should().AllBe("_blank");
+    }
+
+    [TestMethod]
     public void ReplayControls_Renders_WithoutException()
     {
         // Arrange
@@ -1465,6 +1488,7 @@ public sealed class ComponentRender_Tests
         var active = component.Find(".demo-tab-pane-active");
         active.GetAttribute("data-tab").Should().Be("hand-history");
         active.TextContent.Should().Contain("Hand History Import").And.Contain("Hand History Export");
+        active.Children.Last().ClassList.Should().Contain("phh-format-card", "the format note closes the tab, after Export");
     }
 
     [TestMethod]
