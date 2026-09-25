@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using OpenHoldemEngine.Demo.Services;
+using System.Runtime.CompilerServices;
 
 namespace OpenHoldemEngine.Demo.Components.EngineCalls;
 
@@ -20,8 +21,11 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
 
     // Keyed by the entry itself: a new game restarts the sequence numbers, and an entry of the old
     // game must not hand its open panel or its dump to the new game's call with the same number.
-    private readonly HashSet<EngineCallJournalEntry> _openDumps = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<EngineCallJournalEntry, ObjectDumpNode> _dumps = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<DumpKey> _openDumps = [];
+    private readonly Dictionary<DumpKey, ObjectDumpNode> _dumps = [];
+
+    private static readonly DumpKind[] _resultOnly = [DumpKind.Result];
+    private static readonly DumpKind[] _resultAndActions = [DumpKind.Result, DumpKind.AvailableActions];
 
     /// <summary>Called when the session state changes to update the displayed calls.</summary>
     protected override void OnInitialized()
@@ -71,26 +75,38 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", snippet);
     }
 
-    private void ToggleDump(EngineCallJournalEntry entry, bool active)
+    private void ToggleDump(DumpKey key, bool active)
     {
         if (active)
         {
-            _openDumps.Add(entry);
+            _openDumps.Add(key);
         }
         else
         {
-            _openDumps.Remove(entry);
-            _dumps.Remove(entry);
+            _openDumps.Remove(key);
+            _dumps.Remove(key);
         }
     }
 
-    /// <summary>The dump of an open entry's result, built once and kept while the panel stays open.</summary>
-    private ObjectDumpNode DumpFor(EngineCallJournalEntry entry)
+    /// <summary>
+    /// The snippet's variables an entry can dump: <c>result</c> always, <c>availableActions</c> only
+    /// for a success, the only kind of call whose snippet declares it.
+    /// </summary>
+    private static DumpKind[] DumpKindsFor(EngineCallJournalEntry entry) =>
+        entry.Result is { IsSuccess: true } ? _resultAndActions : _resultOnly;
+
+    private static string DumpName(DumpKind kind) => kind == DumpKind.Result ? "result" : "availableActions";
+
+    /// <summary>The dump of an open panel, built once and kept while the panel stays open.</summary>
+    private ObjectDumpNode DumpFor(DumpKey key)
     {
-        if (!_dumps.TryGetValue(entry, out var dump))
+        if (!_dumps.TryGetValue(key, out var dump))
         {
-            dump = ObjectDump.Create("result", entry.Result, typeof(FluentResults.Result<OpenHoldemEngine.Dto.GameData>));
-            _dumps[entry] = dump;
+            var result = key.Entry.Result;
+            dump = key.Kind == DumpKind.Result
+                ? ObjectDump.Create(DumpName(key.Kind), result, typeof(FluentResults.Result<OpenHoldemEngine.Dto.GameData>))
+                : ObjectDump.Create(DumpName(key.Kind), result?.Value.HandData?.Evaluations, typeof(OpenHoldemEngine.Dto.PlayerActionEvaluationData[]));
+            _dumps[key] = dump;
         }
 
         return dump;
@@ -100,8 +116,8 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
     {
         // Forget the panels of entries a new game has cleared out of the journal.
         var live = Session.Journal.Entries.ToHashSet(ReferenceEqualityComparer.Instance);
-        _openDumps.RemoveWhere(entry => !live.Contains(entry));
-        foreach (var stale in _dumps.Keys.Where(entry => !_openDumps.Contains(entry)).ToList())
+        _openDumps.RemoveWhere(key => !live.Contains(key.Entry));
+        foreach (var stale in _dumps.Keys.Where(key => !_openDumps.Contains(key)).ToList())
         {
             _dumps.Remove(stale);
         }
@@ -136,5 +152,28 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         }
 
         Session.StateChanged -= OnSessionStateChanged;
+    }
+
+    private enum DumpKind
+    {
+        Result,
+        AvailableActions,
+    }
+
+    /// <summary>
+    /// One dump panel: an entry and which of its variables. Compares the entry by reference, for the
+    /// reason the fields above give: journal entries are records, and two of them can be equal.
+    /// </summary>
+    private readonly struct DumpKey(EngineCallJournalEntry entry, DumpKind kind) : IEquatable<DumpKey>
+    {
+        public EngineCallJournalEntry Entry { get; } = entry;
+
+        public DumpKind Kind { get; } = kind;
+
+        public bool Equals(DumpKey other) => ReferenceEquals(Entry, other.Entry) && Kind == other.Kind;
+
+        public override bool Equals(object? obj) => obj is DumpKey other && Equals(other);
+
+        public override int GetHashCode() => HashCode.Combine(RuntimeHelpers.GetHashCode(Entry), Kind);
     }
 }

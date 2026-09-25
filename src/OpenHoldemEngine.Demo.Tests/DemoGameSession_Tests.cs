@@ -464,4 +464,31 @@ public sealed class DemoGameSession_Tests
         session.CurrentHand.Should().BeNull();
         session.Journal.Count.Should().Be(0);
     }
+
+    // A real session rather than a hand-built HandData: the pot the presets read is the engine's,
+    // and at the first decision of a street it used to count the street that had just closed twice.
+    [TestMethod]
+    public async Task PotPresets_FirstFlopDecision_ReadThePotOnce()
+    {
+        // Arrange - heads-up at 50/100: the button calls, the big blind checks, 200 in the pot
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        await session.CreateGameAsync(new GameOptionData(MaxPlayersCount: 2, InitialSmallBlind: 50m, InitialDealerSeatNo: 0), Guid.NewGuid());
+        await session.StartFirstHandAsync(
+        [
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 1000m),
+        ]);
+        await session.ApplyPlayerActionAsync(PlayerActionType.Call);
+        await session.ApplyPlayerActionAsync(PlayerActionType.Check);
+
+        // Act
+        var hand = session.CurrentHand!;
+
+        // Assert - nothing to call, so Pot bets the 200 pot and a half-pot of 100 is the minimum raise
+        hand.Street.Should().Be(Street.Flop);
+        (hand.Pot + hand.StreetPot).Should().Be(200m);
+        RaiseSizing.PotRaise(hand, 50m).Should().Be(200m);
+        RaiseSizing.Presets(hand, 50m).Should().Equal(new RaiseMark(200m, "Pot"));
+    }
 }

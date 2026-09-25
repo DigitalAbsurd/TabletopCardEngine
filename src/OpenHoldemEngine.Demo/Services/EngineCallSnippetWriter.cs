@@ -24,6 +24,10 @@ public sealed class EngineCallSnippetWriter
         if (entry.Succeeded)
         {
             sb.AppendLine(";");
+
+            // What the seat on the clock may do next. HandData is null until the first hand is dealt
+            // (fact 3), and a failed call has no Value to read at all, so only a success gets the line.
+            sb.AppendLine("var availableActions = result.Value.HandData?.Evaluations;");
         }
         else
         {
