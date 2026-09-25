@@ -122,9 +122,9 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>Every card on the table: hole cards and the board.</summary>
     public const string TableCardSelector = ".poker-table .playing-card";
 
-    /// <summary>The cards on the Hand History tab: Import, Replay Controls once a hand is picked, and Export.</summary>
+    /// <summary>The cards on the Hand History tab: Import, Replay Controls once a hand is picked, Export, and About the PHH format.</summary>
     public static readonly string[] HandHistoryCardSelectors =
-        [".hand-history-import-card", ".replay-controls-card", ".hand-history-export-card"];
+        [".hand-history-import-card", ".replay-controls-card", ".hand-history-export-card", ".phh-format-card"];
 
     /// <summary>
     /// The New Game button on the game page's settings summary. It is the only way into the
