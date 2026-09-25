@@ -1252,6 +1252,37 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public async Task EngineCalls_AvailableActionsPanel_DumpsTheEvaluations()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
+        ctx.Services.AddScoped(_ => session);
+
+        // Act
+        var component = ctx.RenderComponent<EngineCalls>();
+        var startHand = component.FindAll(".engine-call-entry")[1];
+
+        // Assert - result, then availableActions, both closed
+        startHand.QuerySelectorAll(".ant-collapse-header").Select(header => header.TextContent.Trim())
+            .Should().Equal("result", "availableActions");
+        component.FindAll(".object-dump").Should().BeEmpty();
+
+        // Act - open availableActions only
+        startHand.QuerySelectorAll(".ant-collapse-header")[1].Click();
+
+        // Assert - one tree, rooted at the evaluations, one row per action the seat on the clock has
+        var dump = component.Find(".object-dump");
+        var rows = dump.QuerySelectorAll("tbody tr");
+        rows[0].QuerySelector(".dump-name-text")!.TextContent.Should().Be("availableActions");
+        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("PlayerActionEvaluationData[] (OpenHoldemEngine.Dto)");
+        dump.TextContent.Should().Contain("Fold").And.Contain("Call").And.Contain("Raise");
+        component.FindAll(".object-dump").Should().HaveCount(1, "opening availableActions leaves result closed");
+    }
+
+    [TestMethod]
     public void ErrorCardContent_Renders_WithMessage()
     {
         // Arrange

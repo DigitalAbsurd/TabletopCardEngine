@@ -40,6 +40,34 @@ public sealed class EngineCallSnippetWriter_Tests
     }
 
     [TestMethod]
+    [DataRow(true, DisplayName = "Succeeded")]
+    [DataRow(false, DisplayName = "Failed")]
+    public void GenerateSnippet_AvailableActions_OnlyAfterASuccess(bool succeeded)
+    {
+        // Arrange
+        var entry = new EngineCallJournalEntry(
+            SequenceNumber: 1,
+            Action: new HoldemActionPlayerAction(GameId: Guid.NewGuid(), ActionType: PlayerActionType.Call, Size: 0),
+            Succeeded: succeeded,
+            ErrorMessages: succeeded ? [] : ["The current hand is completed"]);
+
+        // Act
+        var lines = EngineCallSnippetWriter.GenerateSnippet(entry).Split(Environment.NewLine);
+
+        // Assert - right after the call, and only when result.Value can be read
+        const string availableActions = "var availableActions = result.Value.HandData?.Evaluations;";
+        if (succeeded)
+        {
+            lines.Should().Contain(availableActions);
+            lines[Array.IndexOf(lines, availableActions) - 1].Should().Be(");");
+        }
+        else
+        {
+            lines.Should().NotContain(line => line.Contains("availableActions", StringComparison.Ordinal));
+        }
+    }
+
+    [TestMethod]
     public void GenerateSnippet_PlayerAction_Fold_ProducesValidCSharp()
     {
         // Arrange

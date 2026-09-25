@@ -52,7 +52,9 @@ internal static class GameDataMapper
                     BigBlindSeatNo: bigBlindSeatNo,
                     NextPlayerSeatNo: lastHandAction.NextSeatNo,
                     Street: lastHandAction.NextStreet,
-                    StreetPot: playersRoundAmounts.Where(entry => entry.Street == lastHandAction.Street).Select(entry => entry.Amount).Sum(),
+                    // Both pots split on NextStreet, the street on the clock. Splitting StreetPot on the
+                    // last action's own Street instead counted a street that had just closed in both.
+                    StreetPot: playersRoundAmounts.Where(entry => entry.Street == lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
                     Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
                     CommunityCards: [.. currentHand.GetDeckCards()],
                     Evaluations: evaluations)
