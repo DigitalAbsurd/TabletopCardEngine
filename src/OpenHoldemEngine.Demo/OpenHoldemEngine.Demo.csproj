@@ -7,6 +7,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- WebAssembly native SQLite build -->
     <WasmBuildNative>true</WasmBuildNative>
+    <!--
+      SQLitePCLRaw's e_sqlite3 exposes varargs native functions (sqlite3_config,
+      sqlite3_db_config). The wasm native linker flags every P/Invoke against them,
+      but this app never calls those overloads, so the warning is noise.
+    -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);WASM0001</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <ItemGroup>
