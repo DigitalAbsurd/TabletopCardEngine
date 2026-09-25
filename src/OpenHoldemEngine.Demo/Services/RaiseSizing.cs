@@ -1,16 +1,29 @@
 ﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
+using System.Globalization;
 
 namespace OpenHoldemEngine.Demo.Services;
 
-/// <summary>A reference point on the raise slider: a "raise to" amount and what to call it.</summary>
+/// <summary>A reference point of a raise: a "raise to" amount and what to call it.</summary>
 /// <param name="Amount">The absolute street total the mark sizes the raise to.</param>
-/// <param name="Label">The caption shown under the slider.</param>
+/// <param name="Label">The caption shown for it.</param>
 public sealed record RaiseMark(decimal Amount, string Label);
 
+/// <summary>What the raise amount box holds: an amount the engine will accept, or why it will not.</summary>
+/// <param name="Amount">The "raise to" amount, or <see langword="null"/> when the text is not a legal raise.</param>
+/// <param name="Error">Why the text is not a legal raise; <see langword="null"/> when it is.</param>
+public readonly record struct RaiseInput(decimal? Amount, string? Error)
+{
+    /// <summary>Whether the text is a raise the engine will accept.</summary>
+    public bool IsValid => Error is null;
+}
+
 /// <summary>
-/// The reference amounts of the raise slider: the minimum raise, half-pot, pot and all-in, all as
-/// absolute "raise to" street totals, the basis a Raise is sent with (fact 5).
+/// The reference amounts of a raise: the minimum raise and all-in at the ends of the slider, and
+/// the half-pot and pot presets beside it, all as absolute "raise to" street totals, the basis a
+/// Raise is sent with (fact 5). One step of the amount is the small blind, the smallest chip on the
+/// table, so every amount the visitor is offered is a multiple of it — except Min and All-in
+/// themselves, which are whatever the engine says they are.
 /// </summary>
 /// <remarks>
 /// A pot-sized raise is the call plus the pot as it will stand after that call, on top of the
@@ -28,19 +41,19 @@ public static class RaiseSizing
 
     /// <summary>The half-pot raise, clamped to the legal window; <c>0</c> when no raise is offered.</summary>
     /// <param name="hand">The hand whose seat to act is raising.</param>
+    /// <param name="step">The amount's step, the small blind; <c>0</c> rounds to the cent instead.</param>
     /// <returns>The absolute street total.</returns>
-    public static decimal HalfPotRaise(HandData hand) => PotFractionRaise(hand, 0.5m);
+    public static decimal HalfPotRaise(HandData hand, decimal step = 0) => PotFractionRaise(hand, 0.5m, step);
 
     /// <summary>The pot-sized raise, clamped to the legal window; <c>0</c> when no raise is offered.</summary>
     /// <param name="hand">The hand whose seat to act is raising.</param>
+    /// <param name="step">The amount's step, the small blind; <c>0</c> rounds to the cent instead.</param>
     /// <returns>The absolute street total.</returns>
-    public static decimal PotRaise(HandData hand) => PotFractionRaise(hand, 1m);
+    public static decimal PotRaise(HandData hand, decimal step = 0) => PotFractionRaise(hand, 1m, step);
 
     /// <summary>
-    /// Min, ½ Pot, Pot and All-in, in ascending order. ½ Pot or Pot is dropped when clamping puts it
-    /// on or past a neighbour — a short stack's window, or a half-pot below the minimum raise — so
-    /// every mark is its own point and every segment of the slider has length. Min and All-in are
-    /// the ends of the window and always stay.
+    /// Min and All-in, the ends of the raise window and the only marks on the slider. ½ Pot and Pot
+    /// are buttons of their own (<see cref="Presets"/>): as marks they crowded the slider's left end.
     /// </summary>
     /// <param name="hand">The current hand, or <see langword="null"/> before the first one.</param>
     /// <returns>The marks; empty when no raise is offered or the window is a single all-in amount.</returns>
@@ -51,24 +64,123 @@ public static class RaiseSizing
             return [];
         }
 
-        var marks = new List<RaiseMark> { new(min, "Min") };
-        foreach (var candidate in new[] { new RaiseMark(HalfPotRaise(hand), "½ Pot"), new RaiseMark(PotRaise(hand), "Pot") })
+        return [new RaiseMark(min, "Min"), new RaiseMark(max, "All-in")];
+    }
+
+    /// <summary>
+    /// ½ Pot and Pot, in ascending order. A preset is dropped when clamping puts it on or past a
+    /// neighbour — a short stack's window, or a half-pot below the minimum raise — because a button
+    /// that does what Min or the slider's right end already does is only noise.
+    /// </summary>
+    /// <param name="hand">The current hand, or <see langword="null"/> before the first one.</param>
+    /// <param name="step">The amount's step, the small blind.</param>
+    /// <returns>The presets; empty when no raise is offered or the window is a single all-in amount.</returns>
+    public static IReadOnlyList<RaiseMark> Presets(HandData? hand, decimal step)
+    {
+        if (hand is null || RaiseWindow(hand) is not (decimal min, decimal max) || min >= max)
         {
-            if (candidate.Amount > marks[^1].Amount && candidate.Amount < max)
+            return [];
+        }
+
+        var presets = new List<RaiseMark>();
+        var floor = min;
+        foreach (var candidate in new[] { new RaiseMark(HalfPotRaise(hand, step), "½ Pot"), new RaiseMark(PotRaise(hand, step), "Pot") })
+        {
+            if (candidate.Amount > floor && candidate.Amount < max)
             {
-                marks.Add(candidate);
+                presets.Add(candidate);
+                floor = candidate.Amount;
             }
         }
 
-        marks.Add(new RaiseMark(max, "All-in"));
-        return marks;
+        return presets;
+    }
+
+    /// <summary>
+    /// Moves <paramref name="amount"/> to the next multiple of <paramref name="step"/> in
+    /// <paramref name="direction"/>, clamped to the window. From an amount that is not a multiple —
+    /// an odd minimum raise — the first step lands on the nearest multiple on that side, so the
+    /// amount falls into line with the step instead of carrying the odd remainder along.
+    /// </summary>
+    /// <param name="amount">The current "raise to" amount.</param>
+    /// <param name="direction">Positive for up, negative for down.</param>
+    /// <param name="step">The amount's step, the small blind.</param>
+    /// <param name="min">The minimum raise-to.</param>
+    /// <param name="max">The all-in raise-to.</param>
+    /// <returns>The new amount, inside the window.</returns>
+    public static decimal Step(decimal amount, int direction, decimal step, decimal min, decimal max)
+    {
+        if (step <= 0 || direction == 0)
+        {
+            return Math.Clamp(amount, min, max);
+        }
+
+        var next = direction > 0
+            ? (Math.Floor(amount / step) + 1) * step
+            : (Math.Ceiling(amount / step) - 1) * step;
+        return Math.Clamp(next, min, max);
+    }
+
+    /// <summary>
+    /// Reads the amount box. A legal raise is a number inside the window that is a multiple of the
+    /// step, or exactly Min or All-in, which need not be. A comma is read as the decimal point, the
+    /// way a visitor on a comma-decimal keyboard types it.
+    /// </summary>
+    /// <param name="text">What the box holds.</param>
+    /// <param name="step">The amount's step, the small blind.</param>
+    /// <param name="min">The minimum raise-to.</param>
+    /// <param name="max">The all-in raise-to.</param>
+    /// <returns>The amount, or the reason there is none.</returns>
+    public static RaiseInput Validate(string? text, decimal step, decimal min, decimal max)
+    {
+        if (!TryParseAmount(text, out var amount))
+        {
+            return new RaiseInput(null, "Enter an amount");
+        }
+
+        if (amount < min)
+        {
+            return new RaiseInput(null, $"The minimum raise is to {AmountFormat.Format(min)}");
+        }
+
+        if (amount > max)
+        {
+            return new RaiseInput(null, $"All-in is {AmountFormat.Format(max)}");
+        }
+
+        if (amount != min && amount != max && step > 0 && amount % step != 0)
+        {
+            return new RaiseInput(null, $"Raise in steps of {AmountFormat.Format(step)}");
+        }
+
+        return new RaiseInput(amount, null);
+    }
+
+    /// <summary>
+    /// The amount the auto-correct button puts in the box: the typed number clamped to the window and
+    /// rounded to the nearest step, or <paramref name="lastValid"/> when the box holds no number. The
+    /// result always passes <see cref="Validate"/>.
+    /// </summary>
+    /// <param name="text">What the box holds.</param>
+    /// <param name="lastValid">The last legal amount the box held.</param>
+    /// <param name="step">The amount's step, the small blind.</param>
+    /// <param name="min">The minimum raise-to.</param>
+    /// <param name="max">The all-in raise-to.</param>
+    /// <returns>A legal "raise to" amount.</returns>
+    public static decimal Correct(string? text, decimal lastValid, decimal step, decimal min, decimal max)
+    {
+        if (!TryParseAmount(text, out var amount))
+        {
+            return Math.Clamp(lastValid, min, max);
+        }
+
+        return Math.Clamp(RoundToStep(Math.Clamp(amount, min, max), step), min, max);
     }
 
     /// <summary>
     /// Where <paramref name="amount"/> sits on the slider. The marks are spaced evenly, one
     /// <see cref="SegmentLength"/> apart, and the amount is interpolated linearly between the two
-    /// around it. On a linear scale a 100-big-blind stack puts Min, ½ Pot and Pot within a couple of
-    /// pixels of each other at the left end, and their captions on top of each other.
+    /// around it.
     /// </summary>
     /// <param name="marks">The marks from <see cref="Marks"/>, ascending, at least two.</param>
     /// <param name="amount">The "raise to" amount.</param>
@@ -94,16 +206,18 @@ public static class RaiseSizing
     }
 
     /// <summary>
-    /// The amount at a slider position: the inverse of <see cref="ToPosition"/>, rounded to whole
-    /// chips when both ends of the window are whole and to the cent otherwise, so dragging never
-    /// offers an amount like 1234.5678. A position within <see cref="SnapDistance"/> of a mark is
-    /// that mark's exact amount: a press on a mark's caption reaches the slider too, which reports
-    /// the position under the pointer, and that has to land on the mark rather than next to it.
+    /// The amount at a slider position: the inverse of <see cref="ToPosition"/>, rounded to a
+    /// multiple of <paramref name="step"/> — or, without one, to whole chips when both ends of the
+    /// window are whole and to the cent otherwise — so dragging never offers an amount like
+    /// 1234.5678. A position within <see cref="SnapDistance"/> of a mark is that mark's exact amount:
+    /// a press on a mark's caption reaches the slider too, which reports the position under the
+    /// pointer, and that has to land on the mark rather than next to it.
     /// </summary>
     /// <param name="marks">The marks from <see cref="Marks"/>, ascending, at least two.</param>
     /// <param name="position">The slider position.</param>
+    /// <param name="step">The amount's step, the small blind; <c>0</c> for none.</param>
     /// <returns>The "raise to" amount, inside the window.</returns>
-    public static decimal FromPosition(IReadOnlyList<RaiseMark> marks, double position)
+    public static decimal FromPosition(IReadOnlyList<RaiseMark> marks, double position, decimal step = 0)
     {
         ArgumentNullException.ThrowIfNull(marks);
         if (marks.Count < 2)
@@ -125,6 +239,11 @@ public static class RaiseSizing
         var (low, high) = (marks[segment].Amount, marks[segment + 1].Amount);
         var amount = low + ((scaled - segment) * (high - low));
 
+        if (step > 0)
+        {
+            return Math.Clamp(RoundToStep(amount, step), marks[0].Amount, marks[^1].Amount);
+        }
+
         var decimals = marks[0].Amount % 1 == 0 && marks[^1].Amount % 1 == 0 ? 0 : 2;
         return Math.Clamp(Math.Round(amount, decimals, MidpointRounding.AwayFromZero), marks[0].Amount, marks[^1].Amount);
     }
@@ -138,7 +257,7 @@ public static class RaiseSizing
         return Math.Max(0, marks.Count - 1) * SegmentLength;
     }
 
-    private static decimal PotFractionRaise(HandData hand, decimal fraction)
+    private static decimal PotFractionRaise(HandData hand, decimal fraction, decimal step)
     {
         if (RaiseWindow(hand) is not (decimal min, decimal max))
         {
@@ -152,7 +271,8 @@ public static class RaiseSizing
 
         // Pot excludes the current street, so the pot on the table is both of them (fact 6).
         var pot = hand.Pot + hand.StreetPot;
-        var raiseTo = Math.Round(currentBet + (fraction * (pot + call)), 2, MidpointRounding.AwayFromZero);
+        var raiseTo = currentBet + (fraction * (pot + call));
+        raiseTo = step > 0 ? RoundToStep(raiseTo, step) : Math.Round(raiseTo, 2, MidpointRounding.AwayFromZero);
         return Math.Clamp(raiseTo, min, max);
     }
 
@@ -161,4 +281,14 @@ public static class RaiseSizing
         var raise = hand.Evaluations.FirstOrDefault(e => e.PlayerActionType == PlayerActionType.Raise);
         return raise is null ? null : (raise.MinValue, raise.MaxValue);
     }
+
+    private static decimal RoundToStep(decimal amount, decimal step) =>
+        step > 0 ? Math.Round(amount / step, MidpointRounding.AwayFromZero) * step : amount;
+
+    private static bool TryParseAmount(string? text, out decimal amount) =>
+        decimal.TryParse(
+            text?.Trim().Replace(',', '.'),
+            NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
+            CultureInfo.InvariantCulture,
+            out amount);
 }

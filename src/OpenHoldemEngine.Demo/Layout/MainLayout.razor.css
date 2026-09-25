@@ -11,8 +11,9 @@
 }
 
 ::deep .layout-header {
-    background-color: #fff;
-    border-bottom: 1px solid #f0f0f0;
+    /* Theme tokens from app.css; a scoped stylesheet cannot define its own (fact 22). */
+    background-color: var(--demo-header-bg);
+    border-bottom: 1px solid var(--demo-header-border);
     padding: 0 24px;
     display: flex;
     align-items: center;
@@ -33,8 +34,20 @@
     font-weight: 500;
 }
 
+::deep .layout-title-group {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 10px;
+}
+
+::deep .layout-commit-sha {
+    font-size: 12px;
+    white-space: nowrap;
+}
+
 ::deep .layout-title a {
-    color: rgba(0, 0, 0, 0.85);
+    color: var(--demo-header-text);
     text-decoration: none;
 }
 

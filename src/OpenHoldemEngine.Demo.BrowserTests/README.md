@@ -37,11 +37,15 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 6. **No console errors** — during load, during game creation, and while a hand is played out. Each
    action taken by the gate clicks a button on the action bar, exactly as a visitor would; the hand
    is over when the bar offers Next Hand instead.
-7. **The raise slider's marks size the raise and submit nothing** — since issue #112 the Min /
-   ½ Pot / Pot / All-in presets are marks on the AntDesign raise slider, not a Quick Actions
-   dropdown (which must be gone). Each mark is its own hit target. The gate clicks All-in and checks
-   that the Raise button's amount changed while the engine-call log did not grow, then clicks Min
-   and checks that the amount is exactly the minimum again.
+7. **The raise slider's marks and the pot presets size the raise and submit nothing** — Min and
+   All-in are marks on the AntDesign raise slider (issue #112), and since issue #114 ½ Pot and Pot
+   are white buttons stacked beside the amount box; the Quick Actions dropdown must be gone. Each
+   mark, preset and the box itself is its own hit target. The gate clicks All-in and checks that
+   the Raise button's amount changed while the engine-call log did not grow, clicks Pot, then
+   clicks Min and checks that the amount is exactly the minimum again. It also types an illegal
+   amount and checks that Raise is disabled until the round fix button beside the box corrects it.
+7a. **The header's theme switch** (issue #114) flips `<html data-theme>` and AntDesign's stylesheet,
+   survives a reload, and leaves no horizontal overflow; the header carries the short commit SHA.
 8. **Tabs** — since issue #106 the table and its companions are four tabs on one horizontal bar
    under the header. Each tab is its own hit target, Game Table is the only pane shown on open, a
    click shows exactly that pane, and no pane pushes the page sideways.

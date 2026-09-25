@@ -10,6 +10,8 @@
     <div class="action-bar-controls">
         @if (IsHandFinished)
         {
+            @* New Game is in the page header, so the finished bar offers only what continues the
+               session. *@
             <div class="action-bar-buttons">
                 <Button
                     Type="primary"
@@ -18,15 +20,6 @@
                     Loading="_isSubmitting"
                     Class="action-bar-btn next-hand-btn">
                     Next Hand
-                </Button>
-                <Button
-                    Type="primary"
-                    Danger="true"
-                    Size="large"
-                    OnClick="@OnNewGameAsync"
-                    Loading="_isSubmitting"
-                    Class="action-bar-btn bar-new-game-btn">
-                    New Game
                 </Button>
             </div>
         }
@@ -90,6 +83,7 @@
                             Size="large"
                             OnClick="@(async () => await OnRaiseAsync(_raiseAmount))"
                             Loading="_isSubmitting"
+                            Disabled="@(!_raiseInput.IsValid)"
                             Class="action-btn raise-btn">
                             Raise to @AmountFormat.Format(_raiseAmount)
                         </Button>
@@ -99,9 +93,9 @@
 
             @if (HasAction(PlayerActionType.Raise) && !IsAllInOnly())
             {
-                @* One row: the slider with its Min / ½ Pot / Pot / All-in marks, the −/+ steps and
-                   the amount. A mark only sizes the raise; Raise is what submits it. The slider's
-                   scale is piecewise, one segment between each pair of marks (RaiseSizing). *@
+                @* One row: the slider with its Min / All-in marks, the −/+ steps of one small blind,
+                   the amount box, and ½ Pot over Pot. Marks, steps and presets only size the raise;
+                   Raise is what submits it. *@
                 <div class="raise-controls">
                     <div class="raise-slider-row">
                         <Button
@@ -127,13 +121,47 @@
                             Class="raise-step-btn raise-increase-btn">
                             +
                         </Button>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value="@AmountFormat.Format(_raiseAmount)"
-                            @onchange="@OnRaiseInputChanged"
-                            aria-label="Raise to"
-                            class="raise-input" />
+                        @* AntDesign's Input has no error status in 0.17 and does not put Class on its
+                           <input>, so the box is styled through a span of ours (app.css), and the
+                           reason an amount is illegal is the tooltip's. *@
+                        <Tooltip Title="@(_raiseInput.Error ?? string.Empty)" Disabled="@_raiseInput.IsValid">
+                            <span class="@(_raiseInput.IsValid ? "raise-input" : "raise-input raise-input-invalid")">
+                                <Input TValue="string"
+                                    Size="large"
+                                    Value="@_raiseText"
+                                    OnInput="@OnRaiseInput"
+                                    OnPressEnter="@OnRaisePressEnterAsync"
+                                    aria-label="Raise to"
+                                    aria-invalid="@(_raiseInput.IsValid ? "false" : "true")"
+                                    inputmode="decimal" />
+                            </span>
+                        </Tooltip>
+                        @if (!_raiseInput.IsValid)
+                        {
+                            <Button
+                                Size="small"
+                                Shape="circle"
+                                Icon="thunderbolt"
+                                AriaLabel="@($"Correct the amount to {AmountFormat.Format(CorrectedAmount)}")"
+                                OnClick="@CorrectRaiseAmount"
+                                Class="raise-fix-btn" />
+                        }
+                        @if (_presets.Count > 0)
+                        {
+                            <div class="raise-presets">
+                                @foreach (var preset in _presets)
+                                {
+                                    <Button
+                                        Size="small"
+                                        Shape="round"
+                                        AriaLabel="@($"{preset.Label}: raise to {AmountFormat.Format(preset.Amount)}")"
+                                        OnClick="@(() => SetRaiseAmount(preset.Amount))"
+                                        Class="raise-preset-btn">
+                                        @preset.Label
+                                    </Button>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             }

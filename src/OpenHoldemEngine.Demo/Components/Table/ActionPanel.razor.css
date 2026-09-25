@@ -57,22 +57,6 @@
     min-width: 0;
 }
 
-.raise-input {
-    width: 84px;
-    padding: 2px 6px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.35);
-    color: #fff;
-    font-size: 13px;
-    text-align: right;
-}
-
-.raise-input:focus {
-    border-color: #52c41a;
-    outline: none;
-}
-
 /* The reference layout's text box: whose turn it is, in a panel of its own at the bar's right end. */
 .action-bar-info {
     flex: 0 1 200px;

@@ -22,6 +22,7 @@ internal sealed class Program
 
         // Register demo services
         builder.Services.AddScoped<BrowserStorage>();
+        builder.Services.AddScoped<DemoTheme>();
         builder.Services.AddScoped<WalkthroughState>();
         builder.Services.AddScoped<NewGameState>();
         builder.Services.AddScoped<DemoGameSession>();
