@@ -457,8 +457,57 @@ code {
     border-color: #389e0d;
 }
 
-.action-bar .ant-btn.quick-actions-btn {
-    flex: 0 0 auto;
+/* The raise slider is an AntDesign Slider, so it never carries ActionPanel's scope either. It is
+   restyled for the dark felt: a light rail, the Raise button's green for the track and handle, and
+   captions under it small enough that the marks keep the bar to one row of buttons' height. */
+.action-bar .ant-slider.raise-slider {
+    flex: 1 1 auto;
+    min-width: 160px;
+    margin: 4px 14px 20px;
+}
+
+.action-bar .raise-slider .ant-slider-rail {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.action-bar .raise-slider .ant-slider-track,
+.action-bar .raise-slider:hover .ant-slider-track {
+    background-color: #52c41a;
+}
+
+.action-bar .raise-slider .ant-slider-handle,
+.action-bar .raise-slider .ant-slider-dot {
+    border-color: #52c41a;
+}
+
+.action-bar .raise-slider .ant-slider-dot {
+    background-color: #1f1f1f;
+}
+
+.action-bar .raise-slider .ant-slider-dot-active {
+    background-color: #52c41a;
+}
+
+.action-bar .raise-slider .ant-slider-mark {
+    top: 10px;
+    font-size: 11px;
+}
+
+.action-bar .raise-slider .ant-slider-mark-text {
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+}
+
+.action-bar .raise-slider .ant-slider-mark-text-active {
+    color: #fff;
+}
+
+.action-bar .raise-slider .raise-mark {
+    cursor: pointer;
+}
+
+.action-bar .raise-slider .raise-mark:hover {
+    color: #95de64;
 }
 
 .action-bar .ant-btn.raise-step-btn {

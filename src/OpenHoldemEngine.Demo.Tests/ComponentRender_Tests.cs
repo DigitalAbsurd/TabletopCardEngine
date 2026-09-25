@@ -173,6 +173,34 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void FirstVisitWalkthrough_Next_WalksFourStepsOneTabEach()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var walkthrough = ctx.RenderComponent<FirstVisitWalkthrough>();
+        AngleSharp.Dom.IElement FooterButton(string label)
+            => walkthrough.FindAll(".ant-modal-footer button").Single(b => b.TextContent.Trim() == label);
+
+        // Act and Assert - one step per tab, Next until the last, which says Done
+        walkthrough.Markup.Should().Contain("Step 1: The Poker Table");
+        FooterButton("Next").Click();
+        walkthrough.Markup.Should().Contain("Step 2: The Database Inspector");
+        FooterButton("Next").Click();
+        walkthrough.Markup.Should().Contain("Step 3: The Engine Calls Log");
+        FooterButton("Next").Click();
+        walkthrough.Markup.Should().Contain("Step 4: Hand History");
+        walkthrough.Markup.Should().NotContain("On the left");
+
+        FooterButton("Done").Click();
+
+        // Assert - Done dismisses; the modal keeps its content through the closing animation
+        walkthrough.FindComponent<AntDesign.Modal>().Instance.Visible.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void GameSetup_Renders_WithoutException()
     {
         // Arrange
@@ -186,6 +214,27 @@ public sealed class ComponentRender_Tests
 
         // Assert
         component.Markup.Should().Contain("Game Setup");
+    }
+
+    [TestMethod]
+    public void GameSetup_ShowsNoEngineLimitationsNotice()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+
+        // Act
+        var component = ctx.RenderComponent<GameSetup>();
+
+        // Assert - no notice, and each player row is Name, Seat and Buy-in under one caption row
+        component.Markup.Should().NotContain("Engine Limitations");
+        component.FindAll(".ant-alert").Should().BeEmpty();
+        component.FindAll(".players-caption").Select(caption => caption.TextContent.Trim())
+            .Should().Equal("Name", "Seat", "Buy-in", string.Empty);
+        component.FindAll(".player-row").Should().HaveCount(DemoGameDefaults.MaxPlayers);
+        component.FindAll(".player-row").Should().OnlyContain(row => row.QuerySelectorAll("input.setup-input").Length == 3);
     }
 
     [TestMethod]
@@ -684,16 +733,40 @@ public sealed class ComponentRender_Tests
         component.FindAll(".action-bar .fold-btn").Should().HaveCount(1);
         component.FindAll(".action-bar .call-btn").Should().HaveCount(1);
         component.FindAll(".action-bar .raise-btn").Should().HaveCount(1);
-        component.FindAll(".action-bar .slider-input").Should().HaveCount(1);
+        component.FindAll(".action-bar .raise-slider").Should().HaveCount(1);
         component.FindAll(".action-bar .raise-step-btn").Should().HaveCount(2);
         component.FindAll(".action-bar .shortcut-btn").Should().BeEmpty();
-        component.FindAll(".action-bar .quick-actions-btn").Should().HaveCount(1);
+        component.FindAll(".action-bar .quick-actions-btn").Should().BeEmpty();
+        component.FindAll(".action-bar .quick-action-item").Should().BeEmpty();
         component.FindAll(".action-bar .raise-shortcuts").Should().BeEmpty();
         component.Find(".action-bar-info").TextContent.Should().Be($"{actor.Name} to act");
     }
 
     [TestMethod]
-    public async Task ActionPanel_RaiseStepsAndPresets_SetTheAmountWithoutSubmitting()
+    public async Task ActionPanel_RaiseSlider_CarriesTheReferenceMarks()
+    {
+        // Arrange - heads-up at 50/100 with 1000 behind: the button acts first with 950 left and 50 in
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
+
+        // Act
+        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+            .Add(p => p.HandData, session.CurrentHand!)
+            .Add(p => p.BigBlind, 100m));
+
+        // Assert - the button owes 50 to call 100: ½ Pot is 100 + (150 + 50) / 2 = 200 and Pot is
+        // 100 + 200 = 300, both strictly inside the engine's 150..1000 window
+        component.FindAll(".raise-slider .raise-mark").Select(mark => mark.TextContent.Trim())
+            .Should().Equal("Min", "½ Pot", "Pot", "All-in");
+        component.FindAll(".raise-slider .raise-mark").Select(mark => mark.GetAttribute("title"))
+            .Should().Equal("150", "200", "300", "1000");
+    }
+
+    [TestMethod]
+    public async Task ActionPanel_RaiseStepsAndMarks_SetTheAmountWithoutSubmitting()
     {
         // Arrange
         using var ctx = new Bunit.TestContext();
@@ -727,12 +800,18 @@ public sealed class ComponentRender_Tests
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
 
-        // Act - the All-in preset in the Quick Actions menu sizes the raise to the top of the window
-        component.Find(".quick-actions-btn").Click();
-        component.FindAll(".quick-action-item").Single(item => item.TextContent.Trim() == "All-in").Click();
+        // Act - the All-in mark on the slider sizes the raise to the top of the window
+        component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "All-in").Click();
 
         // Assert - sized, but nothing was sent to the engine
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:0}");
+        session.Journal.Entries.Should().HaveCount(callsBefore);
+
+        // Act - and back down to the Min mark
+        component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "Min").Click();
+
+        // Assert
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
         session.Journal.Entries.Should().HaveCount(callsBefore);
     }
 
@@ -754,7 +833,7 @@ public sealed class ComponentRender_Tests
 
         // Assert - the bar swaps the betting controls for what comes after the hand
         component.FindAll(".action-bar .action-btn").Should().BeEmpty();
-        component.FindAll(".action-bar .slider-input").Should().BeEmpty();
+        component.FindAll(".action-bar .raise-slider").Should().BeEmpty();
         component.Find(".action-bar-info").TextContent.Should().Be("Hand complete");
 
         // Act
