@@ -83,6 +83,24 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The Copy button in an engine-call entry's header.</summary>
     public const string EngineCallCopyButtonSelector = ".engine-call-entry .copy-btn";
 
+    /// <summary>The header of an engine-call entry's collapsed <c>result</c> panel.</summary>
+    public const string EngineCallResultHeaderSelector = ".engine-call-entry .result-dump .ant-collapse-header";
+
+    /// <summary>The tree an open <c>result</c> panel renders.</summary>
+    public const string ResultDumpSelector = ".engine-call-entry .object-dump";
+
+    /// <summary>A collapsed node's toggle in an open result dump.</summary>
+    public const string CollapsedDumpToggleSelector = ".object-dump .dump-toggle[aria-expanded=\"false\"]";
+
+    /// <summary>The scrolling list of engine calls.</summary>
+    public const string EngineCallListSelector = ".engine-calls-list";
+
+    /// <summary>A finished hand's result chip, one per seat.</summary>
+    public const string HandResultChipSelector = ".hand-result";
+
+    /// <summary>Every card on the table: hole cards and the board.</summary>
+    public const string TableCardSelector = ".poker-table .playing-card";
+
     /// <summary>The cards on the Hand History tab: Import, Replay Controls once a hand is picked, and Export.</summary>
     public static readonly string[] HandHistoryCardSelectors =
         [".hand-history-import-card", ".replay-controls-card", ".hand-history-export-card"];
@@ -367,6 +385,40 @@ internal sealed class DemoPage : IAsyncDisposable
         await item.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
         await item.First.ClickAsync();
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Moves the pointer onto the first element matching one selector and waits for its transition.</summary>
+    public async Task HoverAsync(string selector)
+    {
+        await _page.Locator(selector).First.HoverAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Clicks the first element matching one selector and waits for the re-render.</summary>
+    public async Task ClickAsync(string selector)
+    {
+        await _page.Locator(selector).First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Reads the top edge of every table card, in document order, with whether it is marked as
+    /// part of the highlighted combination. The edge includes the card's transform, so a lifted
+    /// card reads higher than it is laid out.
+    /// </summary>
+    public async Task<IReadOnlyList<CardTop>> ReadTableCardTopsAsync()
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => JSON.stringify(Array.from(document.querySelectorAll(selector)).map(card => ({
+                highlighted: card.hasAttribute('data-highlighted'),
+                top: card.getBoundingClientRect().top,
+            })))
+            """,
+            TableCardSelector);
+
+        return JsonSerializer.Deserialize<CardTop[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The card probe returned nothing.");
     }
 
     /// <summary>Reads the viewport-relative top edge of one element.</summary>

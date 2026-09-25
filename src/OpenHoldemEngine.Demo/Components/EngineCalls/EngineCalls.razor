@@ -1,4 +1,4 @@
-@using OpenHoldemEngine.Demo.Services
+﻿@using OpenHoldemEngine.Demo.Services
 @using System.Globalization
 @inject IJSRuntime JS
 
@@ -23,7 +23,7 @@
         <div class="engine-calls-list" @ref="_listElement">
             @foreach (var (entry, index) in Session.Journal.Entries.Select((e, i) => (e, i)))
             {
-                <div class="engine-call-entry">
+                <div class="engine-call-entry" @key="entry">
                     <div class="entry-header">
                         <span class="entry-number">Call #@entry.SequenceNumber</span>
                         <span class="entry-status" data-succeeded="@entry.Succeeded.ToString()">
@@ -48,6 +48,22 @@
                         <div class="error-message">
                             <strong>Error:</strong> @string.Join("; ", entry.ErrorMessages)
                         </div>
+                    }
+
+                    @if (entry.Result is not null)
+                    {
+                        @* A closed panel renders no tree at all, so a long session costs only what is open. *@
+                        <Collapse Class="result-dump" Bordered="false">
+                            <Panel Key="@entry.SequenceNumber.ToString(CultureInfo.InvariantCulture)"
+                                   Header="result"
+                                   Active="@_openDumps.Contains(entry)"
+                                   OnActiveChange="@(active => ToggleDump(entry, active))">
+                                @if (_openDumps.Contains(entry))
+                                {
+                                    <ObjectDumpView Root="@DumpFor(entry)" />
+                                }
+                            </Panel>
+                        </Collapse>
                     }
                 </div>
             }

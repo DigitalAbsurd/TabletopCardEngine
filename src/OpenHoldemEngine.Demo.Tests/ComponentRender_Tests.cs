@@ -446,6 +446,88 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void PokerTable_HoveringAResultChip_LightsOnlyThatHandsCombination()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, CreatePairedBoardShowdownGameData()));
+        component.FindAll(".playing-card[data-highlighted]").Should().BeEmpty();
+
+        // Act - Player 1's two pair: the tens and nines on the board, not the king or queen in hand
+        component.Find(".hand-result[data-seat-no='1']").TriggerEvent("onmouseenter", new MouseEventArgs());
+
+        // Assert
+        HighlightedCards(component).Should().BeEquivalentTo("td", "9d", "9h", "ts");
+        component.Find(".hand-result[data-seat-no='1']").ClassList.Should().Contain("hand-result-selected");
+
+        // Act - Player 6's full house uses a hole ten
+        component.Find(".hand-result[data-seat-no='1']").TriggerEvent("onmouseleave", new MouseEventArgs());
+        HighlightedCards(component).Should().BeEmpty();
+        component.Find(".hand-result[data-seat-no='6']").TriggerEvent("onmouseenter", new MouseEventArgs());
+
+        // Assert
+        HighlightedCards(component).Should().BeEquivalentTo("th", "td", "9d", "9h", "ts");
+    }
+
+    [TestMethod]
+    public void PokerTable_ClickingAResultChip_PinsTheHighlightUntilClickedAgain()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, CreatePairedBoardShowdownGameData()));
+
+        // Act - hover, click, leave: the click keeps the cards lit after the pointer has gone
+        component.Find(".hand-result[data-seat-no='6']").TriggerEvent("onmouseenter", new MouseEventArgs());
+        component.Find(".hand-result[data-seat-no='6']").Click();
+        component.Find(".hand-result[data-seat-no='6']").TriggerEvent("onmouseleave", new MouseEventArgs());
+
+        // Assert
+        HighlightedCards(component).Should().HaveCount(5);
+        component.Find(".hand-result[data-seat-no='6']").GetAttribute("aria-pressed").Should().Be("true");
+
+        // Act - a second click unpins
+        component.Find(".hand-result[data-seat-no='6']").Click();
+
+        // Assert
+        HighlightedCards(component).Should().BeEmpty();
+        component.Find(".hand-result[data-seat-no='6']").GetAttribute("aria-pressed").Should().Be("false");
+    }
+
+    /// <summary>The lit cards, as card strings, read back from the suit and rank the card renders.</summary>
+    private static List<string> HighlightedCards(IRenderedFragment component)
+        => component.FindAll(".playing-card[data-highlighted]")
+            .Select(card => card.QuerySelector(".card-rank")!.TextContent.ToLowerInvariant()
+                + card.GetAttribute("data-suit")![0])
+            .ToList();
+
+    /// <summary>
+    /// The finished hand that prompted the highlight: T♦ 9♦ 9♥ 7♠ T♠ on the board, Player 1 with a
+    /// king-kicker two pair and Player 6 with tens full.
+    /// </summary>
+    private static GameData CreatePairedBoardShowdownGameData()
+    {
+        var hand = BuildHandDataWithSeats(6) with
+        {
+            Street = Street.Finished,
+            CommunityCards = [Card.FromString("td"), Card.FromString("9d"), Card.FromString("9h"), Card.FromString("7s"), Card.FromString("ts")],
+        };
+        var seats = hand.Seats.Select(seat => seat.SeatNo switch
+        {
+            1 => seat with { Hole = [Card.FromString("ks"), Card.FromString("qs")], HandResult = new HandResultData(-2m, 1u, HandRankType.TwoPair) },
+            6 => seat with { Hole = [Card.FromString("th"), Card.FromString("6s")], HandResult = new HandResultData(2m, 2u, HandRankType.FullHouse) },
+            _ => seat,
+        }).ToArray();
+
+        return BuildGameData(hand with { Seats = seats });
+    }
+
+    [TestMethod]
     public void PokerTable_WithSixSeats_RendersRowsClockwise()
     {
         // Arrange
@@ -960,6 +1042,44 @@ public sealed class ComponentRender_Tests
 
         // Assert
         component.Markup.Should().Contain("engine-calls");
+    }
+
+    [TestMethod]
+    public async Task EngineCalls_ResultPanel_RendersTheDumpOnlyOnceExpanded()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
+        ctx.Services.AddScoped(_ => session);
+
+        // Act
+        var component = ctx.RenderComponent<EngineCalls>();
+
+        // Assert - one collapsed result panel per call, and no tree behind any of them yet
+        component.FindAll(".engine-call-entry .ant-collapse").Should().HaveCount(session.Journal.Count);
+        component.FindAll(".object-dump").Should().BeEmpty();
+
+        // Act - open the StartHand call's result
+        component.FindAll(".engine-call-entry")[1].QuerySelector(".ant-collapse-header")!.Click();
+
+        // Assert - a Name / Value / Type tree whose Value column holds values, not type names
+        var dump = component.Find(".object-dump");
+        dump.QuerySelectorAll("th").Select(th => th.TextContent).Should().Equal("Name", "Value", "Type");
+        var rows = dump.QuerySelectorAll("tbody tr");
+        rows[0].QuerySelector(".dump-name-text")!.TextContent.Should().Be("result");
+        rows[0].QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ ");
+        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("Result<GameData> (FluentResults)");
+        var valueRow = rows.Single(row => row.QuerySelector(".dump-name-text")!.TextContent == "Value");
+        valueRow.QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ GameId = ");
+
+        // Act - drill into Value
+        valueRow.QuerySelector(".dump-toggle")!.Click();
+
+        // Assert
+        component.FindAll(".object-dump tbody tr").Select(row => row.QuerySelector(".dump-name-text")!.TextContent)
+            .Should().Contain("HandData").And.Contain("Options");
     }
 
     [TestMethod]

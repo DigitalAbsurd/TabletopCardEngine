@@ -149,7 +149,7 @@ public sealed class DemoGameSession
             {
                 CurrentGameId = result.Value.GameId;
                 CurrentGame = result.Value;
-                _journal.RecordSuccess(action);
+                _journal.RecordSuccess(action, result);
                 RaiseStateChanged();
                 return true;
             }
@@ -158,7 +158,7 @@ public sealed class DemoGameSession
             var errorMessages = result.Errors
                 .Select(error => error.Message)
                 .ToArray();
-            _journal.RecordFailure(action, errorMessages);
+            _journal.RecordFailure(action, errorMessages, result);
 
             // Map engine error messages to user-friendly ones
             var userMessage = MapEngineErrorToUserMessage(errorMessages);

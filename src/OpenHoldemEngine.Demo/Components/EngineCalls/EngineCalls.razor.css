@@ -143,3 +143,21 @@
     color: #ff4d4f;
     font-size: 13px;
 }
+
+/* The result dump under each call. AntDesign renders the Collapse, so its markup carries no scope
+   attribute of this component and is reached through ::deep (fact 22). */
+.engine-call-entry ::deep .result-dump {
+    margin-top: 8px;
+    background: transparent;
+}
+
+.engine-call-entry ::deep .result-dump .ant-collapse-header {
+    padding: 4px 8px;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--color-text);
+}
+
+.engine-call-entry ::deep .result-dump .ant-collapse-content-box {
+    padding: 4px 0 0;
+}

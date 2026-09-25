@@ -110,6 +110,20 @@
     font-size: 12px;
 }
 
+/* A chip points at the cards of its hand: hovering previews them, a click keeps them lit. */
+.hand-result {
+    cursor: pointer;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hand-result:hover,
+.hand-result:focus-visible,
+.hand-result-selected {
+    outline: none;
+    background: rgba(0, 0, 0, 0.45);
+    box-shadow: 0 0 0 2px #ffd700;
+}
+
 .hand-result-name {
     font-weight: 600;
 }

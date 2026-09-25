@@ -1,5 +1,6 @@
 ﻿@using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
+@using DataCard = OpenHoldemEngine.Data.Card
 @using OpenHoldemEngine.Demo.Services
 
 @* The badges share the stack's row rather than a row of their own: most seats carry none, and a
@@ -35,7 +36,7 @@
             <div class="seat-hole-cards">
                 @foreach (var card in SeatData.Hole)
                 {
-                    <PlayingCard Card="card" />
+                    <PlayingCard Card="card" IsHighlighted="@(HighlightedCards?.Contains(card) == true)" />
                 }
             </div>
         }
@@ -73,6 +74,10 @@
     /// <summary>Whether this seat is currently to act.</summary>
     [Parameter]
     public bool IsActing { get; set; }
+
+    /// <summary>The cards of this seat's combination to light up, or null when no result chip points here.</summary>
+    [Parameter]
+    public IReadOnlySet<DataCard>? HighlightedCards { get; set; }
 
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
 

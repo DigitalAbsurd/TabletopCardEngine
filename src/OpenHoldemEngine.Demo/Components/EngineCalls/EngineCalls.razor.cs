@@ -18,6 +18,10 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
     private IJSObjectReference? _jsModule;
     private int _lastJournalCount;
 
+    // Keyed by the entry itself: a new game restarts the sequence numbers, and an entry of the old
+    // game must not hand its open panel or its dump to the new game's call with the same number.
+    private readonly HashSet<EngineCallJournalEntry> _openDumps = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<EngineCallJournalEntry, ObjectDumpNode> _dumps = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>Called when the session state changes to update the displayed calls.</summary>
     protected override void OnInitialized()
@@ -67,8 +71,41 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         await JS.InvokeVoidAsync("navigator.clipboard.writeText", snippet);
     }
 
+    private void ToggleDump(EngineCallJournalEntry entry, bool active)
+    {
+        if (active)
+        {
+            _openDumps.Add(entry);
+        }
+        else
+        {
+            _openDumps.Remove(entry);
+            _dumps.Remove(entry);
+        }
+    }
+
+    /// <summary>The dump of an open entry's result, built once and kept while the panel stays open.</summary>
+    private ObjectDumpNode DumpFor(EngineCallJournalEntry entry)
+    {
+        if (!_dumps.TryGetValue(entry, out var dump))
+        {
+            dump = ObjectDump.Create("result", entry.Result, typeof(FluentResults.Result<OpenHoldemEngine.Dto.GameData>));
+            _dumps[entry] = dump;
+        }
+
+        return dump;
+    }
+
     private void OnSessionStateChanged(object? sender, EventArgs e)
     {
+        // Forget the panels of entries a new game has cleared out of the journal.
+        var live = Session.Journal.Entries.ToHashSet(ReferenceEqualityComparer.Instance);
+        _openDumps.RemoveWhere(entry => !live.Contains(entry));
+        foreach (var stale in _dumps.Keys.Where(entry => !_openDumps.Contains(entry)).ToList())
+        {
+            _dumps.Remove(stale);
+        }
+
         InvokeAsync(StateHasChanged);
     }
 
