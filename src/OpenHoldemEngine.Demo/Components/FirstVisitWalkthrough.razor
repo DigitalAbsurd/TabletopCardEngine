@@ -22,10 +22,10 @@
                 </p>
                 <ul>
                     <li><strong>Play every seat:</strong> The action bar along the bottom of the table names the player on the clock and offers Fold, Check, Call or Raise — only what the engine says is legal</li>
-                    <li><strong>Size a raise:</strong> Drag the slider, click its <em>Min</em>, <em>½ Pot</em>, <em>Pot</em> or <em>All-in</em> mark, step by one big blind with −/+, or type the amount. None of these submits anything; Raise does</li>
+                    <li><strong>Size a raise:</strong> Drag the slider, click its <em>Min</em> or <em>All-in</em> mark, press <em>½ Pot</em> or <em>Pot</em> beside the amount, step by one small blind with −/+, or type the amount — an amount that is not a legal raise turns red, and the round button next to it corrects it. None of these submits anything; Raise does</li>
                     <li><strong>Follow the hand:</strong> The seats show cards, stacks and the dealer and blind buttons, the street steps and the board move from pre-flop to the river, and the pot is shown with the current street's bets</li>
                     <li><strong>See who won:</strong> After the showdown, hover or click a player's result to light up the cards that make the combination</li>
-                    <li><strong>Carry on:</strong> Next Hand deals the next one with the stacks carried over. New Game, in the bar or the header, opens the settings — players, seats, buy-ins, blinds, dealer — and applying them clears the database and deals a fresh game</li>
+                    <li><strong>Carry on:</strong> Next Hand deals the next one with the stacks carried over. New Game, in the header, opens the settings — players, seats, buy-ins, blinds, dealer — and applying them clears the database and deals a fresh game</li>
                 </ul>
                 <p class="step-note">
                     Everything lives in this tab's memory: a reload starts over. Export a hand history from the Hand History tab to keep it.
@@ -114,11 +114,11 @@
     .step-content .step-note {
         margin-top: 1rem;
         font-size: 0.9rem;
-        color: #666;
+        color: var(--demo-muted-text);
     }
 
     .step-content code {
-        background-color: #f0f0f0;
+        background-color: var(--demo-muted-surface);
         padding: 0.2rem 0.4rem;
         border-radius: 2px;
         font-family: 'Courier New', monospace;

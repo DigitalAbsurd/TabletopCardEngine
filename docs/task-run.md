@@ -306,10 +306,13 @@ table's height budget is tightest. And the dev server has to be stopped afterwar
 4. Create a six-handed game and play a hand to showdown, then start the next one. The table, the
    database inspector and the call log stay consistent at every step, and the console stays clean.
 5. Take every action through the action bar along the bottom of the table: it names the player on the
-   clock, the −/+ steps and the Min / ½ Pot / Pot / All-in marks on the raise slider only size the
-   raise, and once the hand is finished it offers Next Hand and New Game instead. At 1500×900,
+   clock; the −/+ steps of one small blind, the Min / All-in marks on the raise slider and the white
+   ½ Pot / Pot buttons beside the amount box only size the raise; an illegal amount typed into the
+   box turns it red, disables Raise and brings up a round button that corrects it; and once the hand
+   is finished the bar offers Next Hand only. At 1500×900,
    1280×900 and 1366×768 the whole table — seats, street steps, board, pot and bar — is on screen
-   without scrolling, and the session's summary with New Game is in the page header. The "in-memory
+   without scrolling, and the session's summary with New Game is in the page header, beside the
+   short commit SHA and a Light / Dark switch whose pick survives a reload. The "in-memory
    only" warning is a notification below the tab bar that closes itself after ten seconds, not a
    banner above the table.
 6. In the inspector after that hand: `HandAction` holds rows keyed on `(GameId, HandNo, No, SeatNo)`,

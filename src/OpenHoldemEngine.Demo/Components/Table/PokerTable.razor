@@ -100,9 +100,8 @@
 
         <ActionPanel
             HandData="@Hand"
-            BigBlind="@BigBlind"
-            OnNextHand="@OnNextHand"
-            OnNewGame="@OnNewGame" />
+            RaiseStep="@SmallBlind"
+            OnNextHand="@OnNextHand" />
     }
 </div>
 
@@ -115,18 +114,14 @@
     [Parameter]
     public EventCallback OnNextHand { get; set; }
 
-    /// <summary>Raised from the finished-hand action bar; the host opens the settings modal.</summary>
-    [Parameter]
-    public EventCallback OnNewGame { get; set; }
-
     /// <summary>
     /// The dealt hand, or null. GameData.HandData is declared non-nullable but is <c>default!</c>
     /// between CreateGame and the first StartHand (fact 3), and hand 0 is that same placeholder.
     /// </summary>
     private HandData? Hand => GameData?.HandData is { No: > 0 } hand ? hand : null;
 
-    /// <summary>The engine has no big-blind option: it is twice the small blind.</summary>
-    private decimal BigBlind => (GameData?.Options.InitialSmallBlind ?? 0m) * 2;
+    /// <summary>The smallest chip on the table, and so one step of the raise amount.</summary>
+    private decimal SmallBlind => GameData?.Options.InitialSmallBlind ?? 0m;
 
     private bool IsHandFinished => Hand?.Street == Street.Finished;
 
