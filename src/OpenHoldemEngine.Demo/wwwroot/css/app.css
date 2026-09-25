@@ -37,6 +37,10 @@
     --demo-header-height: 64px;
     --demo-tab-bar-height: 44px;
     --demo-pane-height: calc(100vh - var(--demo-header-height) - var(--demo-tab-bar-height));
+
+    /* How wide a row of seats may grow on the table. The action bar takes the same width, so it
+       lines up with the seats above it (PokerTable.razor.css and ActionPanel.razor.css). */
+    --demo-table-row-max-width: 1200px;
 }
 
 /* Dark theme overrides */
@@ -287,6 +291,17 @@ code {
     flex: 1 1 auto;
     flex-direction: column;
     min-height: 0;
+}
+
+/* The Hand History cards are forms and short lists, so a full-width card only pulls its buttons and
+   columns apart. They stop at 800px and stay on the pane's left edge. The AntDesign Cards carry no
+   scoped attribute (fact 22), so the rule is here. */
+.hand-history-import-card,
+.replay-controls-card,
+.hand-history-export-card {
+    width: 100%;
+    max-width: 800px;
+    box-sizing: border-box;
 }
 
 /* The table grows to the bottom of its pane. */

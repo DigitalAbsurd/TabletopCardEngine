@@ -1,5 +1,6 @@
 ﻿@using AntDesign
 @using OpenHoldemEngine.Data
+@using OpenHoldemEngine.Demo.Services
 @using OpenHoldemEngine.Dto
 
 @* The action bar along the bottom of the table: the buttons on the left, the raise sizing in the
@@ -79,7 +80,7 @@
                             OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
                             Loading="_isSubmitting"
                             Class="action-btn allin-btn">
-                            All-in @GetAllInAmount().ToString("F2")
+                            All-in @AmountFormat.Format(GetAllInAmount())
                         </Button>
                     }
                     else
@@ -90,7 +91,7 @@
                             OnClick="@(async () => await OnRaiseAsync(_raiseAmount))"
                             Loading="_isSubmitting"
                             Class="action-btn raise-btn">
-                            Raise to @_raiseAmount.ToString("F2")
+                            Raise to @AmountFormat.Format(_raiseAmount)
                         </Button>
                     }
                 }
@@ -127,10 +128,10 @@
                         </Button>
                         <input
                             type="range"
-                            min="@FormatInvariant(GetRaiseWindow().Min)"
-                            max="@FormatInvariant(GetRaiseWindow().Max)"
+                            min="@AmountFormat.Format(GetRaiseWindow().Min)"
+                            max="@AmountFormat.Format(GetRaiseWindow().Max)"
                             step="0.01"
-                            value="@FormatInvariant(_raiseAmount)"
+                            value="@AmountFormat.Format(_raiseAmount)"
                             @oninput="@OnRaiseSliderChanged"
                             aria-label="Raise amount"
                             class="slider-input" />
@@ -144,7 +145,7 @@
                         <input
                             type="number"
                             step="0.01"
-                            value="@FormatInvariant(_raiseAmount)"
+                            value="@AmountFormat.Format(_raiseAmount)"
                             @onchange="@OnRaiseInputChanged"
                             aria-label="Raise to"
                             class="raise-input" />

@@ -414,9 +414,8 @@ public sealed class ComponentRender_Tests
         // Assert - the street and the hand number live in the top bar, so the centre repeats neither
         var center = component.Find(".table-center");
         center.QuerySelectorAll(".playing-card").Should().HaveCount(3);
-        center.TextContent.Should().Contain("16.00");
-        center.TextContent.Should().Contain("Prior: 12.00");
-        center.TextContent.Should().Contain("Street: 4.00");
+        center.QuerySelector(".pot-value")!.TextContent.Should().Be("16");
+        center.QuerySelectorAll(".pot-small").Select(e => e.TextContent).Should().Contain("Prior: 12").And.Contain("Street: 4");
         center.TextContent.Should().Contain("Active: 5/6");
         center.TextContent.Should().NotContain("Flop");
         center.TextContent.Should().NotContain("Hand:");
@@ -439,9 +438,11 @@ public sealed class ComponentRender_Tests
         var results = component.FindAll(".table-center .hand-result");
         results.Should().HaveCount(2);
         results[0].ClassList.Should().Contain("result-winner");
-        results[0].TextContent.Should().Contain("Test Player 1").And.Contain("Pair").And.Contain("+100.00");
+        results[0].TextContent.Should().Contain("Test Player 1").And.Contain("Pair");
+        results[0].QuerySelector(".hand-result-net")!.TextContent.Should().Be("+100");
         results[1].ClassList.Should().Contain("result-loser");
-        results[1].TextContent.Should().Contain("Test Player 2").And.Contain("High Card").And.Contain("-100.00");
+        results[1].TextContent.Should().Contain("Test Player 2").And.Contain("High Card");
+        results[1].QuerySelector(".hand-result-net")!.TextContent.Should().Be("-100");
     }
 
     [TestMethod]
@@ -626,28 +627,30 @@ public sealed class ComponentRender_Tests
             .Add(p => p.HandData, hand)
             .Add(p => p.BigBlind, 100m));
 
-        // Assert - the amount starts at the minimum raise-to
-        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:F2}");
+        // Assert - the window is whole chips, so no decimals are shown; the amount starts at the minimum raise-to
+        (raise.MinValue % 1).Should().Be(0);
+        (raise.MaxValue % 1).Should().Be(0);
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
 
         // Act - one big blind up
         component.Find(".raise-increase-btn").Click();
 
         // Assert
-        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue + 100m:F2}");
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue + 100m:0}");
 
         // Act - down twice: the second step would go under the window and is clamped
         component.Find(".raise-decrease-btn").Click();
         component.Find(".raise-decrease-btn").Click();
 
         // Assert
-        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:F2}");
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
 
         // Act - the All-in preset in the Quick Actions menu sizes the raise to the top of the window
         component.Find(".quick-actions-btn").Click();
         component.FindAll(".quick-action-item").Single(item => item.TextContent.Trim() == "All-in").Click();
 
         // Assert - sized, but nothing was sent to the engine
-        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:F2}");
+        component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:0}");
         session.Journal.Entries.Should().HaveCount(callsBefore);
     }
 
@@ -728,7 +731,7 @@ public sealed class ComponentRender_Tests
         // Assert
         component.Markup.Should().Contain("seat");
         component.Markup.Should().Contain("Player 1");
-        component.Markup.Should().Contain("1000.00");
+        component.Find(".stack-amount").TextContent.Should().Be("1000");
     }
 
     [TestMethod]
@@ -752,8 +755,8 @@ public sealed class ComponentRender_Tests
         var stackRow = component.Find(".seat-stack");
         stackRow.QuerySelectorAll(".badge-dealer").Should().HaveCount(1);
         stackRow.QuerySelectorAll(".badge-big-blind").Should().HaveCount(1);
-        stackRow.QuerySelector(".stack-amount")!.TextContent.Should().Be("998.00");
-        stackRow.QuerySelector(".delta-negative")!.TextContent.Should().Be("(-2.00)");
+        stackRow.QuerySelector(".stack-amount")!.TextContent.Should().Be("998");
+        stackRow.QuerySelector(".delta-negative")!.TextContent.Should().Be("(-2)");
     }
 
     [TestMethod]
@@ -799,7 +802,32 @@ public sealed class ComponentRender_Tests
         // Assert - the type and the size are the row's two children, side by side
         var lastAction = component.Find(".seat-last-action");
         lastAction.Children.Select(child => child.ClassName).Should().Equal("action-type", "action-size");
-        lastAction.Children.Select(child => child.TextContent).Should().Equal("SB", "1.00");
+        lastAction.Children.Select(child => child.TextContent).Should().Equal("SB", "1");
+    }
+
+    [TestMethod]
+    public void Seat_FractionalAmounts_ShowOnlyTheDigitsTheyNeed()
+    {
+        // Arrange
+        using var ctx = new Bunit.TestContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterCommonServices(ctx.Services);
+
+        var seatData = new SeatData(
+            SeatNo: 1,
+            Name: "Player 1",
+            Stack: 12.5m,
+            StartHandStack: 12.75m,
+            LastAction: new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 0.25m, 1));
+
+        // Act
+        var component = ctx.RenderComponent<Seat>(parameters => parameters
+            .Add(p => p.SeatData, seatData));
+
+        // Assert - decimals appear once an amount has them, and no more of them than it needs
+        component.Find(".stack-amount").TextContent.Should().Be("12.5");
+        component.Find(".delta-negative").TextContent.Should().Be("(-0.25)");
+        component.Find(".action-size").TextContent.Should().Be("0.25");
     }
 
     private static GameData CreateFinishedHandGameData()
@@ -1248,6 +1276,7 @@ public sealed class ComponentRender_Tests
         component.WaitForAssertion(() =>
             component.Find(".layout-header .game-summary").TextContent.Should().Contain("50 / 100"));
         component.FindAll(".layout-header .new-game-btn").Should().HaveCount(1);
+        component.Find(".layout-header .new-game-btn").ClassList.Should().Contain("ant-btn-primary").And.Contain("ant-btn-lg");
     }
 
     [TestMethod]

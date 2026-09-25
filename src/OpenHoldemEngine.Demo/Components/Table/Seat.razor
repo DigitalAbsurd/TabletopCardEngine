@@ -1,5 +1,6 @@
 ﻿@using OpenHoldemEngine.Dto
 @using OpenHoldemEngine.Data
+@using OpenHoldemEngine.Demo.Services
 
 @* The badges share the stack's row rather than a row of their own: most seats carry none, and a
    reserved badge row was empty space in every one of them. *@
@@ -20,12 +21,12 @@
             {
                 <span class="badge badge-big-blind" title="Big Blind">BB</span>
             }
-            <span class="stack-amount">@SeatData.Stack.ToString("F2")</span>
+            <span class="stack-amount">@AmountFormat.Format(SeatData.Stack)</span>
             @if (StackDelta != 0)
             {
                 var sign = StackDelta > 0 ? "+" : "";
                 var deltaClass = StackDelta > 0 ? "delta-positive" : "delta-negative";
-                <span class="@deltaClass">(@sign@StackDelta.ToString("F2"))</span>
+                <span class="@deltaClass">(@sign@AmountFormat.Format(StackDelta))</span>
             }
         </div>
 
@@ -45,7 +46,7 @@
                 <span class="action-type">@FormatActionType(SeatData.LastAction.ActionType)</span>
                 @if (SeatData.LastAction.Size > 0)
                 {
-                    <span class="action-size">@SeatData.LastAction.Size.ToString("F2")</span>
+                    <span class="action-size">@AmountFormat.Format(SeatData.LastAction.Size)</span>
                 }
             </div>
         }

@@ -23,7 +23,7 @@
     flex-wrap: wrap;
     gap: 0.75rem;
     width: 100%;
-    max-width: 1200px;
+    max-width: var(--demo-table-row-max-width);
 }
 
 .table-center {

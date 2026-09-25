@@ -3,16 +3,19 @@
     [b-xxxxxxxxxx] scope attribute, so these rules match. The AntDesign Buttons inside the bar do
     not, which is why their colours and sizes are in wwwroot/css/app.css (fact 22).
 */
-/* Edge to edge across the table, and one row wide enough for the buttons, the raise sizing and the
-   turn box side by side: a wrapped bar is a second row of height the table cannot spare. */
+/* As wide as a seat row and centred like one, so the bar lines up with the seats above it rather
+   than running past them to the table's edges. That is still one row wide enough for the buttons,
+   the raise sizing and the turn box side by side: a wrapped bar is a second row of height the table
+   cannot spare. The shared width is a custom property in app.css (fact 22). */
 .action-bar {
     display: flex;
     flex-wrap: wrap;
-    align-self: stretch;
+    align-self: center;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem 1rem;
     width: 100%;
+    max-width: var(--demo-table-row-max-width);
     padding: 0.5rem 0.75rem;
     background: rgba(0, 0, 0, 0.35);
     border: 1px solid rgba(255, 255, 255, 0.12);
