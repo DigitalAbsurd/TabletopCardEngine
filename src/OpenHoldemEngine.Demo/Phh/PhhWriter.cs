@@ -6,7 +6,7 @@ using System.Globalization;
 namespace OpenHoldemEngine.Demo.Phh;
 
 /// <summary>
-/// Exports a played hand to PHH (Pluribus Hand History) format.
+/// Exports a played hand to PHH (Poker Hand History) format.
 /// Reconstructs the action list from <see cref="EngineCallJournal"/> and game state.
 ///
 /// This is new code specific to the demo, not a port from the test project.
