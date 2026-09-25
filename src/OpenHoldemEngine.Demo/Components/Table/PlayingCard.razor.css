@@ -1,4 +1,4 @@
-.playing-card {
+﻿.playing-card {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -44,6 +44,15 @@
 .playing-card[data-suit="diamond"] .card-suit,
 .playing-card[data-suit="heart"] .card-suit {
     color: #e74c3c;
+}
+
+/* One of the cards a hovered or pinned result chip points at. A transform moves nothing else, so
+   the table's height budget is the same with or without a highlight. */
+.playing-card.card-highlighted,
+.playing-card.card-highlighted:hover {
+    transform: translateY(-10px);
+    border-color: #d4a017;
+    box-shadow: 0 0 0 2px #ffd700, 0 6px 16px rgba(255, 215, 0, 0.55);
 }
 
 /* Responsive design for smaller screens */

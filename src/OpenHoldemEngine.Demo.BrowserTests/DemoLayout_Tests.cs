@@ -60,10 +60,23 @@ public sealed class DemoLayout_Tests
 
     private const double HandHistoryCardMaxWidthPixels = 800;
 
+    /// <summary>
+    /// How far a highlighted card must rise. The stylesheet lifts it 10px; half of that cannot be
+    /// mistaken for the 2px a card already rises under the pointer.
+    /// </summary>
+    private const double MinimumCardLiftPixels = 5;
+
+    /// <summary>How many nodes of a result dump are opened, to fill it with the longest previews.</summary>
+    private const int DumpNodesToExpand = 6;
+
     /// <summary>Fold, Call and Raise are always offered to the first seat to act pre-flop.</summary>
     private const int MinimumActionButtons = 3;
 
     private const int MaximumActionsPerHand = 30;
+
+    /// <summary>The call list, the page's scroll container and the document: none may scroll sideways.</summary>
+    private static readonly string[] _overflowScrollers =
+        [DemoPage.EngineCallListSelector, DemoPage.LayoutContentSelector, DemoPage.DocumentScrollerSelector];
 
     private static DemoSite? _site;
 
@@ -483,6 +496,78 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
+    /// <summary>
+    /// Hovering a finished hand's result chip lifts the cards of that seat's combination and
+    /// nothing else (issue #110). bUnit sees the data-highlighted marker; only a browser sees
+    /// whether the stylesheet actually moves the card.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_FinishedHand_HoveringAResultChipLiftsItsCards(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await PlayTheHandToTheEndAsync(page);
+
+        IReadOnlyList<CardTop> before = await page.ReadTableCardTopsAsync();
+        await page.HoverAsync(DemoPage.HandResultChipSelector);
+        IReadOnlyList<CardTop> after = await page.ReadTableCardTopsAsync();
+
+        after.Should().HaveCount(before.Count, "a hover changes no card on the table");
+        before.Should().NotContain(card => card.Highlighted, "nothing is lit before a chip is hovered");
+        after.Should().Contain(card => card.Highlighted, "every seat's result has at least one card behind it");
+        for (int i = 0; i < after.Count; i++)
+        {
+            if (after[i].Highlighted)
+            {
+                after[i].Top.Should().BeLessOrEqualTo(
+                    before[i].Top - MinimumCardLiftPixels,
+                    $"a highlighted card is lifted (card {i}: before {before[i]}, after {after[i]})");
+            }
+            else
+            {
+                after[i].Top.Should().BeApproximately(
+                    before[i].Top,
+                    EdgeTolerancePixels,
+                    $"a card outside the combination stays put (card {i})");
+            }
+        }
+
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// An open result dump, with the longest previews expanded, stays inside the call entry: its
+    /// cells are cut with an ellipsis rather than widening the list or the page (issue #110).
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_EngineCalls_ExpandedResultDumpDoesNotOverflow(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.TakeGameActionAsync();
+        await page.SelectTabAsync(DemoPage.EngineCallsTab);
+
+        (await page.CountAsync(DemoPage.ResultDumpSelector)).Should().Be(0, "every result panel starts closed");
+        await page.ClickAsync(DemoPage.EngineCallResultHeaderSelector);
+        for (int i = 0; i < DumpNodesToExpand && await page.CountAsync(DemoPage.CollapsedDumpToggleSelector) > 0; i++)
+        {
+            await page.ClickAsync(DemoPage.CollapsedDumpToggleSelector);
+        }
+
+        (await page.CountAsync(DemoPage.ResultDumpSelector)).Should().Be(1, "the opened panel renders its tree");
+        foreach (string selector in _overflowScrollers)
+        {
+            ScrollMetrics metrics = await page.ReadScrollMetricsAsync(selector);
+            metrics.ScrollWidth.Should().Be(
+                metrics.ClientWidth,
+                $"an open result dump must not overflow horizontally at {viewportWidth}px ({metrics})");
+        }
+
+        AssertNoConsoleErrors(page);
+    }
+
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
@@ -543,6 +628,17 @@ public sealed class DemoLayout_Tests
         DemoPage page = await site.NewPageAsync(viewportWidth, viewportHeight);
         await page.OpenAsync(keepNotification);
         return page;
+    }
+
+    private static async Task PlayTheHandToTheEndAsync(DemoPage page)
+    {
+        int actions = 0;
+        while (actions < MaximumActionsPerHand && await page.TryTakeGameActionAsync())
+        {
+            actions++;
+        }
+
+        (await page.CountAsync(DemoPage.HandResultChipSelector)).Should().BeGreaterThan(0, "a finished hand lists its results");
     }
 
     private static void AssertOwnHitTargets(IReadOnlyList<HitProbe> probes)

@@ -1,9 +1,9 @@
-@using OpenHoldemEngine.Data
+﻿@using OpenHoldemEngine.Data
 @using DataCard = OpenHoldemEngine.Data.Card
 
 @if (Card is not null)
 {
-    <div class="playing-card" data-suit="@Card.CardSuit.ToString().ToLower()">
+    <div class="playing-card @(IsHighlighted ? "card-highlighted" : "")" data-suit="@Card.CardSuit.ToString().ToLower()" data-highlighted="@(IsHighlighted ? "true" : null)">
         <div class="card-content">
             <div class="card-rank">@FormatRank(Card.CardType)</div>
             <div class="card-suit">@GetSuitGlyph(Card.CardSuit)</div>
@@ -15,6 +15,10 @@
     /// <summary>The card to display, or null to display an empty slot.</summary>
     [Parameter]
     public DataCard? Card { get; set; }
+
+    /// <summary>Lifts and rings the card, to show it is part of the combination a result chip points at.</summary>
+    [Parameter]
+    public bool IsHighlighted { get; set; }
 
     private static string FormatRank(CardType cardType)
     {

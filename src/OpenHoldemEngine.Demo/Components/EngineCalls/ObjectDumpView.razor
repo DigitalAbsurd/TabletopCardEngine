@@ -1,0 +1,92 @@
+﻿@using OpenHoldemEngine.Demo.Services
+
+@* A RoslynPad-style result view: one flat table row per visible node, indented by depth, with a
+   toggle on every node that has members or items. The Value column always shows a value, and
+   every cell is cut with an ellipsis and carries its full text as a tooltip, so a long preview can
+   never widen the page. *@
+<table class="object-dump">
+    <colgroup>
+        <col class="dump-col-name" />
+        <col class="dump-col-value" />
+        <col class="dump-col-type" />
+    </colgroup>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var (node, depth) in VisibleRows(Root, 0))
+        {
+            var expanded = _expanded.Contains(node);
+            <tr class="dump-row" data-depth="@depth">
+                <td class="dump-name" style="padding-left: @(IndentPx(depth))px" title="@node.Name">
+                    @if (node.HasChildren)
+                    {
+                        <button type="button"
+                                class="dump-toggle"
+                                aria-expanded="@(expanded ? "true" : "false")"
+                                aria-label="@(expanded ? "Collapse" : "Expand") @node.Name"
+                                @onclick="@(() => Toggle(node))">@(expanded ? "▾" : "▸")</button>
+                    }
+                    else
+                    {
+                        <span class="dump-toggle-spacer"></span>
+                    }
+                    <span class="dump-name-text">@node.Name</span>
+                </td>
+                <td class="dump-value" title="@node.Value">@node.Value</td>
+                <td class="dump-type" title="@node.TypeName">@node.TypeName</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    /// <summary>The node to show at the top; it starts expanded.</summary>
+    [Parameter, EditorRequired]
+    public ObjectDumpNode Root { get; set; } = null!;
+
+    private readonly HashSet<ObjectDumpNode> _expanded = [];
+    private ObjectDumpNode? _shownRoot;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(_shownRoot, Root))
+        {
+            _shownRoot = Root;
+            _expanded.Clear();
+            _expanded.Add(Root);
+        }
+    }
+
+    private IEnumerable<(ObjectDumpNode Node, int Depth)> VisibleRows(ObjectDumpNode node, int depth)
+    {
+        yield return (node, depth);
+        if (!_expanded.Contains(node))
+        {
+            yield break;
+        }
+
+        foreach (var child in node.Children)
+        {
+            foreach (var row in VisibleRows(child, depth + 1))
+            {
+                yield return row;
+            }
+        }
+    }
+
+    private void Toggle(ObjectDumpNode node)
+    {
+        if (!_expanded.Remove(node))
+        {
+            _expanded.Add(node);
+        }
+    }
+
+    private static string IndentPx(int depth) => (4 + depth * 16).ToString(System.Globalization.CultureInfo.InvariantCulture);
+}
