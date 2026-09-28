@@ -794,10 +794,13 @@ public sealed class ComponentRender_Tests
 
         // The button owes 50 to call 100: ½ Pot is 100 + (150 + 50) / 2 = 200 and Pot is
         // 100 + 200 = 300, both strictly inside the engine's 150..1000 window, stacked beside the box
+        // and each showing its amount, with the sum behind it spelt out for a screen reader too
         component.FindAll(".raise-presets .raise-preset-btn").Select(button => button.TextContent.Trim())
-            .Should().Equal("½ Pot", "Pot");
+            .Should().Equal("½ Pot · 200", "Pot · 300");
         component.FindAll(".raise-presets .raise-preset-btn").Select(button => button.GetAttribute("aria-label"))
-            .Should().Equal("½ Pot: raise to 200", "Pot: raise to 300");
+            .Should().Equal(
+                "½ Pot: raise to 200. Current bet 100 + ½ × (pot 150 + call 50) = 200",
+                "Pot: raise to 300. Current bet 100 + (pot 150 + call 50) = 300");
     }
 
     [TestMethod]
@@ -845,7 +848,7 @@ public sealed class ComponentRender_Tests
         session.Journal.Entries.Should().HaveCount(callsBefore);
 
         // Act - the Pot preset beside the box
-        component.FindAll(".raise-preset-btn").Single(button => button.TextContent.Trim() == "Pot").Click();
+        component.FindAll(".raise-preset-btn").Single(button => button.TextContent.Trim().StartsWith("Pot ·", StringComparison.Ordinal)).Click();
 
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be("Raise to 300");
