@@ -64,7 +64,36 @@ public sealed class RaiseSizing_Tests
         var presets = RaiseSizing.Presets(Hand(0, 150, 10000, 100, 200, 10000), 50m);
 
         // Assert - both strictly inside the window, on the step
-        presets.Should().Equal(new RaiseMark(250, "½ Pot"), new RaiseMark(350, "Pot"));
+        presets.Should().Equal(
+            new RaiseMark(250, "½ Pot", "Current bet 100 + ½ × (pot 150 + call 100) = 225, rounded to 250"),
+            new RaiseMark(350, "Pot", "Current bet 100 + (pot 150 + call 100) = 350"));
+    }
+
+    // Issue #122: at 1/2 the first seat to act pre-flop sees a pot of 3, and the presets read 5 and 7.
+    // Both are right for a pot-limit raise - call the 2, then raise by the pot as it stands after the
+    // call - which is why each preset carries the sum that produced it.
+    [TestMethod]
+    public void Presets_OneTwoOpening_CarryThePotLimitSum()
+    {
+        // Act
+        var presets = RaiseSizing.Presets(Hand(0, 3, 100, 2, 4, 100), 1m);
+
+        // Assert
+        presets.Should().Equal(
+            new RaiseMark(5, "½ Pot", "Current bet 2 + ½ × (pot 3 + call 2) = 4.5, rounded to 5"),
+            new RaiseMark(7, "Pot", "Current bet 2 + (pot 3 + call 2) = 7"));
+    }
+
+    [TestMethod]
+    public void Presets_NothingToCall_LeaveTheCallOutOfTheSum()
+    {
+        // Act - first to act on the flop, 400 in the pot
+        var presets = RaiseSizing.Presets(Hand(400, 0, 800, 0, 100, 800), 50m);
+
+        // Assert
+        presets.Select(preset => preset.Formula).Should().Equal(
+            "Current bet 0 + ½ × pot 400 = 200",
+            "Current bet 0 + pot 400 = 400");
     }
 
     [TestMethod]

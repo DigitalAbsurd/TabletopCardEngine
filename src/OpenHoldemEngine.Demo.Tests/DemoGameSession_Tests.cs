@@ -489,6 +489,6 @@ public sealed class DemoGameSession_Tests
         hand.Street.Should().Be(Street.Flop);
         (hand.Pot + hand.StreetPot).Should().Be(200m);
         RaiseSizing.PotRaise(hand, 50m).Should().Be(200m);
-        RaiseSizing.Presets(hand, 50m).Should().Equal(new RaiseMark(200m, "Pot"));
+        RaiseSizing.Presets(hand, 50m).Should().Equal(new RaiseMark(200m, "Pot", "Current bet 0 + pot 200 = 200"));
     }
 }

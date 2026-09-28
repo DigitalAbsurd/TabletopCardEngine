@@ -307,7 +307,8 @@ table's height budget is tightest. And the dev server has to be stopped afterwar
    database inspector and the call log stay consistent at every step, and the console stays clean.
 5. Take every action through the action bar along the bottom of the table: it names the player on the
    clock; the −/+ steps of one small blind, the Min / All-in marks on the raise slider and the white
-   ½ Pot / Pot buttons beside the amount box only size the raise; an illegal amount typed into the
+   ½ Pot / Pot buttons beside the amount box only size the raise; each preset shows its amount
+   (`Pot · 7` at 1/2 with 3 in the pot) and a tooltip with the pot-limit sum behind it; an illegal amount typed into the
    box turns it red, disables Raise and brings up a round button that corrects it; and once the hand
    is finished the bar offers Next Hand only. At 1500×900,
    1280×900 and 1366×768 the whole table — seats, street steps, board, pot and bar — is on screen
