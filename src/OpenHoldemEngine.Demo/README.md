@@ -144,7 +144,6 @@ These measurements are from the current build configuration and serve as a basel
   - Blazor framework and runtime: ~20 MB (dotnet.js, dotnet.runtime.js, dotnet.native.wasm, ICU data)
   - .NET assemblies and dependencies: ~20 MB
   - SQLite and EF Core: ~6 MB
-  - HandEvaluator library (old, static lookup tables): ~280 KB
 
 The large published size is a known characteristic of Blazor WebAssembly applications. The Emscripten-built native SQLite binary contributes significantly to this.
 
@@ -153,10 +152,7 @@ The large published size is a known characteristic of Blazor WebAssembly applica
 Cold-start latency is dominated by:
 
 1. **Initial load**: Network download of the .wasm file and IL→JIT compilation
-2. **HandEvaluator initialization**: The library builds large static lookup tables at type initialization
-3. **Database schema creation**: `HoldemDbContext.Database.EnsureCreated()` executes on app startup
-
-First-hand creation after startup typically takes 1–2 seconds due to the HandEvaluator initialization. Subsequent operations are significantly faster.
+2. **Database schema creation**: `HoldemDbContext.Database.EnsureCreated()` executes on app startup
 
 ## Architecture
 
@@ -189,10 +185,6 @@ Found a native function (sqlite3_config) with varargs in e_sqlite3. Calling such
 ```
 
 This is a tooling limitation (Emscripten cannot generate correct calling conventions for varargs functions in WASM). These specific functions are not called by the engine or EF Core in normal operation, so the warnings are informational. If a call to one of these functions is attempted at runtime, it will fail with a clear error.
-
-### HandEvaluator library size
-
-The `HandEvaluator` 1.0.1 library is old and lacks trimming annotations. It builds large static lookup tables at type initialization, contributing significantly to both published size and cold-start time. This is acceptable for a demo but should be tracked if the application grows.
 
 ## Attribution
 

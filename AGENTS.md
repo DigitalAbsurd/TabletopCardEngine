@@ -66,11 +66,11 @@ Betting rules, blinds, pot/side-pot splitting, showdown and street progression a
 
 `Engine/HandTable.cs` collapses what used to be three separate NPoker types (`GameState` + `Table` + `Seats`) into one; `Engine/TableSeat.cs` similarly collapses `Player` + `PayInfo` + a per-street action-history list into scalars, because nothing ever needed more than "the last action" and "the biggest wager this street" out of that history. Occupied seats only, ascending by `SeatNo` — no empty-seat padding, no `Dummy#N` players. `Engine/CardDeck.cs` is either a real shuffle (excluding every card already dealt) or a fixed sequence from `ICardShuffler`. `Engine/BettingRules.cs`, `Engine/HandRunner.cs` and `Engine/PotDistribution.cs` hold the actual rules (legal actions and bet sizing, the betting/street state machine, and side-pot construction, respectively) and are pure functions/static classes over a `HandTable` — no cloning, no defensive copying, because the table itself is thrown away at the end of every request.
 
-Hand strength is supplied by `Engine/HandEvaluator.cs`, a singleton over the `HandEvaluator` (HoldemHand) package with two methods — `EvaluateStrength` (a single comparable value, for ranking hands against each other) and `EvaluateRankType` (the display category).
+Hand strength is supplied by `Engine/HandEvaluator.cs`, an in-repo evaluator with two methods — `EvaluateStrength` (a single comparable value, for ranking hands against each other) and `EvaluateRankType` (the display category, read back out of that same value). It replaced the `HandEvaluator` NuGet package, which declares no license and derives from Keith Rule's GPLv3 port of poker-eval — don't bring that package, or another port of poker-eval, back. The strength packs the category into bits 20 and up and the five deciding ranks four bits apiece below it, ranks stored as 1 (two) to 13 (ace) so that 0 can mean "no card" when fewer than five are dealt. `HandEvaluatorTests` pins it against the textbook five-card distribution and the 7 462 distinct hand classes.
 
 ### Card formats
 
-Two card string formats exist: the DB/`Card.ToString()` format (`"ah"`, rank-then-suit lowercase, canonical everywhere in this codebase) and HoldemHand's (`"Ah"`, rank upper / suit lower). `HandEvaluator.ToHoldemHandString` is the one place that converts between them.
+The DB/`Card.ToString()` format (`"ah"`, rank-then-suit lowercase) is canonical everywhere in this codebase. PHH writes `"Ah"` (rank upper / suit lower); `PhhCards` lower-cases it before `Card.FromString`.
 
 ### Deterministic dealing via ICardShuffler
 

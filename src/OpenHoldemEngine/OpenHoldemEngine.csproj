@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="FluentResults" Version="3.16.0" />
-    <PackageReference Include="HandEvaluator" Version="1.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
   </ItemGroup>
 
