@@ -7,7 +7,11 @@ namespace OpenHoldemEngine.Demo.Services;
 /// <summary>A reference point of a raise: a "raise to" amount and what to call it.</summary>
 /// <param name="Amount">The absolute street total the mark sizes the raise to.</param>
 /// <param name="Label">The caption shown for it.</param>
-public sealed record RaiseMark(decimal Amount, string Label);
+/// <param name="Formula">
+/// How the amount was worked out, for a pot preset; <see langword="null"/> for Min and All-in, which
+/// are the engine's own numbers.
+/// </param>
+public sealed record RaiseMark(decimal Amount, string Label, string? Formula = null);
 
 /// <summary>What the raise amount box holds: an amount the engine will accept, or why it will not.</summary>
 /// <param name="Amount">The "raise to" amount, or <see langword="null"/> when the text is not a legal raise.</param>
@@ -30,6 +34,9 @@ public readonly record struct RaiseInput(decimal? Amount, string? Error)
 /// current bet. The seat's own street wager is needed for that, and <see cref="SeatData.BetSize"/>
 /// is never populated (fact 4), so it is read off the raise window instead: its top is always the
 /// all-in, which is the stack plus whatever the seat has already put in this street.
+/// <br/>That is why Pot is bigger than the pot on the table: at 1/2, first to act pre-flop with 3 in
+/// the pot, Pot is 2 + (3 + 2) = 7. Each preset carries that sum as its
+/// <see cref="RaiseMark.Formula"/>, so the visitor can see where the number comes from.
 /// </remarks>
 public static class RaiseSizing
 {
@@ -43,13 +50,13 @@ public static class RaiseSizing
     /// <param name="hand">The hand whose seat to act is raising.</param>
     /// <param name="step">The amount's step, the small blind; <c>0</c> rounds to the cent instead.</param>
     /// <returns>The absolute street total.</returns>
-    public static decimal HalfPotRaise(HandData hand, decimal step = 0) => PotFractionRaise(hand, 0.5m, step);
+    public static decimal HalfPotRaise(HandData hand, decimal step = 0) => PotFractionRaise(hand, 0.5m, step)?.Amount ?? 0;
 
     /// <summary>The pot-sized raise, clamped to the legal window; <c>0</c> when no raise is offered.</summary>
     /// <param name="hand">The hand whose seat to act is raising.</param>
     /// <param name="step">The amount's step, the small blind; <c>0</c> rounds to the cent instead.</param>
     /// <returns>The absolute street total.</returns>
-    public static decimal PotRaise(HandData hand, decimal step = 0) => PotFractionRaise(hand, 1m, step);
+    public static decimal PotRaise(HandData hand, decimal step = 0) => PotFractionRaise(hand, 1m, step)?.Amount ?? 0;
 
     /// <summary>
     /// Min and All-in, the ends of the raise window and the only marks on the slider. ½ Pot and Pot
@@ -70,7 +77,8 @@ public static class RaiseSizing
     /// <summary>
     /// ½ Pot and Pot, in ascending order. A preset is dropped when clamping puts it on or past a
     /// neighbour — a short stack's window, or a half-pot below the minimum raise — because a button
-    /// that does what Min or the slider's right end already does is only noise.
+    /// that does what Min or the slider's right end already does is only noise. Each preset carries
+    /// its sum as <see cref="RaiseMark.Formula"/>.
     /// </summary>
     /// <param name="hand">The current hand, or <see langword="null"/> before the first one.</param>
     /// <param name="step">The amount's step, the small blind.</param>
@@ -84,8 +92,14 @@ public static class RaiseSizing
 
         var presets = new List<RaiseMark>();
         var floor = min;
-        foreach (var candidate in new[] { new RaiseMark(HalfPotRaise(hand, step), "½ Pot"), new RaiseMark(PotRaise(hand, step), "Pot") })
+        foreach (var (fraction, label) in new[] { (0.5m, "½ Pot"), (1m, "Pot") })
         {
+            if (PotFractionRaise(hand, fraction, step) is not PotRaiseSum sum)
+            {
+                continue;
+            }
+
+            var candidate = new RaiseMark(sum.Amount, label, sum.Formula);
             if (candidate.Amount > floor && candidate.Amount < max)
             {
                 presets.Add(candidate);
@@ -257,11 +271,11 @@ public static class RaiseSizing
         return Math.Max(0, marks.Count - 1) * SegmentLength;
     }
 
-    private static decimal PotFractionRaise(HandData hand, decimal fraction, decimal step)
+    private static PotRaiseSum? PotFractionRaise(HandData hand, decimal fraction, decimal step)
     {
         if (RaiseWindow(hand) is not (decimal min, decimal max))
         {
-            return 0;
+            return null;
         }
 
         var stack = hand.Seats.FirstOrDefault(s => s.SeatNo == hand.NextPlayerSeatNo)?.Stack ?? 0;
@@ -271,9 +285,37 @@ public static class RaiseSizing
 
         // Pot excludes the current street, so the pot on the table is both of them (fact 6).
         var pot = hand.Pot + hand.StreetPot;
-        var raiseTo = currentBet + (fraction * (pot + call));
-        raiseTo = step > 0 ? RoundToStep(raiseTo, step) : Math.Round(raiseTo, 2, MidpointRounding.AwayFromZero);
-        return Math.Clamp(raiseTo, min, max);
+        var exact = currentBet + (fraction * (pot + call));
+        var rounded = step > 0 ? RoundToStep(exact, step) : Math.Round(exact, 2, MidpointRounding.AwayFromZero);
+        var amount = Math.Clamp(rounded, min, max);
+        return new PotRaiseSum(amount, Explain(currentBet, fraction, pot, call, exact, rounded, amount));
+    }
+
+    /// <summary>
+    /// The pot-limit sum written out, e.g. "Current bet 2 + ½ × (pot 3 + call 2) = 4.5, rounded to 5",
+    /// followed by whatever the step or the raise window changed about it.
+    /// </summary>
+    private static string Explain(decimal currentBet, decimal fraction, decimal pot, decimal call, decimal exact, decimal rounded, decimal amount)
+    {
+        var potTerm = call > 0
+            ? $"(pot {AmountFormat.Format(pot)} + call {AmountFormat.Format(call)})"
+            : $"pot {AmountFormat.Format(pot)}";
+        var formula = $"Current bet {AmountFormat.Format(currentBet)} + {(fraction == 1m ? string.Empty : "½ × ")}{potTerm} = {AmountFormat.Format(exact)}";
+        if (AmountFormat.Format(rounded) != AmountFormat.Format(exact))
+        {
+            formula += $", rounded to {AmountFormat.Format(rounded)}";
+        }
+
+        if (amount > rounded)
+        {
+            formula += $", raised to the minimum {AmountFormat.Format(amount)}";
+        }
+        else if (amount < rounded)
+        {
+            formula += $", capped at all-in {AmountFormat.Format(amount)}";
+        }
+
+        return formula;
     }
 
     private static (decimal Min, decimal Max)? RaiseWindow(HandData hand)
@@ -291,4 +333,7 @@ public static class RaiseSizing
             NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
             CultureInfo.InvariantCulture,
             out amount);
+
+    /// <summary>A pot preset's amount and the sum that produced it.</summary>
+    private readonly record struct PotRaiseSum(decimal Amount, string Formula);
 }

@@ -395,7 +395,8 @@ public sealed class DemoLayout_Tests
 
         // ½ Pot over Pot, each its own target even though they share one button's height
         IReadOnlyList<HitProbe> presets = await page.ProbeHitTargetsAsync(DemoPage.RaisePresetSelector);
-        presets.Select(preset => preset.Label).Should().Equal(["½ Pot", "Pot"], "the first decision of a fresh 100-big-blind hand has room for both");
+        presets.Select(preset => preset.Label.Split(" · ")[0]).Should().Equal(["½ Pot", "Pot"], "the first decision of a fresh 100-big-blind hand has room for both");
+        presets.Should().OnlyContain(preset => preset.Label.Contains(" · "), "each preset shows the amount it sizes the raise to");
         AssertOwnHitTargets(presets);
 
         IReadOnlyList<HitProbe> input = await page.ProbeHitTargetsAsync(DemoPage.RaiseInputSelector);

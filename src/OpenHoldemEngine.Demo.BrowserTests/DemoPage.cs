@@ -1,5 +1,6 @@
 ﻿using Microsoft.Playwright;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace OpenHoldemEngine.Demo.BrowserTests;
 
@@ -413,10 +414,17 @@ internal sealed class DemoPage : IAsyncDisposable
             ?? throw new InvalidOperationException($"The {label} mark carries no amount.");
     }
 
-    /// <summary>Clicks one of the ½ Pot / Pot buttons beside the raise amount box.</summary>
+    /// <summary>
+    /// Clicks one of the ½ Pot / Pot buttons beside the raise amount box. A preset reads
+    /// "Pot · 7", so it is picked by the label before the amount: a plain substring match on "Pot"
+    /// would find "½ Pot · 5" first.
+    /// </summary>
     public async Task PickRaisePresetAsync(string label)
     {
-        ILocator preset = _page.Locator(RaisePresetSelector).Filter(new LocatorFilterOptions { HasTextString = label });
+        ILocator preset = _page.Locator(RaisePresetSelector).Filter(new LocatorFilterOptions
+        {
+            HasTextRegex = new Regex(@"^\s*" + Regex.Escape(label) + " ·"),
+        });
         await preset.First.ClickAsync();
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }

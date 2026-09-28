@@ -95,7 +95,8 @@
             {
                 @* One row: the slider with its Min / All-in marks, the −/+ steps of one small blind,
                    the amount box, and ½ Pot over Pot. Marks, steps and presets only size the raise;
-                   Raise is what submits it. *@
+                   Raise is what submits it. A preset shows its amount, and its tooltip the pot-limit
+                   sum behind it, because "Pot · 7" next to a pot of 3 is otherwise a riddle. *@
                 <div class="raise-controls">
                     <div class="raise-slider-row">
                         <Button
@@ -151,14 +152,16 @@
                             <div class="raise-presets">
                                 @foreach (var preset in _presets)
                                 {
-                                    <Button
-                                        Size="small"
-                                        Shape="round"
-                                        AriaLabel="@($"{preset.Label}: raise to {AmountFormat.Format(preset.Amount)}")"
-                                        OnClick="@(() => SetRaiseAmount(preset.Amount))"
-                                        Class="raise-preset-btn">
-                                        @preset.Label
-                                    </Button>
+                                    <Tooltip Title="@(preset.Formula ?? string.Empty)">
+                                        <Button
+                                            Size="small"
+                                            Shape="round"
+                                            AriaLabel="@($"{preset.Label}: raise to {AmountFormat.Format(preset.Amount)}. {preset.Formula}")"
+                                            OnClick="@(() => SetRaiseAmount(preset.Amount))"
+                                            Class="raise-preset-btn">
+                                            @($"{preset.Label} · {AmountFormat.Format(preset.Amount)}")
+                                        </Button>
+                                    </Tooltip>
                                 }
                             </div>
                         }
