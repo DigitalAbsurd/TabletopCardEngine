@@ -168,4 +168,40 @@ public sealed class PhhReplayLifecycle_Tests
         capturedErrorMessage.Should().NotBeNullOrEmpty("EngineError event should have been raised");
         capturedErrorMessage.Should().Contain("already exists", "Error message should indicate duplicate game");
     }
+
+    [TestMethod]
+    public async Task ReplayBundledSampleHand3_FinishingStacksMatch()
+    {
+        // Arrange: Load hand 3 from the bundled sample
+        var samplePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..",
+            "OpenHoldemEngine.Demo", "wwwroot", "sample", "sample.phhs");
+        samplePath = Path.GetFullPath(samplePath);
+
+        var phhsText = await File.ReadAllTextAsync(samplePath);
+
+        var hands = PhhReader.ReadAll(phhsText);
+        hands.Should().NotBeEmpty();
+        var hand3 = hands.Count >= 3
+            ? hands[2]
+            : throw new InvalidOperationException("bundled sample should have at least 3 hands");
+
+        // Set up the test session
+        var (session, shuffler, _, _) = CreateTestSession();
+        var controller = new PhhReplayController(session, shuffler);
+
+        // Act: Load and replay hand 3 to completion
+        var loaded = await controller.LoadHandAsync(hand3);
+        loaded.Should().BeTrue(controller.ReplayError ?? "hand load failed");
+
+        while (!controller.IsComplete)
+        {
+            var replayed = await controller.ReplayNextActionAsync();
+            replayed.Should().BeTrue(controller.ReplayError ?? "action replay failed");
+        }
+
+        // Assert: Final stacks match the recorded finishing stacks
+        controller.FinalStacksMatch.Should().BeTrue(controller.FinalStacksMessage);
+    }
 }
