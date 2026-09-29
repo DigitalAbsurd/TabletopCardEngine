@@ -5,11 +5,9 @@ namespace OpenHoldemEngine.Options;
 
 /// <summary>
 /// The engine's resolved configuration. Every <c>AddHoldemEngine</c> call creates its own instance
-/// and registers it in that container, so two engines in one process never share options. It is
-/// public only because <see cref="HoldemEngine"/>'s constructor takes it; every member on it is
-/// internal.
+/// and registers it in that container, so two engines in one process never share options.
 /// </summary>
-public sealed class HoldemEngineOptions
+internal sealed class HoldemEngineOptions
 {
     internal HoldemEngineOptions() { }
 
