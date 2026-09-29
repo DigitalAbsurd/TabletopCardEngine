@@ -1,6 +1,7 @@
 # Third-party notices
 
-OpenHoldemEngine is licensed under the terms in [LICENSE](LICENSE). It builds on the third-party
+OpenHoldemEngine is licensed under the Apache License 2.0, in [LICENSE](LICENSE), with its own
+attribution notice in [NOTICE](NOTICE). It builds on the third-party
 components listed here, and the demo site redistributes some of them. Each component keeps its own
 license, and this file reproduces the notices those licenses require.
 

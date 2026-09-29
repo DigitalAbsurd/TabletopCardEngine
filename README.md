@@ -18,6 +18,11 @@ This teaches the core concept: **there is no in-memory game object — the datab
 
 ## License
 
-OpenHoldemEngine is released under the [MIT License](LICENSE). The licenses and notices of the
-third-party packages it depends on, of the assets the demo redistributes, and of the vendored PHH
-hand-history corpus are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+OpenHoldemEngine is released under the [Apache License, Version 2.0](LICENSE). Commercial use
+is allowed. Anyone who redistributes the engine or a work derived from it must keep the attribution
+in [NOTICE](NOTICE), as section 4(d) of the license requires.
+[ADR-0001](docs/adr/0001-project-license.md) explains why this license was chosen.
+
+The licenses and notices of the third-party packages it depends on, of the assets the demo
+redistributes, and of the vendored PHH hand-history corpus are in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
