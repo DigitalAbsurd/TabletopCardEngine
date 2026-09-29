@@ -10,7 +10,6 @@ using OpenHoldemEngine.Dto;
 namespace OpenHoldemEngine.Demo.Tests;
 
 [TestClass]
-[DoNotParallelize]
 public sealed class PhhRoundTrip_Tests
 {
     private static HoldemEngine CreateTestEngine()

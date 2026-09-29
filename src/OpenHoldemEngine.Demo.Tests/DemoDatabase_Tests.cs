@@ -13,7 +13,6 @@ namespace OpenHoldemEngine.Demo.Tests;
 /// same connection keeps working afterwards — it is the in-memory database's only lifeline.
 /// </summary>
 [TestClass]
-[DoNotParallelize]
 public sealed class DemoDatabase_Tests
 {
     private static ServiceProvider BuildServices(SqliteConnection connection)

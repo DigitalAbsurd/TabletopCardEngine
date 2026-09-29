@@ -176,8 +176,9 @@ These fail the build, or fail review, for reasons that are not obvious from the 
 - **There are no EF migrations.** The schema comes from `HoldemDbContext.OnModelCreating`
   (composite keys throughout) plus `Database.EnsureCreated()`. An entity shape change needs no
   migration but does need the model configuration updated by hand.
-- **`HoldemEngineOptions.Instance` is a process-wide singleton**, which is why the test assemblies
-  are marked `[assembly: DoNotParallelize]`. Leave that marker alone.
+- *Retired by #137:* engine options are per container now, and both test assemblies run with
+  method-level parallelism (`[assembly: Parallelize]`), so any state a test shares is a real defect.
+  Don't paper over it with `[DoNotParallelize]`.
 
 ## Product scope of the demo
 
@@ -258,17 +259,12 @@ renumber.
     strings.
 13. **`HandAction` is the ledger.** `Amount` is a seat's cumulative wager for the street, `AddAmount`
     the increment, `Size` the requested size. Composite primary key `(GameId, HandNo, No, SeatNo)`.
-14. **`HoldemEngineOptions.Instance` is a process-wide singleton**, and `AddHoldemEngine` registers
-    `HoldemEngine` as a singleton over it. Harmless in a single-user WebAssembly tab, but it means the
-    demo cannot host two differently-configured engines side by side — including one for play and one
-    for replay. Replay reconfigures the same engine.
+14. *Retired by #137:* each `AddHoldemEngine` call registers its own `HoldemEngineOptions` in its
+    container, so the demo hosts a play engine and a `DemoReplayEngine` side by side over one connection.
 15. **`ICardShuffler.GetDeckCardsAsync` is called again before every street change**, so an
     implementation must be idempotent within a hand.
-16. **`HoldemEngineOptionsBuilder.WithCardShuffler` takes a non-nullable `ICardShuffler`**, so the
-    builder cannot express "deal at random again". The engine falls back to a real shuffle only when
-    `HoldemEngineOptions.Instance.CardShuffler` is `null`, which the demo can assign directly because
-    it has `InternalsVisibleTo`. Read with fact 14: a shuffler is global state, so it has to be
-    uninstalled, not merely emptied.
+16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
+    with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
 17. **Only three validation failures exist**, all from `Resources/PackResource.resx`: the game id
     already exists, the current hand is completed, the previous hand is not completed.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button

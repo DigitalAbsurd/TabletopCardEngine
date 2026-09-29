@@ -163,6 +163,7 @@ Cold-start latency is dominated by:
 - Creates and opens a kept-alive `SqliteConnection` with `DataSource=:memory:`
 - Registers it with dependency injection as both the EF Core provider and a singleton for direct access
 - Calls `Database.EnsureCreated()` to initialize the schema
+- Registers a second engine, `DemoReplayEngine`, in a container of its own with the `PhhCardShuffler` installed, over the same connection. `DemoGameSession` switches to it for a replay and back to the play engine afterwards, since engine options belong to the container and are never reconfigured in place
 
 The kept-alive connection is critical: without it, each new `DbContext` instance would see an empty in-memory SQLite database (each connection has its own in-memory database).
 

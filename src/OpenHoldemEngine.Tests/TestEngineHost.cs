@@ -15,6 +15,12 @@ internal static class TestEngineHost
     /// <summary>
     /// Writes the SQLite database to this file instead of <c>:memory:</c>, so the schema and rows
     /// can be inspected after a run.
+    /// <para>
+    /// Setting it implies a serial run. Every test then shares that one file, and each
+    /// <see cref="Setup"/> deletes and recreates it, which under the assembly's method-level
+    /// parallelism pulls the database out from under whichever test is still running. Use it with a
+    /// <c>--filter</c> that selects a single test.
+    /// </para>
     /// </summary>
     internal const string Db3FileNameVariable = "OHE_TEST_SQLITE_DB3_FILE_NAME";
 

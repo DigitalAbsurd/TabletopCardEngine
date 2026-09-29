@@ -1,4 +1,5 @@
 ﻿using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Demo.Engine;
 using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.Demo.Services;
@@ -6,10 +7,16 @@ namespace OpenHoldemEngine.Demo.Services;
 /// <summary>
 /// Centralised session state for the demo: the only place that calls <see cref="HoldemEngine.ApplyHoldemActionAsync"/>.
 /// Caches the last successful game data and provides typed access to the current hand.
+/// <para>
+/// It holds two engines over one database and calls whichever is active: the play engine deals at
+/// random, the replay engine deals a hand history's recorded cards. Switching engines is how a
+/// replay starts and ends; nothing reconfigures an engine in place.
+/// </para>
 /// </summary>
 public sealed class DemoGameSession
 {
-    private readonly HoldemEngine _engine;
+    private readonly HoldemEngine _playEngine;
+    private readonly DemoReplayEngine? _replayEngine;
     private readonly EngineCallJournal _journal;
 
     /// <summary>Gets the current game identifier, or <see cref="Guid.Empty"/> if no game has been created.</summary>
@@ -24,6 +31,12 @@ public sealed class DemoGameSession
     /// </summary>
     public HandData? CurrentHand => CurrentGame?.HandData is { No: > 0 } handData ? handData : null;
 
+    /// <summary>Gets the engine the next call goes to: the play engine unless a replay is running.</summary>
+    public HoldemEngine ActiveEngine { get; private set; }
+
+    /// <summary>Gets whether calls currently go to the replay engine.</summary>
+    public bool IsReplaying => _replayEngine != null && ReferenceEquals(ActiveEngine, _replayEngine.Engine);
+
     /// <summary>Gets the engine call journal containing all calls made through this session.</summary>
     public EngineCallJournal Journal => _journal;
 
@@ -36,11 +49,30 @@ public sealed class DemoGameSession
     /// <summary>
     /// Creates a new demo game session.
     /// </summary>
-    /// <param name="engine">The HoldemEngine instance to call.</param>
-    public DemoGameSession(HoldemEngine engine)
+    /// <param name="engine">The play engine, which deals at random.</param>
+    /// <param name="replayEngine">
+    /// The engine that deals a hand history's cards, or <c>null</c> for a session that never replays.
+    /// </param>
+    public DemoGameSession(HoldemEngine engine, DemoReplayEngine? replayEngine = null)
     {
-        _engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        _playEngine = engine ?? throw new ArgumentNullException(nameof(engine));
+        _replayEngine = replayEngine;
+        ActiveEngine = _playEngine;
         _journal = new EngineCallJournal();
+    }
+
+    /// <summary>Sends every following call to the replay engine.</summary>
+    /// <exception cref="InvalidOperationException">The session was created without a replay engine.</exception>
+    public void UseReplayEngine()
+    {
+        ActiveEngine = _replayEngine?.Engine
+            ?? throw new InvalidOperationException("This session was created without a replay engine.");
+    }
+
+    /// <summary>Sends every following call to the play engine, which deals at random.</summary>
+    public void UsePlayEngine()
+    {
+        ActiveEngine = _playEngine;
     }
 
     /// <summary>
@@ -143,7 +175,7 @@ public sealed class DemoGameSession
     {
         try
         {
-            var result = await _engine.ApplyHoldemActionAsync(action, cancellationToken);
+            var result = await ActiveEngine.ApplyHoldemActionAsync(action, cancellationToken);
 
             if (result.IsSuccess)
             {

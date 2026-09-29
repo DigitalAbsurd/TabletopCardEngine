@@ -8,7 +8,6 @@ using OpenHoldemEngine.Demo.Services;
 namespace OpenHoldemEngine.Demo.Tests;
 
 [TestClass]
-[DoNotParallelize]
 public sealed class SqliteBrowser_Tests
 {
     private static (SqliteConnection Connection, SqliteBrowser Browser) CreateTestBrowser()
