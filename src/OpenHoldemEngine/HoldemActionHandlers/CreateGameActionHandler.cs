@@ -7,7 +7,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class CreateGameActionHandler(HoldemEngineSettings settings) : HoldemActionHandler<HoldemActionCreateGame>
 {
-    internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game)
+    internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game, CancellationToken cancellationToken)
     {
         if (game.Id != default)
         {

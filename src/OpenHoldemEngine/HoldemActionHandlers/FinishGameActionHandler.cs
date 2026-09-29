@@ -6,7 +6,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class FinishGameActionHandler : HoldemActionHandler<HoldemActionFinishGame>
 {
-    internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionFinishGame holdemAction, Game game)
+    internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionFinishGame holdemAction, Game game, CancellationToken cancellationToken)
     {
         if (game.Id == default)
         {

@@ -6,7 +6,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionStartGame>
 {
-    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartGame holdemAction, Game game)
+    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartGame holdemAction, Game game, CancellationToken cancellationToken)
     {
         if (game.Id == default)
         {
@@ -28,7 +28,7 @@ internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler) : Hold
         // fixed here rather than left to every caller.
         var joinSeats = holdemAction.JoinSeats.OrderBy(join => join.SeatNo).ToArray();
 
-        await HandDealer.DealAsync(game, joinSeats, cardShuffler);
+        await HandDealer.DealAsync(game, joinSeats, cardShuffler, cancellationToken);
 
         return null;
     }

@@ -7,9 +7,9 @@
 /// </summary>
 internal sealed class TestCardShuffler(Func<int, byte, Card[]> getHoleFunc, Func<int, Card[]> getDeckFunc) : ICardShuffler
 {
-    public Task<IEnumerable<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo)
-        => Task.FromResult(getHoleFunc(handNo, seatNo).AsEnumerable());
+    public ValueTask<IReadOnlyList<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo, CancellationToken cancellationToken)
+        => ValueTask.FromResult<IReadOnlyList<Card>>(getHoleFunc(handNo, seatNo));
 
-    public Task<IEnumerable<Card>> GetDeckCardsAsync(Guid gameId, int handNo)
-        => Task.FromResult(getDeckFunc(handNo).AsEnumerable());
+    public ValueTask<IReadOnlyList<Card>> GetDeckCardsAsync(Guid gameId, int handNo, CancellationToken cancellationToken)
+        => ValueTask.FromResult<IReadOnlyList<Card>>(getDeckFunc(handNo));
 }

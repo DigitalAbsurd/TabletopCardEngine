@@ -183,8 +183,8 @@ The outcome of one engine call: a value on success, or the errors that rejected 
 
 Supplies pre-determined cards instead of a real shuffle, which is what makes replaying a recorded hand history possible.
 
-- `Task<IEnumerable<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo)` — The hole cards to deal to one seat, in dealt order.
-- `Task<IEnumerable<Card>> GetDeckCardsAsync(Guid gameId, int handNo)` — The board cards for the hand, in dealt order.
+- `ValueTask<IReadOnlyList<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo, CancellationToken cancellationToken)` — The hole cards to deal to one seat, in dealt order.
+- `ValueTask<IReadOnlyList<Card>> GetDeckCardsAsync(Guid gameId, int handNo, CancellationToken cancellationToken)` — The board cards for the hand, in dealt order.
 
 #### `PlayerActionType` (enum)
 

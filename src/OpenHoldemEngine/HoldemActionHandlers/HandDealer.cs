@@ -17,7 +17,8 @@ internal static class HandDealer
     /// caller dealing hand 1 has to pass it ascending by seat number.
     /// </param>
     /// <param name="cardShuffler">Supplies predetermined hole cards, or <see langword="null"/> to deal at random.</param>
-    internal static async Task DealAsync(Game game, PlayerJoinData[] joinSeats, ICardShuffler? cardShuffler)
+    /// <param name="cancellationToken">Handed to the shuffler, which may do I/O.</param>
+    internal static async Task DealAsync(Game game, PlayerJoinData[] joinSeats, ICardShuffler? cardShuffler, CancellationToken cancellationToken)
     {
         game.JoinPlayers(joinSeats);
         game.CreateNewHand(CalculateStartStacks());
@@ -81,7 +82,7 @@ internal static class HandDealer
             var cards = new List<Card>();
             foreach (var seatNo in HandTableFactory.CurrentSeatNumbers(game))
             {
-                cards.AddRange(await cardShuffler.GetHoleCardsAsync(game.Id, handNo, seatNo));
+                cards.AddRange(await cardShuffler.GetHoleCardsAsync(game.Id, handNo, seatNo, cancellationToken));
             }
             return CardDeck.Predetermined(cards);
         }

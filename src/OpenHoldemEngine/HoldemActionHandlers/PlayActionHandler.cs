@@ -8,7 +8,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionPlay>
 {
-    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionPlay holdemAction, Game game)
+    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionPlay holdemAction, Game game, CancellationToken cancellationToken)
     {
         if (!Enum.IsDefined(holdemAction.ActionType))
         {
@@ -116,7 +116,7 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
             {
                 return null;
             }
-            var deckCards = await cardShuffler.GetDeckCardsAsync(holdemAction.GameId, hand.No);
+            var deckCards = await cardShuffler.GetDeckCardsAsync(holdemAction.GameId, hand.No, cancellationToken);
             var remaining = deckCards.Except(hand.DeckCards.Select(deckCard => deckCard.Card));
             return CardDeck.Predetermined(remaining);
         }

@@ -7,7 +7,7 @@ internal sealed class GetGameActionHandler : HoldemActionHandler<HoldemActionGet
 {
     protected override bool AllowedWhenFinished => true;
 
-    internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionGetGame holdemAction, Game game)
+    internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionGetGame holdemAction, Game game, CancellationToken cancellationToken)
     {
         return Task.FromResult<HoldemError?>(null);
     }
