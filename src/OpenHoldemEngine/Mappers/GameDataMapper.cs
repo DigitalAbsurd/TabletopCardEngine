@@ -25,6 +25,7 @@ internal static class GameDataMapper
 
         return new GameData(
             GameId: game.Id,
+            IsFinished: game.IsFinished,
             Options: new GameOptionData
             {
                 GameType = game.GameType,

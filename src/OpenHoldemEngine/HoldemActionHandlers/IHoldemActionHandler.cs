@@ -13,8 +13,10 @@ internal interface IHoldemActionHandler
     {
         HoldemActionCreateGame => new CreateGameActionHandler(options.Settings),
         HoldemActionGetGame => new GetGameActionHandler(),
+        HoldemActionStartGame => new StartGameActionHandler(options.CardShuffler),
+        HoldemActionFinishGame => new FinishGameActionHandler(),
         HoldemActionStartHand => new StartHandActionHandler(options.CardShuffler),
         HoldemActionPlayerAction => new PlayerActionHandler(options.CardShuffler),
-        _ => throw new NotImplementedException()
+        _ => new UnknownActionHandler()
     };
 }

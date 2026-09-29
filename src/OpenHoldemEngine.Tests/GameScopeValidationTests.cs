@@ -63,27 +63,27 @@ public sealed class GameScopeValidationTests
     }
 
     [TestMethod]
-    public async Task StartHand_SeatZero_FailsWithInvalidSeat()
-        => await AssertStartHandFailsAsync([new("Player 1", 0, 1000), new("Player 2", 2, 1000)]);
+    public async Task StartGame_SeatZero_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("Player 1", 0, 1000), new("Player 2", 2, 1000)]);
 
     [TestMethod]
-    public async Task StartHand_SeatBeyondTable_FailsWithInvalidSeat()
-        => await AssertStartHandFailsAsync([new("Player 1", 1, 1000), new("Player 2", 4, 1000)]);
+    public async Task StartGame_SeatBeyondTable_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("Player 1", 1, 1000), new("Player 2", 4, 1000)]);
 
     [TestMethod]
-    public async Task StartHand_DuplicateSeat_FailsWithInvalidSeat()
-        => await AssertStartHandFailsAsync([new("Player 1", 1, 1000), new("Player 2", 1, 1000)]);
+    public async Task StartGame_DuplicateSeat_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("Player 1", 1, 1000), new("Player 2", 1, 1000)]);
 
     [TestMethod]
-    public async Task StartHand_ZeroBuyIn_FailsWithInvalidSeat()
-        => await AssertStartHandFailsAsync([new("Player 1", 1, 1000), new("Player 2", 2, 0)]);
+    public async Task StartGame_ZeroBuyIn_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("Player 1", 1, 1000), new("Player 2", 2, 0)]);
 
     [TestMethod]
     public async Task StartHand_OccupiedSeat_FailsWithInvalidSeat()
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
         (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxPlayersCount = 3 }))).IsSuccess.Should().BeTrue();
-        (await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats })).IsSuccess.Should().BeTrue();
+        (await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
         (await engine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0))).IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
@@ -134,13 +134,13 @@ public sealed class GameScopeValidationTests
         (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
     }
 
-    private static async Task AssertStartHandFailsAsync(PlayerJoinData[] joinSeats)
+    private static async Task AssertStartGameFailsAsync(PlayerJoinData[] joinSeats)
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
         (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxPlayersCount = 3 }))).IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = joinSeats });
+        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, joinSeats));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidSeat);

@@ -325,7 +325,9 @@ public sealed class HeadsUpTests
 
         internal async Task<GameData> StartHandAsync()
         {
-            var action = new HoldemActionStartHand(GameId) { JoinSeats = _seated ? [] : _joinSeats };
+            HoldemAction action = _seated
+                ? new HoldemActionStartHand(GameId)
+                : new HoldemActionStartGame(GameId, _joinSeats);
             _seated = true;
             return await ApplyAsync(action);
         }

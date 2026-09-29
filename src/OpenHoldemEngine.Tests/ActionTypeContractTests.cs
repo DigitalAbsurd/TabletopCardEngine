@@ -41,7 +41,7 @@ public sealed class ActionTypeContractTests
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out var contextFactory);
         await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
-        (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats })).IsSuccess.Should().BeTrue();
+        (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
         var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, (PlayerActionType)42, 0));

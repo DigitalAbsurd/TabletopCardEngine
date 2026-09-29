@@ -110,7 +110,7 @@ public sealed class DemoGameSession_Tests
         entries[0].ErrorMessages.Should().BeEmpty();
 
         entries[1].SequenceNumber.Should().Be(2);
-        entries[1].Action.Should().BeOfType<HoldemActionStartHand>();
+        entries[1].Action.Should().BeOfType<HoldemActionStartGame>();
         entries[1].Succeeded.Should().BeTrue();
         entries[1].ErrorMessages.Should().BeEmpty();
 

@@ -53,7 +53,7 @@ public sealed class HoldemResultTests
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out var contextFactory);
         await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
-        var firstHand = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats });
+        var firstHand = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats));
         firstHand.IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
@@ -101,6 +101,9 @@ public sealed class HoldemResultTests
             [HoldemErrorCode.UnsupportedGameOptions] = 5,
             [HoldemErrorCode.InvalidGameOptions] = 6,
             [HoldemErrorCode.InvalidSeat] = 7,
+            [HoldemErrorCode.GameAlreadyStarted] = 8,
+            [HoldemErrorCode.GameNotStarted] = 9,
+            [HoldemErrorCode.GameFinished] = 10,
         };
 
         Enum.GetValues<HoldemErrorCode>().Should().BeEquivalentTo(expected.Keys, "a new code needs a row in this table");

@@ -13,6 +13,8 @@ internal class Game
     public GameType GameType { get; set; } = GameType.Holdem;
     public BettingStructure BettingStructure { get; set; } = BettingStructure.NoLimit;
 
+    public bool IsFinished { get; set; }
+
     public List<Player> Players { get; set; } = [];
     public List<Hand> Hands { get; set; } = [];
     public List<BuyIn> BuyIns { get; set; } = [];

@@ -138,4 +138,13 @@
   <data name="HoldemValidation_InvalidSeat" xml:space="preserve">
     <value>A seat to join is invalid</value>
   </data>
+  <data name="HoldemValidation_GameAlreadyStarted" xml:space="preserve">
+    <value>The game has already been started</value>
+  </data>
+  <data name="HoldemValidation_GameNotStarted" xml:space="preserve">
+    <value>The game has not been started</value>
+  </data>
+  <data name="HoldemValidation_GameFinished" xml:space="preserve">
+    <value>The game is finished</value>
+  </data>
 </root>

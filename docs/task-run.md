@@ -231,9 +231,12 @@ renumber.
 
 1. **`HoldemDbContext` is `internal` and declares no `DbSet<>`.** An outside consumer cannot call
    `Database.EnsureCreated()`. That is the single reason the demo needs `InternalsVisibleTo`.
-2. **`HoldemActionStartGame` and `HoldemActionFinishGame` are public but unwired.**
-   `IHoldemActionHandler.CreateHandlerForAction` throws `NotImplementedException` for both. Starting
-   a game means `HoldemActionCreateGame` followed by `HoldemActionStartHand`.
+2. *Retired by #144:* both are implemented; the lifecycle is `CreateGame` → `StartGame` →
+   (`StartHand` | player actions)* → `FinishGame`, and `GetGame` is allowed in every state.
+   `StartGame` deals hand 1 (`GameAlreadyStarted` once a hand exists), `StartHand` before it fails with
+   `GameNotStarted`, and `FinishGame` works between hands only (`PreviousHandNotEnded` otherwise).
+   After `FinishGame` every action except `GetGame` fails with `GameFinished`. An action record the
+   engine does not know fails with `InvalidAction` instead of throwing.
 3. *Retired by #142:* `GameData.HandData` is now nullable; it is `null` between `CreateGame` and the first `StartHand`.
 4. **`SeatData.BetSize` and `HandResultData.Description` are never populated.** Do not design UI
    around either.
@@ -244,8 +247,7 @@ renumber.
 6. **`Pot` excludes the current street.** `HandData.Pot` is prior streets only and `StreetPot` is the
    current street's contributions; a total pot display must add them.
 7. *Retired by #140:* the members were removed.
-8. **`JoinSeats` must be in ascending `SeatNo` order** — `StartHandActionHandler` walks the array in
-   order to resolve the first hand's button.
+8. *Retired by #144:* `StartGame` sorts `JoinSeats` itself.
 9. **Seat numbers are 1-based; `0` is the "nobody" sentinel** for `NextPlayerSeatNo`, `DealerSeatNo`
    and the blind seats.
 10. **`Street` is not sequential.** `PreFlop = 0, Flop = 3, Turn = 4, River = 5, Showdown = 6,
@@ -264,10 +266,11 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Seven validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Ten validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
-    of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`.
+    of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -314,7 +317,7 @@ renumber.
     seats, no antes, no rake. `CreateGame` returns `UnsupportedGameOptions = 5` when `GameType` or
     `BettingStructure` is not a defined member, and `InvalidGameOptions = 6` when `MaxPlayersCount` is
     outside `[GamePlayersMinCount, GamePlayersMaxCount]`, `InitialSmallBlind <= 0` or
-    `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartHand` returns `InvalidSeat = 7` when a
+    `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
     `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat, or
     has `BuyInAmount <= 0` (`SeatValidation`; the previous-hand check runs first).
     `HoldemEngineOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up

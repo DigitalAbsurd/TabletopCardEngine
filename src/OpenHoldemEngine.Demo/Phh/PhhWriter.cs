@@ -131,7 +131,7 @@ public static class PhhWriter
                 continue;
             }
 
-            if (entry.Action is HoldemActionStartHand)
+            if (entry.Action is HoldemActionStartGame or HoldemActionStartHand)
             {
                 // Already handled hole cards above
                 continue;

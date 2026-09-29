@@ -26,7 +26,7 @@ public sealed class DemoGameSession
 
     /// <summary>
     /// Gets the current hand data, or <c>null</c> if no hand has been dealt yet
-    /// (i.e. between CreateGame and the first StartHand).
+    /// (i.e. between CreateGame and the first StartGame).
     /// </summary>
     public HandData? CurrentHand => CurrentGame?.HandData is { No: > 0 } handData ? handData : null;
 
@@ -94,7 +94,7 @@ public sealed class DemoGameSession
     /// Starts the first hand of the game with the given players.
     /// </summary>
     /// <param name="joinSeats">
-    /// The seats to fill, in ascending seat order (required by the engine).
+    /// The seats to fill, in any order (the engine sorts them).
     /// </param>
     /// <param name="cancellationToken">Cancellation token for the database operation.</param>
     /// <returns><c>true</c> if the hand was started successfully, <c>false</c> on validation error.</returns>
@@ -108,7 +108,7 @@ public sealed class DemoGameSession
             return false;
         }
 
-        var action = HoldemAction.CreateStartHandDto(CurrentGameId, joinSeats);
+        var action = new HoldemActionStartGame(CurrentGameId, joinSeats);
         return await ApplyActionInternalAsync(action, cancellationToken);
     }
 

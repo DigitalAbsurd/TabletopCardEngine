@@ -67,10 +67,10 @@ public sealed class MultiHandSessionTests
 
             using var scope = new AssertionScope($"{seatCount}-handed session hand #{handNo}");
 
-            var startResult = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId)
-            {
-                JoinSeats = handNo == 1 ? joinSeats : []
-            });
+            HoldemAction startAction = handNo == 1
+                ? new HoldemActionStartGame(gameId, joinSeats)
+                : new HoldemActionStartHand(gameId);
+            var startResult = await holdemEngine.ApplyHoldemActionAsync(startAction);
             startResult.IsSuccess.Should().BeTrue(
                 $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
 
