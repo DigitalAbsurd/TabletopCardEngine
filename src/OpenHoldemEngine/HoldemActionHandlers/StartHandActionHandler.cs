@@ -6,7 +6,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionStartHand>
 {
-    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
+    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game, CancellationToken cancellationToken)
     {
         if (game.GetCurrentHand().No == 0)
         {
@@ -24,7 +24,7 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
             return seatError;
         }
 
-        await HandDealer.DealAsync(game, startHandData.JoinSeats, cardShuffler);
+        await HandDealer.DealAsync(game, startHandData.JoinSeats, cardShuffler, cancellationToken);
 
         return null;
     }

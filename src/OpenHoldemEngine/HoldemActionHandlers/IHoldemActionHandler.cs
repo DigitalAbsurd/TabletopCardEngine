@@ -6,7 +6,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal interface IHoldemActionHandler
 {
-    Task<HoldemError?> HandleAsync(HoldemAction holdemAction, Game game);
+    Task<HoldemError?> HandleAsync(HoldemAction holdemAction, Game game, CancellationToken cancellationToken);
 
     static IHoldemActionHandler CreateHandlerForAction(HoldemAction holdemAction, HoldemEngineOptions options)
     => holdemAction switch

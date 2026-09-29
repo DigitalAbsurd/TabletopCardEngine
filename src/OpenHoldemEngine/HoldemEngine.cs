@@ -69,7 +69,7 @@ public sealed class HoldemEngine
             return HoldemResult<GameData>.Fail(ConflictError());
         }
 
-        var error = await holdemActionHandler.HandleAsync(holdemAction, game);
+        var error = await holdemActionHandler.HandleAsync(holdemAction, game, cancellationToken);
         if (error is not null)
         {
             return HoldemResult<GameData>.Fail(error);

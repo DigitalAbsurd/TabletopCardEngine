@@ -31,7 +31,7 @@ public sealed class PhhCardShuffler : ICardShuffler
         _decks.Clear();
     }
 
-    public Task<IEnumerable<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo)
+    public ValueTask<IReadOnlyList<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo, CancellationToken cancellationToken)
     {
         if (!_decks.TryGetValue((gameId, handNo), out var deck))
         {
@@ -44,10 +44,10 @@ public sealed class PhhCardShuffler : ICardShuffler
             throw new InvalidOperationException($"No hole cards for seat {seatNo} in hand {handNo}.");
         }
 
-        return Task.FromResult(holeCards.AsEnumerable());
+        return ValueTask.FromResult<IReadOnlyList<Card>>(holeCards);
     }
 
-    public Task<IEnumerable<Card>> GetDeckCardsAsync(Guid gameId, int handNo)
+    public ValueTask<IReadOnlyList<Card>> GetDeckCardsAsync(Guid gameId, int handNo, CancellationToken cancellationToken)
     {
         if (!_decks.TryGetValue((gameId, handNo), out var deck))
         {
@@ -55,6 +55,6 @@ public sealed class PhhCardShuffler : ICardShuffler
                 $"No deck registered for game {gameId} hand {handNo}. Call RegisterHand first.");
         }
 
-        return Task.FromResult(deck.BoardCards.AsEnumerable());
+        return ValueTask.FromResult<IReadOnlyList<Card>>(deck.BoardCards);
     }
 }
