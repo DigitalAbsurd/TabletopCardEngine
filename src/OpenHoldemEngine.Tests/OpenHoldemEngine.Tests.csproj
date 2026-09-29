@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
     <!--
       The documentation file is generated only to enable IDE0005 (unnecessary using) at build time;
       docs on the test classes themselves aren't needed, so CS1591/CS1573 are suppressed.

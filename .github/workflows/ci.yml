@@ -34,6 +34,9 @@ jobs:
           OHE_TEST_PHH_HAND_LIMIT: 100
         run: dotnet test
 
+      - name: Check the public API against the baseline
+        run: dotnet pack src/OpenHoldemEngine -c Release
+
       - name: Install Playwright browsers
         run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
 
