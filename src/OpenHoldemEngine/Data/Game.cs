@@ -15,6 +15,9 @@ internal class Game
 
     public bool IsFinished { get; set; }
 
+    /// <summary>Optimistic concurrency token. Application-incremented on every saving call, since SQLite has no rowversion.</summary>
+    public int Version { get; set; }
+
     public List<Player> Players { get; set; } = [];
     public List<Hand> Hands { get; set; } = [];
     public List<BuyIn> BuyIns { get; set; } = [];

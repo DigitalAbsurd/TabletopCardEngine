@@ -21,6 +21,7 @@ internal sealed class CreateGameActionHandler(HoldemEngineSettings settings) : H
         }
 
         game.Id = startGameActionData.GameId;
+        game.Version = 1;
         game.InitialSmallBlind = startGameActionData.Options.InitialSmallBlind;
         game.InitialDealerSeatNo = startGameActionData.Options.InitialDealerSeatNo;
         game.GameType = startGameActionData.Options.GameType;

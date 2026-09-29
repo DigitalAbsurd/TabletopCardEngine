@@ -41,6 +41,7 @@ public sealed class HeadsUpTests
         actualGameData.ShouldAsJToken().BeEquivalentToAsJToken(new GameData(
             GameId: HeadsUpSession.GameId,
             Options: HeadsUpSession.Options,
+            Version: 2,
             HandData: new HandData(
                 No: 1,
                 Seats:

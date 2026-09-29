@@ -10,6 +10,14 @@
 /// <param name="GameId">The game the action applies to.</param>
 public abstract record HoldemAction(Guid GameId)
 {
+    /// <summary>
+    /// The <see cref="GameData.Version"/> the caller last saw, or <see langword="null"/> to skip the check.
+    /// When set and different from the game's current version, the call fails with
+    /// <see cref="HoldemErrorCode.Conflict"/> before anything runs. Ignored by <see cref="HoldemActionCreateGame"/>,
+    /// which has no game to compare against.
+    /// </summary>
+    public int? ExpectedVersion { get; init; }
+
     /// <summary>Reads the game back without changing anything.</summary>
     /// <param name="gameId">The game to read.</param>
     public static HoldemActionGetGame GetGame(Guid gameId)

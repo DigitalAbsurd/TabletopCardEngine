@@ -37,6 +37,7 @@ public sealed class HoldemEngineTests
         var expectedGameData = new GameData(
             GameId: gameId,
             Options: gameOptions,
+            Version: 2,
             HandData: new HandData(
                 No: 1,
                 Seats:

@@ -87,4 +87,9 @@ public record HandData(
 /// <param name="Options">The rules the game was created with.</param>
 /// <param name="HandData">The current hand, or <see langword="null"/> when no hand has been dealt yet.</param>
 /// <param name="IsFinished">Whether <c>FinishGame</c> has closed the game; after that only reading it back is allowed.</param>
-public record GameData(Guid GameId, GameOptionData Options, HandData? HandData, bool IsFinished = false);
+/// <param name="Version">
+/// How many times the game has been saved, starting at <c>1</c> on creation. Pass it back as
+/// <see cref="HoldemAction.ExpectedVersion"/> to have a stale write rejected with <see cref="HoldemErrorCode.Conflict"/>.
+/// Reading the game does not change it.
+/// </param>
+public record GameData(Guid GameId, GameOptionData Options, HandData? HandData, bool IsFinished = false, int Version = 0);

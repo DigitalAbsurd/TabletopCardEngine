@@ -93,6 +93,10 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasConversion<string>();
 
         modelBuilder.Entity<Game>()
+            .Property(entity => entity.Version)
+            .IsConcurrencyToken();
+
+        modelBuilder.Entity<Game>()
             .Property(entity => entity.GameType)
             .HasConversion<string>();
 
