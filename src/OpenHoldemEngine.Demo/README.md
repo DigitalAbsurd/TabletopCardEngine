@@ -194,9 +194,15 @@ The sample hand histories bundled in `wwwroot/sample/` are derived from the **PH
 
 - **Source**: https://github.com/uoftcprg/phh-dataset
 - **License**: MIT
-- **Copyright**: University of Toronto Computer Poker Research Group
+- **Copyright**: Universal, Open, Free, and Transparent Computer Poker Research Group
 
 The full license text is available in `wwwroot/sample/LICENSE-phh-dataset.txt`.
+
+### Everything else the site ships
+
+Publishing copies the repository's `THIRD-PARTY-NOTICES.md` to the root of the site, next to
+`index.html`. It covers Ant Design Blazor, Tomlyn, SQLite, PrismJS, the .NET WebAssembly runtime and
+every other package or asset the demo redistributes.
 
 ## Troubleshooting
 
