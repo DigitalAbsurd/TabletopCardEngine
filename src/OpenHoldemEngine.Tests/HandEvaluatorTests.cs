@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Engine;
 
 namespace OpenHoldemEngine.Tests;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace OpenHoldemEngine.Data;
+namespace OpenHoldemEngine;
 
 /// <summary>A card's suit. No suit outranks another; the description is the display glyph.</summary>
 public enum CardSuit : byte

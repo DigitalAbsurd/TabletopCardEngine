@@ -19,6 +19,17 @@ public sealed class PublicSurfaceTests
     }
 
     [TestMethod]
+    public void PublicTypes_AreNotInDataNamespace()
+    {
+        var offenders = typeof(HoldemEngine).Assembly.GetExportedTypes()
+            .Where(type => type.Namespace == "OpenHoldemEngine.Data")
+            .Select(type => type.FullName)
+            .ToList();
+
+        offenders.Should().BeEmpty("the Data namespace holds internal persistence entities only");
+    }
+
+    [TestMethod]
     public void HoldemEngineOptions_IsNotPublic()
     {
         typeof(HoldemEngineOptions).IsPublic.Should().BeFalse(

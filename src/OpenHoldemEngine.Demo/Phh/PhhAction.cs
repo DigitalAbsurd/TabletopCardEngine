@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Demo.Phh;
+﻿namespace OpenHoldemEngine.Demo.Phh;
 
 /// <summary>
 /// One entry of a PHH <c>actions</c> array. <see cref="Raw"/> is kept for failure messages.

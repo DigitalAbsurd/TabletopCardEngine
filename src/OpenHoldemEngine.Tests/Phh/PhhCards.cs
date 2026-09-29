@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Tests.Phh;
+﻿namespace OpenHoldemEngine.Tests.Phh;
 
 /// <summary>
 /// Card notation of the PHH format: rank char then suit char, uppercase rank and lowercase suit

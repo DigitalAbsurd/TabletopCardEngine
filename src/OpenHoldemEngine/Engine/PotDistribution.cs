@@ -14,7 +14,7 @@ internal static class PotDistribution
 
         foreach (var pot in BuildPots(table.Seats))
         {
-            var winners = FindWinners(pot.Eligible, table.Board);
+            var winners = FindWinners(pot.Eligible, (IReadOnlyList<Card>)table.Board);
             if (winners.Count == 0)
             {
                 continue;
@@ -41,7 +41,7 @@ internal static class PotDistribution
     }
 
     /// <summary>The best hand(s) among the given (non-folded) seats, evaluated against the board.</summary>
-    internal static List<TableSeat> FindWinners(IReadOnlyList<TableSeat> seats, IReadOnlyList<Data.Card> board)
+    internal static List<TableSeat> FindWinners(IReadOnlyList<TableSeat> seats, IReadOnlyList<Card> board)
     {
         var active = seats.Where(seat => seat.IsActive).ToList();
         if (active.Count == 0)
@@ -49,7 +49,7 @@ internal static class PotDistribution
             return [];
         }
 
-        var scores = active.ToDictionary(seat => seat, seat => HandEvaluator.EvaluateStrength(seat.Hole, board));
+        var scores = active.ToDictionary(seat => seat, seat => HandEvaluator.EvaluateStrength(seat.Hole, (IReadOnlyList<Card>)board));
         var best = scores.Values.Max();
         return [.. active.Where(seat => scores[seat] == best)];
     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Converters;
 

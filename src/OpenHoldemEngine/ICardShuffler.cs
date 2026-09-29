@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine;
+﻿namespace OpenHoldemEngine;
 
 /// <summary>
 /// Supplies pre-determined cards instead of a real shuffle, which is what makes replaying a

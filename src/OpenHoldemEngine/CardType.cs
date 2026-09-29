@@ -1,4 +1,4 @@
-﻿namespace OpenHoldemEngine.Data;
+﻿namespace OpenHoldemEngine;
 
 /// <summary>
 /// A card's rank. The numeric value is the pip count for 2-10; the ace is <c>1</c> here but ranks

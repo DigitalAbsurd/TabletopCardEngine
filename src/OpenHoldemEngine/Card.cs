@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace OpenHoldemEngine.Data;
+namespace OpenHoldemEngine;
 
 /// <summary>One playing card. Its string form is rank then suit, lowercase — see <see cref="ToString"/>.</summary>
 public record Card

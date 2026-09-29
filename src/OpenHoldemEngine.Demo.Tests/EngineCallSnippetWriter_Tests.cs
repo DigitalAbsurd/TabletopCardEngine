@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
 
@@ -183,7 +182,7 @@ public sealed class EngineCallSnippetWriter_Tests
         snippet.Should().Contain("using Microsoft.Extensions.DependencyInjection;");
         snippet.Should().Contain("using OpenHoldemEngine;");
         snippet.Should().Contain("using OpenHoldemEngine.Dto;");
-        snippet.Should().Contain("using OpenHoldemEngine.Data;");
+        snippet.Should().NotContain("using OpenHoldemEngine.Data;");
         snippet.Should().Contain("var services = new ServiceCollection();");
         snippet.Should().Contain("services.AddHoldemEngine(");
         snippet.Should().Contain("DataSource=:memory:");

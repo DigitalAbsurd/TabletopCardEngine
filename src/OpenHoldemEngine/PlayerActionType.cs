@@ -1,4 +1,4 @@
-﻿namespace OpenHoldemEngine.Data;
+﻿namespace OpenHoldemEngine;
 
 /// <summary>
 /// What a seat did. Only <see cref="Fold"/>, <see cref="Check"/>, <see cref="Call"/> and

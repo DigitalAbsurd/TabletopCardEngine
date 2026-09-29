@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Tests;
+﻿namespace OpenHoldemEngine.Tests;
 
 /// <summary>
 /// Feeds pre-determined cards into the engine's cheat deck, which is what makes replaying a
