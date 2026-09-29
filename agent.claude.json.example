@@ -1,6 +1,6 @@
 {
   "name": "Claude Code",
-  "description": "Settings for run-next-task.ps1. Copy this file to agent.claude.json (agent.*.json is git-ignored) and adjust it. Run the script with -Agent <name> to pick agent.<name>.json. WARNING: these args run the agent with bypassPermissions, and the runner then lets it push to and merge into main with no human review. Run it only in an isolated environment (a VM, a container or a throwaway checkout), against a repository you own.",
+  "description": "Settings for run-next-task.ps1. Copy this file to agent.claude.json (agent.*.json is git-ignored) and adjust it. Run the script with -Agent <name> to pick agent.<name>.json. WARNING: these args run the agent with bypassPermissions, and the runner then lets it push to and merge into main with no human review. Run it only in an isolated environment (a VM, a container or a throwaway checkout), against a repository you own. The runner only picks issues a maintainer vetted with the agent-ready label; see 'Vetting' in the .NOTES of run-next-task.ps1.",
   "command": "claude",
   "args": [
     "-p",
