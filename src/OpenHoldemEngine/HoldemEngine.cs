@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.HoldemActionHandlers;
 using OpenHoldemEngine.Mappers;
@@ -36,9 +35,9 @@ public sealed class HoldemEngine
     /// </param>
     /// <param name="cancellationToken">Cancels the database work.</param>
     /// <returns>
-    /// The projected game on success, or a failed result carrying the validation messages.
+    /// The projected game on success, or a failed result carrying the validation errors, each with a stable <see cref="HoldemErrorCode"/>.
     /// </returns>
-    public async Task<Result<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
+    public async Task<HoldemResult<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
     {
         IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction, _options);
 
@@ -46,14 +45,14 @@ public sealed class HoldemEngine
 
         var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
 
-        var result = await holdemActionHandler.HandleAsync(holdemAction, game);
-        if (!result.IsSuccess)
+        var error = await holdemActionHandler.HandleAsync(holdemAction, game);
+        if (error is not null)
         {
-            return result;
+            return HoldemResult<GameData>.Fail(error);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return Result.Ok(GameDataMapper.ToGameData(game));
+        return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
     }
 }

@@ -24,8 +24,8 @@ After changing a dependency, re-run the script and paste its tables over the one
 ## What ships, and under which license
 
 **The library, `OpenHoldemEngine`**, references its dependencies as NuGet packages and redistributes
-none of them. Its runtime closure is FluentResults plus Microsoft's EF Core and
-`Microsoft.Extensions.*` packages, all MIT.
+none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
+packages, all MIT.
 
 **The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:
@@ -122,7 +122,6 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 | Package | Version | License |
 | --- | --- | --- |
-| FluentResults | 3.16.0 | MIT |
 | Microsoft.EntityFrameworkCore | 9.0.1 | MIT |
 
 ### OpenHoldemEngine.Demo
@@ -153,11 +152,10 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 ### MIT License
 
-Used by FluentResults, Ant Design Blazor, OneOf and PrismJS. Also used by every Microsoft package
+Used by Ant Design Blazor, OneOf and PrismJS. Also used by every Microsoft package
 marked MIT above: EF Core, `Microsoft.Extensions.*`, ASP.NET Core and `System.*`, and by the .NET
 runtime and the project templates. Their copyright notices:
 
-- Copyright (c) 2021 Michael Altmann (FluentResults)
 - Copyright (c) .NET Foundation and Contributors (Ant Design Blazor)
 - Copyright (c) 2016 Harry McIntyre (OneOf)
 - Copyright (c) 2012 Lea Verou (PrismJS)

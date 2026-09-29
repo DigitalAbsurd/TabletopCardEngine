@@ -265,7 +265,9 @@ renumber.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
 17. **Only three validation failures exist**, all from `Resources/PackResource.resx`: the game id
-    already exists, the current hand is completed, the previous hand is not completed.
+    already exists, the current hand is completed, the previous hand is not completed. Each failure
+    carries a `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`,
+    `PreviousHandNotEnded = 3`.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while

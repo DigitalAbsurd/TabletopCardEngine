@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using FluentResults;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
 
@@ -97,8 +96,8 @@ public sealed class ObjectDump_Tests
     [TestMethod]
     public void FormatTypeName_GenericTypes_AreFriendly()
     {
-        ObjectDump.FormatTypeName(typeof(Result<GameData>)).Should().Be("Result<GameData> (FluentResults)");
-        ObjectDump.FormatTypeName(typeof(List<IError>)).Should().Be("List<IError> (System.Collections.Generic)");
+        ObjectDump.FormatTypeName(typeof(HoldemResult<GameData>)).Should().Be("HoldemResult<GameData> (OpenHoldemEngine)");
+        ObjectDump.FormatTypeName(typeof(List<HoldemError>)).Should().Be("List<HoldemError> (System.Collections.Generic)");
         ObjectDump.FormatTypeName(typeof(decimal?)).Should().Be("Decimal? (System)");
     }
 
@@ -106,10 +105,10 @@ public sealed class ObjectDump_Tests
     public void Create_FailedResult_ShowsTheThrowingValueGetterAsAValue()
     {
         // Arrange - Result<T>.Value throws on a failed result
-        var result = Result.Fail<GameData>("The current hand is completed");
+        var result = HoldemResult<GameData>.Fail(new HoldemError(HoldemErrorCode.CurrentHandEnded, "The current hand is completed"));
 
         // Act
-        var node = ObjectDump.Create("result", result, typeof(Result<GameData>));
+        var node = ObjectDump.Create("result", result, typeof(HoldemResult<GameData>));
 
         // Assert
         var value = node.Children.Single(child => child.Name == "Value");
@@ -126,13 +125,13 @@ public sealed class ObjectDump_Tests
         // Arrange
         var seat = new SeatData(SeatNo: 1, Name: "Player 1", StartHandStack: 100m, Stack: 98m, Hole: [Card.FromString("ah"), Card.FromString("kd")]);
         var hand = new HandData(1, [seat], 1, 1, 2, 2, Street.PreFlop, 3m, 0m, [], []);
-        var result = Result.Ok(new GameData(Guid.Empty, new GameOptionData(6, 1m, 1), hand));
+        var result = HoldemResult<GameData>.Ok(new GameData(Guid.Empty, new GameOptionData(6, 1m, 1), hand));
 
         // Act
-        var node = ObjectDump.Create("result", result, typeof(Result<GameData>));
+        var node = ObjectDump.Create("result", result, typeof(HoldemResult<GameData>));
 
         // Assert
-        node.TypeName.Should().Be("Result<GameData> (FluentResults)");
+        node.TypeName.Should().Be("HoldemResult<GameData> (OpenHoldemEngine)");
         node.Value.Should().StartWith("{ ");
         var seats = node.Children.Single(child => child.Name == "Value")
             .Children.Single(child => child.Name == "HandData")

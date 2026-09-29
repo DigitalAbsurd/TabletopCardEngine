@@ -1244,7 +1244,7 @@ public sealed class ComponentRender_Tests
         var rows = dump.QuerySelectorAll("tbody tr");
         rows[0].QuerySelector(".dump-name-text")!.TextContent.Should().Be("result");
         rows[0].QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ ");
-        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("Result<GameData> (FluentResults)");
+        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("HoldemResult<GameData> (OpenHoldemEngine)");
         var valueRow = rows.Single(row => row.QuerySelector(".dump-name-text")!.TextContent == "Value");
         valueRow.QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ GameId = ");
 
