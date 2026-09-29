@@ -163,7 +163,7 @@ Shared harness: `TestEngineHost.Setup` spins up a real DI container over SQLite 
 [PhhReplayTests.cs](src/OpenHoldemEngine.Tests/PhhReplayTests.cs) is the integration workhorse. It replays recorded hand histories from an open dataset — the Pluribus subset of the [PHH dataset](https://github.com/uoftcprg/phh-dataset), MIT, vendored as an embedded gzipped `.phhs` under `Resources/phh/` (see its [README](src/OpenHoldemEngine.Tests/Resources/phh/README.md) for provenance and `scripts/pack-phh-fixture.ps1` to regenerate). 10 000 six-handed no-limit hands at 50/100, every hole card recorded and `finishing_stacks` as the oracle.
 
 - `Phh/` holds the reader (`PhhReader` over Tomlyn, `PhhActionParser` for the action grammar, `PhhCards`), the per-hand deck (`PhhHandDeck`) and the driver (`PhhReplayRunner`).
-- Each hand is replayed as its **own game** — the corpus resets stacks every hand and `BuyIns` can only top a stack up. Seat mapping is straight out of the PHH spec: `pI` → `SeatNo = I`, `InitialDealerSeatNo = PlayerCount`, so `p1` is the small blind and the last player is on the button. `JoinSeats` must be passed in ascending seat order, because `StartHandActionHandler`'s `ResolvePreviousDealerSeatNo` walks that array for the very first hand.
+- Each hand is replayed as its **own game** — the corpus resets stacks every hand and stacks cannot be topped up mid-game. Seat mapping is straight out of the PHH spec: `pI` → `SeatNo = I`, `InitialDealerSeatNo = PlayerCount`, so `p1` is the small blind and the last player is on the button. `JoinSeats` must be passed in ascending seat order, because `StartHandActionHandler`'s `ResolvePreviousDealerSeatNo` walks that array for the very first hand.
 - PHH `cbr X` maps to `PlayerActionType.Raise` with `Size = X` — both mean "bring the street wager up to X". `cc` becomes `Check` or `Call` depending on what `HandData.Evaluations` offers.
 - Asserted per hand: button/blind seats, start stacks, hole cards per seat, actor order at every decision, street progression against the board, and `StartHandStack + Net == finishing_stacks`.
 - `PhhCorpus_ParsesAndIsFullySupported` asserts that **no** hand is filtered out as unsupported, so a reader regression cannot silently shrink the corpus.
@@ -176,7 +176,3 @@ A second corpus, `handhq-headsup.phhs.gz`, covers heads-up: 2 351 real \$0.25/\$
 [HeadsUpTests.cs](src/OpenHoldemEngine.Tests/HeadsUpTests.cs) spells the heads-up rules out one at a time on a scripted deck: who posts, who is on the clock street by street, the big blind's option, button alternation, and the two short-stack cases where a blind post is capped at the stack.
 
 Object comparisons use `actual.ShouldAsJToken().BeEquivalentToAsJToken(expected)` (FluentAssertions.Json, `ObjectAssertionsExtensions`) so records compare structurally with enums as strings. Keep actual-then-expected order. Note that FluentAssertions is pinned at 6.1.0, so the newer spellings (`AllSatisfy`, `BeGreaterThanOrEqualTo`) do not exist.
-
-### Known engine defects the tests pin down
-
-- `HoldemActionStartHand.BuyIns` / `KickOffSeats` and `GameOptionData.AllowRebuy` are declared but never read by any handler, so mid-session buy-ins and kick-offs cannot be tested yet.

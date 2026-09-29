@@ -14,10 +14,7 @@ public sealed class HoldemEngineTests
         var gameOptions = new GameOptionData(
                 MaxPlayersCount: 10,
                 InitialSmallBlind: 5,
-                InitialDealerSeatNo: 3,
-                AllowRebuy: true,
-                MaxHandsCount: 1000,
-                AutoIncrementsHands: 5);
+                InitialDealerSeatNo: 3);
 
         var seatsData = new PlayerJoinData[]
         {
@@ -117,10 +114,7 @@ public sealed class HoldemEngineTests
         var gameOptions = new GameOptionData(
                 MaxPlayersCount: 10,
                 InitialSmallBlind: 5,
-                InitialDealerSeatNo: 3,
-                AllowRebuy: true,
-                MaxHandsCount: 1000,
-                AutoIncrementsHands: 5);
+                InitialDealerSeatNo: 3);
 
         Result<GameData> failResult;
 

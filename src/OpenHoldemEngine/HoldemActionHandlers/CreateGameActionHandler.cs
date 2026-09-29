@@ -15,11 +15,8 @@ internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemAction
         }
 
         game.Id = startGameActionData.GameId;
-        game.AllowRebuy = startGameActionData.Options.AllowRebuy;
-        game.AutoIncrementHands = startGameActionData.Options.AutoIncrementsHands;
         game.InitialSmallBlind = startGameActionData.Options.InitialSmallBlind;
         game.InitialDealerSeatNo = startGameActionData.Options.InitialDealerSeatNo;
-        game.MaxHandsCount = startGameActionData.Options.MaxHandsCount;
         game.MaxPlayersCount = startGameActionData.Options.MaxPlayersCount;
 
         return Task.FromResult(Result.Ok());

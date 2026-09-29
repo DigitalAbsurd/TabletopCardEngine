@@ -122,10 +122,7 @@ public sealed class EngineCallSnippetWriter
         sb.Append(nextIndent).AppendLine("Options: new GameOptionData(");
         sb.Append(indent2).Append("MaxPlayersCount: ").AppendLine(action.Options.MaxPlayersCount + ",");
         sb.Append(indent2).Append("InitialSmallBlind: ").AppendLine(FormatDecimal(action.Options.InitialSmallBlind) + ",");
-        sb.Append(indent2).Append("InitialDealerSeatNo: ").AppendLine(action.Options.InitialDealerSeatNo + ",");
-        sb.Append(indent2).Append("AllowRebuy: ").AppendLine(FormatBool(action.Options.AllowRebuy) + ",");
-        sb.Append(indent2).Append("MaxHandsCount: ").AppendLine(action.Options.MaxHandsCount + ",");
-        sb.Append(indent2).Append("AutoIncrementsHands: ").Append(action.Options.AutoIncrementsHands).AppendLine("))");
+        sb.Append(indent2).Append("InitialDealerSeatNo: ").Append(action.Options.InitialDealerSeatNo).AppendLine("))");
         return sb.ToString().TrimEnd();
     }
 
@@ -194,11 +191,6 @@ public sealed class EngineCallSnippetWriter
     private static string FormatDecimal(decimal value)
     {
         return value.ToString(CultureInfo.InvariantCulture) + 'm';
-    }
-
-    private static string FormatBool(bool value)
-    {
-        return value ? "true" : "false";
     }
 
     private static string EscapeString(string value)

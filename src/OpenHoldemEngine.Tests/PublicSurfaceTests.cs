@@ -43,10 +43,7 @@ public sealed class PublicSurfaceTests
         var gameOptions = new GameOptionData(
             MaxPlayersCount: 6,
             InitialSmallBlind: 1,
-            InitialDealerSeatNo: 6,
-            AllowRebuy: false,
-            MaxHandsCount: 100,
-            AutoIncrementsHands: 0);
+            InitialDealerSeatNo: 6);
 
         var seats = new[]
         {

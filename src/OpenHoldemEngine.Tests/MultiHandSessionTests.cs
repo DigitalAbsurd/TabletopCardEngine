@@ -54,8 +54,7 @@ public sealed class MultiHandSessionTests
             Options: new GameOptionData(
                 MaxPlayersCount: seatCount,
                 InitialSmallBlind: SmallBlind,
-                InitialDealerSeatNo: FirstDealerSeatNo,
-                AllowRebuy: false)))).IsSuccess.Should().BeTrue();
+                InitialDealerSeatNo: FirstDealerSeatNo)))).IsSuccess.Should().BeTrue();
 
         var joinSeats = Enumerable.Range(1, seatCount)
             .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, BuyIn))
@@ -107,8 +106,8 @@ public sealed class MultiHandSessionTests
 
                 // Deliberately more than "not negative": the session is sized (deep stacks, small
                 // blinds, minimum raises only) so that nobody can ever bust. A seat sitting on
-                // nothing would take the game somewhere the engine has no answer for — `BuyIns` and
-                // `KickOffSeats` are declared on HoldemActionStartHand but no handler reads them.
+                // nothing would take the game somewhere the engine has no answer for — it has no
+                // rebuy or kick-off.
                 expectedStartStacks[seatData.SeatNo].Should().BePositive(
                     $"seat {seatData.SeatNo} should never run out of chips in this session");
             }
