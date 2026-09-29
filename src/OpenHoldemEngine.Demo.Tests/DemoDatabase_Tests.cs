@@ -103,7 +103,7 @@ public sealed class DemoDatabase_Tests
         // Act
         database.ClearAllData();
         session.Reset();
-        var recreated = await session.CreateGameAsync(new GameOptionData(MaxPlayersCount: 2), gameId);
+        var recreated = await session.CreateGameAsync(new GameOptionData { MaxPlayersCount = 2 }, gameId);
 
         // Assert
         recreated.Should().BeTrue("the row that made this id taken has been deleted");

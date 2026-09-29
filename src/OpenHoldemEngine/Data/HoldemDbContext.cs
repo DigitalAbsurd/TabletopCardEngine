@@ -92,6 +92,14 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .Property(entity => entity.ActionType)
             .HasConversion<string>();
 
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.GameType)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.BettingStructure)
+            .HasConversion<string>();
+
         modelBuilder.Entity<HandPlayerEndState>()
             .Property(entity => entity.RankType)
             .HasConversion<string>();

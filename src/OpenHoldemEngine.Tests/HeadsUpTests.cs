@@ -296,10 +296,7 @@ public sealed class HeadsUpTests
     {
         internal static readonly Guid GameId = Guid.Parse("{33333333-3333-3333-3333-333333333333}");
 
-        internal static readonly GameOptionData Options = new(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: SmallBlind,
-            InitialDealerSeatNo: ButtonSeatNo);
+        internal static readonly GameOptionData Options = new() { MaxPlayersCount = 2, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = ButtonSeatNo };
 
         private readonly IDisposable _host;
         private readonly HoldemEngine _engine;

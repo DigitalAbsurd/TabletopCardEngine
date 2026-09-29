@@ -125,7 +125,7 @@ public sealed class ObjectDump_Tests
         // Arrange
         var seat = new SeatData(SeatNo: 1, Name: "Player 1", StartHandStack: 100m, Stack: 98m, Hole: [Card.Parse("ah"), Card.Parse("kd")]);
         var hand = new HandData(1, [seat], 1, 1, 2, 2, Street.PreFlop, 3m, 0m, [], []);
-        var result = HoldemResult<GameData>.Ok(new GameData(Guid.Empty, new GameOptionData(6, 1m, 1), hand));
+        var result = HoldemResult<GameData>.Ok(new GameData(Guid.Empty, new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 }, hand));
 
         // Act
         var node = ObjectDump.Create("result", result, typeof(HoldemResult<GameData>));

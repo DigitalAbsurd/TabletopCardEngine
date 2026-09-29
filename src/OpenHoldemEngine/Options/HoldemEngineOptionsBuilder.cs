@@ -19,9 +19,18 @@ public sealed class HoldemEngineOptionsBuilder
     /// <summary>Adjusts the validation limits applied to every game.</summary>
     /// <param name="configureSettings">Receives the settings to mutate.</param>
     /// <returns>The same builder, for chaining.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The settings end up with a minimum below 2, a maximum above 6 (the v1 scope, which a setting
+    /// can only narrow), or a minimum above the maximum. That is a configuration error, not a game result.
+    /// </exception>
     public HoldemEngineOptionsBuilder WithSettings(Action<HoldemEngineSettings> configureSettings)
     {
         configureSettings.Invoke(_options.Settings);
+
+        var settings = _options.Settings;
+        ArgumentOutOfRangeException.ThrowIfLessThan(settings.GamePlayersMinCount, 2, nameof(configureSettings));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(settings.GamePlayersMaxCount, 6, nameof(configureSettings));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(settings.GamePlayersMinCount, settings.GamePlayersMaxCount, nameof(configureSettings));
         return this;
     }
 

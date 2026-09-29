@@ -10,7 +10,7 @@ public sealed class ActionTypeContractTests
 {
     private static readonly Guid _gameId = Guid.Parse("{33333333-3333-3333-3333-333333333333}");
 
-    private static readonly GameOptionData _gameOptions = new(MaxPlayersCount: 6, InitialSmallBlind: 5, InitialDealerSeatNo: 1);
+    private static readonly GameOptionData _gameOptions = new() { MaxPlayersCount = 6, InitialSmallBlind = 5, InitialDealerSeatNo = 1 };
 
     private static readonly PlayerJoinData[] _seats =
     [

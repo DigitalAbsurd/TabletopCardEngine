@@ -14,6 +14,12 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
             return new HoldemError(HoldemErrorCode.PreviousHandNotEnded, PackResource.HoldemValidation_PreviousHandNotEnded);
         }
 
+        var seatError = SeatValidation.Validate(game, startHandData.JoinSeats);
+        if (seatError is not null)
+        {
+            return seatError;
+        }
+
         game.JoinPlayers(startHandData.JoinSeats);
         game.CreateNewHand(CalculateStartStacks());
 

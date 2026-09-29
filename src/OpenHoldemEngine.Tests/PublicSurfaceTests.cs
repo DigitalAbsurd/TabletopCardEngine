@@ -40,10 +40,7 @@ public sealed class PublicSurfaceTests
     public async Task HoldemEngine_ResolvesFromContainer()
     {
         var gameId = Guid.NewGuid();
-        var gameOptions = new GameOptionData(
-            MaxPlayersCount: 6,
-            InitialSmallBlind: 1,
-            InitialDealerSeatNo: 6);
+        var gameOptions = new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 1, InitialDealerSeatNo = 6 };
 
         var seats = new[]
         {

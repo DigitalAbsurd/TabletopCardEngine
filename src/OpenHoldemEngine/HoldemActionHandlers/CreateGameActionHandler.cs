@@ -1,10 +1,11 @@
 ﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 
-internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemActionCreateGame>
+internal sealed class CreateGameActionHandler(HoldemEngineSettings settings) : HoldemActionHandler<HoldemActionCreateGame>
 {
     internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game)
     {
@@ -13,9 +14,17 @@ internal sealed class CreateGameActionHandler : HoldemActionHandler<HoldemAction
             return Task.FromResult<HoldemError?>(new HoldemError(HoldemErrorCode.GameAlreadyExists, PackResource.HoldemValidation_GameAlreadyExists));
         }
 
+        var optionsError = GameOptionsValidation.Validate(startGameActionData.Options, settings);
+        if (optionsError is not null)
+        {
+            return Task.FromResult<HoldemError?>(optionsError);
+        }
+
         game.Id = startGameActionData.GameId;
         game.InitialSmallBlind = startGameActionData.Options.InitialSmallBlind;
         game.InitialDealerSeatNo = startGameActionData.Options.InitialDealerSeatNo;
+        game.GameType = startGameActionData.Options.GameType;
+        game.BettingStructure = startGameActionData.Options.BettingStructure;
         game.MaxPlayersCount = startGameActionData.Options.MaxPlayersCount;
 
         return Task.FromResult<HoldemError?>(null);

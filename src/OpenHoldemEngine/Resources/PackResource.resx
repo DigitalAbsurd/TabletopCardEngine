@@ -129,4 +129,13 @@
   <data name="HoldemValidation_InvalidAction" xml:space="preserve">
     <value>The action type is not a valid player action</value>
   </data>
+  <data name="HoldemValidation_UnsupportedGameOptions" xml:space="preserve">
+    <value>The game type or betting structure is not supported</value>
+  </data>
+  <data name="HoldemValidation_InvalidGameOptions" xml:space="preserve">
+    <value>The game options are out of range</value>
+  </data>
+  <data name="HoldemValidation_InvalidSeat" xml:space="preserve">
+    <value>A seat to join is invalid</value>
+  </data>
 </root>

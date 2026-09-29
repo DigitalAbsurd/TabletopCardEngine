@@ -264,11 +264,10 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Only four validation failures exist**, all from `Resources/PackResource.resx`: the game id
-    already exists, the current hand is completed, the previous hand is not completed, the action
-    type is not a defined `PlayerActionType`. Each failure
-    carries a `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`,
-    `PreviousHandNotEnded = 3`, `InvalidAction = 4`.
+17. **Seven validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+    `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
+    `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
+    of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -311,6 +310,16 @@ renumber.
     than to a default one. Define custom properties in the global `wwwroot/css/app.css`, never in a
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
+23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 6
+    seats, no antes, no rake. `CreateGame` returns `UnsupportedGameOptions = 5` when `GameType` or
+    `BettingStructure` is not a defined member, and `InvalidGameOptions = 6` when `MaxPlayersCount` is
+    outside `[GamePlayersMinCount, GamePlayersMaxCount]`, `InitialSmallBlind <= 0` or
+    `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartHand` returns `InvalidSeat = 7` when a
+    `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat, or
+    has `BuyInAmount <= 0` (`SeatValidation`; the previous-hand check runs first).
+    `HoldemEngineOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
+    with a minimum below 2, a maximum above 6 or a minimum above the maximum: a configuration error, not a
+    game result. `GameOptionData` has no positional constructor; build it with an object initializer.
 
 ## A known, deliberate duplication
 

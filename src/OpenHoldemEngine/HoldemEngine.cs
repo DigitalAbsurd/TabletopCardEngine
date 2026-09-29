@@ -10,6 +10,10 @@ namespace OpenHoldemEngine;
 /// The engine's whole public surface. There is no long-lived in-memory game: every call rehydrates
 /// the aggregate from the database, applies one action, and projects the result back out.
 /// <para>
+/// <b>Scope of v1:</b> No-Limit Texas Hold'em cash games at 2 to 6 seats, with no antes and no rake.
+/// Other structures (Pot-Limit, Fixed-Limit) are v2, and <see cref="GameOptionData"/> is where they will plug in.
+/// </para>
+/// <para>
 /// Instances are obtained from the dependency-injection container registered by
 /// <c>AddHoldemEngine</c>: <c>services.GetRequiredService&lt;HoldemEngine&gt;()</c>.
 /// </para>

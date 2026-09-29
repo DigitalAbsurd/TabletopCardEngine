@@ -1,0 +1,28 @@
+﻿using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Resources;
+
+namespace OpenHoldemEngine.HoldemActionHandlers;
+
+/// <summary>
+/// Checks the seats a caller asks to fill. One method so that every handler that seats players
+/// (today <c>StartHand</c>) enforces the same rules.
+/// </summary>
+internal static class SeatValidation
+{
+    internal static HoldemError? Validate(Game game, PlayerJoinData[] joinSeats)
+    {
+        var seen = new HashSet<byte>();
+        foreach (var join in joinSeats)
+        {
+            var outOfRange = join.SeatNo < 1 || join.SeatNo > game.MaxPlayersCount;
+            var occupied = game.Players.Any(player => player.SeatNo == join.SeatNo);
+            if (outOfRange || occupied || !seen.Add(join.SeatNo) || join.BuyInAmount <= 0)
+            {
+                return new HoldemError(HoldemErrorCode.InvalidSeat, PackResource.HoldemValidation_InvalidSeat);
+            }
+        }
+
+        return null;
+    }
+}

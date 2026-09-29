@@ -97,11 +97,7 @@ public sealed class ComponentRender_Tests
         var engine = CreateAndInitializeEngine(serviceProvider);
         var session = serviceProvider.GetRequiredService<DemoGameSession>();
 
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -389,7 +385,7 @@ public sealed class ComponentRender_Tests
 
         var gameData = new GameData(
             GameId: Guid.NewGuid(),
-            Options: new GameOptionData(MaxPlayersCount: 6, InitialSmallBlind: 5m, InitialDealerSeatNo: 3),
+            Options: new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 5m, InitialDealerSeatNo = 3 },
             HandData: BuildHandDataWithSeats(6));
 
         // Act
@@ -677,7 +673,7 @@ public sealed class ComponentRender_Tests
     {
         return new GameData(
             GameId: Guid.NewGuid(),
-            Options: new GameOptionData(MaxPlayersCount: handData.Seats.Length, InitialSmallBlind: 1m, InitialDealerSeatNo: 1),
+            Options: new GameOptionData { MaxPlayersCount = handData.Seats.Length, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 },
             HandData: handData);
     }
 
@@ -1134,11 +1130,7 @@ public sealed class ComponentRender_Tests
             Evaluations: Array.Empty<PlayerActionEvaluationData>()
         );
 
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 1
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         return new GameData(
             GameId: Guid.NewGuid(),

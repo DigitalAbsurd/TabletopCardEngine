@@ -39,11 +39,7 @@ public sealed class DemoGameSession_Tests
         // Arrange
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act
         var result = await session.CreateGameAsync(options);
@@ -62,11 +58,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -95,11 +87,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -139,11 +127,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act
         await session.CreateGameAsync(options, gameId);
@@ -166,11 +150,7 @@ public sealed class DemoGameSession_Tests
         // Arrange
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var eventRaised = false;
         session.StateChanged += (s, e) =>
@@ -191,11 +171,7 @@ public sealed class DemoGameSession_Tests
         // Arrange
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         string? errorMessage = null;
         session.EngineError += (s, e) =>
@@ -220,11 +196,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         string? errorMessage = null;
         session.EngineError += (s, e) =>
@@ -252,11 +224,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -302,11 +270,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -340,11 +304,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var stateChangedCount = 0;
         session.StateChanged += (s, e) =>
@@ -370,11 +330,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act - Create game successfully
         await session.CreateGameAsync(options, gameId);
@@ -394,11 +350,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 3,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 3, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -435,11 +387,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData(
-            MaxPlayersCount: 2,
-            InitialSmallBlind: 50m,
-            InitialDealerSeatNo: 0
-        );
+        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -472,7 +420,7 @@ public sealed class DemoGameSession_Tests
         // Arrange - heads-up at 50/100: the button calls, the big blind checks, 200 in the pot
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        await session.CreateGameAsync(new GameOptionData(MaxPlayersCount: 2, InitialSmallBlind: 50m, InitialDealerSeatNo: 0), Guid.NewGuid());
+        await session.CreateGameAsync(new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }, Guid.NewGuid());
         await session.StartFirstHandAsync(
         [
             new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),

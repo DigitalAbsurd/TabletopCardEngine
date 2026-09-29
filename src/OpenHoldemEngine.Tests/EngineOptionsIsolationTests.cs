@@ -12,10 +12,7 @@ public sealed class EngineOptionsIsolationTests
 {
     private static readonly Guid _gameId = Guid.Parse("{44444444-4444-4444-4444-444444444444}");
 
-    private static readonly GameOptionData _gameOptions = new(
-        MaxPlayersCount: 2,
-        InitialSmallBlind: 5,
-        InitialDealerSeatNo: 1);
+    private static readonly GameOptionData _gameOptions = new() { MaxPlayersCount = 2, InitialSmallBlind = 5, InitialDealerSeatNo = 1 };
 
     private static readonly PlayerJoinData[] _joinSeats =
     [

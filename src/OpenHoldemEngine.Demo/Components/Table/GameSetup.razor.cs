@@ -224,10 +224,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             Session.Reset();
             Database.ClearAllData();
 
-            var gameOptions = new GameOptionData(
-                MaxPlayersCount: _maxPlayers,
-                InitialSmallBlind: _smallBlind,
-                InitialDealerSeatNo: _dealerSeat);
+            var gameOptions = new GameOptionData { MaxPlayersCount = _maxPlayers, InitialSmallBlind = _smallBlind, InitialDealerSeatNo = _dealerSeat };
 
             var createSuccess = await Session.CreateGameAsync(gameOptions, cancellationToken: cancellationToken);
             if (!createSuccess)

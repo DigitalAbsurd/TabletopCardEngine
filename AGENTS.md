@@ -55,6 +55,12 @@ A .NET 8 class library modelling Texas Hold'em cash games. There is no executabl
 Task<Result<GameData>> HoldemEngine.ApplyHoldemActionAsync(HoldemAction action, CancellationToken ct)
 ```
 
+### Scope of v1
+
+No-Limit Texas Hold'em, cash games, 2 to 6 seats, no antes, no rake. Other structures (Pot-Limit,
+Fixed-Limit) are v2, and `GameOptionData` (`GameType`, `BettingStructure`) is where they will plug in.
+The engine enforces this: see fact 23 in [docs/task-run.md](docs/task-run.md).
+
 ## Architecture
 
 ### Command → handler → aggregate → projection
