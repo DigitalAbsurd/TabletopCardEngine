@@ -2,12 +2,11 @@
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
-using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 
-internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionStartHand>
+internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionStartHand>
 {
     internal override async Task<Result> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
     {
@@ -71,8 +70,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
 
         async Task<CardDeck?> BuildDeckAsync()
         {
-            var shuffler = HoldemEngineOptions.Instance.CardShuffler;
-            if (shuffler == null)
+            if (cardShuffler == null)
             {
                 return null;
             }
@@ -81,7 +79,7 @@ internal sealed class StartHandActionHandler : HoldemActionHandler<HoldemActionS
             var cards = new List<Card>();
             foreach (var seatNo in HandTableFactory.CurrentSeatNumbers(game))
             {
-                cards.AddRange(await shuffler.GetHoleCardsAsync(game.Id, handNo, seatNo));
+                cards.AddRange(await cardShuffler.GetHoleCardsAsync(game.Id, handNo, seatNo));
             }
             return CardDeck.Predetermined(cards);
         }

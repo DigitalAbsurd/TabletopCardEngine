@@ -2,12 +2,11 @@
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
-using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 
-internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlayerAction>
+internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionPlayerAction>
 {
     internal override async Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
@@ -88,12 +87,11 @@ internal sealed class PlayerActionHandler : HoldemActionHandler<HoldemActionPlay
 
         async Task<CardDeck?> BuildDeckAsync()
         {
-            if (HoldemEngineOptions.Instance.CardShuffler == default || (byte)hand.GetStreet() >= 5)
+            if (cardShuffler == null || (byte)hand.GetStreet() >= 5)
             {
                 return null;
             }
-            var deckCards = await HoldemEngineOptions.Instance.CardShuffler
-                .GetDeckCardsAsync(holdemAction.GameId, hand.No);
+            var deckCards = await cardShuffler.GetDeckCardsAsync(holdemAction.GameId, hand.No);
             var remaining = deckCards.Except(hand.DeckCards.Select(deckCard => deckCard.Card));
             return CardDeck.Predetermined(remaining);
         }

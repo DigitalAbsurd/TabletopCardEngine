@@ -1,7 +1,6 @@
 ﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Dto;
-using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine.Demo.Services;
 
@@ -103,8 +102,8 @@ public sealed class PhhReplayController
         // Register the deck with the shuffler
         _shuffler.RegisterHand(_currentGameId, _handNo, _currentDeck);
 
-        // Set the shuffler on the engine options
-        _ = new HoldemEngineOptionsBuilder().WithCardShuffler(_shuffler);
+        // The replay engine is the one with the shuffler installed
+        _session.UseReplayEngine();
 
         // Create the game
         if (!await _session.CreateGameAsync(gameOptions, _currentGameId, cancellationToken))
@@ -209,7 +208,7 @@ public sealed class PhhReplayController
     }
 
     /// <summary>
-    /// Clears the loaded hand and all state, and uninstalls the shuffler from the engine options singleton.
+    /// Clears the loaded hand and all state, and hands the session back to the play engine.
     /// </summary>
     public void Unload()
     {
@@ -219,11 +218,8 @@ public sealed class PhhReplayController
         _joinSeats = null;
         _shuffler.Clear();
 
-        // Uninstall the shuffler from the engine options singleton so normal games can deal at random.
-        // The builder writes HoldemEngineOptions.Instance, a process-wide singleton, so we bypass it
-        // and set directly — HoldemEngineOptionsBuilder.WithCardShuffler takes non-nullable ICardShuffler
-        // and cannot express "none".
-        HoldemEngineOptions.Instance.CardShuffler = null;
+        // Normal games deal at random because they go to the play engine, which has no shuffler.
+        _session.UsePlayEngine();
     }
 
     /// <summary>

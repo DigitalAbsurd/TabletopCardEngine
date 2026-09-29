@@ -218,9 +218,8 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
 
         try
         {
-            // Order matters. Unload() is what sets HoldemEngineOptions.Instance.CardShuffler back to
-            // null, and that singleton is process-wide: a normal game dealt while a replay's deck is
-            // still installed would deal the replayed hand's cards again.
+            // Order matters. Unload() is what hands the session back to the play engine: a normal
+            // game dealt through the replay engine would deal the replayed hand's cards again.
             ReplayController.Unload();
             Session.Reset();
             Database.ClearAllData();

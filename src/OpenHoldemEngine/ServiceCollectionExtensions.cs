@@ -11,8 +11,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registers <see cref="HoldemEngine"/> as a singleton over an EF Core context factory.
     /// <para>
-    /// Note that engine options are process-wide: configuring one engine changes them for every
-    /// engine in the process.
+    /// Engine options belong to the container: each call creates its own
+    /// <see cref="HoldemEngineOptions"/> and registers it as a singleton instance, so engines built
+    /// from different containers can be configured differently side by side in one process.
     /// </para>
     /// </summary>
     /// <param name="services">The container to register into.</param>
@@ -23,19 +24,21 @@ public static class ServiceCollectionExtensions
         Action<DbContextOptionsBuilder> dbOptionsAction,
         Action<HoldemEngineOptionsBuilder>? configure = null)
     {
-        var optionsBuilder = new HoldemEngineOptionsBuilder();
+        var options = new HoldemEngineOptions();
         services.AddDbContextFactory<HoldemDbContext>(opts =>
         {
             dbOptionsAction?.Invoke(opts);
             opts.UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
         });
 
-        configure?.Invoke(optionsBuilder);
+        configure?.Invoke(new HoldemEngineOptionsBuilder(options));
+        services.AddSingleton(options);
         services.AddSingleton<HoldemEngine>(servicesProvider =>
         {
-            HoldemEngineOptionsBuilder.Options.DbContextFactory =
+            var resolvedOptions = servicesProvider.GetRequiredService<HoldemEngineOptions>();
+            resolvedOptions.DbContextFactory =
                 servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-            return new HoldemEngine(HoldemEngineOptionsBuilder.Options);
+            return new HoldemEngine(resolvedOptions);
         });
 
         return services;

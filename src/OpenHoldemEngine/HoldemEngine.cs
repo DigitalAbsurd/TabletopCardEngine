@@ -30,7 +30,7 @@ public sealed class HoldemEngine(HoldemEngineOptions options)
     /// </returns>
     public async Task<Result<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
     {
-        IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction);
+        IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction, options);
 
         using var dbContext = await options.DbContextFactory.CreateDbContextAsync(cancellationToken);
 

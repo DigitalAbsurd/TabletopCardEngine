@@ -1,12 +1,15 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Demo.Phh;
 
 namespace OpenHoldemEngine.Demo.Engine;
 
 /// <summary>
 /// Configures the HoldemEngine for the Blazor WebAssembly demo.
-/// Establishes a kept-alive in-memory SQLite database that persists for the lifetime of the app.
+/// Establishes a kept-alive in-memory SQLite database that persists for the lifetime of the app,
+/// and two engines over it: the play engine, which deals at random, and the
+/// <see cref="DemoReplayEngine"/>, which deals what the <see cref="PhhCardShuffler"/> holds.
 /// </summary>
 internal static class DemoEngineHost
 {
@@ -26,6 +29,12 @@ internal static class DemoEngineHost
             dbOptionsAction: opts => opts.UseSqlite(keepAliveConnection),
             configure: _ => { }
         );
+
+        // One shuffler for the whole tab: the replay controller registers decks with the same
+        // instance the replay engine reads them from.
+        services.AddSingleton<PhhCardShuffler>();
+        services.AddSingleton(serviceProvider =>
+            DemoReplayEngine.Create(keepAliveConnection, serviceProvider.GetRequiredService<PhhCardShuffler>()));
 
         // Register the connection as a singleton so it can be accessed directly if needed
         // (e.g., for querying sqlite_master in the diagnostics page).

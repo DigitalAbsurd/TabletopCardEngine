@@ -12,16 +12,15 @@ using OpenHoldemEngine.Demo.Components.Database;
 using OpenHoldemEngine.Demo.Components.EngineCalls;
 using OpenHoldemEngine.Demo.Components.Phh;
 using OpenHoldemEngine.Demo.Components.Table;
+using OpenHoldemEngine.Demo.Engine;
 using OpenHoldemEngine.Demo.Layout;
 using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
-using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine.Demo.Tests;
 
 [TestClass]
-[DoNotParallelize]
 public sealed class ComponentRender_Tests
 {
     /// <summary>
@@ -75,7 +74,9 @@ public sealed class ComponentRender_Tests
         services.AddScoped<DemoDatabase>();
         services.AddScoped<DemoGameSession>();
         services.AddScoped<EngineCallSnippetWriter>();
-        services.AddScoped<PhhCardShuffler>();
+        services.AddSingleton<PhhCardShuffler>();
+        services.AddSingleton(serviceProvider =>
+            DemoReplayEngine.Create(connection, serviceProvider.GetRequiredService<PhhCardShuffler>()));
         services.AddScoped<PhhReplayController>();
     }
 
@@ -354,18 +355,18 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public async Task GameSetup_ApplyAsync_UninstallsAReplaysCardShuffler()
+    public async Task GameSetup_ApplyAsync_SwitchesAReplayBackToThePlayEngine()
     {
-        // Arrange - a replay leaves its deck in the process-wide options singleton (fact 16)
+        // Arrange - a replay leaves the session on the replay engine, which deals the recorded cards
         using var ctx = new Bunit.TestContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
-        var shuffler = ctx.Services.GetRequiredService<PhhCardShuffler>();
-        _ = new HoldemEngineOptionsBuilder().WithCardShuffler(shuffler);
-        HoldemEngineOptions.Instance.CardShuffler.Should().NotBeNull();
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
+        session.UseReplayEngine();
+        session.ActiveEngine.Should().BeSameAs(ctx.Services.GetRequiredService<DemoReplayEngine>().Engine);
 
         var component = ctx.RenderComponent<GameSetup>();
 
@@ -374,7 +375,8 @@ public sealed class ComponentRender_Tests
 
         // Assert - the new game deals at random, rather than replaying the imported hand's cards
         applied.Should().BeTrue();
-        HoldemEngineOptions.Instance.CardShuffler.Should().BeNull();
+        session.IsReplaying.Should().BeFalse();
+        session.ActiveEngine.Should().BeSameAs(ctx.Services.GetRequiredService<HoldemEngine>());
     }
 
     [TestMethod]
@@ -1507,9 +1509,10 @@ public sealed class ComponentRender_Tests
         // Act
         component.Find(".demo-tab[data-tab=engine-calls]").Click();
 
-        // Assert
-        component.FindAll(".demo-tab[aria-selected=true]")
-            .Select(t => t.GetAttribute("data-tab")).Should().Equal("engine-calls");
+        // Assert - the boot's last continuation can still be queued on the renderer when the dealt
+        // hand appears, and under load the click's render lands behind it, so wait for it
+        component.WaitForAssertion(() => component.FindAll(".demo-tab[aria-selected=true]")
+            .Select(t => t.GetAttribute("data-tab")).Should().Equal("engine-calls"));
         component.FindAll(".demo-tab-pane-active")
             .Select(p => p.GetAttribute("data-tab")).Should().Equal("engine-calls");
         component.FindAll(".demo-tab-pane").Should().HaveCount(4, "switching hides the other panes rather than unmounting them");

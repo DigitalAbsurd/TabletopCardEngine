@@ -3,21 +3,25 @@
 /// <summary>
 /// Configures the engine from <c>ServiceCollectionExtensions.AddHoldemEngine</c>.
 /// <para>
-/// Every builder writes to the same process-wide <see cref="HoldemEngineOptions"/> instance, so
-/// configuring one engine mutates the options of every engine in the process.
+/// Each builder writes to the <see cref="HoldemEngineOptions"/> instance of the one container it
+/// was created for, so configuring one engine leaves every other engine in the process untouched.
 /// </para>
 /// </summary>
 public sealed class HoldemEngineOptionsBuilder
 {
-    /// <summary>The process-wide options instance this builder writes to.</summary>
-    public static HoldemEngineOptions Options => HoldemEngineOptions.Instance;
+    private readonly HoldemEngineOptions _options;
+
+    internal HoldemEngineOptionsBuilder(HoldemEngineOptions options)
+    {
+        _options = options;
+    }
 
     /// <summary>Adjusts the validation limits applied to every game.</summary>
     /// <param name="configureSettings">Receives the settings to mutate.</param>
     /// <returns>The same builder, for chaining.</returns>
     public HoldemEngineOptionsBuilder WithSettings(Action<HoldemEngineSettings> configureSettings)
     {
-        configureSettings.Invoke(Options.Settings);
+        configureSettings.Invoke(_options.Settings);
         return this;
     }
 
@@ -29,7 +33,7 @@ public sealed class HoldemEngineOptionsBuilder
     /// <returns>The same builder, for chaining.</returns>
     public HoldemEngineOptionsBuilder WithCardShuffler(ICardShuffler cardShuffler)
     {
-        Options.CardShuffler = cardShuffler;
+        _options.CardShuffler = cardShuffler;
         return this;
     }
 }

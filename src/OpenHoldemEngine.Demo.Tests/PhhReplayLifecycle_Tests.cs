@@ -3,22 +3,55 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Demo.Engine;
 using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
-using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine.Demo.Tests;
 
 [TestClass]
-[DoNotParallelize]
 public sealed class PhhReplayLifecycle_Tests
 {
-    private static HoldemEngine CreateTestEngine()
+    // pluribus/30/2.phh from the bundled sample: it reaches the turn, so the replay engine has to
+    // deal the recorded board as well as the recorded hole cards.
+    private const string SampleHand = """
+        [1]
+        variant = 'NT'
+        antes = [0, 0, 0, 0, 0, 0]
+        blinds_or_straddles = [50, 100, 0, 0, 0, 0]
+        min_bet = 100
+        starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
+        players = ['Budd', 'Eddie', 'Bill', 'Pluribus', 'MrWhite', 'Gogo']
+        actions = ['d dh p1 2h3c', 'd dh p2 Jc4c', 'd dh p3 6c9c', 'd dh p4 8c4s', 'd dh p5 Jh4h', 'd dh p6 KsAd', 'p3 f', 'p4 f', 'p5 f', 'p6 cbr 200', 'p1 f', 'p2 cc', 'd db 5c9s7c', 'p2 cc', 'p6 cc', 'd db 3h', 'p2 cbr 675', 'p6 f']
+        finishing_stacks = [9950, 10250, 10000, 10000, 10000, 9800]
+        """;
+
+    /// <summary>
+    /// Builds a session the way the demo does: a play engine and a replay engine over one kept-alive
+    /// connection, the replay engine reading the returned shuffler.
+    /// </summary>
+    private static (DemoGameSession Session, PhhCardShuffler Shuffler, HoldemEngine PlayEngine, DemoReplayEngine ReplayEngine) CreateTestSession()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
+        var playEngine = CreateTestEngine(connection);
+        var shuffler = new PhhCardShuffler();
+        var replayEngine = DemoReplayEngine.Create(connection, shuffler);
+
+        return (new DemoGameSession(playEngine, replayEngine), shuffler, playEngine, replayEngine);
+    }
+
+    private static HoldemEngine CreateTestEngine()
+    {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+        return CreateTestEngine(connection);
+    }
+
+    private static HoldemEngine CreateTestEngine(SqliteConnection connection)
+    {
         var services = new ServiceCollection();
         services.AddHoldemEngine(
             dbOptionsAction: opts => opts.UseSqlite(connection),
@@ -37,44 +70,53 @@ public sealed class PhhReplayLifecycle_Tests
     }
 
     [TestMethod]
-    public void Unload_ClearsShufflerFromOptions()
+    public async Task LoadHand_SwitchesToTheReplayEngine_AndUnloadSwitchesBack()
     {
         // Arrange
-        var engine = CreateTestEngine();
-        var session = new DemoGameSession(engine);
-        var shuffler = new PhhCardShuffler();
+        var (session, shuffler, playEngine, replayEngine) = CreateTestSession();
         var controller = new PhhReplayController(session, shuffler);
+        session.ActiveEngine.Should().BeSameAs(playEngine, "a session starts on the play engine");
 
-        // Simulate installing the shuffler (like LoadHandAsync does)
-        _ = new HoldemEngineOptionsBuilder().WithCardShuffler(shuffler);
+        // Act 1: Load a hand
+        var loaded = await controller.LoadHandAsync(PhhReader.ReadAll(SampleHand)[0]);
 
-        HoldemEngineOptions.Instance.CardShuffler.Should().NotBeNull("Shuffler should be installed before unload");
+        // Assert 1
+        loaded.Should().BeTrue(controller.ReplayError);
+        session.ActiveEngine.Should().BeSameAs(replayEngine.Engine, "a replay deals through the replay engine");
+        session.IsReplaying.Should().BeTrue();
 
-        // Act
+        // Act 2: Unload
         controller.Unload();
 
-        // Assert
-        HoldemEngineOptions.Instance.CardShuffler.Should().BeNull("Shuffler should be null after unload");
+        // Assert 2
+        session.ActiveEngine.Should().BeSameAs(playEngine, "unloading hands the session back to the play engine");
+        session.IsReplaying.Should().BeFalse();
     }
 
     [TestMethod]
-    public async Task AfterUnload_NewGameCanCreateAndStartWithoutError()
+    public async Task AfterReplayingAHand_NewGameDealsAtRandomWithoutError()
     {
         // Arrange
-        var engine = CreateTestEngine();
-        var session = new DemoGameSession(engine);
-        var shuffler = new PhhCardShuffler();
+        var (session, shuffler, playEngine, _) = CreateTestSession();
         var controller = new PhhReplayController(session, shuffler);
+        var hand = PhhReader.ReadAll(SampleHand)[0];
 
-        // Simulate installing the shuffler
-        _ = new HoldemEngineOptionsBuilder().WithCardShuffler(shuffler);
-        HoldemEngineOptions.Instance.CardShuffler.Should().NotBeNull();
+        // Act 1: Replay the hand to the end
+        (await controller.LoadHandAsync(hand)).Should().BeTrue(controller.ReplayError);
+        session.CurrentHand!.Seats.Single(seat => seat.SeatNo == 6).Hole!
+            .Select(card => card.ToString()).Should().Equal("ks", "ad");
+        while (!controller.IsComplete)
+        {
+            (await controller.ReplayNextActionAsync()).Should().BeTrue(controller.ReplayError);
+        }
+        session.CurrentHand!.NextPlayerSeatNo.Should().Be(0, "the replayed hand is over");
+        session.CurrentHand.CommunityCards.Select(card => card.ToString()).Should().Equal("5c", "9s", "7c", "3h");
 
-        // Act 1: Unload
+        // Act 1b: Unload, as GameSetup.ApplyAsync does before a normal game
         controller.Unload();
-        HoldemEngineOptions.Instance.CardShuffler.Should().BeNull();
+        session.ActiveEngine.Should().BeSameAs(playEngine);
 
-        // Act 2: Create a new game (this would fail if shuffler was still installed)
+        // Act 2: Create a new game (through the replay engine this would fail: no deck is registered for it)
         var newGameId = Guid.NewGuid();
         var gameOptions = new GameOptionData(
             MaxPlayersCount: 2,
