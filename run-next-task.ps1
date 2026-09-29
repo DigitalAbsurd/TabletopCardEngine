@@ -58,6 +58,14 @@
     Because there is no human review, everything hinges on the agent actually enforcing the
     repository's own gates (dotnet build / format --verify-no-changes / test) before it
     merges - the prompt tells it to, but nothing outside the agent double-checks it.
+
+    Safety: the committed agent template runs the assistant with its permission prompts
+    turned off (Claude Code's bypassPermissions). The assistant can then run any command on
+    this machine with your credentials, including the authenticated gh CLI, and it pushes
+    to and merges into main by itself. Run the script only in an isolated environment (a
+    VM, a container or a throwaway checkout), and only against a repository you own. Do not
+    point -Repo at a repository whose issues strangers can open or edit: the issue body
+    becomes the agent's instructions.
 #>
 
 [CmdletBinding()]

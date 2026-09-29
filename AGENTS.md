@@ -1,6 +1,13 @@
-﻿# CLAUDE.md
+﻿# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file gives guidance to AI coding assistants working in this repository. It is written for
+any agent, not for one product. An assistant that reads its own file name, such as `CLAUDE.md`,
+can point that file here.
+
+It describes the codebase. The workflow lives in two other documents:
+[docs/task-run.md](docs/task-run.md) is the execution contract for implementing an issue (gates,
+what "done" means, the git and pull request protocol, and the engine facts), and
+[docs/tasks-planning.md](docs/tasks-planning.md) explains how requirements become issues.
 
 ## Commands
 
@@ -33,11 +40,12 @@ dotnet run --project src/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~
 dotnet run --project src/OpenHoldemEngine.Tests -- --list-tests
 ```
 
-Test-only environment variables (read in `TestEngineHost` and `PhhFixture`):
+Test-only environment variables (read in `TestEngineHost` and `PhhFixture`, and the last one in `src/OpenHoldemEngine.Demo.BrowserTests`):
 
 - `OHE_TEST_SQLITE_DB3_FILE_NAME` — write the SQLite DB to a file instead of `:memory:`, so the schema/rows can be inspected after a run.
 - `OHE_TEST_SQL_DEBUG=true` — log EF SQL with sensitive data to the debug output (DEBUG builds only).
 - `OHE_TEST_PHH_HAND_LIMIT` — how many hands of the PHH corpus `PhhPluribusReplay_Test` replays (default 500; `0` replays all 10 000, about four minutes). A capped run takes an evenly spaced sample, not the first N hands, so it still reaches every table in the corpus.
+- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests`).
 
 ## What this is
 
