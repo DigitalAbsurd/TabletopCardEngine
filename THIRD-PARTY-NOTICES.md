@@ -10,10 +10,15 @@ license, and this file reproduces the notices those licenses require.
 - [License texts](#license-texts)
 
 [scripts/audit-licenses.ps1](scripts/audit-licenses.ps1) generates every row of the package
-inventory from the nuspecs that NuGet restored. `ThirdPartyNoticesTests` fails the test run in three
-cases: a project resolves a package that has no row here, a row's license differs from the
-package's nuspec, or a license falls outside the permissive allowlist. After changing a dependency,
-re-run the script and paste its tables over the ones below.
+inventory from the nuspecs that NuGet restored. The inventory lists the packages the projects
+reference directly. `ThirdPartyNoticesTests` fails the test run in four cases:
+
+- a project references a package that has no row here;
+- a row names a package no project references;
+- a row's license differs from the package's nuspec;
+- any resolved package falls outside the permissive allowlist, transitive packages included.
+
+After changing a dependency, re-run the script and paste its tables over the ones below.
 
 ## What ships, and under which license
 
@@ -39,19 +44,21 @@ copies its dependencies into the site. On top of the library's closure it ships:
 | `sample/sample.phhs` | The PHH dataset | MIT, see [PHH dataset](#phh-dataset) |
 
 The legacy `System.* 4.3.0`, `runtime.*`, `Microsoft.NETCore.*` 1.1.0 and `NETStandard.Library`
-1.6.1 packages in the demo's inventory carry the old Microsoft .NET Library License rather than an
-SPDX expression. They arrive transitively through AntDesign's `netstandard` dependencies, and **none
-of their assemblies ships**: the SDK's conflict resolution replaces each of them with the runtime
+1.6.1 packages carry the old Microsoft .NET Library License rather than an SPDX expression. They
+arrive transitively through AntDesign's `netstandard` dependencies, so they have no row in the
+inventory. The license gate accepts them as `MS-.NET-Library`, because **none of their assemblies
+ships**: the SDK's conflict resolution replaces each of them with the runtime
 pack's newer `8.0.0.0` assembly. A detailed build
 (`dotnet build src/OpenHoldemEngine.Demo -c Release -v:d`) resolves no conflict in favour of a 4.x
 package. Only three NuGet assemblies win over the runtime pack, and all are MIT 9.0.1 packages:
 `System.Diagnostics.DiagnosticSource`, `System.Text.Encodings.Web` and `System.Text.Json`.
 
-Restore also puts `Microsoft.AspNetCore.Components.WebAssembly.DevServer`,
-`Microsoft.NET.ILLink.Tasks` and `Microsoft.NET.Sdk.WebAssembly.Pack` in the demo's inventory.
-These are the development server and the build tooling, and nothing from them is published.
+`Microsoft.AspNetCore.Components.WebAssembly.DevServer` is the development server, and nothing from
+it is published. The SDK also restores `Microsoft.NET.ILLink.Tasks` and
+`Microsoft.NET.Sdk.WebAssembly.Pack` implicitly for the demo. They are build tooling: they are not
+listed, but the gate still checks their licenses.
 
-**The tests** redistribute nothing. Their packages are listed below to make the audit complete. Two
+**The tests** redistribute nothing. Their direct packages are listed below to make the audit complete. Two
 of them are pinned on purpose. FluentAssertions stays on 6.x (Apache-2.0) because 8.0 moved to a
 commercial license. Moq is 4.20.70 (BSD-3-Clause), the release that removed SponsorLink. Playwright
 downloads its browsers at test time, and no browser is committed or redistributed.
@@ -105,9 +112,10 @@ citation.
 
 ## Package inventory
 
-Every NuGet package that restore resolves, listed under the first project that needs it. The
-library comes first, then what the demo adds, then what the test projects add. `MS-.NET-Library` is
-the pre-SPDX Microsoft .NET Library License discussed above.
+Every NuGet package a project references directly, listed under the first project that
+references it. The library comes first, then what the demo adds, then what the test projects add.
+The inventory leaves out transitive packages. The ones the demo ships are named in
+[What ships](#what-ships-and-under-which-license).
 
 ### OpenHoldemEngine
 
@@ -115,193 +123,30 @@ the pre-SPDX Microsoft .NET Library License discussed above.
 | --- | --- | --- |
 | FluentResults | 3.16.0 | MIT |
 | Microsoft.EntityFrameworkCore | 9.0.1 | MIT |
-| Microsoft.EntityFrameworkCore.Abstractions | 9.0.1 | MIT |
-| Microsoft.EntityFrameworkCore.Analyzers | 9.0.1 | MIT |
-| Microsoft.Extensions.Caching.Abstractions | 9.0.1 | MIT |
-| Microsoft.Extensions.Caching.Memory | 9.0.1 | MIT |
-| Microsoft.Extensions.DependencyInjection | 9.0.1 | MIT |
-| Microsoft.Extensions.DependencyInjection.Abstractions | 9.0.1 | MIT |
-| Microsoft.Extensions.Logging | 9.0.1 | MIT |
-| Microsoft.Extensions.Logging.Abstractions | 9.0.1 | MIT |
-| Microsoft.Extensions.Options | 9.0.1 | MIT |
-| Microsoft.Extensions.Primitives | 9.0.1 | MIT |
-| System.Diagnostics.DiagnosticSource | 9.0.1 | MIT |
-| System.Threading.Tasks.Extensions | 4.5.4 | MIT |
 
 ### OpenHoldemEngine.Demo
 
 | Package | Version | License |
 | --- | --- | --- |
 | AntDesign | 0.17.0 | MIT |
-| Microsoft.AspNetCore.Authorization | 8.0.13 | MIT |
-| Microsoft.AspNetCore.Components | 8.0.13 | MIT |
-| Microsoft.AspNetCore.Components.Analyzers | 8.0.13 | MIT |
-| Microsoft.AspNetCore.Components.DataAnnotations.Validation | 3.2.0-rc1.20223.4 | Apache-2.0 |
-| Microsoft.AspNetCore.Components.Forms | 8.0.13 | MIT |
-| Microsoft.AspNetCore.Components.Web | 8.0.13 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly | 8.0.13 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly.DevServer | 8.0.13 | MIT |
-| Microsoft.AspNetCore.Metadata | 8.0.13 | MIT |
-| Microsoft.Data.Sqlite.Core | 9.0.1 | MIT |
-| Microsoft.EntityFrameworkCore.Relational | 9.0.1 | MIT |
 | Microsoft.EntityFrameworkCore.Sqlite | 9.0.1 | MIT |
-| Microsoft.EntityFrameworkCore.Sqlite.Core | 9.0.1 | MIT |
-| Microsoft.Extensions.Configuration | 8.0.0 | MIT |
-| Microsoft.Extensions.Configuration.Abstractions | 9.0.1 | MIT |
-| Microsoft.Extensions.Configuration.Binder | 8.0.2 | MIT |
-| Microsoft.Extensions.Configuration.FileExtensions | 8.0.1 | MIT |
-| Microsoft.Extensions.Configuration.Json | 8.0.1 | MIT |
-| Microsoft.Extensions.DependencyModel | 9.0.1 | MIT |
-| Microsoft.Extensions.FileProviders.Abstractions | 8.0.0 | MIT |
-| Microsoft.Extensions.FileProviders.Physical | 8.0.0 | MIT |
-| Microsoft.Extensions.FileSystemGlobbing | 8.0.0 | MIT |
-| Microsoft.JSInterop | 8.0.13 | MIT |
-| Microsoft.JSInterop.WebAssembly | 8.0.13 | MIT |
-| Microsoft.NET.ILLink.Tasks | 8.0.31 | MIT |
-| Microsoft.NET.Sdk.WebAssembly.Pack | 8.0.31 | MIT |
-| Microsoft.NETCore.Platforms | 1.1.0 | MS-.NET-Library |
-| Microsoft.NETCore.Targets | 1.1.0 | MS-.NET-Library |
-| Microsoft.Win32.Primitives | 4.3.0 | MS-.NET-Library |
-| NETStandard.Library | 1.6.1 | MS-.NET-Library |
-| OneOf | 2.1.155 | MIT |
-| runtime.any.System.Collections | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Diagnostics.Tools | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Diagnostics.Tracing | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Globalization | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Globalization.Calendars | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.IO | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Reflection | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Reflection.Extensions | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Reflection.Primitives | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Resources.ResourceManager | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Runtime | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Runtime.Handles | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Runtime.InteropServices | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Text.Encoding | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Text.Encoding.Extensions | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Threading.Tasks | 4.3.0 | MS-.NET-Library |
-| runtime.any.System.Threading.Timer | 4.3.0 | MS-.NET-Library |
-| runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.fedora.24-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.native.System | 4.3.0 | MS-.NET-Library |
-| runtime.native.System.IO.Compression | 4.3.0 | MS-.NET-Library |
-| runtime.native.System.Net.Http | 4.3.0 | MS-.NET-Library |
-| runtime.native.System.Security.Cryptography.Apple | 4.3.0 | MS-.NET-Library |
-| runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.opensuse.13.2-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.opensuse.42.1-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.Apple | 4.3.0 | MS-.NET-Library |
-| runtime.osx.10.10-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.rhel.7-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.ubuntu.14.04-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| SQLitePCLRaw.bundle_e_sqlite3 | 2.1.10 | Apache-2.0 |
-| SQLitePCLRaw.core | 2.1.10 | Apache-2.0 |
-| SQLitePCLRaw.lib.e_sqlite3 | 2.1.10 | Apache-2.0 |
-| SQLitePCLRaw.provider.e_sqlite3 | 2.1.10 | Apache-2.0 |
-| System.AppContext | 4.3.0 | MS-.NET-Library |
-| System.Buffers | 4.3.0 | MS-.NET-Library |
-| System.Collections | 4.3.0 | MS-.NET-Library |
-| System.Collections.Concurrent | 4.3.0 | MS-.NET-Library |
-| System.Console | 4.3.0 | MS-.NET-Library |
-| System.Diagnostics.Debug | 4.3.0 | MS-.NET-Library |
-| System.Diagnostics.Tools | 4.3.0 | MS-.NET-Library |
-| System.Diagnostics.Tracing | 4.3.0 | MS-.NET-Library |
-| System.Globalization | 4.3.0 | MS-.NET-Library |
-| System.Globalization.Calendars | 4.3.0 | MS-.NET-Library |
-| System.Globalization.Extensions | 4.3.0 | MS-.NET-Library |
-| System.IO | 4.3.0 | MS-.NET-Library |
-| System.IO.Compression | 4.3.0 | MS-.NET-Library |
-| System.IO.Compression.ZipFile | 4.3.0 | MS-.NET-Library |
-| System.IO.FileSystem | 4.3.0 | MS-.NET-Library |
-| System.IO.FileSystem.Primitives | 4.3.0 | MS-.NET-Library |
-| System.IO.Pipelines | 9.0.1 | MIT |
-| System.Linq | 4.3.0 | MS-.NET-Library |
-| System.Linq.Expressions | 4.3.0 | MS-.NET-Library |
-| System.Memory | 4.5.3 | MIT |
-| System.Net.Http | 4.3.0 | MS-.NET-Library |
-| System.Net.Primitives | 4.3.0 | MS-.NET-Library |
-| System.Net.Sockets | 4.3.0 | MS-.NET-Library |
-| System.ObjectModel | 4.3.0 | MS-.NET-Library |
-| System.Private.Uri | 4.3.0 | MS-.NET-Library |
-| System.Reflection | 4.3.0 | MS-.NET-Library |
-| System.Reflection.Emit | 4.3.0 | MS-.NET-Library |
-| System.Reflection.Emit.ILGeneration | 4.3.0 | MS-.NET-Library |
-| System.Reflection.Emit.Lightweight | 4.3.0 | MS-.NET-Library |
-| System.Reflection.Extensions | 4.3.0 | MS-.NET-Library |
-| System.Reflection.Primitives | 4.3.0 | MS-.NET-Library |
-| System.Reflection.TypeExtensions | 4.3.0 | MS-.NET-Library |
-| System.Resources.ResourceManager | 4.3.0 | MS-.NET-Library |
-| System.Runtime | 4.3.0 | MS-.NET-Library |
-| System.Runtime.Extensions | 4.3.0 | MS-.NET-Library |
-| System.Runtime.Handles | 4.3.0 | MS-.NET-Library |
-| System.Runtime.InteropServices | 4.3.0 | MS-.NET-Library |
-| System.Runtime.InteropServices.RuntimeInformation | 4.3.0 | MS-.NET-Library |
-| System.Runtime.Numerics | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.Algorithms | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.Cng | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.Csp | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.Encoding | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.OpenSsl | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.Primitives | 4.3.0 | MS-.NET-Library |
-| System.Security.Cryptography.X509Certificates | 4.3.0 | MS-.NET-Library |
-| System.Text.Encoding | 4.3.0 | MS-.NET-Library |
-| System.Text.Encoding.Extensions | 4.3.0 | MS-.NET-Library |
-| System.Text.Encodings.Web | 9.0.1 | MIT |
-| System.Text.Json | 9.0.1 | MIT |
-| System.Text.RegularExpressions | 4.3.0 | MS-.NET-Library |
-| System.Threading | 4.3.0 | MS-.NET-Library |
-| System.Threading.Tasks | 4.3.0 | MS-.NET-Library |
-| System.Threading.Timer | 4.3.0 | MS-.NET-Library |
-| System.Xml.ReaderWriter | 4.3.0 | MS-.NET-Library |
-| System.Xml.XDocument | 4.3.0 | MS-.NET-Library |
 | Tomlyn | 0.19.0 | BSD-2-Clause |
 
 ### Test and development only
 
 | Package | Version | License |
 | --- | --- | --- |
-| AngleSharp | 1.2.0 | MIT |
-| AngleSharp.Css | 1.0.0-beta.154 | MIT |
-| AngleSharp.Diffing | 1.0.0 | MIT |
 | bunit | 1.40.0 | MIT |
-| bunit.core | 1.40.0 | MIT |
-| bunit.web | 1.40.0 | MIT |
-| Castle.Core | 5.1.1 | Apache-2.0 |
-| FluentAssertions | 6.0.0 | Apache-2.0 |
 | FluentAssertions | 6.1.0 | Apache-2.0 |
 | FluentAssertions.Json | 6.1.0 | Apache-2.0 |
-| Microsoft.ApplicationInsights | 2.22.0 | MIT |
-| Microsoft.AspNetCore.Components.Authorization | 8.0.11 | MIT |
-| Microsoft.AspNetCore.Components.WebAssembly.Authentication | 8.0.11 | MIT |
-| Microsoft.Bcl.AsyncInterfaces | 6.0.0 | MIT |
-| Microsoft.CodeCoverage | 17.11.1 | MIT |
-| Microsoft.Extensions.Localization.Abstractions | 8.0.11 | MIT |
 | Microsoft.NET.Test.Sdk | 17.11.1 | MIT |
 | Microsoft.Playwright | 1.49.0 | MIT |
-| Microsoft.Testing.Extensions.Telemetry | 1.4.1 | MIT |
-| Microsoft.Testing.Extensions.TrxReport.Abstractions | 1.4.1 | MIT |
-| Microsoft.Testing.Extensions.VSTestBridge | 1.4.1 | MIT |
-| Microsoft.Testing.Platform | 1.4.1 | MIT |
-| Microsoft.Testing.Platform.MSBuild | 1.4.1 | MIT |
-| Microsoft.TestPlatform.ObjectModel | 17.11.1 | MIT |
-| Microsoft.TestPlatform.TestHost | 17.11.1 | MIT |
 | Moq | 4.20.70 | BSD-3-Clause |
 | MSTest.Analyzers | 3.6.1 | MIT |
 | MSTest.TestAdapter | 3.6.1 | MIT |
 | MSTest.TestFramework | 3.6.1 | MIT |
-| Newtonsoft.Json | 13.0.1 | MIT |
-| System.ComponentModel.Annotations | 5.0.0 | MIT |
-| System.Configuration.ConfigurationManager | 4.4.0 | MIT |
-| System.Diagnostics.DiagnosticSource | 5.0.0 | MIT |
-| System.Diagnostics.EventLog | 6.0.0 | MIT |
-| System.Reflection.Metadata | 1.6.0 | MIT |
-| System.Runtime.CompilerServices.Unsafe | 6.0.0 | MIT |
-| System.Security.Cryptography.ProtectedData | 4.4.0 | MIT |
-| System.Text.Encodings.Web | 6.0.0 | MIT |
-| System.Text.Json | 6.0.10 | MIT |
 
 ## License texts
 
@@ -597,7 +442,7 @@ See <https://www.sqlite.org/copyright.html>.
 ### Microsoft .NET Library License
 
 This license is carried by the legacy `System.* 4.3.0`, `runtime.*`, `Microsoft.NETCore.*` 1.1.0 and
-`NETStandard.Library` 1.6.1 packages listed above, and is published at
+`NETStandard.Library` 1.6.1 packages that AntDesign pulls in transitively, and is published at
 <http://go.microsoft.com/fwlink/?LinkId=329770>. As
 [What ships](#what-ships-and-under-which-license) explains, the published demo contains no assembly
 from these packages. The .NET Foundation has since released the same code under MIT in

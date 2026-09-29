@@ -6,10 +6,11 @@ using System.Xml.Linq;
 namespace OpenHoldemEngine.Tests;
 
 /// <summary>
-/// Keeps <c>THIRD-PARTY-NOTICES.md</c> true to what restore actually resolves. Every NuGet package
-/// in the <c>project.assets.json</c> of every project under <c>src/</c> must have a row in the
-/// notices' package inventory with the license its nuspec declares, that license must be on the
-/// permissive allowlist, and the inventory must not keep rows for packages nothing resolves any more.
+/// Keeps <c>THIRD-PARTY-NOTICES.md</c> true to what the projects under <c>src/</c> reference. Every
+/// NuGet package a project references directly must have a row in the notices' package inventory
+/// with the license its nuspec declares, and the inventory must not keep rows for packages no
+/// project references. The inventory skips transitive packages, but their licenses are still
+/// checked: every package in every <c>project.assets.json</c> must be on the permissive allowlist.
 /// A new dependency, a version bump or a relicensed package therefore fails here until
 /// <c>scripts/audit-licenses.ps1</c> is re-run and its tables are pasted into the notices.
 /// </summary>
@@ -44,12 +45,12 @@ public sealed partial class ThirdPartyNoticesTests
     private static readonly Lazy<string> _repositoryRoot = new(FindRepositoryRoot);
 
     [TestMethod]
-    public void ThirdPartyNotices_ListsEveryResolvedPackageWithItsLicense()
+    public void ThirdPartyNotices_ListsEveryDirectPackageWithItsLicense()
     {
         var listed = ReadListedPackages();
 
         var problems = new List<string>();
-        foreach (var (package, license) in ReadResolvedPackages())
+        foreach (var (package, license) in ReadPackages().Direct)
         {
             if (!listed.TryGetValue(package, out var listedLicense))
             {
@@ -62,23 +63,23 @@ public sealed partial class ThirdPartyNoticesTests
         }
 
         problems.Should().BeEmpty(
-            "every resolved package must be in {0}; re-run scripts/audit-licenses.ps1", NoticesFileName);
+            "every directly referenced package must be in {0}; re-run scripts/audit-licenses.ps1", NoticesFileName);
     }
 
     [TestMethod]
-    public void ThirdPartyNotices_ListsNoPackageThatIsNotResolved()
+    public void ThirdPartyNotices_ListsNoPackageThatIsNotReferenced()
     {
-        var resolved = ReadResolvedPackages();
+        var direct = ReadPackages().Direct;
 
-        ReadListedPackages().Keys.Where(package => !resolved.ContainsKey(package)).Should().BeEmpty(
-            "{0} must not keep rows for packages nothing resolves; re-run scripts/audit-licenses.ps1",
+        ReadListedPackages().Keys.Where(package => !direct.ContainsKey(package)).Should().BeEmpty(
+            "{0} lists only packages a project references directly; re-run scripts/audit-licenses.ps1",
             NoticesFileName);
     }
 
     [TestMethod]
     public void ThirdPartyNotices_EveryResolvedPackageIsPermissivelyLicensed()
     {
-        ReadResolvedPackages()
+        ReadPackages().Resolved
             .Where(pair => !_permissiveLicenses.Contains(pair.Value))
             .Select(pair => $"{pair.Key}: {pair.Value}")
             .Should().BeEmpty("a license outside the allowlist needs a legal review before it is added");
@@ -113,10 +114,13 @@ public sealed partial class ThirdPartyNoticesTests
     }
 
     /// <summary>
-    /// Every NuGet package restore resolved for any project under <c>src/</c>, keyed
-    /// <c>Id/Version</c>, with the license its nuspec declares.
+    /// Every NuGet package restore resolved for any project under <c>src/</c> (<c>Resolved</c>), and
+    /// the subset some project references itself (<c>Direct</c>), both keyed <c>Id/Version</c> with
+    /// the license its nuspec declares. The packages the SDK adds on its own, such as
+    /// <c>Microsoft.NET.ILLink.Tasks</c>, are <c>autoReferenced</c> in the assets file and are not
+    /// direct.
     /// </summary>
-    private static Dictionary<string, string> ReadResolvedPackages()
+    private static (Dictionary<string, string> Resolved, Dictionary<string, string> Direct) ReadPackages()
     {
         var projects = Directory
             .EnumerateFiles(Path.Combine(_repositoryRoot.Value, "src"), "*.csproj", SearchOption.AllDirectories)
@@ -126,6 +130,7 @@ public sealed partial class ThirdPartyNoticesTests
         projects.Should().NotBeEmpty();
 
         var resolved = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var direct = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var project in projects)
         {
             var assetsFile = Path.Combine(Path.GetDirectoryName(project)!, "obj", "project.assets.json");
@@ -135,20 +140,42 @@ public sealed partial class ThirdPartyNoticesTests
             var packageFolders = assets.RootElement.GetProperty("packageFolders")
                 .EnumerateObject().Select(folder => folder.Name).ToList();
 
+            var keyById = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var library in assets.RootElement.GetProperty("libraries").EnumerateObject())
             {
-                if (library.Value.GetProperty("type").GetString() != "package" || resolved.ContainsKey(library.Name))
+                if (library.Value.GetProperty("type").GetString() != "package")
                 {
                     continue;
                 }
 
                 var id = library.Name[..library.Name.IndexOf('/', StringComparison.Ordinal)];
-                var path = library.Value.GetProperty("path").GetString()!;
-                resolved[library.Name] = ReadNuspecLicense(packageFolders, path, id);
+                keyById[id] = library.Name;
+                if (!resolved.ContainsKey(library.Name))
+                {
+                    var path = library.Value.GetProperty("path").GetString()!;
+                    resolved[library.Name] = ReadNuspecLicense(packageFolders, path, id);
+                }
+            }
+
+            foreach (var framework in assets.RootElement.GetProperty("project").GetProperty("frameworks").EnumerateObject())
+            {
+                if (!framework.Value.TryGetProperty("dependencies", out var dependencies))
+                {
+                    continue;
+                }
+
+                foreach (var dependency in dependencies.EnumerateObject())
+                {
+                    var autoReferenced = dependency.Value.TryGetProperty("autoReferenced", out var flag) && flag.GetBoolean();
+                    if (!autoReferenced && keyById.TryGetValue(dependency.Name, out var key))
+                    {
+                        direct[key] = resolved[key];
+                    }
+                }
             }
         }
 
-        return resolved;
+        return (resolved, direct);
     }
 
     private static string ReadNuspecLicense(List<string> packageFolders, string path, string id)

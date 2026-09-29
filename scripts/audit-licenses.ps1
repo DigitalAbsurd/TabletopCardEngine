@@ -1,21 +1,23 @@
 ﻿<#
 .SYNOPSIS
-    Lists every NuGet package the solution resolves, with the license its nuspec declares.
+    Lists the NuGet packages the solution references directly, with the license each nuspec declares.
 
 .DESCRIPTION
     Reads obj/project.assets.json of every project under src/ (run `dotnet restore` first), looks
     each package's nuspec up in the NuGet package folders the assets file names, and prints three
     Markdown tables in the shape THIRD-PARTY-NOTICES.md uses:
 
-    - "OpenHoldemEngine": every package the library resolves.
-    - "OpenHoldemEngine.Demo": what the deployed demo site resolves on top of the library.
-    - "Test and development only": what the test projects resolve on top of both.
+    - "OpenHoldemEngine": the packages the library references.
+    - "OpenHoldemEngine.Demo": what the deployed demo site references on top of the library.
+    - "Test and development only": what the test projects reference on top of both.
 
-    ThirdPartyNoticesTests requires every one of those packages to have a row in the notices with
-    the same license, so paste the tables over the ones in THIRD-PARTY-NOTICES.md.
+    Only direct references are listed: transitive packages, and the ones the SDK adds implicitly
+    (autoReferenced, such as Microsoft.NET.ILLink.Tasks), are left out. ThirdPartyNoticesTests
+    requires exactly these packages to have a row in the notices with the same license, so paste
+    the tables over the ones in THIRD-PARTY-NOTICES.md.
 
-    The script exits 1 when a package declares a license outside the permissive allowlist below,
-    the same allowlist ThirdPartyNoticesTests enforces. It is a tool for regenerating the tables
+    The script exits 1 when any resolved package, transitive ones included, declares a license
+    outside the permissive allowlist below, the same allowlist ThirdPartyNoticesTests enforces. It is a tool for regenerating the tables
     by hand after a dependency change; it is NOT part of the build or CI.
 
 .EXAMPLE
@@ -70,6 +72,7 @@ function Get-PackageLicense([string[]] $packageFolders, [string] $path, [string]
 }
 
 $packages = @{}
+$direct = @{}
 foreach ($project in Get-ChildItem (Join-Path $repoRoot 'src') -Recurse -Filter '*.csproj' |
         Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' }) {
     $assetsFile = Join-Path $project.DirectoryName 'obj/project.assets.json'
@@ -81,23 +84,35 @@ foreach ($project in Get-ChildItem (Join-Path $repoRoot 'src') -Recurse -Filter 
     $section = if ($sections.Contains($project.BaseName)) { $sections[$project.BaseName] } else { $testSection }
     $rank = if ($section -eq $testSection) { $sections.Count } else { @($sections.Keys).IndexOf($project.BaseName) }
 
+    # Every resolved package, transitive ones included, for the allowlist check.
+    $resolvedById = @{}
     foreach ($library in $assets.libraries.PSObject.Properties) {
         if ($library.Value.type -ne 'package') {
             continue
         }
         $key = $library.Name
+        $id, $version = $key -split '/'
+        $resolvedById[$id] = $key
         if (-not $packages.ContainsKey($key)) {
-            $id, $version = $key -split '/'
             $packages[$key] = [pscustomobject]@{
                 Id = $id
                 Version = $version
                 License = Get-PackageLicense $packageFolders $library.Value.path $id
-                Rank = $rank
             }
         }
-        # A package belongs to the first section that resolves it: library, then demo, then tests.
-        if ($rank -lt $packages[$key].Rank) {
-            $packages[$key].Rank = $rank
+    }
+
+    # The packages the project references itself; the SDK's implicit ones are autoReferenced.
+    foreach ($framework in $assets.project.frameworks.PSObject.Properties) {
+        foreach ($dependency in $framework.Value.dependencies.PSObject.Properties) {
+            if ($dependency.Value.autoReferenced -or -not $resolvedById.ContainsKey($dependency.Name)) {
+                continue
+            }
+            $key = $resolvedById[$dependency.Name]
+            # A package belongs to the first section that references it: library, then demo, then tests.
+            if (-not $direct.ContainsKey($key) -or $rank -lt $direct[$key]) {
+                $direct[$key] = $rank
+            }
         }
     }
 }
@@ -117,7 +132,7 @@ for ($rank = 0; $rank -lt $titles.Count; $rank++) {
     }
     "### $($titles[$rank])"
     ''
-    Write-Table @($packages.Values | Where-Object Rank -EQ $rank)
+    Write-Table @($direct.Keys | Where-Object { $direct[$_] -eq $rank } | ForEach-Object { $packages[$_] })
 }
 
 $accepted = $permissiveExpressions + @('MS-.NET-Library')
