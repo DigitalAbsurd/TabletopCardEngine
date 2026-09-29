@@ -212,7 +212,8 @@ public sealed class RaiseSizing_Tests
 
         return new HandData(
             No: 1,
-            Seats: [new SeatData(ActorSeatNo, "Actor", stack, stack)],
+            // The raise window tops out at the all-in, the stack plus what the seat already has on the street.
+            Seats: [new SeatData(ActorSeatNo, "Actor", stack, stack, BetSize: max > stack ? max - stack : null)],
             DealerSeatNo: 1,
             SmallBlindSeatNo: 1,
             BigBlindSeatNo: 2,

@@ -12,7 +12,7 @@ public record PlayerActionData(Street Street, HandActionType ActionType, decimal
 /// <param name="Name">Display name of the player in the seat.</param>
 /// <param name="StartHandStack">The stack this seat sat down with at the start of the hand.</param>
 /// <param name="Stack">The stack right now — <paramref name="StartHandStack"/> minus everything wagered this hand.</param>
-/// <param name="BetSize">The seat's wager on the current street, when it has one.</param>
+/// <param name="BetSize">The seat's wager on the street now on the clock — its highest cumulative amount in the ledger for that street, the same street <see cref="HandData.StreetPot"/> counts; <see langword="null"/> when the seat has no action on that street yet (a new street opens with everyone at <see langword="null"/>).</param>
 /// <param name="Hole">The seat's hole cards, or <see langword="null"/> when they are not visible to the caller.</param>
 /// <param name="LastAction">The most recent action this seat took, or <see langword="null"/> if it has not acted.</param>
 /// <param name="HandResult">Set once the hand is over; <see langword="null"/> while it is still running.</param>

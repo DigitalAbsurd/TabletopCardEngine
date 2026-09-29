@@ -56,11 +56,13 @@ public sealed class HoldemEngineTests
                     },
                     new(4, "Ozias", 100, 95)
                     {
+                        BetSize = 5,
                         Hole = holeCards[4],
                         LastAction = new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 5, 1)
                     },
                     new(5, "Ilona", 100, 90)
                     {
+                        BetSize = 10,
                         Hole = holeCards[5],
                         LastAction = new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, 10, 2)
                     },
