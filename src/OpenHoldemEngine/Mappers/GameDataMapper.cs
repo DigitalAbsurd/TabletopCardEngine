@@ -48,13 +48,18 @@ internal static class GameDataMapper
                                 .Select(action => new PlayerActionData(action.Street, action.ActionType, action.Size, action.No))
                                 .LastOrDefault(),
                             StartHandStack: currentHand.GetSeatStartStack(player.SeatNo),
+                            BetSize: playersRoundAmounts
+                                .Where(entry => entry.Street == lastHandAction.NextStreet && entry.SeatNo == player.SeatNo)
+                                .Select(entry => (decimal?)entry.Amount)
+                                .SingleOrDefault(),
                             Stack: currentHand.GetSeatCurrentStack(player.SeatNo),
                             HandResult: currentHand.PlayerEndStates
                                 .Where(endState => endState.SeatNo == player.SeatNo)
                                 .Select(endState => new HandResultData(
                                     Net: endState.WinAmount,
                                     Strength: endState.Strength,
-                                    RankType: endState.RankType))
+                                    RankType: endState.RankType,
+                                    Description: endState.Description))
                                 .SingleOrDefault()))],
                     DealerSeatNo: currentHand.DealerSeatNo,
                     SmallBlindSeatNo: smallBlindSeatNo,

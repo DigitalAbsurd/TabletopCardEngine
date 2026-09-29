@@ -264,7 +264,7 @@ What a seat walked away from a finished hand with.
 - `decimal Net { get; init; }` — Chips won minus chips wagered over the whole hand; negative for a loser.
 - `uint Strength { get; init; }` — A comparable hand-strength value — only meaningful against another seat's value in the same hand.
 - `HandRankType RankType { get; init; }` — The display category of the made hand.
-- `string? Description { get; init; }` — Human-readable description of the hand, when the evaluator supplied one.
+- `string? Description { get; init; }` — Human-readable name of the made hand's category, such as "Two pair"; `null` when the seat did not reach showdown (it folded, or the hand ended because everyone else folded).
 
 #### `HoldemAction` (abstract record)
 
@@ -358,7 +358,7 @@ One seat as it stands in the current hand.
 - `string Name { get; init; }` — Display name of the player in the seat.
 - `decimal StartHandStack { get; init; }` — The stack this seat sat down with at the start of the hand.
 - `decimal Stack { get; init; }` — The stack right now — `StartHandStack` minus everything wagered this hand.
-- `decimal? BetSize { get; init; }` — The seat's wager on the current street, when it has one.
+- `decimal? BetSize { get; init; }` — The seat's wager on the street now on the clock — its highest cumulative amount in the ledger for that street, the same street `StreetPot` counts; `null` when the seat has no action on that street yet (a new street opens with everyone at `null`).
 - `Card[]? Hole { get; init; }` — The seat's hole cards, or `null` when they are not visible to the caller.
 - `PlayerActionData? LastAction { get; init; }` — The most recent action this seat took, or `null` if it has not acted.
 - `HandResultData? HandResult { get; init; }` — Set once the hand is over; `null` while it is still running.

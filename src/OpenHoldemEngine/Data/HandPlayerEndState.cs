@@ -10,5 +10,5 @@ internal class HandPlayerEndState
     public decimal WinAmount { get; set; }
     public uint Strength { get; set; }
     public HandRankType RankType { get; set; }
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }

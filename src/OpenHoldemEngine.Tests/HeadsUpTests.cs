@@ -48,11 +48,13 @@ public sealed class HeadsUpTests
                 [
                     new(ButtonSeatNo, "Button", DeepStack, DeepStack - SmallBlind)
                     {
+                        BetSize = SmallBlind,
                         Hole = _buttonHole,
                         LastAction = new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, SmallBlind, 1)
                     },
                     new(BigBlindSeatNo, "BigBlind", DeepStack, DeepStack - BigBlind)
                     {
+                        BetSize = BigBlind,
                         Hole = _bigBlindHole,
                         LastAction = new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, BigBlind, 2)
                     },
@@ -74,6 +76,65 @@ public sealed class HeadsUpTests
                     // legal re-raise brings the street total to 3·sb.
                     new(PlayerActionType.Raise, SmallBlind * 3, DeepStack)
                 ])));
+    }
+
+    [TestMethod]
+    public async Task HeadsUp_BetSize_IsTheStreetWagerAfterABlindAndARaise()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+
+        var handData = (await session.StartHandAsync()).HandData!;
+        BetSizeOf(handData, ButtonSeatNo).Should().Be(SmallBlind, "the small blind is a wager on the street");
+        BetSizeOf(handData, BigBlindSeatNo).Should().Be(BigBlind);
+
+        handData = (await session.ActAsync(PlayerActionType.Raise, BigBlind * 3)).HandData!;
+        BetSizeOf(handData, ButtonSeatNo).Should().Be(BigBlind * 3, "a raise is cumulative for the street, not the increment");
+        BetSizeOf(handData, BigBlindSeatNo).Should().Be(BigBlind);
+    }
+
+    [TestMethod]
+    public async Task HeadsUp_BetSize_IsNullForEverySeatOnANewStreet()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+        await session.StartHandAsync();
+        await session.ActAsync(PlayerActionType.Call);
+
+        var handData = (await session.ActAsync(PlayerActionType.Check)).HandData!;
+        handData.Street.Should().Be(Street.Flop);
+        handData.Seats.Should().OnlyContain(seat => seat.BetSize == null, "nobody has wagered on the flop yet");
+
+        handData = (await session.ActAsync(PlayerActionType.Raise, BigBlind)).HandData!;
+        BetSizeOf(handData, BigBlindSeatNo).Should().Be(BigBlind);
+        BetSizeOf(handData, ButtonSeatNo).Should().BeNull("the button has not acted on the flop");
+    }
+
+    [TestMethod]
+    public async Task HeadsUp_HandResultDescription_NamesTheHandAtShowdown()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+        await session.StartHandAsync();
+        await session.ActAsync(PlayerActionType.Call);
+        var gameData = await session.ActAsync(PlayerActionType.Check);
+        for (var check = 0; check < 6; check++)
+        {
+            gameData = await session.ActAsync(PlayerActionType.Check);
+        }
+
+        // Neither hand pairs the board: ace high against seven high.
+        gameData.HandData!.Seats.Select(seat => seat.HandResult!.RankType).Should().OnlyContain(rank => rank == HandRankType.HighCard);
+        gameData.HandData.Seats.Select(seat => seat.HandResult!.Description).Should().OnlyContain(description => description == "High card");
+    }
+
+    [TestMethod]
+    public async Task HeadsUp_HandResultDescription_IsNullWhenTheHandNeverReachedShowdown()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+        await session.StartHandAsync();
+
+        var handData = (await session.ActAsync(PlayerActionType.Fold)).HandData!;
+
+        handData.Seats.Should().OnlyContain(seat => seat.HandResult != null && seat.HandResult.Description == null,
+            "the folder never showed a hand and the winner collected without one");
     }
 
     [TestMethod]
@@ -281,6 +342,9 @@ public sealed class HeadsUpTests
 
     private static SeatData SeatOf(HandData handData, byte seatNo)
         => handData.Seats.Single(seat => seat.SeatNo == seatNo);
+
+    private static decimal? BetSizeOf(HandData handData, byte seatNo)
+        => SeatOf(handData, seatNo).BetSize;
 
     private static decimal NetOf(HandData handData, byte seatNo)
         => SeatOf(handData, seatNo).HandResult!.Net;

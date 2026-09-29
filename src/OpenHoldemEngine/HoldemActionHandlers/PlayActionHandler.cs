@@ -62,6 +62,12 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
                 // sides, and Sum(Net) across the hand would stop being exactly zero.
                 var winAmount = prize - seatBet;
 
+                var rankType = HandEvaluator.EvaluateRankType(hole, board);
+
+                // Only a seat that is still in when the hand is shown down has a hand to describe: a
+                // folded seat never showed its cards, and a pot won by everyone else folding is not shown.
+                var reachedShowdown = table.ActiveCount > 1 && table.Find(startState.SeatNo)?.IsActive == true;
+
                 return new HandPlayerEndState
                 {
                     GameId = holdemAction.GameId,
@@ -71,7 +77,8 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
                     FinishStack = startState.StartStack + winAmount,
                     WinAmount = winAmount,
                     Strength = HandEvaluator.EvaluateStrength(hole, board),
-                    RankType = HandEvaluator.EvaluateRankType(hole, board),
+                    RankType = rankType,
+                    Description = reachedShowdown ? HandEvaluator.Describe(rankType) : null,
                 };
             });
             game.AddHandEndStates(handEndStates);

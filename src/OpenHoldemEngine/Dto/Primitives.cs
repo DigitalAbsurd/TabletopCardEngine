@@ -50,5 +50,5 @@ public record PlayerActionEvaluationData(PlayerActionType PlayerActionType, deci
 /// <param name="Net">Chips won minus chips wagered over the whole hand; negative for a loser.</param>
 /// <param name="Strength">A comparable hand-strength value — only meaningful against another seat's value in the same hand.</param>
 /// <param name="RankType">The display category of the made hand.</param>
-/// <param name="Description">Human-readable description of the hand, when the evaluator supplied one.</param>
+/// <param name="Description">Human-readable name of the made hand's category, such as "Two pair"; <see langword="null"/> when the seat did not reach showdown (it folded, or the hand ended because everyone else folded).</param>
 public record HandResultData(decimal Net, uint Strength, HandRankType RankType, string? Description = null);

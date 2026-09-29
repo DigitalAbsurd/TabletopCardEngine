@@ -30,9 +30,7 @@ public readonly record struct RaiseInput(decimal? Amount, string? Error)
 /// </summary>
 /// <remarks>
 /// A pot-sized raise is the call plus the pot as it will stand after that call, on top of the
-/// current bet. The seat's own street wager is needed for that, and <see cref="SeatData.BetSize"/>
-/// is never populated (fact 4), so it is read off the raise window instead: its top is always the
-/// all-in, which is the stack plus whatever the seat has already put in this street.
+/// current bet. The seat's own street wager is needed for that: <see cref="SeatData.BetSize"/>.
 /// <br/>That is why Pot is bigger than the pot on the table: at 1/2, first to act pre-flop with 3 in
 /// the pot, Pot is 2 + (3 + 2) = 7. Each preset carries that sum as its
 /// <see cref="RaiseMark.Formula"/>, so the visitor can see where the number comes from.
@@ -277,8 +275,7 @@ public static class RaiseSizing
             return null;
         }
 
-        var stack = hand.Seats.FirstOrDefault(s => s.SeatNo == hand.NextPlayerSeatNo)?.Stack ?? 0;
-        var wager = Math.Max(0, max - stack);
+        var wager = hand.Seats.FirstOrDefault(s => s.SeatNo == hand.NextPlayerSeatNo)?.BetSize ?? 0;
         var call = hand.Evaluations.FirstOrDefault(e => e.PlayerActionType == PlayerActionType.Call)?.MinValue ?? 0;
         var currentBet = wager + call;
 

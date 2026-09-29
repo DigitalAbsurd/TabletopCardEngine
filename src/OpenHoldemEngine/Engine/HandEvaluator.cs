@@ -109,6 +109,21 @@ internal sealed class HandEvaluator
     internal static HandRankType EvaluateRankType(IReadOnlyList<Card> hole, IReadOnlyList<Card> board)
         => (HandRankType)(EvaluateStrength(hole, board) >> CategoryShift);
 
+    /// <summary>The display text of a made hand's category; <see langword="null"/> for <see cref="HandRankType.None"/>.</summary>
+    internal static string? Describe(HandRankType rankType) => rankType switch
+    {
+        HandRankType.HighCard => "High card",
+        HandRankType.Pair => "Pair",
+        HandRankType.TwoPair => "Two pair",
+        HandRankType.Trips => "Three of a kind",
+        HandRankType.Straight => "Straight",
+        HandRankType.Flush => "Flush",
+        HandRankType.FullHouse => "Full house",
+        HandRankType.FourOfAKind => "Four of a kind",
+        HandRankType.StraightFlush => "Straight flush",
+        _ => null
+    };
+
     private static void AddCards(IReadOnlyList<Card> cards, Span<int> suitMasks, Span<int> rankCounts)
     {
         foreach (var card in cards)

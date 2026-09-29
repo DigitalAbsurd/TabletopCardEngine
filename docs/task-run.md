@@ -256,8 +256,7 @@ renumber.
    After `FinishGame` every action except `GetGame` fails with `GameFinished`. An action record the
    engine does not know fails with `InvalidAction` instead of throwing.
 3. *Retired by #142:* `GameData.HandData` is now nullable; it is `null` between `CreateGame` and the first `StartHand`.
-4. **`SeatData.BetSize` and `HandResultData.Description` are never populated.** Do not design UI
-   around either.
+4. *Retired by #160:* `SeatData.BetSize` and `HandResultData.Description` are populated now.
 5. **`HandData.Evaluations` mixes two bases on purpose.** A `Call`'s `MinValue`/`MaxValue` is an
    *increment* ("how much more to put in"); a `Raise`'s `MinValue`/`MaxValue` are both an *absolute
    street total* ("raise to"). `HoldemActionPlay.Size` for a raise expects the absolute. A
