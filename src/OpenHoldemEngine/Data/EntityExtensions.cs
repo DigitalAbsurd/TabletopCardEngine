@@ -33,9 +33,9 @@ internal static class EntityExtensions
             return false;
         }
 
-        smallBlindSeatNo = hand.Actions.SingleOrDefault(action => action.ActionType == PlayerActionType.SmallBlind)?.SeatNo
+        smallBlindSeatNo = hand.Actions.SingleOrDefault(action => action.ActionType == HandActionType.SmallBlind)?.SeatNo
             ?? throw new ArgumentException("The hand has started without a small blind.", nameof(smallBlindSeatNo));
-        bigBlindSeatNo = hand.Actions.SingleOrDefault(action => action.ActionType == PlayerActionType.BigBlind)?.SeatNo
+        bigBlindSeatNo = hand.Actions.SingleOrDefault(action => action.ActionType == HandActionType.BigBlind)?.SeatNo
             ?? throw new ArgumentException("The hand has started without a big blind.", nameof(bigBlindSeatNo));
 
         return true;
@@ -94,7 +94,7 @@ internal static class EntityExtensions
         .Sum();
 
     internal static bool IsSeatFolded(this Hand hand, byte seatNo)
-        => hand.GetSeatActions(seatNo).SelectMany(street => street.Value).Any(action => action.ActionType == PlayerActionType.Fold);
+        => hand.GetSeatActions(seatNo).SelectMany(street => street.Value).Any(action => action.ActionType == HandActionType.Fold);
 
     internal static bool HasSeatActed(this Hand hand, byte seatNo)
         => hand.GetSeatActions(seatNo).SelectMany(street => street.Value).Any();
@@ -140,13 +140,13 @@ internal static class EntityExtensions
             .ForEach(holeCard => game.GetCurrentHand().HoleCards
                 .Add(new HandHoleCard { Card = holeCard.Card, SeatNo = seatNo, Sequence = holeCard.Sequence }));
 
-    internal static HandAction AddAction(this Game game, byte seatNo, Street street, PlayerActionType playerActionType,
+    internal static HandAction AddAction(this Game game, byte seatNo, Street street, HandActionType handActionType,
         decimal size, decimal amount, decimal addAmount, byte nextSeatNo, Street nextStreet, decimal paid = default)
     {
         var handAction = new HandAction
         {
             No = game.GetCurrentHand().Actions.DefaultIfEmpty(new HandAction()).Max(action => action.No) + 1,
-            ActionType = playerActionType,
+            ActionType = handActionType,
             SeatNo = seatNo,
             Amount = amount,
             Size = size,

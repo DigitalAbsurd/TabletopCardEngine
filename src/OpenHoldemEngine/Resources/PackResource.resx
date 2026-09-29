@@ -126,4 +126,7 @@
   <data name="HoldemValidation_PreviousHandNotEnded" xml:space="preserve">
     <value>The previous hand is not completed</value>
   </data>
+  <data name="HoldemValidation_InvalidAction" xml:space="preserve">
+    <value>The action type is not a valid player action</value>
+  </data>
 </root>

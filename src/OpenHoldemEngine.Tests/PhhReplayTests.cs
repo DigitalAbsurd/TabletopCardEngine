@@ -60,7 +60,7 @@ public sealed class PhhReplayTests
         firstHand.Players.Should().Equal(["MrWhite", "Gogo", "Budd", "Eddie", "Bill", "Pluribus"]);
         firstHand.Actions.Should().HaveCount(12);
         firstHand.Actions[0].Should().BeEquivalentTo(
-            new PhhDealHoleAction("d dh p1 3c9s", 0, [Card.FromString("3c"), Card.FromString("9s")]));
+            new PhhDealHoleAction("d dh p1 3c9s", 0, [Card.Parse("3c"), Card.Parse("9s")]));
         firstHand.Actions[8].Should().BeEquivalentTo(new PhhCompleteBetRaiseAction("p5 cbr 225", 4, 225M));
         firstHand.Actions[11].Should().BeEquivalentTo(new PhhFoldAction("p2 f", 1));
         firstHand.Board.Should().BeEmpty("this hand never saw a flop");
@@ -159,7 +159,7 @@ public sealed class PhhReplayTests
         var gameData = await runner.ReplayAsync(PhhFixture.Single(
             "handhq/PS-2009-07-01_2009-07-23_50NLH_OBFU/0.5/ps_NLH_handhq_1-OBFUSCATED.phhs#42"));
 
-        var handData = gameData.HandData;
+        var handData = gameData.HandData!;
         handData.DealerSeatNo.Should().Be(2);
         handData.SmallBlindSeatNo.Should().Be(2, "the button posts the small blind heads-up");
         handData.BigBlindSeatNo.Should().Be(1);
@@ -175,10 +175,10 @@ public sealed class PhhReplayTests
 
         var gameData = await runner.ReplayAsync(PhhFixture.Single("pluribus/100/26.phh"));
 
-        gameData.HandData.CommunityCards.Should().BeEmpty();
-        gameData.HandData.Seats.Single(seat => seat.SeatNo == 2).HandResult!.Net.Should()
+        gameData.HandData!.CommunityCards.Should().BeEmpty();
+        gameData.HandData!.Seats.Single(seat => seat.SeatNo == 2).HandResult!.Net.Should()
             .Be(50, "the big blind collects the small blind");
-        gameData.HandData.Seats.Single(seat => seat.SeatNo == 1).HandResult!.Net.Should()
+        gameData.HandData!.Seats.Single(seat => seat.SeatNo == 1).HandResult!.Net.Should()
             .Be(-50, "the small blind folded it away");
     }
 
@@ -193,12 +193,12 @@ public sealed class PhhReplayTests
 
         var gameData = await runner.ReplayAsync(PhhFixture.Single("pluribus/102/0.phh"));
 
-        gameData.HandData.Seats
+        gameData.HandData!.Seats
             .Where(seat => seat.HandResult!.Net > 0)
             .Select(seat => seat.SeatNo)
             .Should().Equal([(byte)1, (byte)5], "seats 1 and 5 chop the pot");
-        gameData.HandData.Seats.Single(seat => seat.SeatNo == 1).HandResult!.Net.Should().Be(112.5M);
-        gameData.HandData.Seats.Single(seat => seat.SeatNo == 5).HandResult!.Net.Should().Be(112.5M);
+        gameData.HandData!.Seats.Single(seat => seat.SeatNo == 1).HandResult!.Net.Should().Be(112.5M);
+        gameData.HandData!.Seats.Single(seat => seat.SeatNo == 5).HandResult!.Net.Should().Be(112.5M);
     }
 
     /// <summary>Four players see the river, one of them mucks rather than showing.</summary>
@@ -209,9 +209,9 @@ public sealed class PhhReplayTests
 
         var gameData = await runner.ReplayAsync(PhhFixture.Single("pluribus/111b/150.phh"));
 
-        gameData.HandData.CommunityCards.Should()
+        gameData.HandData!.CommunityCards.Should()
             .Equal(CardsFrom("8h", "2s", "Td", "3h", "Ah"));
-        gameData.HandData.Seats
+        gameData.HandData!.Seats
             .Where(seat => seat.HandResult!.Net > 0)
             .Select(seat => seat.SeatNo)
             .Should().Equal([(byte)4, (byte)6], "both ace-six hands play the same board");
@@ -229,18 +229,18 @@ public sealed class PhhReplayTests
 
         var gameData = await runner.ReplayAsync(PhhFixture.Single("pluribus/100b/75.phh"));
 
-        var winner = gameData.HandData.Seats.Single(seat => seat.SeatNo == 2);
+        var winner = gameData.HandData!.Seats.Single(seat => seat.SeatNo == 2);
         winner.HandResult!.Net.Should().Be(10_050M, "the pot is still awarded correctly");
 
-        var loser = gameData.HandData.Seats.Single(seat => seat.SeatNo == 6);
+        var loser = gameData.HandData!.Seats.Single(seat => seat.SeatNo == 6);
         (loser.StartHandStack + loser.HandResult!.Net).Should().Be(0, "the loser was all in");
 
-        gameData.HandData.CommunityCards.Should()
+        gameData.HandData!.CommunityCards.Should()
             .Equal(CardsFrom("5d", "Kd", "Th", "Ac", "7d"), "the board is run out in full even though betting ended on the flop");
         winner.HandResult.RankType.Should()
             .Be(HandRankType.Trips, "the winning kings pair the king on the board for a set");
     }
 
     private static Card[] CardsFrom(params string[] cards)
-        => [.. cards.Select(card => Card.FromString(card.ToLowerInvariant()))];
+        => [.. cards.Select(card => Card.Parse(card.ToLowerInvariant()))];
 }

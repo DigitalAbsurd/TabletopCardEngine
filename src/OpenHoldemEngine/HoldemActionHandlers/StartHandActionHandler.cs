@@ -37,7 +37,7 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
 
         game.AddAction(seatNo: table.SmallBlindSeatNo,
             street: Street.PreFlop,
-            playerActionType: PlayerActionType.SmallBlind,
+            handActionType: HandActionType.SmallBlind,
             size: table.SmallBlind,
             amount: smallBlindPost,
             addAmount: smallBlindPost,
@@ -46,7 +46,7 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
 
         game.AddAction(seatNo: table.BigBlindSeatNo,
             street: Street.PreFlop,
-            playerActionType: PlayerActionType.BigBlind,
+            handActionType: HandActionType.BigBlind,
             size: table.SmallBlind * 2,
             amount: bigBlindPost,
             addAmount: Math.Min(table.SmallBlind, bigBlindPost),

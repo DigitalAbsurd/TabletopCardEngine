@@ -33,8 +33,8 @@ internal static class PhhCards
             return null;
         }
 
-        // Card.FromString takes the lowercase rank-then-suit form the engine itself writes; PHH
+        // Card.Parse takes the lowercase rank-then-suit form the engine itself writes; PHH
         // differs only in the uppercase rank, and rank chars never collide with suit chars.
-        return Card.FromString(card.ToLowerInvariant());
+        return Card.Parse(card.ToLowerInvariant());
     }
 }

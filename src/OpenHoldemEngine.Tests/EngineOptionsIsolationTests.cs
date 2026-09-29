@@ -68,7 +68,7 @@ public sealed class EngineOptionsIsolationTests
 
         var started = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _joinSeats });
         started.IsSuccess.Should().BeTrue();
-        return started.Value.HandData;
+        return started.Value.HandData!;
     }
 
     private static async Task<HandData> CallAndCheckToFlopAsync(HoldemEngine engine)
@@ -78,11 +78,11 @@ public sealed class EngineOptionsIsolationTests
 
         var checkedDown = await engine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Check, 0));
         checkedDown.IsSuccess.Should().BeTrue();
-        return checkedDown.Value.HandData;
+        return checkedDown.Value.HandData!;
     }
 
     private static Card[] HoleOf(HandData handData, byte seatNo)
         => handData.Seats.Single(seat => seat.SeatNo == seatNo).Hole!;
 
-    private static Card[] CardsFrom(params string[] cards) => [.. cards.Select(Card.FromString)];
+    private static Card[] CardsFrom(params string[] cards) => [.. cards.Select(Card.Parse)];
 }

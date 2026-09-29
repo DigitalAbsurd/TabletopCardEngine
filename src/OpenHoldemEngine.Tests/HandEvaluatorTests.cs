@@ -101,5 +101,5 @@ public sealed class HandEvaluatorTests
             .Should().Be(HandEvaluator.EvaluateStrength(Cards(secondHole), Cards(board)), because);
 
     private static Card[] Cards(string cards)
-        => [.. cards.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Card.FromString)];
+        => [.. cards.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Card.Parse)];
 }

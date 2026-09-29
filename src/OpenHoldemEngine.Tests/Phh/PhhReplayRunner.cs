@@ -193,10 +193,10 @@ internal sealed class PhhReplayRunner : IDisposable
             }
 
             var expectedSeatNo = (byte)(decision.PlayerIndex + 1);
-            gameData.HandData.NextPlayerSeatNo.Should().Be(expectedSeatNo,
+            gameData.HandData!.NextPlayerSeatNo.Should().Be(expectedSeatNo,
                 $"'{action.Raw}' should be the turn of {hand.Players[decision.PlayerIndex]} in seat {expectedSeatNo}");
 
-            var (actionType, size) = MapDecision(decision, gameData.HandData);
+            var (actionType, size) = MapDecision(decision, gameData.HandData!);
             gameData = await ApplyAsync(new HoldemActionPlayerAction(gameId, actionType, size), hand, action);
 
             AssertBoardInProgress(gameData, action);
@@ -209,7 +209,7 @@ internal sealed class PhhReplayRunner : IDisposable
 
     private void AssertHandStart(GameData gameData, PhhHand hand)
     {
-        var handData = gameData.HandData;
+        var handData = gameData.HandData!;
 
         var (smallBlindSeatNo, bigBlindSeatNo) = BlindSeatsFor(hand.PlayerCount);
 
@@ -237,21 +237,21 @@ internal sealed class PhhReplayRunner : IDisposable
     /// </summary>
     private void AssertBoardInProgress(GameData gameData, PhhAction action)
     {
-        var communityCards = gameData.HandData.CommunityCards;
+        var communityCards = gameData.HandData!.CommunityCards;
 
         communityCards.Should().Equal(_currentDeck.RecordedBoardCards.Take(communityCards.Length),
             $"the board after '{action.Raw}' should follow the history");
 
-        if (gameData.HandData.Street <= Street.River)
+        if (gameData.HandData!.Street <= Street.River)
         {
-            communityCards.Should().HaveCount((int)gameData.HandData.Street,
-                $"Street.{gameData.HandData.Street} means that many board cards after '{action.Raw}'");
+            communityCards.Should().HaveCount((int)gameData.HandData!.Street,
+                $"Street.{gameData.HandData!.Street} means that many board cards after '{action.Raw}'");
         }
     }
 
     private void AssertHandResult(GameData gameData, PhhHand hand)
     {
-        var handData = gameData.HandData;
+        var handData = gameData.HandData!;
 
         handData.CommunityCards.Should().Equal(_currentDeck.RecordedBoardCards,
             "the finished hand should have dealt exactly the board the history recorded, running it out in full when betting ended early");

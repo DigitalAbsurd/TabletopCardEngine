@@ -91,19 +91,19 @@ internal static class HandRunner
             case PlayerActionType.Call:
                 {
                     var paid = CollectDelta(seat, amount);
-                    seat.Record(PlayerActionType.Call, amount, 0M, paid);
+                    seat.Record(HandActionType.Call, amount, 0M, paid);
                     return (amount, 0M, paid);
                 }
             case PlayerActionType.Raise:
                 {
                     var addAmount = amount - agreeAmountBeforeAction;
                     var paid = CollectDelta(seat, amount);
-                    seat.Record(PlayerActionType.Raise, amount, addAmount, paid);
+                    seat.Record(HandActionType.Raise, amount, addAmount, paid);
                     return (amount, addAmount, paid);
                 }
             case PlayerActionType.Fold:
                 {
-                    seat.Record(PlayerActionType.Fold, 0M, 0M, 0M);
+                    seat.Record(HandActionType.Fold, 0M, 0M, 0M);
                     seat.Status = SeatStatus.Folded;
                     return (0M, 0M, 0M);
                 }
@@ -216,8 +216,8 @@ internal static class HandRunner
 
     private static void PostBlinds(HandTable table)
     {
-        PostBlind(table[table.SmallBlindSeatNo], PlayerActionType.SmallBlind, table.SmallBlind, table.SmallBlind);
-        PostBlind(table[table.BigBlindSeatNo], PlayerActionType.BigBlind, table.SmallBlind * 2, table.SmallBlind);
+        PostBlind(table[table.SmallBlindSeatNo], HandActionType.SmallBlind, table.SmallBlind, table.SmallBlind);
+        PostBlind(table[table.BigBlindSeatNo], HandActionType.BigBlind, table.SmallBlind * 2, table.SmallBlind);
     }
 
     /// <summary>
@@ -226,7 +226,7 @@ internal static class HandRunner
     /// actually wagered, so the pot maths, the side-pot levels and the callers' view of the street
     /// all agree with the stack that was taken.
     /// </summary>
-    private static void PostBlind(TableSeat seat, PlayerActionType kind, decimal amount, decimal addAmount)
+    private static void PostBlind(TableSeat seat, HandActionType kind, decimal amount, decimal addAmount)
     {
         var posted = Math.Min(amount, seat.Stack);
         seat.Stack -= posted;

@@ -58,7 +58,7 @@ internal static class GameDataMapper
                     Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
                     CommunityCards: [.. currentHand.GetDeckCards()],
                     Evaluations: evaluations)
-                : default!);
+                : null);
     }
 
     /// <remarks>

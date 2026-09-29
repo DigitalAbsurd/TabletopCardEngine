@@ -34,7 +34,7 @@ public sealed class ObjectDump_Tests
     {
         ObjectDump.Create("d", 12.5m, typeof(decimal)).Value.Should().Be("12.5");
 
-        var card = ObjectDump.Create("c", Card.FromString("ah"), typeof(Card));
+        var card = ObjectDump.Create("c", Card.Parse("ah"), typeof(Card));
         card.Value.Should().Be("ah");
         card.HasChildren.Should().BeFalse();
     }
@@ -53,7 +53,7 @@ public sealed class ObjectDump_Tests
     public void Create_Array_PreviewsItsItemsAndNamesThemByIndex()
     {
         // Act
-        var node = ObjectDump.Create("hole", new[] { Card.FromString("ah"), Card.FromString("kd") }, typeof(Card[]));
+        var node = ObjectDump.Create("hole", new[] { Card.Parse("ah"), Card.Parse("kd") }, typeof(Card[]));
 
         // Assert - a value, not "Card[]" or "<enumerable Count: 2>"
         node.Value.Should().Be("[ah, kd]");
@@ -123,7 +123,7 @@ public sealed class ObjectDump_Tests
     public void Create_SuccessfulResult_ReachesTheSeatsThroughValue()
     {
         // Arrange
-        var seat = new SeatData(SeatNo: 1, Name: "Player 1", StartHandStack: 100m, Stack: 98m, Hole: [Card.FromString("ah"), Card.FromString("kd")]);
+        var seat = new SeatData(SeatNo: 1, Name: "Player 1", StartHandStack: 100m, Stack: 98m, Hole: [Card.Parse("ah"), Card.Parse("kd")]);
         var hand = new HandData(1, [seat], 1, 1, 2, 2, Street.PreFlop, 3m, 0m, [], []);
         var result = HoldemResult<GameData>.Ok(new GameData(Guid.Empty, new GameOptionData(6, 1m, 1), hand));
 

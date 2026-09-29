@@ -15,4 +15,7 @@ public enum HoldemErrorCode
 
     /// <summary>The previous hand is not completed, so a new hand cannot start yet.</summary>
     PreviousHandNotEnded = 3,
+
+    /// <summary>The player action's type is not a defined <see cref="PlayerActionType"/> member.</summary>
+    InvalidAction = 4,
 }

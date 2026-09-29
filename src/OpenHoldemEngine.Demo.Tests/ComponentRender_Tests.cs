@@ -478,13 +478,13 @@ public sealed class ComponentRender_Tests
             // Every seat holds cards and seat 6 has folded, so five of six are still in the hand
             Seats = seats.Select(s => s with
             {
-                Hole = [Card.FromString("2h"), Card.FromString("3h")],
-                LastAction = s.SeatNo == 6 ? new PlayerActionData(Street.Flop, PlayerActionType.Fold, 0m, 1) : null,
+                Hole = [Card.Parse("2h"), Card.Parse("3h")],
+                LastAction = s.SeatNo == 6 ? new PlayerActionData(Street.Flop, HandActionType.Fold, 0m, 1) : null,
             }).ToArray(),
             Street = Street.Flop,
             Pot = 12m,
             StreetPot = 4m,
-            CommunityCards = [Card.FromString("ah"), Card.FromString("kd"), Card.FromString("2c")],
+            CommunityCards = [Card.Parse("ah"), Card.Parse("kd"), Card.Parse("2c")],
         };
 
         // Act
@@ -595,12 +595,12 @@ public sealed class ComponentRender_Tests
         var hand = BuildHandDataWithSeats(6) with
         {
             Street = Street.Finished,
-            CommunityCards = [Card.FromString("td"), Card.FromString("9d"), Card.FromString("9h"), Card.FromString("7s"), Card.FromString("ts")],
+            CommunityCards = [Card.Parse("td"), Card.Parse("9d"), Card.Parse("9h"), Card.Parse("7s"), Card.Parse("ts")],
         };
         var seats = hand.Seats.Select(seat => seat.SeatNo switch
         {
-            1 => seat with { Hole = [Card.FromString("ks"), Card.FromString("qs")], HandResult = new HandResultData(-2m, 1u, HandRankType.TwoPair) },
-            6 => seat with { Hole = [Card.FromString("th"), Card.FromString("6s")], HandResult = new HandResultData(2m, 2u, HandRankType.FullHouse) },
+            1 => seat with { Hole = [Card.Parse("ks"), Card.Parse("qs")], HandResult = new HandResultData(-2m, 1u, HandRankType.TwoPair) },
+            6 => seat with { Hole = [Card.Parse("th"), Card.Parse("6s")], HandResult = new HandResultData(2m, 2u, HandRankType.FullHouse) },
             _ => seat,
         }).ToArray();
 
@@ -948,7 +948,7 @@ public sealed class ComponentRender_Tests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
-        var card = Card.FromString("ah"); // ace of hearts
+        var card = Card.Parse("ah"); // ace of hearts
 
         // Act
         var component = ctx.RenderComponent<PlayingCard>(parameters => parameters
@@ -966,7 +966,7 @@ public sealed class ComponentRender_Tests
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
-        var holeCards = new Card[] { Card.FromString("ah"), Card.FromString("kh") };
+        var holeCards = new Card[] { Card.Parse("ah"), Card.Parse("kh") };
 
         var seatData = new SeatData(
             SeatNo: 1,
@@ -1048,7 +1048,7 @@ public sealed class ComponentRender_Tests
             Name: "Player 2",
             Stack: 99m,
             StartHandStack: 100m,
-            LastAction: new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 1m, 1));
+            LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 1m, 1));
 
         // Act
         var component = ctx.RenderComponent<Seat>(parameters => parameters
@@ -1074,7 +1074,7 @@ public sealed class ComponentRender_Tests
             Name: "Player 1",
             Stack: 12.5m,
             StartHandStack: 12.75m,
-            LastAction: new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 0.25m, 1));
+            LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 0.25m, 1));
 
         // Act
         var component = ctx.RenderComponent<Seat>(parameters => parameters
@@ -1093,7 +1093,7 @@ public sealed class ComponentRender_Tests
             Name: "Test Player 1",
             Stack: 900m,
             StartHandStack: 1000m,
-            Hole: new[] { Card.FromString("ah"), Card.FromString("kh") }
+            Hole: new[] { Card.Parse("ah"), Card.Parse("kh") }
         );
 
         var handResult1 = new HandResultData(
@@ -1109,7 +1109,7 @@ public sealed class ComponentRender_Tests
             Name: "Test Player 2",
             Stack: 900m,
             StartHandStack: 1000m,
-            Hole: new[] { Card.FromString("2h"), Card.FromString("3h") }
+            Hole: new[] { Card.Parse("2h"), Card.Parse("3h") }
         );
 
         var handResult2 = new HandResultData(
@@ -1130,7 +1130,7 @@ public sealed class ComponentRender_Tests
             Street: Street.Finished,
             StreetPot: 0m,
             Pot: 200m,
-            CommunityCards: new[] { Card.FromString("ac"), Card.FromString("ad"), Card.FromString("as"), Card.FromString("2c"), Card.FromString("3d") },
+            CommunityCards: new[] { Card.Parse("ac"), Card.Parse("ad"), Card.Parse("as"), Card.Parse("2c"), Card.Parse("3d") },
             Evaluations: Array.Empty<PlayerActionEvaluationData>()
         );
 
