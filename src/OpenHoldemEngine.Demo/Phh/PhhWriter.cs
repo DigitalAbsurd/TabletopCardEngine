@@ -137,7 +137,7 @@ public static class PhhWriter
                 continue;
             }
 
-            if (entry.Action is HoldemActionPlayerAction playerAction)
+            if (entry.Action is HoldemActionPlay playerAction)
             {
                 // Try to find which seat this action was for by checking seats' LastAction
                 // This is a heuristic: we assume the action was taken by the seat whose LastAction.No is new

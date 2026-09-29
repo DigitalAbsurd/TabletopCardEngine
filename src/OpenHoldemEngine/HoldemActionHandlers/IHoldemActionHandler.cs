@@ -16,7 +16,7 @@ internal interface IHoldemActionHandler
         HoldemActionStartGame => new StartGameActionHandler(options.CardShuffler),
         HoldemActionFinishGame => new FinishGameActionHandler(),
         HoldemActionStartHand => new StartHandActionHandler(options.CardShuffler),
-        HoldemActionPlayerAction => new PlayerActionHandler(options.CardShuffler),
+        HoldemActionPlay => new PlayActionHandler(options.CardShuffler),
         _ => new UnknownActionHandler()
     };
 }

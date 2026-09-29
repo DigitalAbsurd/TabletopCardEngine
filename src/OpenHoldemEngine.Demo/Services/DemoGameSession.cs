@@ -86,7 +86,7 @@ public sealed class DemoGameSession
         Guid? gameId = null,
         CancellationToken cancellationToken = default)
     {
-        var action = HoldemAction.CreateCreateGameDto(options, gameId);
+        var action = HoldemAction.CreateGame(options, gameId);
         return await ApplyActionInternalAsync(action, cancellationToken);
     }
 
@@ -125,7 +125,7 @@ public sealed class DemoGameSession
             return false;
         }
 
-        var action = HoldemAction.CreateStartNextHandDto(CurrentGameId);
+        var action = HoldemAction.StartHand(CurrentGameId);
         return await ApplyActionInternalAsync(action, cancellationToken);
     }
 
@@ -150,7 +150,7 @@ public sealed class DemoGameSession
             return false;
         }
 
-        var action = HoldemAction.CreatePlayerActionDto(CurrentGameId, actionType, size);
+        var action = HoldemAction.Play(CurrentGameId, actionType, size);
         return await ApplyActionInternalAsync(action, cancellationToken);
     }
 

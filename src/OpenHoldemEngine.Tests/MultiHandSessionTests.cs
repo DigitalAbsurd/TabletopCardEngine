@@ -136,22 +136,22 @@ public sealed class MultiHandSessionTests
             var call = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Call);
             var raise = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
 
-            HoldemActionPlayerAction playerAction;
+            HoldemActionPlay playerAction;
             if (raise != null && random.Next(4) == 0)
             {
-                playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Raise, raise.MinValue);
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Raise, raise.MinValue);
             }
             else if (check != null)
             {
-                playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Check, 0);
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Check, 0);
             }
             else if (call != null && random.Next(5) > 0)
             {
-                playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Call, 0);
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Call, 0);
             }
             else
             {
-                playerAction = new HoldemActionPlayerAction(gameId, PlayerActionType.Fold, 0);
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Fold, 0);
             }
 
             var result = await holdemEngine.ApplyHoldemActionAsync(playerAction);

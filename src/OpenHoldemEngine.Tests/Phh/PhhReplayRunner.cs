@@ -190,7 +190,7 @@ internal sealed class PhhReplayRunner : IDisposable
                 $"'{action.Raw}' should be the turn of {hand.Players[decision.PlayerIndex]} in seat {expectedSeatNo}");
 
             var (actionType, size) = MapDecision(decision, gameData.HandData!);
-            gameData = await ApplyAsync(new HoldemActionPlayerAction(gameId, actionType, size), hand, action);
+            gameData = await ApplyAsync(new HoldemActionPlay(gameId, actionType, size), hand, action);
 
             AssertBoardInProgress(gameData, action);
         }
@@ -284,7 +284,7 @@ internal sealed class PhhReplayRunner : IDisposable
                 0M),
 
             // `cbr` names the total the street wager is brought up to, which is exactly what the
-            // engine passes through as the raise amount (PlayerActionHandler.CalculateBetAmount).
+            // engine passes through as the raise amount (PlayActionHandler.CalculateBetAmount).
             PhhCompleteBetRaiseAction raise => (PlayerActionType.Raise, raise.Amount),
 
             _ => throw new NotSupportedException($"'{((PhhAction)decision).Raw}' is not a mappable player decision")

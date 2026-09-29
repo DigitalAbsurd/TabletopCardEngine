@@ -333,7 +333,7 @@ public sealed class HeadsUpTests
         }
 
         internal Task<GameData> ActAsync(PlayerActionType actionType, decimal size = 0)
-            => ApplyAsync(new HoldemActionPlayerAction(GameId, actionType, size));
+            => ApplyAsync(new HoldemActionPlay(GameId, actionType, size));
 
         private async Task<GameData> ApplyAsync(HoldemAction holdemAction)
         {

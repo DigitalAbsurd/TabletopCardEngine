@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Options;
+using System.Reflection;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -17,6 +18,34 @@ public sealed class PublicSurfaceTests
         typeof(HoldemEngine).GetConstructors().Should().BeEmpty(
             "HoldemEngine must be resolvable only through dependency injection");
     }
+
+    [TestMethod]
+    public void HoldemActionCommands_AreNamedAfterTheirVerb()
+    {
+        var commands = GetCommandTypes();
+
+        commands.Should().NotBeEmpty();
+        commands.Should().OnlyContain(
+            type => type.Name.StartsWith("HoldemAction", StringComparison.Ordinal) && type.Name.Length > "HoldemAction".Length);
+    }
+
+    [TestMethod]
+    public void HoldemAction_HasExactlyOneFactoryPerCommand()
+    {
+        var factories = typeof(HoldemAction)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => !method.IsSpecialName)
+            .ToList();
+
+        factories.Select(method => method.ReturnType).Should().BeEquivalentTo(
+            GetCommandTypes(), "each command has exactly one factory and it returns that command");
+        factories.Should().OnlyContain(method => "HoldemAction" + method.Name == method.ReturnType.Name);
+    }
+
+    private static List<Type> GetCommandTypes()
+        => typeof(HoldemAction).Assembly.GetExportedTypes()
+            .Where(type => type.IsSubclassOf(typeof(HoldemAction)) && !type.IsAbstract)
+            .ToList();
 
     [TestMethod]
     public void PublicTypes_AreNotInDataNamespace()

@@ -104,7 +104,7 @@ public sealed class EngineCallSnippetWriter
             HoldemActionStartGame => GenerateStartGameAction((HoldemActionStartGame)action, indent),
             HoldemActionFinishGame => $"new HoldemActionFinishGame(GameId: {FormatGuid(action.GameId)})",
             HoldemActionStartHand => GenerateStartHandAction((HoldemActionStartHand)action, indent),
-            HoldemActionPlayerAction => GeneratePlayerActionAction((HoldemActionPlayerAction)action, indent),
+            HoldemActionPlay => GeneratePlayerActionAction((HoldemActionPlay)action, indent),
             _ => $"new UnknownAction(GameId: {FormatGuid(action.GameId)})",
         };
     }
@@ -148,25 +148,27 @@ public sealed class EngineCallSnippetWriter
     {
         var nextIndent = new string(' ', (indent + 1) * 4);
         var sb = new StringBuilder();
-        sb.AppendLine("new HoldemActionStartHand(");
-        sb.Append(nextIndent).Append("GameId: ").Append(FormatGuid(action.GameId));
+        sb.Append("new HoldemActionStartHand(GameId: ").Append(FormatGuid(action.GameId)).Append(')');
 
         if (action.JoinSeats.Length > 0)
         {
+            // JoinSeats is optional data, so it is an init property rather than a constructor argument.
+            sb.AppendLine();
+            sb.Append(new string(' ', indent * 4)).AppendLine("{");
+            sb.Append(nextIndent).AppendLine("JoinSeats =");
+            sb.Append(GeneratePlayerJoinDataArray(action.JoinSeats, indent + 2).TrimEnd());
             sb.AppendLine(",");
-            sb.Append(nextIndent).AppendLine("JoinSeats:");
-            sb.Append(GeneratePlayerJoinDataArray(action.JoinSeats, indent + 2));
+            sb.Append(new string(' ', indent * 4)).Append('}');
         }
 
-        sb.Append(')');
         return sb.ToString();
     }
 
-    private static string GeneratePlayerActionAction(HoldemActionPlayerAction action, int indent)
+    private static string GeneratePlayerActionAction(HoldemActionPlay action, int indent)
     {
         var nextIndent = new string(' ', (indent + 1) * 4);
         var sb = new StringBuilder();
-        sb.AppendLine("new HoldemActionPlayerAction(");
+        sb.AppendLine("new HoldemActionPlay(");
         sb.Append(nextIndent).Append("GameId: ").AppendLine(FormatGuid(action.GameId) + ",");
         sb.Append(nextIndent).Append("ActionType: PlayerActionType.").AppendLine(action.ActionType + ",");
         sb.Append(nextIndent).Append("Size: ").Append(FormatDecimal(action.Size)).Append(')');

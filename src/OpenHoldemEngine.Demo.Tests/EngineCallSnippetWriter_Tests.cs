@@ -42,7 +42,7 @@ public sealed class EngineCallSnippetWriter_Tests
         // Arrange
         var entry = new EngineCallJournalEntry(
             SequenceNumber: 1,
-            Action: new HoldemActionPlayerAction(GameId: Guid.NewGuid(), ActionType: PlayerActionType.Call, Size: 0),
+            Action: new HoldemActionPlay(GameId: Guid.NewGuid(), ActionType: PlayerActionType.Call, Size: 0),
             Succeeded: succeeded,
             ErrorMessages: succeeded ? [] : ["The current hand is completed"]);
 
@@ -67,7 +67,7 @@ public sealed class EngineCallSnippetWriter_Tests
     {
         // Arrange
         var gameId = Guid.NewGuid();
-        var action = new HoldemActionPlayerAction(
+        var action = new HoldemActionPlay(
             GameId: gameId,
             ActionType: PlayerActionType.Fold,
             Size: 0
@@ -83,7 +83,7 @@ public sealed class EngineCallSnippetWriter_Tests
         var snippet = EngineCallSnippetWriter.GenerateSnippet(entry);
 
         // Assert
-        snippet.Should().Contain("new HoldemActionPlayerAction(");
+        snippet.Should().Contain("new HoldemActionPlay(");
         snippet.Should().Contain("PlayerActionType.Fold");
         snippet.Should().Contain("Size: 0m");
         snippet.Should().Contain(");");
@@ -94,7 +94,7 @@ public sealed class EngineCallSnippetWriter_Tests
     {
         // Arrange
         var gameId = Guid.NewGuid();
-        var action = new HoldemActionPlayerAction(
+        var action = new HoldemActionPlay(
             GameId: gameId,
             ActionType: PlayerActionType.Raise,
             Size: 300m
@@ -231,7 +231,7 @@ public sealed class EngineCallSnippetWriter_Tests
     {
         // Arrange
         var gameId = Guid.NewGuid();
-        var action = new HoldemActionPlayerAction(
+        var action = new HoldemActionPlay(
             GameId: gameId,
             ActionType: PlayerActionType.Raise,
             Size: 123.45m

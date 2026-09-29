@@ -70,10 +70,10 @@ public sealed class EngineOptionsIsolationTests
 
     private static async Task<HandData> CallAndCheckToFlopAsync(HoldemEngine engine)
     {
-        (await engine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Call, 0)))
+        (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0)))
             .IsSuccess.Should().BeTrue();
 
-        var checkedDown = await engine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Check, 0));
+        var checkedDown = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0));
         checkedDown.IsSuccess.Should().BeTrue();
         return checkedDown.Value.HandData!;
     }

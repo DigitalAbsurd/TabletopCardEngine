@@ -41,7 +41,7 @@ public sealed class HoldemResultTests
         await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0));
+        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.CurrentHandEnded);
