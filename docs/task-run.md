@@ -190,9 +190,13 @@ src/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus serv
 src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
+docs/adr/                               # architecture decision records (ADR-0001: the license)
+scripts/                                # license audit and PHH fixture packing
 .github/workflows/                      # ci.yml and deploy-demo.yml
+AGENTS.md                               # codebase guide for AI assistants (alias it locally as CLAUDE.md)
 run-next-task.ps1                       # the unattended runner: picks a ready issue, drives an agent
 agent.<name>.json                       # that agent's settings (models, command line); git-ignored
+agent.claude.json.example               # the committed template for agent.<name>.json
 ```
 
 ## Engine facts

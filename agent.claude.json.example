@@ -1,6 +1,6 @@
 {
   "name": "Claude Code",
-  "description": "Settings for run-next-task.ps1. Copy this file to agent.claude.json (agent.*.json is git-ignored) and adjust it. Run the script with -Agent <name> to pick agent.<name>.json.",
+  "description": "Settings for run-next-task.ps1. Copy this file to agent.claude.json (agent.*.json is git-ignored) and adjust it. Run the script with -Agent <name> to pick agent.<name>.json. WARNING: these args run the agent with bypassPermissions, and the runner then lets it push to and merge into main with no human review. Run it only in an isolated environment (a VM, a container or a throwaway checkout), against a repository you own.",
   "command": "claude",
   "args": [
     "-p",
@@ -11,9 +11,9 @@
     "bypassPermissions"
   ],
   "models": {
-    "Haiku": "claude-haiku-4-5-20251001",
-    "Sonnet": "claude-sonnet-5",
-    "Opus": "claude-opus-5"
+    "Haiku": "haiku",
+    "Sonnet": "sonnet",
+    "Opus": "opus"
   },
   "modelBySizeLabel": {
     "7b": "Haiku",
@@ -22,7 +22,7 @@
   },
   "fallbackModel": "Sonnet",
   "contextFiles": [
-    "CLAUDE.md"
+    "AGENTS.md"
   ],
   "env": {}
 }
