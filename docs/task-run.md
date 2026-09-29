@@ -16,14 +16,17 @@ over; the issue names them.
 
 ## Gates
 
-Three commands, from the repository root. All three must be green before anything is committed,
+Four commands, from the repository root. All four must be green before anything is committed,
 and green again before anything is merged.
 
 ```
 dotnet build
 dotnet format OpenHoldemEngine.sln --verify-no-changes
 dotnet test
+dotnet pack src/OpenHoldemEngine -c Release
 ```
+
+The last one is the public API gate: it fails on a break against the committed baseline (fact 25).
 
 Style is enforced at build time, so a formatting or naming violation **fails `dotnet build`**.
 Do not hand-tune whitespace to chase a diagnostic — run the formatter and re-read the diff:
@@ -71,7 +74,7 @@ An empty result means the ports are free. A run is not finished while a listener
 
 The issue's **Scope**, **Files**, **Definition of done** and **Notes for the implementer** are
 acceptance criteria, not suggestions. A task is done when every line of the Definition of done is
-satisfied and the three gates are green — not when the code compiles and looks right.
+satisfied and the four gates are green — not when the code compiles and looks right.
 
 - **Do not merge a partial.** If the Definition of done cannot be met, stop, merge nothing, and
   comment on the issue saying exactly what blocks it. A half-done merge is worse than no merge:
@@ -215,7 +218,8 @@ src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TES
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/adr/                               # architecture decision records (ADR-0001: the license)
-scripts/                                # license audit and PHH fixture packing
+scripts/                                # license audit, PHH fixture packing, public API listing
+eng/api-baseline/                       # the committed public API baseline package (fact 25)
 .github/workflows/                      # ci.yml and deploy-demo.yml
 AGENTS.md                               # codebase guide for AI assistants (alias it locally as CLAUDE.md)
 run-next-task.ps1                       # the unattended runner: picks a vetted, ready issue, drives an agent
@@ -334,6 +338,17 @@ renumber.
     `DbUpdateException` is a real fault and is not caught. Tests interleave two writers through the
     internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
     connection serialises everything.
+25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** The
+    library sets `EnablePackageValidation` with `PackageValidationBaselinePath` pointing at
+    `eng/api-baseline/OpenHoldemEngine.1.0.0-baseline.nupkg`, so
+    `dotnet pack src/OpenHoldemEngine -c Release` fails with `CP0001` (type removed), `CP0002` (member
+    removed) and the other ApiCompat rules on a break; `dotnet build` does not check it. Changing the
+    surface means re-packing the baseline in the same pull request
+    (`dotnet pack src/OpenHoldemEngine -c Release -p:Version=1.0.0-baseline -o eng/api-baseline`),
+    regenerating `docs/public-api.md` with `pwsh ./scripts/list-public-api.ps1 -Update`, and saying
+    why in the pull request. Never add a `CompatibilitySuppressions.xml` or set
+    `ApiCompatGenerateSuppressionFile`. The check is binary compatibility only: removing a
+    parameter's default value is a source break it does not report.
 
 ## A known, deliberate duplication
 

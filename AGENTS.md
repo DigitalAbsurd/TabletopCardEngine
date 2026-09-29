@@ -19,6 +19,15 @@ dotnet build
 dotnet test
 ```
 
+The public API gate: packing compares the library against the committed baseline in
+`eng/api-baseline/` and fails on a removed or changed public member (`CP0001`, `CP0002`, ...).
+`dotnet build` does not run it. See [docs/public-api.md](docs/public-api.md) for the inventory and
+how to change the baseline.
+
+```bash
+dotnet pack src/OpenHoldemEngine -c Release
+```
+
 Style is enforced at build time, so `dotnet build` fails on a violation. To fix what is
 auto-fixable instead of reading the diagnostics one by one:
 
