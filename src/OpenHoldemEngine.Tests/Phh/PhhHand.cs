@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Tests.Phh;
+﻿namespace OpenHoldemEngine.Tests.Phh;
 
 /// <summary>
 /// One hand history in the PHH format. Field names mirror the specification, so

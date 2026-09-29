@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Demo.Phh;
+﻿namespace OpenHoldemEngine.Demo.Phh;
 
 /// <summary>
 /// Determines which PHH hands the engine can model.

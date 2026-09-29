@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Engine;
+﻿namespace OpenHoldemEngine.Engine;
 
 /// <summary>What a seat may legally do right now. A null raise bound means raising is not possible.</summary>
 internal readonly record struct ActionEvaluations(decimal CallTo, decimal? MinRaiseTo, decimal? MaxRaiseTo);

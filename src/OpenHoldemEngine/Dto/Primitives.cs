@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Dto;
+﻿namespace OpenHoldemEngine.Dto;
 
 /// <summary>The fixed rules a game is created with; they never change once the game exists.</summary>
 /// <param name="MaxPlayersCount">How many seats the table has.</param>

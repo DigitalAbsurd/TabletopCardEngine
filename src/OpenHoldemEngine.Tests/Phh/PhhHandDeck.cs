@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Tests.Phh;
+﻿namespace OpenHoldemEngine.Tests.Phh;
 
 /// <summary>
 /// The cards a hand history dictates, arranged the way <see cref="ICardShuffler"/> wants them:

@@ -56,7 +56,6 @@ public sealed class EngineCallSnippetWriter
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         sb.AppendLine("using OpenHoldemEngine;");
         sb.AppendLine("using OpenHoldemEngine.Dto;");
-        sb.AppendLine("using OpenHoldemEngine.Data;");
         sb.AppendLine();
 
         // Main entry

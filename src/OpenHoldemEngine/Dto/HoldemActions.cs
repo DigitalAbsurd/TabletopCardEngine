@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Dto;
+﻿namespace OpenHoldemEngine.Dto;
 
 /// <summary>
 /// The one command type the engine accepts. Which concrete record you pass decides which handler

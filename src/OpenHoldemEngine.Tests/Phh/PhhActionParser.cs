@@ -44,7 +44,7 @@ internal static class PhhActionParser
             _ => throw new FormatException($"'{rawAction}' is not a recognised PHH player action")
         };
 
-        static Data.Card?[] ParseOptionalCards(string[] tokens)
+        static Card?[] ParseOptionalCards(string[] tokens)
             => tokens.Length > 2 ? PhhCards.ParseMany(tokens[2]) : [];
     }
 

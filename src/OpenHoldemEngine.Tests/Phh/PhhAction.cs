@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Tests.Phh;
+﻿namespace OpenHoldemEngine.Tests.Phh;
 
 /// <summary>One entry of a PHH <c>actions</c> array. <see cref="Raw"/> is kept for failure messages.</summary>
 internal abstract record PhhAction(string Raw)

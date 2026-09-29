@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace OpenHoldemEngine.Data;
+namespace OpenHoldemEngine;
 
 /// <summary>
 /// A betting round.

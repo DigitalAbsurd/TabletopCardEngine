@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Engine;
+﻿namespace OpenHoldemEngine.Engine;
 
 /// <summary>
 /// Runs the betting rules over a <see cref="HandTable"/>: starting a hand and applying one player

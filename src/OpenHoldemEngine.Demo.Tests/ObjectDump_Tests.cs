@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using FluentResults;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
 
@@ -19,7 +18,7 @@ public sealed class ObjectDump_Tests
     [DataRow(42, "42", "Int32 (System)")]
     [DataRow(true, "true", "Boolean (System)")]
     [DataRow("abc", "\"abc\"", "String (System)")]
-    [DataRow(PlayerActionType.Raise, "Raise", "PlayerActionType (OpenHoldemEngine.Data)")]
+    [DataRow(PlayerActionType.Raise, "Raise", "PlayerActionType (OpenHoldemEngine)")]
     public void Create_Scalar_ShowsTheValueAndHasNoChildren(object value, string expectedValue, string expectedType)
     {
         // Act
@@ -59,7 +58,7 @@ public sealed class ObjectDump_Tests
 
         // Assert - a value, not "Card[]" or "<enumerable Count: 2>"
         node.Value.Should().Be("[ah, kd]");
-        node.TypeName.Should().Be("Card[] (OpenHoldemEngine.Data)");
+        node.TypeName.Should().Be("Card[] (OpenHoldemEngine)");
         node.Children.Select(child => child.Name).Should().Equal("[0]", "[1]");
         node.Children.Select(child => child.Value).Should().Equal("ah", "kd");
     }

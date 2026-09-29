@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Demo.Phh;
+﻿namespace OpenHoldemEngine.Demo.Phh;
 
 /// <summary>
 /// Supplies pre-determined cards from a PHH hand history, implementing <see cref="ICardShuffler"/>

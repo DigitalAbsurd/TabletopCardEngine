@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Engine;
+﻿namespace OpenHoldemEngine.Engine;
 
 /// <summary>
 /// One entry in a seat's betting record for the street in progress.

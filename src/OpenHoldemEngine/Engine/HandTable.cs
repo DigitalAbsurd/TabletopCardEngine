@@ -1,6 +1,4 @@
-﻿using OpenHoldemEngine.Data;
-
-namespace OpenHoldemEngine.Engine;
+﻿namespace OpenHoldemEngine.Engine;
 
 /// <summary>
 /// The rules' view of one hand in progress: the seats, the board, the deck, and whose turn it
