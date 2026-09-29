@@ -487,7 +487,9 @@ function Invoke-Agent($Settings, [string]$Prompt, [string]$ModelId) {
     }
 
     try {
-        & $Settings.Command @invocation
+        # Out-Host keeps the agent's output on the console and out of the return value,
+        # which would otherwise be that output with the exit code appended to it.
+        & $Settings.Command @invocation | Out-Host
         return $LASTEXITCODE
     } finally {
         foreach ($name in $saved.Keys) {
