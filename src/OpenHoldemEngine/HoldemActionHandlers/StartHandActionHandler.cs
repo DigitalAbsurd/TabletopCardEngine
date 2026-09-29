@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Resources;
@@ -8,11 +7,11 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionStartHand>
 {
-    internal override async Task<Result> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
+    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game)
     {
         if (!game.IsCurrentHandEnded())
         {
-            return Result.Fail(PackResource.HoldemValidation_PreviousHandNotEnded);
+            return new HoldemError(HoldemErrorCode.PreviousHandNotEnded, PackResource.HoldemValidation_PreviousHandNotEnded);
         }
 
         game.JoinPlayers(startHandData.JoinSeats);
@@ -54,7 +53,7 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
             nextSeatNo: table.NextSeatNo,
             nextStreet: Street.PreFlop);
 
-        return Result.Ok();
+        return null;
 
         byte ResolvePreviousDealerSeatNo()
         {

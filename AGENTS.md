@@ -63,7 +63,7 @@ Task<Result<GameData>> HoldemEngine.ApplyHoldemActionAsync(HoldemAction action, 
 
 1. `IHoldemActionHandler.CreateHandlerForAction` — a `switch` on the `HoldemAction` record type picks the handler. New action types must be added both to `Dto/HoldemActions.cs` and to that switch.
 2. `LoadGameWithCurrentHandAsync` reloads the `Game` aggregate **plus only the latest `Hand`** and its collections. If the game does not exist it returns a placeholder `new Game { Id = Guid.Empty }` already attached to the context — that placeholder is how `CreateGameActionHandler` distinguishes "new" from "already exists" (`game.Id != default`).
-3. The handler mutates the EF entity graph and returns `FluentResults.Result`. A failed result short-circuits before `SaveChangesAsync`, so validation failures leave nothing persisted.
+3. The handler mutates the EF entity graph and returns a `HoldemError?` (`null` is success), which `ApplyHoldemActionAsync` wraps into the public `HoldemResult<GameData>`; each `HoldemError` carries a stable `HoldemErrorCode`. A failed result short-circuits before `SaveChangesAsync`, so validation failures leave nothing persisted.
 4. `Mappers/GameDataMapper` projects the whole aggregate into the `GameData` DTO returned to the caller.
 
 There is no long-lived in-memory game object. **The database is the state**; each call rehydrates from it.

@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using FluentResults;
 using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.Tests;
@@ -116,7 +115,7 @@ public sealed class HoldemEngineTests
                 InitialSmallBlind: 5,
                 InitialDealerSeatNo: 3);
 
-        Result<GameData> failResult;
+        HoldemResult<GameData> failResult;
 
         using (TestEngineHost.Setup(out var holdemEngine, out _))
         {

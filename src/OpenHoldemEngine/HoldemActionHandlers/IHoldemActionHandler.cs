@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Options;
 
@@ -7,7 +6,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal interface IHoldemActionHandler
 {
-    Task<Result> HandleAsync(HoldemAction holdemAction, Game game);
+    Task<HoldemError?> HandleAsync(HoldemAction holdemAction, Game game);
 
     static IHoldemActionHandler CreateHandlerForAction(HoldemAction holdemAction, HoldemEngineOptions options)
     => holdemAction switch

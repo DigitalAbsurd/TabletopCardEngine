@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Data;
+﻿using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Resources;
@@ -8,11 +7,11 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionPlayerAction>
 {
-    internal override async Task<Result> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
+    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
         if (game.IsCurrentHandEnded())
         {
-            return Result.Fail(PackResource.HoldemValidation_CurrentHandEnded);
+            return new HoldemError(HoldemErrorCode.CurrentHandEnded, PackResource.HoldemValidation_CurrentHandEnded);
         }
 
         var hand = game.GetCurrentHand();
@@ -72,7 +71,7 @@ internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemA
             game.AddHandEndStates(handEndStates);
         }
 
-        return Result.Ok();
+        return null;
 
         decimal CalculateBetAmount()
             => holdemAction.ActionType switch

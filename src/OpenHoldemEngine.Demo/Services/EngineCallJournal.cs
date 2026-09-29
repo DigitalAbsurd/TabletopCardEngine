@@ -1,5 +1,4 @@
-﻿using FluentResults;
-using OpenHoldemEngine.Dto;
+﻿using OpenHoldemEngine.Dto;
 
 namespace OpenHoldemEngine.Demo.Services;
 
@@ -21,7 +20,7 @@ public sealed class EngineCallJournal
     /// <param name="action">The action that was sent to the engine.</param>
     /// <param name="result">What the engine returned, kept so the call log can dump it.</param>
     /// <returns>A new entry added to the journal.</returns>
-    public EngineCallJournalEntry RecordSuccess(HoldemAction action, Result<GameData>? result = null)
+    public EngineCallJournalEntry RecordSuccess(HoldemAction action, HoldemResult<GameData>? result = null)
     {
         var entry = new EngineCallJournalEntry(
             SequenceNumber: _entries.Count + 1,
@@ -41,7 +40,7 @@ public sealed class EngineCallJournal
     /// and there is no result.
     /// </param>
     /// <returns>A new entry added to the journal.</returns>
-    public EngineCallJournalEntry RecordFailure(HoldemAction action, IEnumerable<string> errorMessages, Result<GameData>? result = null)
+    public EngineCallJournalEntry RecordFailure(HoldemAction action, IEnumerable<string> errorMessages, HoldemResult<GameData>? result = null)
     {
         var messages = errorMessages.ToArray();
         var entry = new EngineCallJournalEntry(
@@ -76,4 +75,4 @@ public record EngineCallJournalEntry(
     HoldemAction Action,
     bool Succeeded,
     string[] ErrorMessages,
-    Result<GameData>? Result = null);
+    HoldemResult<GameData>? Result = null);
