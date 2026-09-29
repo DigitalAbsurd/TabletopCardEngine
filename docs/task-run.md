@@ -177,14 +177,15 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   (composite keys throughout) plus `Database.EnsureCreated()`. An entity shape change needs no
   migration but does need the model configuration updated by hand.
 - **`HoldemEngineOptions.Instance` is a process-wide singleton**, which is why the test assemblies
-  are marked `[assembly: DoNotParallelize]`. Leave that marker alone.
+  are marked `[assembly: DoNotParallelize]`. Leave that marker alone, unless your issue is the one
+  that removes the singleton (milestone "v1.0 · Coherent public API").
 
 ## Product scope of the demo
 
 | Area | Decision |
 |---|---|
 | UI stack | Blazor WebAssembly (standalone, net8.0) + Ant Design Blazor |
-| Engine changes | **`InternalsVisibleTo` only.** The library's public API is not widened, and `Phh/` is not extracted out of the test project. |
+| Engine changes | **`InternalsVisibleTo` only.** A demo task does not widen the library's public API, and `Phh/` is not extracted out of the test project. Changing the public API is the job of the "v1.0 · Coherent public API" milestone. Its issues change the surface on purpose and update the demo to match. |
 | Storage | SQLite `:memory:` behind a kept-alive `SqliteConnection`, the same pattern as `TestEngineHost`. No persistence across reloads; the UI says so explicitly, and `.phh` export is the way to keep a hand. |
 | Play mode | Hot-seat (the visitor acts for every seat) plus step-by-step replay of an imported hand history. No bots. |
 | Hand histories | Import and replay `.phh` / `.phhs`, and export the current hand or session. |

@@ -112,6 +112,11 @@ decomposition, and the label is how you test it. If more than about a third of a
 An issue that resists being made `7b` is telling you something true about the task. Listen to it
 before overriding it.
 
+The prompt can override the split, for example by asking for exactly one issue per milestone item.
+When it does, the size follows the item, and the batch may end up mostly above `7b`. Say so, and
+why, in the pull request that carries the batch's documentation changes. Then keep each issue as
+close to `7b` as the item allows: close every design decision in the body and name every file.
+
 ## 4. Order the batch and declare dependencies
 
 The runner takes the **lowest-numbered vetted open issue whose dependencies are all closed**
