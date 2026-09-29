@@ -79,6 +79,15 @@ namespace OpenHoldemEngine.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The action type is not a valid player action.
+        /// </summary>
+        internal static string HoldemValidation_InvalidAction {
+            get {
+                return ResourceManager.GetString("HoldemValidation_InvalidAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The previous hand is not completed.
         /// </summary>
         internal static string HoldemValidation_PreviousHandNotEnded {

@@ -97,23 +97,18 @@
         return string.Join(" ", classes);
     }
 
-    private static string FormatActionType(PlayerActionType actionType)
+    private static string FormatActionType(HandActionType actionType)
     {
         return actionType switch
         {
-            PlayerActionType.SmallBlind => "SB",
-            PlayerActionType.BigBlind => "BB",
-            PlayerActionType.Fold => "Fold",
-            PlayerActionType.Check => "Check",
-            PlayerActionType.Call => "Call",
-            PlayerActionType.Raise => "Raise",
-            PlayerActionType.Post => "Post",
-            PlayerActionType.Bet => "Bet",
-            PlayerActionType.AllIn => "All-In",
-            PlayerActionType.Showdown => "Showdown",
-            PlayerActionType.Winner => "Win",
-            PlayerActionType.GameWinner => "Game Win",
-            PlayerActionType.BuyIn => "Buy-In",
+            HandActionType.SmallBlind => "SB",
+            HandActionType.BigBlind => "BB",
+            HandActionType.Fold => "Fold",
+            HandActionType.Check => "Check",
+            HandActionType.Call => "Call",
+            HandActionType.Raise => "Raise",
+            HandActionType.Bet => "Bet",
+            HandActionType.AllIn => "All-In",
             _ => actionType.ToString()
         };
     }

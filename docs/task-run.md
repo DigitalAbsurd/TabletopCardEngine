@@ -234,8 +234,7 @@ renumber.
 2. **`HoldemActionStartGame` and `HoldemActionFinishGame` are public but unwired.**
    `IHoldemActionHandler.CreateHandlerForAction` throws `NotImplementedException` for both. Starting
    a game means `HoldemActionCreateGame` followed by `HoldemActionStartHand`.
-3. **`GameData.HandData` is declared non-nullable but is assigned `default!`** by `GameDataMapper`
-   while `currentHand.No == 0`, i.e. between `CreateGame` and the first `StartHand`. Null-check it.
+3. *Retired by #142:* `GameData.HandData` is now nullable; it is `null` between `CreateGame` and the first `StartHand`.
 4. **`SeatData.BetSize` and `HandResultData.Description` are never populated.** Do not design UI
    around either.
 5. **`HandData.Evaluations` mixes two bases on purpose.** A `Call`'s `MinValue`/`MaxValue` is an
@@ -255,7 +254,8 @@ renumber.
 11. **Card strings are `"ah"`** — rank first, lowercase, from `Card.ToString()`. PHH writes `"Ah"`.
 12. **Value converters store enums as text.** In the database, `HandAction.Street`,
     `HandAction.ActionType` and `HandPlayerEndState.RankType` are strings, and cards are two-character
-    strings.
+    strings. `HandAction.ActionType` holds `HandActionType` names (`SmallBlind`, `BigBlind`, `Fold`,
+    `Check`, `Call`, `Raise`, `Bet`, `AllIn`): the action the caller *requested*, plus the two blinds.
 13. **`HandAction` is the ledger.** `Amount` is a seat's cumulative wager for the street, `AddAmount`
     the increment, `Size` the requested size. Composite primary key `(GameId, HandNo, No, SeatNo)`.
 14. *Retired by #137:* each `AddHoldemEngine` call registers its own `HoldemEngineOptions` in its
@@ -264,10 +264,11 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Only three validation failures exist**, all from `Resources/PackResource.resx`: the game id
-    already exists, the current hand is completed, the previous hand is not completed. Each failure
+17. **Only four validation failures exist**, all from `Resources/PackResource.resx`: the game id
+    already exists, the current hand is completed, the previous hand is not completed, the action
+    type is not a defined `PlayerActionType`. Each failure
     carries a `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`,
-    `PreviousHandNotEnded = 3`.
+    `PreviousHandNotEnded = 3`, `InvalidAction = 4`.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while

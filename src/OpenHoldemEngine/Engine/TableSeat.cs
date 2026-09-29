@@ -31,7 +31,7 @@ internal sealed class TableSeat
         {
             for (var i = StreetBets.Count - 1; i >= 0; i--)
             {
-                if (StreetBets[i].Action != PlayerActionType.Fold)
+                if (StreetBets[i].Action != HandActionType.Fold)
                 {
                     return StreetBets[i].Amount;
                 }
@@ -46,9 +46,9 @@ internal sealed class TableSeat
     /// True only preflop, and only until this seat acts again: the big blind gets an option even
     /// when nobody has raised over it.
     /// </summary>
-    public bool BigBlindOptionPending => StreetBets is [{ Action: PlayerActionType.BigBlind }];
+    public bool BigBlindOptionPending => StreetBets is [{ Action: HandActionType.BigBlind }];
 
-    internal void Record(PlayerActionType action, decimal amount, decimal addAmount, decimal paid)
+    internal void Record(HandActionType action, decimal amount, decimal addAmount, decimal paid)
         => StreetBets.Add(new SeatBet(action, amount, addAmount, paid));
 
     internal void ClearStreet() => StreetBets.Clear();

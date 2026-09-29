@@ -115,8 +115,8 @@
     public EventCallback OnNextHand { get; set; }
 
     /// <summary>
-    /// The dealt hand, or null. GameData.HandData is declared non-nullable but is <c>default!</c>
-    /// between CreateGame and the first StartHand (fact 3), and hand 0 is that same placeholder.
+    /// The dealt hand, or null. GameData.HandData is null
+    /// between CreateGame and the first StartHand, and hand 0 is that same placeholder.
     /// </summary>
     private HandData? Hand => GameData?.HandData is { No: > 0 } hand ? hand : null;
 

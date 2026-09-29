@@ -5,7 +5,7 @@
 /// <param name="ActionType">What the seat did.</param>
 /// <param name="Size">The size the caller asked for; <c>0</c> for actions that carry no size.</param>
 /// <param name="No">Position of this action in the hand, ascending from 1.</param>
-public record PlayerActionData(Street Street, PlayerActionType ActionType, decimal Size, int No);
+public record PlayerActionData(Street Street, HandActionType ActionType, decimal Size, int No);
 
 /// <summary>One seat as it stands in the current hand.</summary>
 /// <param name="SeatNo">The seat number. Seats are 1-based; <c>0</c> means "no seat".</param>
@@ -31,11 +31,11 @@ public record SeatData(
 
     /// <summary>Whether the seat is still contesting the pot — it has chips and cards, or it is all in.</summary>
     public bool IsActive
-        => (Stack > DecimalMinPrecision && Hole?.Length > 0 && LastAction?.ActionType != PlayerActionType.Fold)
-        || (Stack < DecimalMinPrecision && LastAction != null && LastAction.ActionType != PlayerActionType.Fold);
+        => (Stack > DecimalMinPrecision && Hole?.Length > 0 && LastAction?.ActionType != HandActionType.Fold)
+        || (Stack < DecimalMinPrecision && LastAction != null && LastAction.ActionType != HandActionType.Fold);
 
     /// <summary>Whether the seat has folded out of the hand.</summary>
-    public bool IsFolded => LastAction?.ActionType == PlayerActionType.Fold;
+    public bool IsFolded => LastAction?.ActionType == HandActionType.Fold;
 
     /// <summary>Whether the seat has committed its whole stack.</summary>
     public bool IsAllIn => LastAction != default && Stack < DecimalMinPrecision;
@@ -86,4 +86,4 @@ public record HandData(
 /// <param name="GameId">Identifier of the game.</param>
 /// <param name="Options">The rules the game was created with.</param>
 /// <param name="HandData">The current hand, or <see langword="null"/> when no hand has been dealt yet.</param>
-public record GameData(Guid GameId, GameOptionData Options, HandData HandData);
+public record GameData(Guid GameId, GameOptionData Options, HandData? HandData);

@@ -59,12 +59,12 @@ public sealed class HoldemEngineTests
                     new(4, "Ozias", 100, 95)
                     {
                         Hole = holeCards[4],
-                        LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, 5, 1)
+                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 5, 1)
                     },
                     new(5, "Ilona", 100, 90)
                     {
                         Hole = holeCards[5],
-                        LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.BigBlind, 10, 2)
+                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, 10, 2)
                     },
                     new(6, "Broen", 100, 100)
                     {

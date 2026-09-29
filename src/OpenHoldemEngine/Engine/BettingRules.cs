@@ -9,8 +9,8 @@ internal readonly record struct ActionEvaluations(decimal CallTo, decimal? MinRa
 /// </summary>
 internal static class BettingRules
 {
-    private static readonly PlayerActionType[] _raiseKinds =
-        [PlayerActionType.Raise, PlayerActionType.SmallBlind, PlayerActionType.BigBlind];
+    private static readonly HandActionType[] _raiseKinds =
+        [HandActionType.Raise, HandActionType.SmallBlind, HandActionType.BigBlind];
 
     /// <summary>The street total a call brings a seat up to: the biggest raise-kind wager so far this street.</summary>
     internal static decimal AgreeAmount(HandTable table) => LastRaise(table)?.Amount ?? 0M;

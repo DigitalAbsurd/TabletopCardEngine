@@ -35,5 +35,5 @@ public sealed class HandCombination_Tests
     }
 
     private static Card[] Parse(string cards)
-        => cards.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Card.FromString).ToArray();
+        => cards.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(Card.Parse).ToArray();
 }

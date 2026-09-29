@@ -2,6 +2,7 @@
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.Engine;
 using OpenHoldemEngine.Resources;
+using System.Diagnostics;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 
@@ -9,6 +10,11 @@ internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemA
 {
     internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
     {
+        if (!Enum.IsDefined(holdemAction.ActionType))
+        {
+            return new HoldemError(HoldemErrorCode.InvalidAction, PackResource.HoldemValidation_InvalidAction);
+        }
+
         if (game.IsCurrentHandEnded())
         {
             return new HoldemError(HoldemErrorCode.CurrentHandEnded, PackResource.HoldemValidation_CurrentHandEnded);
@@ -26,7 +32,7 @@ internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemA
         game.AddAction(
             seatNo: outcome.SeatNo,
             street: outcome.Street,
-            playerActionType: holdemAction.ActionType,
+            handActionType: ToHandActionType(holdemAction.ActionType),
             size: holdemAction.Size,
             amount: outcome.Amount,
             addAmount: outcome.AddAmount,
@@ -81,7 +87,20 @@ internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemA
                 PlayerActionType.Fold => 0M,
                 PlayerActionType.Raise => holdemAction.Size,
                 PlayerActionType.Bet => holdemAction.Size + seat.StreetWager,
-                _ => throw new NotImplementedException()
+                _ => throw new UnreachableException()
+            };
+
+        // The one place a request becomes a ledger entry: every PlayerActionType is also a HandActionType.
+        static HandActionType ToHandActionType(PlayerActionType actionType)
+            => actionType switch
+            {
+                PlayerActionType.Fold => HandActionType.Fold,
+                PlayerActionType.Check => HandActionType.Check,
+                PlayerActionType.Call => HandActionType.Call,
+                PlayerActionType.Raise => HandActionType.Raise,
+                PlayerActionType.Bet => HandActionType.Bet,
+                PlayerActionType.AllIn => HandActionType.AllIn,
+                _ => throw new UnreachableException()
             };
 
         async Task<CardDeck?> BuildDeckAsync()

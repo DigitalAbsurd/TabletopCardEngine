@@ -11,7 +11,7 @@ internal class HandAction
     public byte NextSeatNo { get; set; }
     public Street Street { get; set; }
     public Street NextStreet { get; set; }
-    public PlayerActionType ActionType { get; set; }
+    public HandActionType ActionType { get; set; }
     public decimal Size { get; set; }
     public decimal Amount { get; set; }
     public decimal AddAmount { get; set; }

@@ -48,12 +48,12 @@ public sealed class HeadsUpTests
                     new(ButtonSeatNo, "Button", DeepStack, DeepStack - SmallBlind)
                     {
                         Hole = _buttonHole,
-                        LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.SmallBlind, SmallBlind, 1)
+                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, SmallBlind, 1)
                     },
                     new(BigBlindSeatNo, "BigBlind", DeepStack, DeepStack - BigBlind)
                     {
                         Hole = _bigBlindHole,
-                        LastAction = new PlayerActionData(Street.PreFlop, PlayerActionType.BigBlind, BigBlind, 2)
+                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, BigBlind, 2)
                     },
                 ],
                 DealerSeatNo: ButtonSeatNo,
@@ -81,7 +81,7 @@ public sealed class HeadsUpTests
         using var session = await HeadsUpSession.CreateAsync();
         await session.StartHandAsync();
 
-        var handData = (await session.ActAsync(PlayerActionType.Call)).HandData;
+        var handData = (await session.ActAsync(PlayerActionType.Call)).HandData!;
 
         handData.Street.Should().Be(Street.PreFlop, "the big blind's option keeps the street open");
         handData.NextPlayerSeatNo.Should().Be(BigBlindSeatNo);
@@ -99,7 +99,7 @@ public sealed class HeadsUpTests
         await session.StartHandAsync();
         await session.ActAsync(PlayerActionType.Call);
 
-        var handData = (await session.ActAsync(PlayerActionType.Raise, SmallBlind * 3)).HandData;
+        var handData = (await session.ActAsync(PlayerActionType.Raise, SmallBlind * 3)).HandData!;
 
         handData.Street.Should().Be(Street.PreFlop);
         handData.NextPlayerSeatNo.Should().Be(ButtonSeatNo, "a raise puts the button back on the clock");
@@ -115,7 +115,7 @@ public sealed class HeadsUpTests
         await session.ActAsync(PlayerActionType.Call);
 
         // Closing the pre-flop is the big blind's check, which is the last time it acts second.
-        var handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+        var handData = (await session.ActAsync(PlayerActionType.Check)).HandData!;
 
         foreach (var (street, boardSize) in new[] { (Street.Flop, 3), (Street.Turn, 4), (Street.River, 5) })
         {
@@ -123,10 +123,10 @@ public sealed class HeadsUpTests
             handData.CommunityCards.Should().Equal(_board.Take(boardSize), $"the board on the {street}");
             handData.NextPlayerSeatNo.Should().Be(BigBlindSeatNo, $"the big blind acts first on the {street}");
 
-            handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+            handData = (await session.ActAsync(PlayerActionType.Check)).HandData!;
             handData.NextPlayerSeatNo.Should().Be(ButtonSeatNo, $"the button acts last on the {street}");
 
-            handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+            handData = (await session.ActAsync(PlayerActionType.Check)).HandData!;
         }
 
         handData.Seats.Should().OnlyContain(seat => seat.HandResult != null, "the river check ends the hand");
@@ -138,7 +138,7 @@ public sealed class HeadsUpTests
         using var session = await HeadsUpSession.CreateAsync();
         await session.StartHandAsync();
 
-        var handData = (await session.ActAsync(PlayerActionType.Fold)).HandData;
+        var handData = (await session.ActAsync(PlayerActionType.Fold)).HandData!;
 
         handData.CommunityCards.Should().BeEmpty("a hand decided pre-flop deals no board");
         NetOf(handData, ButtonSeatNo).Should().Be(-SmallBlind, "the button folded its small blind away");
@@ -158,7 +158,7 @@ public sealed class HeadsUpTests
             gameData = await session.ActAsync(PlayerActionType.Check);
         }
 
-        var handData = gameData.HandData;
+        var handData = gameData.HandData!;
         handData.CommunityCards.Should().Equal(_board);
         NetOf(handData, ButtonSeatNo).Should().Be(BigBlind, "ace high takes the whole 2·bb pot");
         NetOf(handData, BigBlindSeatNo).Should().Be(-BigBlind);
@@ -178,24 +178,24 @@ public sealed class HeadsUpTests
         await session.StartHandAsync();
         await session.ActAsync(PlayerActionType.Call);
 
-        var handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+        var handData = (await session.ActAsync(PlayerActionType.Check)).HandData!;
 
         handData.Street.Should().Be(Street.Flop);
         handData.StreetPot.Should().Be(0, "nobody has put anything in on the flop yet");
         handData.Pot.Should().Be(BigBlind * 2, "the pre-flop is a prior street now");
 
-        handData = (await session.ActAsync(PlayerActionType.Raise, BigBlind * 2)).HandData;
+        handData = (await session.ActAsync(PlayerActionType.Raise, BigBlind * 2)).HandData!;
         handData.StreetPot.Should().Be(BigBlind * 2, "the big blind's flop bet");
         handData.Pot.Should().Be(BigBlind * 2);
 
-        handData = (await session.ActAsync(PlayerActionType.Call)).HandData;
+        handData = (await session.ActAsync(PlayerActionType.Call)).HandData!;
         handData.Street.Should().Be(Street.Turn);
         handData.StreetPot.Should().Be(0, "nobody has put anything in on the turn yet");
         handData.Pot.Should().Be(BigBlind * 6);
 
         for (var check = 0; check < 4; check++)
         {
-            handData = (await session.ActAsync(PlayerActionType.Check)).HandData;
+            handData = (await session.ActAsync(PlayerActionType.Check)).HandData!;
         }
 
         handData.Street.Should().Be(Street.Finished);
@@ -210,7 +210,7 @@ public sealed class HeadsUpTests
 
         for (byte expectedButtonSeatNo = 1; expectedButtonSeatNo <= 2; expectedButtonSeatNo++)
         {
-            var handData = (await session.StartHandAsync()).HandData;
+            var handData = (await session.StartHandAsync()).HandData!;
 
             handData.DealerSeatNo.Should().Be(expectedButtonSeatNo, "the button alternates heads-up");
             handData.SmallBlindSeatNo.Should().Be(expectedButtonSeatNo, "the button posts the small blind");
@@ -232,7 +232,7 @@ public sealed class HeadsUpTests
         const decimal shortStack = 60M;
         using var session = await HeadsUpSession.CreateAsync(bigBlindStack: shortStack);
 
-        var handData = (await session.StartHandAsync()).HandData;
+        var handData = (await session.StartHandAsync()).HandData!;
 
         handData.SmallBlindSeatNo.Should().Be(ButtonSeatNo);
         handData.BigBlindSeatNo.Should().Be(BigBlindSeatNo);
@@ -242,7 +242,7 @@ public sealed class HeadsUpTests
         handData.NextPlayerSeatNo.Should().Be(ButtonSeatNo, "the button still owes the difference");
         handData.GetEvalMinValue(PlayerActionType.Call).Should().Be(shortStack - SmallBlind);
 
-        handData = (await session.ActAsync(PlayerActionType.Call)).HandData;
+        handData = (await session.ActAsync(PlayerActionType.Call)).HandData!;
 
         handData.CommunityCards.Should().Equal(_board, "with the calling seat all in the board runs out in full");
         NetOf(handData, ButtonSeatNo).Should().Be(shortStack, "ace high wins the short stack's whole commitment");
@@ -261,7 +261,7 @@ public sealed class HeadsUpTests
         const decimal shortStack = 60M;
         using var session = await HeadsUpSession.CreateAsync(buttonStack: shortStack);
 
-        var handData = (await session.StartHandAsync()).HandData;
+        var handData = (await session.StartHandAsync()).HandData!;
 
         handData.StreetPot.Should().Be(SmallBlind + BigBlind, "the button could still cover the small blind");
         SeatOf(handData, ButtonSeatNo).Stack.Should().Be(shortStack - SmallBlind);
@@ -269,7 +269,7 @@ public sealed class HeadsUpTests
         handData.GetEvalMaxValue(PlayerActionType.Raise).Should().Be(shortStack,
             "a raise bound is a street total, and the button's whole stack only reaches the short of a full blind");
 
-        handData = (await session.ActAsync(PlayerActionType.Call)).HandData;
+        handData = (await session.ActAsync(PlayerActionType.Call)).HandData!;
 
         handData.CommunityCards.Should().Equal(_board);
         NetOf(handData, ButtonSeatNo).Should().Be(shortStack, "the button doubles the stack it was all in for");
@@ -286,7 +286,7 @@ public sealed class HeadsUpTests
 
     private static byte OtherSeatNo(byte seatNo) => (byte)(seatNo == ButtonSeatNo ? BigBlindSeatNo : ButtonSeatNo);
 
-    private static Card[] CardsFrom(params string[] cards) => [.. cards.Select(Card.FromString)];
+    private static Card[] CardsFrom(params string[] cards) => [.. cards.Select(Card.Parse)];
 
     /// <summary>
     /// A two-seat game over the shared test host, dealing the same scripted cards every hand.

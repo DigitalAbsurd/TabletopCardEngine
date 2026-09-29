@@ -78,7 +78,7 @@ public sealed class MultiHandSessionTests
                 $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
 
             var gameData = startResult.Value;
-            var handData = gameData.HandData;
+            var handData = gameData.HandData!;
 
             handData.No.Should().Be(handNo);
             AssertButtonWalksRound(handData, previousDealerSeatNo, seatCount);
@@ -94,7 +94,7 @@ public sealed class MultiHandSessionTests
                 .Be(seatCount * BuyIn, "nobody buys in again, so the chips on the table never change");
 
             gameData = await PlayOutHandAsync(holdemEngine, gameId, gameData, random);
-            handData = gameData.HandData;
+            handData = gameData.HandData!;
 
             handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
                 .Be(0, "a hand neither creates nor destroys chips");
@@ -129,12 +129,12 @@ public sealed class MultiHandSessionTests
         // A hand is over once the engine has written results — the same test the engine itself makes
         // in IsCurrentHandEnded. Evaluations is not a reliable signal: a hand that ends on a fold
         // still reports a next player, and so still offers actions.
-        while (!gameData.HandData.Seats.Any(seat => seat.HandResult != null))
+        while (!gameData.HandData!.Seats.Any(seat => seat.HandResult != null))
         {
             (--decisionsLeft).Should().BePositive(
-                $"hand #{gameData.HandData.No} should end within {MaxDecisionsPerHand} decisions");
+                $"hand #{gameData.HandData!.No} should end within {MaxDecisionsPerHand} decisions");
 
-            var handData = gameData.HandData;
+            var handData = gameData.HandData!;
             var check = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Check);
             var call = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Call);
             var raise = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
@@ -164,7 +164,7 @@ public sealed class MultiHandSessionTests
 
             gameData = result.Value;
 
-            foreach (var seatData in gameData.HandData.Seats)
+            foreach (var seatData in gameData.HandData!.Seats)
             {
                 seatData.Stack.Should().BeGreaterOrEqualTo(0,
                     $"seat {seatData.SeatNo} cannot wager more than it has");

@@ -1,9 +1,10 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace OpenHoldemEngine;
 
 /// <summary>One playing card. Its string form is rank then suit, lowercase — see <see cref="ToString"/>.</summary>
-public record Card
+public record Card : IParsable<Card>
 {
     private static readonly Dictionary<char, CardSuit> _suitByChar = new()
     {
@@ -29,32 +30,62 @@ public record Card
     }
 
     /// <summary>
-    /// Parses a card from either order — <c>"ah"</c> and <c>"ha"</c> both give the ace of hearts —
-    /// case-insensitively.
+    /// Parses a card from exactly two characters, rank and suit in either order, case-insensitively —
+    /// <c>"ah"</c>, <c>"ha"</c> and <c>"AH"</c> all give the ace of hearts.
     /// </summary>
-    /// <param name="cardStr">A two-character card token.</param>
-    /// <exception cref="NotImplementedException">The rank character is not recognised.</exception>
-    public static Card FromString(string cardStr)
+    /// <param name="s">A two-character card token.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <see langword="null"/>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not a card token.</exception>
+    public static Card Parse(string s)
     {
-        var typeChar = cardStr.ToLowerInvariant()[^1];
-        var suitChar = cardStr.ToLowerInvariant()[0];
+        ArgumentNullException.ThrowIfNull(s);
+        return TryParseCore(s) ?? throw new FormatException($"'{s}' is not a card: expected a rank and a suit, such as \"ah\".");
+    }
 
-        if (_suitByChar.ContainsKey(typeChar))
+    /// <summary>Parses a card like <see cref="Parse(string)"/> but reports failure instead of throwing.</summary>
+    /// <param name="s">A two-character card token, or <see langword="null"/>.</param>
+    /// <param name="card">The parsed card, or <see langword="null"/> when parsing fails.</param>
+    /// <returns><see langword="true"/> when <paramref name="s"/> is a card token.</returns>
+    public static bool TryParse([NotNullWhen(true)] string? s, [NotNullWhen(true)] out Card? card)
+    {
+        card = s is null ? null : TryParseCore(s);
+        return card is not null;
+    }
+
+    // Explicit, so the format provider (which a card token has no use for) stays out of the way of
+    // the one-argument overloads that callers actually use, and CA1305 has nothing to ask for.
+    static Card IParsable<Card>.Parse(string s, IFormatProvider? provider) => Parse(s);
+
+    static bool IParsable<Card>.TryParse([NotNullWhen(true)] string? s, IFormatProvider? provider, [NotNullWhen(true)] out Card? result)
+        => TryParse(s, out result);
+
+    private static Card? TryParseCore(string s)
+    {
+        if (s.Length != 2)
         {
-            (typeChar, suitChar) = (suitChar, typeChar);
+            return null;
         }
 
-        var cardType = typeChar switch
+        var first = char.ToLowerInvariant(s[0]);
+        var second = char.ToLowerInvariant(s[1]);
+        var (rankChar, suitChar) = _suitByChar.ContainsKey(second) ? (first, second) : (second, first);
+
+        if (!_suitByChar.TryGetValue(suitChar, out var suit))
         {
-            char c when char.IsDigit(c) => (CardType)byte.Parse(c.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture),
+            return null;
+        }
+
+        CardType? cardType = rankChar switch
+        {
+            >= '2' and <= '9' => (CardType)(rankChar - '0'),
             'a' => CardType.Ace,
             't' => CardType.Ten,
             'j' => CardType.Jack,
             'q' => CardType.Queen,
             'k' => CardType.King,
-            _ => throw new NotImplementedException()
+            _ => null
         };
 
-        return new Card { CardType = cardType, CardSuit = _suitByChar[suitChar] };
+        return cardType is { } type ? new Card { CardType = type, CardSuit = suit } : null;
     }
 }
