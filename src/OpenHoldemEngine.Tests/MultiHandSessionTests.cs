@@ -51,10 +51,7 @@ public sealed class MultiHandSessionTests
 
         (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData(
-                MaxPlayersCount: seatCount,
-                InitialSmallBlind: SmallBlind,
-                InitialDealerSeatNo: FirstDealerSeatNo)))).IsSuccess.Should().BeTrue();
+            Options: new GameOptionData { MaxPlayersCount = seatCount, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = FirstDealerSeatNo }))).IsSuccess.Should().BeTrue();
 
         var joinSeats = Enumerable.Range(1, seatCount)
             .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, BuyIn))

@@ -10,6 +10,8 @@ internal class Game
     public decimal InitialSmallBlind { get; set; } = 1;
     public int MaxPlayersCount { get; set; } = 6;
     public byte InitialDealerSeatNo { get; set; } = 1;
+    public GameType GameType { get; set; } = GameType.Holdem;
+    public BettingStructure BettingStructure { get; set; } = BettingStructure.NoLimit;
 
     public List<Player> Players { get; set; } = [];
     public List<Hand> Hands { get; set; } = [];

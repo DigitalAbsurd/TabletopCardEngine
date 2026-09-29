@@ -95,5 +95,32 @@ namespace OpenHoldemEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_PreviousHandNotEnded", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game type or betting structure is not supported.
+        /// </summary>
+        internal static string HoldemValidation_UnsupportedGameOptions {
+            get {
+                return ResourceManager.GetString("HoldemValidation_UnsupportedGameOptions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game options are out of range.
+        /// </summary>
+        internal static string HoldemValidation_InvalidGameOptions {
+            get {
+                return ResourceManager.GetString("HoldemValidation_InvalidGameOptions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A seat to join is invalid.
+        /// </summary>
+        internal static string HoldemValidation_InvalidSeat {
+            get {
+                return ResourceManager.GetString("HoldemValidation_InvalidSeat", resourceCulture);
+            }
+        }
     }
 }

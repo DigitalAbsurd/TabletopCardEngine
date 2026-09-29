@@ -10,7 +10,7 @@ public sealed class HoldemResultTests
 {
     private static readonly Guid _gameId = Guid.Parse("{22222222-2222-2222-2222-222222222222}");
 
-    private static readonly GameOptionData _gameOptions = new(MaxPlayersCount: 6, InitialSmallBlind: 5, InitialDealerSeatNo: 1);
+    private static readonly GameOptionData _gameOptions = new() { MaxPlayersCount = 6, InitialSmallBlind = 5, InitialDealerSeatNo = 1 };
 
     private static readonly PlayerJoinData[] _seats =
     [
@@ -98,6 +98,9 @@ public sealed class HoldemResultTests
             [HoldemErrorCode.CurrentHandEnded] = 2,
             [HoldemErrorCode.PreviousHandNotEnded] = 3,
             [HoldemErrorCode.InvalidAction] = 4,
+            [HoldemErrorCode.UnsupportedGameOptions] = 5,
+            [HoldemErrorCode.InvalidGameOptions] = 6,
+            [HoldemErrorCode.InvalidSeat] = 7,
         };
 
         Enum.GetValues<HoldemErrorCode>().Should().BeEquivalentTo(expected.Keys, "a new code needs a row in this table");

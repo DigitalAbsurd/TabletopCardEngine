@@ -119,10 +119,14 @@ public sealed class EngineCallSnippetWriter
         var sb = new StringBuilder();
         sb.AppendLine("new HoldemActionCreateGame(");
         sb.Append(nextIndent).Append("GameId: ").AppendLine(FormatGuid(action.GameId) + ",");
-        sb.Append(nextIndent).AppendLine("Options: new GameOptionData(");
-        sb.Append(indent2).Append("MaxPlayersCount: ").AppendLine(action.Options.MaxPlayersCount + ",");
-        sb.Append(indent2).Append("InitialSmallBlind: ").AppendLine(FormatDecimal(action.Options.InitialSmallBlind) + ",");
-        sb.Append(indent2).Append("InitialDealerSeatNo: ").Append(action.Options.InitialDealerSeatNo).AppendLine("))");
+        sb.Append(nextIndent).AppendLine("Options: new GameOptionData");
+        sb.Append(nextIndent).AppendLine("{");
+        sb.Append(indent2).Append("GameType = GameType.").Append(action.Options.GameType).AppendLine(",");
+        sb.Append(indent2).Append("BettingStructure = BettingStructure.").Append(action.Options.BettingStructure).AppendLine(",");
+        sb.Append(indent2).Append("MaxPlayersCount = ").AppendLine(action.Options.MaxPlayersCount + ",");
+        sb.Append(indent2).Append("InitialSmallBlind = ").AppendLine(FormatDecimal(action.Options.InitialSmallBlind) + ",");
+        sb.Append(indent2).Append("InitialDealerSeatNo = ").Append(action.Options.InitialDealerSeatNo).AppendLine(",");
+        sb.Append(nextIndent).AppendLine("})");
         return sb.ToString().TrimEnd();
     }
 

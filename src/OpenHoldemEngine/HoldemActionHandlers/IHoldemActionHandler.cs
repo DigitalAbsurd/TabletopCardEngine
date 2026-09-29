@@ -11,7 +11,7 @@ internal interface IHoldemActionHandler
     static IHoldemActionHandler CreateHandlerForAction(HoldemAction holdemAction, HoldemEngineOptions options)
     => holdemAction switch
     {
-        HoldemActionCreateGame => new CreateGameActionHandler(),
+        HoldemActionCreateGame => new CreateGameActionHandler(options.Settings),
         HoldemActionGetGame => new GetGameActionHandler(),
         HoldemActionStartHand => new StartHandActionHandler(options.CardShuffler),
         HoldemActionPlayerAction => new PlayerActionHandler(options.CardShuffler),

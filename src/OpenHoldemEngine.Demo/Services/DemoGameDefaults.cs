@@ -23,10 +23,12 @@ public static class DemoGameDefaults
 
     /// <summary>The game options the demo boots with.</summary>
     public static GameOptionData CreateOptions()
-        => new(
-            MaxPlayersCount: MaxPlayers,
-            InitialSmallBlind: SmallBlind,
-            InitialDealerSeatNo: DealerSeatNo);
+        => new()
+        {
+            MaxPlayersCount = MaxPlayers,
+            InitialSmallBlind = SmallBlind,
+            InitialDealerSeatNo = DealerSeatNo,
+        };
 
     /// <summary>
     /// The seats to fill, ascending by seat number — the engine walks the array in order to resolve

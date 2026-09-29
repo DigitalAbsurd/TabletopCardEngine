@@ -1,0 +1,28 @@
+﻿using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Options;
+using OpenHoldemEngine.Resources;
+
+namespace OpenHoldemEngine.HoldemActionHandlers;
+
+/// <summary>Checks a new game's options against the v1 scope and the container's seat limits.</summary>
+internal static class GameOptionsValidation
+{
+    internal static HoldemError? Validate(GameOptionData options, HoldemEngineSettings settings)
+    {
+        if (!Enum.IsDefined(options.GameType) || !Enum.IsDefined(options.BettingStructure))
+        {
+            return new HoldemError(HoldemErrorCode.UnsupportedGameOptions, PackResource.HoldemValidation_UnsupportedGameOptions);
+        }
+
+        if (options.MaxPlayersCount < settings.GamePlayersMinCount
+            || options.MaxPlayersCount > settings.GamePlayersMaxCount
+            || options.InitialSmallBlind <= 0
+            || options.InitialDealerSeatNo < 1
+            || options.InitialDealerSeatNo > options.MaxPlayersCount)
+        {
+            return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_InvalidGameOptions);
+        }
+
+        return null;
+    }
+}

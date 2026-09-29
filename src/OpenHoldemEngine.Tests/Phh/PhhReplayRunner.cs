@@ -164,10 +164,7 @@ internal sealed class PhhReplayRunner : IDisposable
 
         await ApplyAsync(new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData(
-                MaxPlayersCount: playerCount,
-                InitialSmallBlind: hand.SmallBlind,
-                InitialDealerSeatNo: (byte)playerCount)),
+            Options: new GameOptionData { MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
             hand);
 
         var gameData = await ApplyAsync(new HoldemActionStartHand(gameId)

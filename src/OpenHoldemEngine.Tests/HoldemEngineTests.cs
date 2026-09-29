@@ -10,10 +10,7 @@ public sealed class HoldemEngineTests
     public async Task HoldemAction_StartGame()
     {
         var gameId = Guid.Parse("{11111111-1111-1111-1111-111111111111}");
-        var gameOptions = new GameOptionData(
-                MaxPlayersCount: 10,
-                InitialSmallBlind: 5,
-                InitialDealerSeatNo: 3);
+        var gameOptions = new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 5, InitialDealerSeatNo = 3 };
 
         var seatsData = new PlayerJoinData[]
         {
@@ -110,10 +107,7 @@ public sealed class HoldemEngineTests
     public async Task HoldemAction_StartGame_ValidationAlreadyExists()
     {
         var gameId = Guid.Parse("{11111111-1111-1111-1111-111111111111}");
-        var gameOptions = new GameOptionData(
-                MaxPlayersCount: 10,
-                InitialSmallBlind: 5,
-                InitialDealerSeatNo: 3);
+        var gameOptions = new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 5, InitialDealerSeatNo = 3 };
 
         HoldemResult<GameData> failResult;
 
