@@ -162,6 +162,12 @@ given none, it picks from the whole repository. A milestone nobody asked for the
 organise anything — it only hides the issue from a scoped run, and it changes the branch prefix
 (`<milestone-slug>/issue-N` rather than `task/issue-N`) for no reason.
 
+**The exception is `Backlog`.** Every follow-up an implementer files while working a task goes into
+the `Backlog` milestone ([docs/task-run.md](task-run.md#where-the-task-text-comes-from)), so the pool
+of unplanned work stays in one place instead of scattered unassigned across the repository. When
+you plan a batch, triage `Backlog` too: move what belongs to a real milestone there, and bring the
+rest to ready where it is.
+
 ## 6. Write the issue so it stands alone
 
 The issue **is** the task. Nothing outside it and [docs/task-run.md](task-run.md) will be read.
@@ -178,6 +184,7 @@ git protocol, the repository's traps and the engine facts — is docs/task-run.m
 **Files.** Every file to touch, by path.
 **Definition of done.** The gates, plus the probe with its before-value quoted.
 **Notes for the implementer.** The named wrong fixes, and the traps.
+**Open decisions.** Forks with their options   <- only while undecided; not ready until gone
 ### Context for an AI assistant
 ```
 
@@ -251,9 +258,16 @@ The consequences for planning:
   nothing mentions an unlabelled one. Once nothing is ready, the runner lists every skipped issue
   with its reason (`has no 'agent-ready' label`, `was applied by 'x', whose role is 'none'`,
   `was edited after 'agent-ready' was applied`, `waits on #N (OPEN)`).
-- **Follow-up issues the agent files arrive unlabelled.** The prompt forbids it to touch
-  `agent-ready`, but it runs with your `gh` credentials, which could. Review those issues like any
-  other before labelling them.
+- **Follow-up issues the agent files arrive in `Backlog`, and by default unvetted.** The prompt
+  forbids the agent to touch `agent-ready`, but the agent runs with your `gh` credentials, which
+  could. Review those issues like any other before labelling them. An issue with an
+  `**Open decisions.**` section is not ready: decide, rewrite the body, then label it.
+- **`-AllowAgentVetting` hands that review to the agent.** With the switch, the prompt allows the
+  agent to label a follow-up it filed itself, provided the issue has no open decisions. The guard
+  then passes, because the label was applied with your credentials, and the runner takes the issue
+  next with no human having read it. That includes an issue a prompt injection in a comment or a
+  linked page talked the agent into filing. Use the switch only for runs you watch, on a repository
+  whose issues and comments come from people you trust.
 
 Then:
 
