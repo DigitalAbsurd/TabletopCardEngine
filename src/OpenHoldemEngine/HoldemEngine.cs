@@ -10,10 +10,20 @@ namespace OpenHoldemEngine;
 /// <summary>
 /// The engine's whole public surface. There is no long-lived in-memory game: every call rehydrates
 /// the aggregate from the database, applies one action, and projects the result back out.
+/// <para>
+/// Instances are obtained from the dependency-injection container registered by
+/// <c>AddHoldemEngine</c>: <c>services.GetRequiredService&lt;HoldemEngine&gt;()</c>.
+/// </para>
 /// </summary>
-/// <param name="options">Resolved engine options, normally supplied by dependency injection.</param>
-public sealed class HoldemEngine(HoldemEngineOptions options)
+public sealed class HoldemEngine
 {
+    private readonly HoldemEngineOptions _options;
+
+    internal HoldemEngine(HoldemEngineOptions options)
+    {
+        _options = options;
+    }
+
     /// <summary>
     /// Applies one action to a game and returns the game as it now stands.
     /// <para>
@@ -30,9 +40,9 @@ public sealed class HoldemEngine(HoldemEngineOptions options)
     /// </returns>
     public async Task<Result<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
     {
-        IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction, options);
+        IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction, _options);
 
-        using var dbContext = await options.DbContextFactory.CreateDbContextAsync(cancellationToken);
+        using var dbContext = await _options.DbContextFactory.CreateDbContextAsync(cancellationToken);
 
         var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
 
