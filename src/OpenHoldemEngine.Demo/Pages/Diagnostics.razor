@@ -53,7 +53,7 @@
 
             // Create a game
             gameId = Guid.NewGuid();
-            var createGameAction = HoldemAction.CreateCreateGameDto(new GameOptionData(), gameId);
+            var createGameAction = HoldemAction.CreateGame(new GameOptionData(), gameId);
             var result = await holdemEngine.ApplyHoldemActionAsync(createGameAction, CancellationToken.None);
 
             if (!result.IsSuccess)

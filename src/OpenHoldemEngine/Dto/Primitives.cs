@@ -37,7 +37,7 @@ public record PlayerJoinData(string Name, byte SeatNo, decimal BuyInAmount);
 /// The two bounds are on different bases by design: for <see cref="PlayerActionType.Call"/> they are
 /// an increment ("how much more to put in"), while for <see cref="PlayerActionType.Raise"/> they are
 /// both absolute street totals ("raise the street wager up to this") — the same basis
-/// <see cref="HoldemActionPlayerAction.Size"/> expects. A "call" button wants a top-up amount; a
+/// <see cref="HoldemActionPlay.Size"/> expects. A "call" button wants a top-up amount; a
 /// "raise to" slider wants an absolute.
 /// </para>
 /// </summary>

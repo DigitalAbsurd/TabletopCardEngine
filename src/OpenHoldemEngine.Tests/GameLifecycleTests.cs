@@ -39,7 +39,7 @@ public sealed class GameLifecycleTests
         var finished = await ApplyOkAsync(engine, new HoldemActionFinishGame(_gameId));
         finished.IsFinished.Should().BeTrue();
 
-        var action = await engine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0));
+        var action = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
         action.IsFailed.Should().BeTrue();
         action.Errors.Single().Code.Should().Be(HoldemErrorCode.GameFinished);
 
@@ -61,7 +61,7 @@ public sealed class GameLifecycleTests
             new HoldemActionStartGame(_gameId, _seats),
             new HoldemActionStartHand(_gameId),
             new HoldemActionCreateGame(_gameId, _gameOptions),
-            new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0),
+            new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0),
         ];
         foreach (var action in actions)
         {
@@ -147,7 +147,7 @@ public sealed class GameLifecycleTests
 
         var read = await ApplyOkAsync(engine, new HoldemActionGetGame(_gameId));
         read.IsFinished.Should().BeFalse();
-        await ApplyOkAsync(engine, new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0));
+        await ApplyOkAsync(engine, new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
     }
 
     [TestMethod]
@@ -210,8 +210,8 @@ public sealed class GameLifecycleTests
     private static async Task PlayHandToEndAsync(HoldemEngine engine)
     {
         // Three seats: the first two to act fold, and the last one takes the pot.
-        await ApplyOkAsync(engine, new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0));
-        var ended = await ApplyOkAsync(engine, new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0));
+        await ApplyOkAsync(engine, new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
+        var ended = await ApplyOkAsync(engine, new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
         ended.HandData!.Street.Should().Be(Street.Finished);
     }
 

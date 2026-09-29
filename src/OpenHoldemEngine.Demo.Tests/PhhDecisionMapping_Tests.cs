@@ -60,8 +60,8 @@ public sealed class PhhDecisionMapping_Tests
         result.Should().BeTrue();
         session.CurrentHand.Should().NotBeNull();
         var lastEntry = session.Journal.Entries[session.Journal.Entries.Count - 1];
-        lastEntry.Action.Should().BeOfType<HoldemActionPlayerAction>();
-        ((HoldemActionPlayerAction)lastEntry.Action).ActionType.Should().Be(PlayerActionType.Fold);
+        lastEntry.Action.Should().BeOfType<HoldemActionPlay>();
+        ((HoldemActionPlay)lastEntry.Action).ActionType.Should().Be(PlayerActionType.Fold);
     }
 
     [TestMethod]

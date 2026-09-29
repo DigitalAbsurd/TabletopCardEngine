@@ -242,7 +242,7 @@ renumber.
    around either.
 5. **`HandData.Evaluations` mixes two bases on purpose.** A `Call`'s `MinValue`/`MaxValue` is an
    *increment* ("how much more to put in"); a `Raise`'s `MinValue`/`MaxValue` are both an *absolute
-   street total* ("raise to"). `HoldemActionPlayerAction.Size` for a raise expects the absolute. A
+   street total* ("raise to"). `HoldemActionPlay.Size` for a raise expects the absolute. A
    degenerate raise window arrives as a synthetic `Raise(allInTo, allInTo)`.
 6. **`Pot` excludes the current street.** `HandData.Pot` is prior streets only and `StreetPot` is the
    current street's contributions; a total pot display must add them.

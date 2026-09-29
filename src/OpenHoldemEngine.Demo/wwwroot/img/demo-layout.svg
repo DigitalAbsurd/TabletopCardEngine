@@ -144,7 +144,7 @@
     <text x="910" y="160" fill="#6f42c1">engine</text>
     <text x="940" y="160" fill="#24292e">.</text>
     <text x="946" y="160" fill="#005a9c">ApplyHoldemActionAsync</text>
-    <text x="910" y="172" fill="#005a9c">    new HoldemActionPlayerAction</text>
+    <text x="910" y="172" fill="#005a9c">    new HoldemActionPlay</text>
     <text x="910" y="184" fill="#d9d9d9">        GameId: gameId,</text>
 
     <!-- Code snippet 2 -->

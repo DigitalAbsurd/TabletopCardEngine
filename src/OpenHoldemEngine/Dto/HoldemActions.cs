@@ -3,27 +3,38 @@
 /// <summary>
 /// The one command type the engine accepts. Which concrete record you pass decides which handler
 /// runs — see <c>IHoldemActionHandler.CreateHandlerForAction</c>. A new action type has to be added
-/// both here and to that switch.
+/// both here and to that switch. Every command is a <c>HoldemAction&lt;Verb&gt;</c> record with one
+/// static factory of the same verb on this type. The shape rule for the records: required data is
+/// positional, optional data is an <see langword="init"/> property.
 /// </summary>
 /// <param name="GameId">The game the action applies to.</param>
 public abstract record HoldemAction(Guid GameId)
 {
-    /// <summary>Creates a game with the given rules, generating an identifier when none is supplied.</summary>
-    /// <param name="optionData">The rules the game is created with.</param>
-    /// <param name="gameId">Identifier to use, or <see langword="null"/> to generate one.</param>
-    public static HoldemActionCreateGame CreateCreateGameDto(GameOptionData optionData, Guid? gameId)
-        => new(gameId ?? Guid.NewGuid(), optionData);
-
-    /// <summary>Deals the next hand of a started game, seating the given players first.</summary>
-    /// <param name="gameId">The game to deal in.</param>
-    /// <param name="joinSeats">The seats to fill before dealing, for players who sit down between hands.</param>
-    public static HoldemActionStartHand CreateStartHandDto(Guid gameId, PlayerJoinData[] joinSeats)
-        => new(gameId) { JoinSeats = joinSeats };
-
-    /// <summary>Deals the next hand to the players already seated.</summary>
-    /// <param name="gameId">The game to deal in.</param>
-    public static HoldemActionStartHand CreateStartNextHandDto(Guid gameId)
+    /// <summary>Reads the game back without changing anything.</summary>
+    /// <param name="gameId">The game to read.</param>
+    public static HoldemActionGetGame GetGame(Guid gameId)
         => new(gameId);
+
+    /// <summary>Creates a game with the given rules, generating an identifier when none is supplied.</summary>
+    /// <param name="options">The rules the game is created with.</param>
+    /// <param name="gameId">Identifier to use, or <see langword="null"/> to generate one.</param>
+    public static HoldemActionCreateGame CreateGame(GameOptionData options, Guid? gameId = null)
+        => new(gameId ?? Guid.NewGuid(), options);
+
+    /// <summary>Starts a created game: seats the players and deals hand 1.</summary>
+    /// <param name="gameId">The game to start.</param>
+    /// <param name="joinSeats">The seats to fill, in any order.</param>
+    public static HoldemActionStartGame StartGame(Guid gameId, PlayerJoinData[] joinSeats)
+        => new(gameId, joinSeats);
+
+    /// <summary>Deals the next hand of a started game, optionally seating players first.</summary>
+    /// <param name="gameId">The game to deal in.</param>
+    /// <param name="joinSeats">
+    /// The seats to fill before dealing, for players who sit down between hands, or
+    /// <see langword="null"/> to deal to the players already seated.
+    /// </param>
+    public static HoldemActionStartHand StartHand(Guid gameId, PlayerJoinData[]? joinSeats = null)
+        => new(gameId) { JoinSeats = joinSeats ?? [] };
 
     /// <summary>Plays one action for the seat whose turn it is.</summary>
     /// <param name="gameId">The game to act in.</param>
@@ -31,8 +42,13 @@ public abstract record HoldemAction(Guid GameId)
     /// <param name="size">
     /// For a raise, the street total to raise <i>to</i>; ignored for actions that carry no size.
     /// </param>
-    public static HoldemActionPlayerAction CreatePlayerActionDto(Guid gameId, PlayerActionType actionType, decimal size = 0)
+    public static HoldemActionPlay Play(Guid gameId, PlayerActionType actionType, decimal size = 0)
         => new(gameId, actionType, size);
+
+    /// <summary>Closes the game, between hands only.</summary>
+    /// <param name="gameId">The game to finish.</param>
+    public static HoldemActionFinishGame FinishGame(Guid gameId)
+        => new(gameId);
 }
 
 /// <summary>Reads the game back without changing anything.</summary>
@@ -60,7 +76,7 @@ public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : H
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
     /// <summary>Seats to fill before dealing, for players who sit down between hands.</summary>
-    public PlayerJoinData[] JoinSeats { get; set; } = [];
+    public PlayerJoinData[] JoinSeats { get; init; } = [];
 }
 
 /// <summary>Plays one action for the seat whose turn it is.</summary>
@@ -70,7 +86,7 @@ public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 /// For <see cref="PlayerActionType.Raise"/>, the street total to raise <i>to</i> — the same absolute
 /// basis as the raise bounds in <see cref="HandData.Evaluations"/>. Ignored for other actions.
 /// </param>
-public record HoldemActionPlayerAction(Guid GameId, PlayerActionType ActionType, decimal Size) : HoldemAction(GameId);
+public record HoldemActionPlay(Guid GameId, PlayerActionType ActionType, decimal Size) : HoldemAction(GameId);
 
 /// <summary>
 /// Closes the game, between hands only: it fails with <see cref="HoldemErrorCode.PreviousHandNotEnded"/>

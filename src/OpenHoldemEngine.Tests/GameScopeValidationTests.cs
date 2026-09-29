@@ -84,7 +84,7 @@ public sealed class GameScopeValidationTests
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
         (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxPlayersCount = 3 }))).IsSuccess.Should().BeTrue();
         (await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
-        (await engine.ApplyHoldemActionAsync(new HoldemActionPlayerAction(_gameId, PlayerActionType.Fold, 0))).IsSuccess.Should().BeTrue();
+        (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0))).IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
         var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = [new("Player 1", 1, 500)] });

@@ -6,9 +6,9 @@ using System.Diagnostics;
 
 namespace OpenHoldemEngine.HoldemActionHandlers;
 
-internal sealed class PlayerActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionPlayerAction>
+internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionPlay>
 {
-    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionPlayerAction holdemAction, Game game)
+    internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionPlay holdemAction, Game game)
     {
         if (!Enum.IsDefined(holdemAction.ActionType))
         {

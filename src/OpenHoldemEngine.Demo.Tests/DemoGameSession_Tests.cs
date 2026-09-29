@@ -115,7 +115,7 @@ public sealed class DemoGameSession_Tests
         entries[1].ErrorMessages.Should().BeEmpty();
 
         entries[2].SequenceNumber.Should().Be(3);
-        entries[2].Action.Should().BeOfType<HoldemActionPlayerAction>();
+        entries[2].Action.Should().BeOfType<HoldemActionPlay>();
         entries[2].Succeeded.Should().BeTrue();
         entries[2].ErrorMessages.Should().BeEmpty();
     }
