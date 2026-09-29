@@ -244,8 +244,7 @@ renumber.
    degenerate raise window arrives as a synthetic `Raise(allInTo, allInTo)`.
 6. **`Pot` excludes the current street.** `HandData.Pot` is prior streets only and `StreetPot` is the
    current street's contributions; a total pot display must add them.
-7. **`GameOptionData.AllowRebuy`, `HoldemActionStartHand.BuyIns` and `KickOffSeats` are read by no
-   handler.** They are declared and ignored. Do not present them as working controls.
+7. *Retired by #140:* the members were removed.
 8. **`JoinSeats` must be in ascending `SeatNo` order** — `StartHandActionHandler` walks the array in
    order to resolve the first hand's button.
 9. **Seat numbers are 1-based; `0` is the "nobody" sentinel** for `NextPlayerSeatNo`, `DealerSeatNo`

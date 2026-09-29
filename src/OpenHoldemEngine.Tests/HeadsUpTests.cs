@@ -299,8 +299,7 @@ public sealed class HeadsUpTests
         internal static readonly GameOptionData Options = new(
             MaxPlayersCount: 2,
             InitialSmallBlind: SmallBlind,
-            InitialDealerSeatNo: ButtonSeatNo,
-            AllowRebuy: false);
+            InitialDealerSeatNo: ButtonSeatNo);
 
         private readonly IDisposable _host;
         private readonly HoldemEngine _engine;

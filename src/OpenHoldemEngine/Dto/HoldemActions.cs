@@ -64,12 +64,6 @@ public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
     /// the previous dealer by walking this array in order.
     /// </summary>
     public PlayerJoinData[] JoinSeats { get; set; } = [];
-
-    /// <summary>Top-ups to apply before dealing. Declared but not yet honored by any handler.</summary>
-    public BuyInData[] BuyIns { get; set; } = [];
-
-    /// <summary>Seats to empty before dealing. Declared but not yet honored by any handler.</summary>
-    public byte[] KickOffSeats { get; set; } = [];
 }
 
 /// <summary>Plays one action for the seat whose turn it is.</summary>

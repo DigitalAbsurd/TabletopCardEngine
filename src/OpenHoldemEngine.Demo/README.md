@@ -102,20 +102,6 @@ The demo stores every game in your browser's memory, not on disk:
 
 This is a deliberate design choice. Persisting SQLite to browser storage (LocalStorage, IndexedDB, or OPFS) adds complexity that does not teach anything about the engine. The in-memory approach keeps the demo self-contained and fast, while still demonstrating that the engine separates the game state (database) from the application (handlers and queries).
 
-### Non-functional engine features declared but unused
-
-These settings are declared in the public DTOs and do nothing:
-
-- **`GameOptionData.AllowRebuy`**: Rebuy logic is not implemented by any handler.
-- **`HoldemActionStartHand.BuyIns`** and **`KickOffSeats`**: Mid-session buy-ins and seat removals are declared but ignored.
-
-The demo presents these fields honestly:
-
-- `AllowRebuy` is omitted from the game setup form, because ticking it would mislead you into thinking it works.
-- `BuyIns` and `KickOffSeats` are not shown when starting a new hand, for the same reason.
-
-If you want to add these features to the engine, they are good candidates for the follow-up implementation.
-
 ## Troubleshooting and diagnostics
 
 If the demo does not respond:

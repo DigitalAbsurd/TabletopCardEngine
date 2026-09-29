@@ -25,7 +25,7 @@ internal static class GameDataMapper
 
         return new GameData(
             GameId: game.Id,
-            Options: new GameOptionData(game.MaxPlayersCount, game.InitialSmallBlind, game.InitialDealerSeatNo, game.AllowRebuy, game.MaxHandsCount, game.AutoIncrementHands),
+            Options: new GameOptionData(game.MaxPlayersCount, game.InitialSmallBlind, game.InitialDealerSeatNo),
             HandData: currentHand.No != default
                 ? new HandData(
                     No: currentHand.No,

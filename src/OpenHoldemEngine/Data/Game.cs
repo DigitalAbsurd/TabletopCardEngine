@@ -8,11 +8,8 @@ internal class Game
     [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
     public Guid Id { get; set; }
     public decimal InitialSmallBlind { get; set; } = 1;
-    public int AutoIncrementHands { get; set; }
     public int MaxPlayersCount { get; set; } = 6;
-    public int MaxHandsCount { get; set; }
     public byte InitialDealerSeatNo { get; set; } = 1;
-    public bool AllowRebuy { get; set; }
 
     public List<Player> Players { get; set; } = [];
     public List<Hand> Hands { get; set; } = [];
