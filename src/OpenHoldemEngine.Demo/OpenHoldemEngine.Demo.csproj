@@ -24,6 +24,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Publishing copies the dependencies into the site, so their notices ship with it. -->
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="wwwroot\THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../OpenHoldemEngine/OpenHoldemEngine.csproj" />
   </ItemGroup>
 

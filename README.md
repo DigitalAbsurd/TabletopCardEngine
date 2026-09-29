@@ -15,3 +15,9 @@ An interactive walkthrough that shows how the engine works:
 This teaches the core concept: **there is no in-memory game object — the database is the state**.
 
 ![OpenHoldemEngine Demo Layout](src/OpenHoldemEngine.Demo/wwwroot/img/demo-layout.svg)
+
+## License
+
+OpenHoldemEngine is released under the [MIT License](LICENSE). The licenses and notices of the
+third-party packages it depends on, of the assets the demo redistributes, and of the vendored PHH
+hand-history corpus are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
