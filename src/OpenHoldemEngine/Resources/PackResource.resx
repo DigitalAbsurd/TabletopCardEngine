@@ -147,4 +147,7 @@
   <data name="HoldemValidation_GameFinished" xml:space="preserve">
     <value>The game is finished</value>
   </data>
+  <data name="HoldemValidation_Conflict" xml:space="preserve">
+    <value>The game was changed by another action; reload it and try again.</value>
+  </data>
 </root>

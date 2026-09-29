@@ -74,6 +74,10 @@ The engine enforces this: see fact 23 in [docs/task-run.md](docs/task-run.md).
 
 There is no long-lived in-memory game object. **The database is the state**; each call rehydrates from it.
 
+### Concurrency
+
+`Game.Version` is an optimistic concurrency token (`IsConcurrencyToken()`; SQLite has no `rowversion`, so the application increments it). `CreateGame` sets it to `1`, every other call that saves does `game.Version++` first so the `UPDATE Game ... WHERE Version = @old` is issued even when only child rows changed, and `GetGame` neither saves nor increments. It is exposed as `GameData.Version`. `HoldemAction.ExpectedVersion` (optional `init` property, ignored by `CreateGame`) is checked against the loaded version before any handler runs. Either that mismatch or a `DbUpdateConcurrencyException` from the save returns `HoldemErrorCode.Conflict`; nothing is persisted, and the engine never retries and takes no locks: the caller reloads with `GetGame` and decides. Any other `DbUpdateException` stays unhandled, as a real fault.
+
 ### Rules live in Engine/, in domain terms
 
 Betting rules, blinds, pot/side-pot splitting, showdown and street progression are implemented in-repo under `Engine/` — there is no external rules package. On every call `HandTableFactory.Build` rehydrates the persisted entities into a transient `HandTable` (seats, board, deck, whose turn it is), `HandRunner.StartHand` / `ApplyAction` mutates it in place, and `BettingRules.LegalActions` answers what a seat may currently do. The *result* is written back as rows (`HandAction`, `HandDeckCard`, `HandPlayerEndState`); `HandTable` itself is always derived and never stored, so changing how entities convert to it changes game behaviour.

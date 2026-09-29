@@ -36,4 +36,7 @@ public enum HoldemErrorCode
 
     /// <summary>The game was finished, so only reading it back is allowed.</summary>
     GameFinished = 10,
+
+    /// <summary>The game was changed by another action since the caller read it, so nothing was applied. Reload it and decide.</summary>
+    Conflict = 11,
 }

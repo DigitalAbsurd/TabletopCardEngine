@@ -266,11 +266,11 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Ten validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Eleven validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`.
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, and `Conflict = 11` of fact 24.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -323,6 +323,17 @@ renumber.
     `HoldemEngineOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
     with a minimum below 2, a maximum above 6 or a minimum above the maximum: a configuration error, not a
     game result. `GameOptionData` has no positional constructor; build it with an object initializer.
+24. **`Game.Version` is the concurrency token, and `Conflict = 11` reports a lost race.** `CreateGame`
+    starts it at `1`; every other call that saves increments it, so the `UPDATE Game ... WHERE Version`
+    check runs even when only child rows changed; `GetGame` does not save and does not increment. It is
+    `GameData.Version`. `HoldemAction.ExpectedVersion` (optional, ignored by `CreateGame`) that differs
+    from the loaded version fails with `Conflict` before any handler runs, and so does a
+    `DbUpdateConcurrencyException` from the save (the second of two racing writers fails on the `Game`
+    row before it can hit a duplicate `HandAction` key). Nothing is persisted on a conflict. The engine
+    never retries and takes no lock: the caller reloads with `GetGame` and decides. Any other
+    `DbUpdateException` is a real fault and is not caught. Tests interleave two writers through the
+    internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
+    connection serialises everything.
 
 ## A known, deliberate duplication
 

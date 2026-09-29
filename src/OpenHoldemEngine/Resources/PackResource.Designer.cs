@@ -149,5 +149,14 @@ namespace OpenHoldemEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_GameFinished", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The game was changed by another action; reload it and try again.
+        /// </summary>
+        internal static string HoldemValidation_Conflict {
+            get {
+                return ResourceManager.GetString("HoldemValidation_Conflict", resourceCulture);
+            }
+        }
     }
 }

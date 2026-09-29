@@ -104,6 +104,7 @@ public sealed class HoldemResultTests
             [HoldemErrorCode.GameAlreadyStarted] = 8,
             [HoldemErrorCode.GameNotStarted] = 9,
             [HoldemErrorCode.GameFinished] = 10,
+            [HoldemErrorCode.Conflict] = 11,
         };
 
         Enum.GetValues<HoldemErrorCode>().Should().BeEquivalentTo(expected.Keys, "a new code needs a row in this table");
