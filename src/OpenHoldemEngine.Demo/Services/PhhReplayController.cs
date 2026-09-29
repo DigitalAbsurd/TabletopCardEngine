@@ -280,11 +280,21 @@ public sealed class PhhReplayController
 
             if (seatData == null)
             {
-                // Seat folded or was not involved
+                // Seat is not in the engine's current game
+                matches = false;
+                details.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Seat {seatNo}: recorded {AmountFormat.Format(recordedStack)}, engine seat not found");
                 continue;
             }
 
-            var engineStack = seatData.Stack;
+            if (seatData.HandResult == null)
+            {
+                // Hand did not finish for this seat
+                matches = false;
+                details.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"Seat {seatNo}: recorded {AmountFormat.Format(recordedStack)}, engine hand did not finish");
+                continue;
+            }
+
+            var engineStack = seatData.StartHandStack + seatData.HandResult.Net;
 
             if (Math.Abs(recordedStack - engineStack) > 0.01m)
             {
