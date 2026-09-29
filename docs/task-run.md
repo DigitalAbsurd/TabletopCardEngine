@@ -140,6 +140,12 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   follows the normal naming rules.
 - **FluentAssertions is pinned at 6.1.0.** `AllSatisfy` and `BeGreaterThanOrEqualTo` do not exist.
   Object comparisons use `actual.ShouldAsJToken().BeEquivalentToAsJToken(expected)`, actual first.
+- **Every package must be in `THIRD-PARTY-NOTICES.md`.** `ThirdPartyNoticesTests` fails `dotnet test`
+  when a package any project resolves (transitive ones included) has no row in the notices' package
+  inventory, a row whose license differs from the nuspec, or a license outside the permissive
+  allowlist. Adding or bumping a package means running `pwsh ./scripts/audit-licenses.ps1` and
+  pasting its tables over the inventory. A vendored asset has no nuspec, so it needs its row in the
+  notices by hand.
 - **There are no EF migrations.** The schema comes from `HoldemDbContext.OnModelCreating`
   (composite keys throughout) plus `Database.EnsureCreated()`. An entity shape change needs no
   migration but does need the model configuration updated by hand.

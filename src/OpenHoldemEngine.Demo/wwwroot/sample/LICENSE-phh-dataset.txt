@@ -1,9 +1,9 @@
-The sample.phhs hand histories are derived from the PHH dataset.
+The sample.phhs hand histories are taken from the Pluribus subset of the PHH dataset.
 
 Source: https://github.com/uoftcprg/phh-dataset
 License: MIT
 
-Copyright (c) 2021 University of Toronto Computer Poker Research Group
+Copyright (c) 2024-2025 Universal, Open, Free, and Transparent Computer Poker Research Group
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
