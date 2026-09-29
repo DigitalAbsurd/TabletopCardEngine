@@ -160,7 +160,7 @@ public sealed class EngineCallSnippetWriter_Tests
             new PlayerJoinData(SeatNo: 2, Name: "Bob", BuyInAmount: 1000m),
         };
 #pragma warning restore CA1861
-        var startAction = new HoldemActionStartHand(GameId: gameId) { JoinSeats = joinSeats };
+        var startAction = new HoldemActionStartGame(GameId: gameId, JoinSeats: joinSeats);
         journal.RecordSuccess(startAction);
 
         // Act
@@ -176,7 +176,7 @@ public sealed class EngineCallSnippetWriter_Tests
         snippet.Should().Contain("DataSource=:memory:");
         snippet.Should().Contain("var engine = provider.GetRequiredService<HoldemEngine>();");
         snippet.Should().Contain("new HoldemActionCreateGame(");
-        snippet.Should().Contain("new HoldemActionStartHand(");
+        snippet.Should().Contain("new HoldemActionStartGame(");
     }
 
     [TestMethod]

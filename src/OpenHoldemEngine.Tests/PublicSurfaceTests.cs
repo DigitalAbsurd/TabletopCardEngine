@@ -64,7 +64,7 @@ public sealed class PublicSurfaceTests
 
             // Start a hand to verify the resolved engine is fully functional
             var startResult = await engine.ApplyHoldemActionAsync(
-                new HoldemActionStartHand(gameId) { JoinSeats = seats },
+                new HoldemActionStartGame(gameId, seats),
                 CancellationToken.None);
 
             startResult.IsSuccess.Should().BeTrue("starting a hand should succeed");

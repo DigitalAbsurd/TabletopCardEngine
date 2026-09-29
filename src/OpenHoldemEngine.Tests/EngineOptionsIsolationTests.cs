@@ -63,7 +63,7 @@ public sealed class EngineOptionsIsolationTests
         (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions)))
             .IsSuccess.Should().BeTrue();
 
-        var started = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _joinSeats });
+        var started = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _joinSeats));
         started.IsSuccess.Should().BeTrue();
         return started.Value.HandData!;
     }

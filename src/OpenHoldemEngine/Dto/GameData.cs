@@ -86,4 +86,5 @@ public record HandData(
 /// <param name="GameId">Identifier of the game.</param>
 /// <param name="Options">The rules the game was created with.</param>
 /// <param name="HandData">The current hand, or <see langword="null"/> when no hand has been dealt yet.</param>
-public record GameData(Guid GameId, GameOptionData Options, HandData? HandData);
+/// <param name="IsFinished">Whether <c>FinishGame</c> has closed the game; after that only reading it back is allowed.</param>
+public record GameData(Guid GameId, GameOptionData Options, HandData? HandData, bool IsFinished = false);

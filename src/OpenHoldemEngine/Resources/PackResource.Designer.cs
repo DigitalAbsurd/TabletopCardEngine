@@ -122,5 +122,32 @@ namespace OpenHoldemEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_InvalidSeat", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game has already been started.
+        /// </summary>
+        internal static string HoldemValidation_GameAlreadyStarted {
+            get {
+                return ResourceManager.GetString("HoldemValidation_GameAlreadyStarted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game has not been started.
+        /// </summary>
+        internal static string HoldemValidation_GameNotStarted {
+            get {
+                return ResourceManager.GetString("HoldemValidation_GameNotStarted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game is finished.
+        /// </summary>
+        internal static string HoldemValidation_GameFinished {
+            get {
+                return ResourceManager.GetString("HoldemValidation_GameFinished", resourceCulture);
+            }
+        }
     }
 }

@@ -116,7 +116,7 @@
 
     /// <summary>
     /// The dealt hand, or null. GameData.HandData is null
-    /// between CreateGame and the first StartHand, and hand 0 is that same placeholder.
+    /// between CreateGame and the first StartGame, and hand 0 is that same placeholder.
     /// </summary>
     private HandData? Hand => GameData?.HandData is { No: > 0 } hand ? hand : null;
 

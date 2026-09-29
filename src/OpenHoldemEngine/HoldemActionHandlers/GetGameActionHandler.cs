@@ -5,6 +5,8 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 
 internal sealed class GetGameActionHandler : HoldemActionHandler<HoldemActionGetGame>
 {
+    protected override bool AllowedWhenFinished => true;
+
     internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionGetGame holdemAction, Game game)
     {
         return Task.FromResult<HoldemError?>(null);

@@ -94,10 +94,7 @@ public sealed class HoldemEngineTests
                     Options: gameOptions));
 
             actualGameData = (await holdemEngine.ApplyHoldemActionAsync(
-                new HoldemActionStartHand(GameId: gameId)
-                {
-                    JoinSeats = seatsData
-                })).Value;
+                new HoldemActionStartGame(GameId: gameId, JoinSeats: seatsData))).Value;
         }
 
         actualGameData.ShouldAsJToken().BeEquivalentToAsJToken(expectedGameData);

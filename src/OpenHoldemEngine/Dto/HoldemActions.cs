@@ -14,12 +14,9 @@ public abstract record HoldemAction(Guid GameId)
     public static HoldemActionCreateGame CreateCreateGameDto(GameOptionData optionData, Guid? gameId)
         => new(gameId ?? Guid.NewGuid(), optionData);
 
-    /// <summary>Deals the first hand, seating the given players as it goes.</summary>
+    /// <summary>Deals the next hand of a started game, seating the given players first.</summary>
     /// <param name="gameId">The game to deal in.</param>
-    /// <param name="joinSeats">
-    /// The seats to fill, <b>in ascending seat order</b> — the first hand resolves the previous
-    /// dealer by walking this array in order.
-    /// </param>
+    /// <param name="joinSeats">The seats to fill before dealing, for players who sit down between hands.</param>
     public static HoldemActionStartHand CreateStartHandDto(Guid gameId, PlayerJoinData[] joinSeats)
         => new(gameId) { JoinSeats = joinSeats };
 
@@ -48,21 +45,21 @@ public record HoldemActionGetGame(Guid GameId) : HoldemAction(GameId);
 public record HoldemActionCreateGame(Guid GameId, GameOptionData Options) : HoldemAction(GameId);
 
 /// <summary>
-/// Declared for completeness but not wired to a handler — <c>CreateHandlerForAction</c> does not
-/// accept it. Seat players with <see cref="HoldemActionStartHand.JoinSeats"/> instead.
+/// Starts a created game: seats the players and deals hand 1. Allowed once, on a game with no hand
+/// dealt yet; otherwise it fails with <see cref="HoldemErrorCode.GameAlreadyStarted"/>.
 /// </summary>
 /// <param name="GameId">The game to start.</param>
-/// <param name="JoinSeats">The seats to fill.</param>
+/// <param name="JoinSeats">The seats to fill, in any order; the engine sorts them by seat number.</param>
 public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : HoldemAction(GameId);
 
-/// <summary>Deals the next hand, optionally seating, topping up or removing players first.</summary>
+/// <summary>
+/// Deals the next hand, optionally seating or topping up players first. Fails with
+/// <see cref="HoldemErrorCode.GameNotStarted"/> until <see cref="HoldemActionStartGame"/> has dealt hand 1.
+/// </summary>
 /// <param name="GameId">The game to deal in.</param>
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
-    /// <summary>
-    /// Seats to fill before dealing, <b>in ascending seat order</b> — the very first hand resolves
-    /// the previous dealer by walking this array in order.
-    /// </summary>
+    /// <summary>Seats to fill before dealing, for players who sit down between hands.</summary>
     public PlayerJoinData[] JoinSeats { get; set; } = [];
 }
 
@@ -76,8 +73,9 @@ public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 public record HoldemActionPlayerAction(Guid GameId, PlayerActionType ActionType, decimal Size) : HoldemAction(GameId);
 
 /// <summary>
-/// Declared for completeness but not wired to a handler — <c>CreateHandlerForAction</c> does not
-/// accept it.
+/// Closes the game, between hands only: it fails with <see cref="HoldemErrorCode.PreviousHandNotEnded"/>
+/// while a hand is in progress. Afterwards every action except <see cref="HoldemActionGetGame"/> fails with
+/// <see cref="HoldemErrorCode.GameFinished"/>.
 /// </summary>
 /// <param name="GameId">The game to finish.</param>
 public record HoldemActionFinishGame(Guid GameId) : HoldemAction(GameId);

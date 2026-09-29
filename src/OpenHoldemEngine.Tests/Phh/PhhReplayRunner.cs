@@ -167,16 +167,12 @@ internal sealed class PhhReplayRunner : IDisposable
             Options: new GameOptionData { MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
             hand);
 
-        var gameData = await ApplyAsync(new HoldemActionStartHand(gameId)
-        {
-            // Ascending seat order matters: StartHandActionHandler walks JoinSeats to find the seat
-            // before InitialDealerSeatNo when it places the button for the first hand.
-            JoinSeats = [.. Enumerable.Range(0, playerCount)
+        var gameData = await ApplyAsync(new HoldemActionStartGame(gameId,
+            [.. Enumerable.Range(0, playerCount)
                 .Select(playerIx => new PlayerJoinData(
                     Name: hand.Players[playerIx],
                     SeatNo: (byte)(playerIx + 1),
-                    BuyInAmount: hand.StartingStacks[playerIx]!.Value))]
-        }, hand);
+                    BuyInAmount: hand.StartingStacks[playerIx]!.Value))]), hand);
 
         AssertHandStart(gameData, hand);
 

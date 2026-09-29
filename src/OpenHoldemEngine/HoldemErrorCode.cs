@@ -27,4 +27,13 @@ public enum HoldemErrorCode
 
     /// <summary>A seat to join is out of range, repeated, already occupied, or has a non-positive buy-in.</summary>
     InvalidSeat = 7,
+
+    /// <summary>The game already has a hand dealt, or was already started, so it cannot be started again.</summary>
+    GameAlreadyStarted = 8,
+
+    /// <summary>No hand has been dealt yet, or the game does not exist, so the action needs <c>StartGame</c> first.</summary>
+    GameNotStarted = 9,
+
+    /// <summary>The game was finished, so only reading it back is allowed.</summary>
+    GameFinished = 10,
 }

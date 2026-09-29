@@ -101,6 +101,8 @@ public sealed class EngineCallSnippetWriter
         {
             HoldemActionGetGame => GenerateGetGameAction((HoldemActionGetGame)action),
             HoldemActionCreateGame => GenerateCreateGameAction((HoldemActionCreateGame)action, indent),
+            HoldemActionStartGame => GenerateStartGameAction((HoldemActionStartGame)action, indent),
+            HoldemActionFinishGame => $"new HoldemActionFinishGame(GameId: {FormatGuid(action.GameId)})",
             HoldemActionStartHand => GenerateStartHandAction((HoldemActionStartHand)action, indent),
             HoldemActionPlayerAction => GeneratePlayerActionAction((HoldemActionPlayerAction)action, indent),
             _ => $"new UnknownAction(GameId: {FormatGuid(action.GameId)})",
@@ -128,6 +130,18 @@ public sealed class EngineCallSnippetWriter
         sb.Append(indent2).Append("InitialDealerSeatNo = ").Append(action.Options.InitialDealerSeatNo).AppendLine(",");
         sb.Append(nextIndent).AppendLine("})");
         return sb.ToString().TrimEnd();
+    }
+
+    private static string GenerateStartGameAction(HoldemActionStartGame action, int indent)
+    {
+        var nextIndent = new string(' ', (indent + 1) * 4);
+        var sb = new StringBuilder();
+        sb.AppendLine("new HoldemActionStartGame(");
+        sb.Append(nextIndent).Append("GameId: ").AppendLine(FormatGuid(action.GameId) + ",");
+        sb.Append(nextIndent).AppendLine("JoinSeats:");
+        sb.Append(GeneratePlayerJoinDataArray(action.JoinSeats, indent + 2));
+        sb.Append(')');
+        return sb.ToString();
     }
 
     private static string GenerateStartHandAction(HoldemActionStartHand action, int indent)
