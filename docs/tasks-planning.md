@@ -23,6 +23,7 @@ prompt with requirements
    → size each issue              (7b / 35b / 70b — and re-split what is too big)
    → order and declare dependencies
    → write each issue standalone
+   → check and vet the batch      (label each issue agent-ready last)
    → hand the batch to the runner
 ```
 
@@ -113,7 +114,8 @@ before overriding it.
 
 ## 4. Order the batch and declare dependencies
 
-The runner takes the **lowest-numbered open issue whose dependencies are all closed**. So two
+The runner takes the **lowest-numbered vetted open issue whose dependencies are all closed**
+(vetting is step 7). So two
 mechanisms decide order, and they do different jobs:
 
 - **Creation order** carries the preference. Create a batch in one pass, in the order it should run,
@@ -201,7 +203,8 @@ What each part is for, and where each one has gone wrong before:
   body, they are already in `docs/task-run.md` and you are diluting the part that is new.
 
 Labels: the size label (`7b`, `35b`, `70b`) is required, plus whatever topic labels the repository
-uses (`demo`, `blazor`, `phh`, `ci`, `docs`).
+uses (`demo`, `blazor`, `phh`, `ci`, `docs`). Do **not** add `agent-ready` while you are still
+writing. It is the vetting mark, and it goes on last (step 7).
 
 ## 7. Check the batch before handing it over
 
@@ -218,12 +221,47 @@ mistake can be caught cheaply.
 5. The batch is mostly `7b`. If it is not, step 3 is not finished.
 6. The working tree is clean and pushed. The runner does `git reset --hard origin/main` before every
    task and refuses to start dirty, so an uncommitted change is a discarded change.
+7. **Vet every issue, then label it `agent-ready`.** The runner picks nothing without that label.
+   Read each body as the instructions it is about to become, including every command, link and
+   pasted snippet. That matters most for an issue you did not write yourself. Apply the label only
+   when you would run the text yourself, and apply it **after the last edit**.
+
+### The vetting guard
+
+The agent runs with its permission prompts off and merges to `main` by itself, so an issue body is
+code that runs on the maintainer's machine. On a public repository anyone can open an issue.
+`run-next-task.ps1` therefore picks an open issue only when **all** of the following hold:
+
+| Check | Why |
+|---|---|
+| It carries `agent-ready` (`-ReadyLabel` changes the name). | Only accounts with triage rights or higher can apply labels, so an outsider cannot vet their own issue. |
+| The latest application of that label was by an account with `triage`, `maintain`, `write` or `admin` on the repository. | Rules out a bot or a workflow that labels issues automatically. |
+| Neither the body nor the title was edited at or after that moment. | The author can still edit an issue after it is labelled. |
+| When `-TrustedAuthors` is given, the author is one of those logins. | An optional second filter, for runs that should take only the maintainers' own issues. |
+
+The consequences for planning:
+
+- **Editing a labelled issue un-vets it**, whoever makes the edit, you included. Review the new text,
+  then remove `agent-ready` and apply it again. Until then the runner skips the issue.
+- **The agent gets a snapshot, not the live issue.** The runner hands it the title and body as they
+  were at vetting time, in a temporary file, and tells it that comments are not instructions.
+  Anything the implementer needs therefore belongs in the body. A clarification left in a comment
+  is never read.
+- **A missing label is as quiet as a wrong `Depends on:` number.** While other issues are runnable,
+  nothing mentions an unlabelled one. Once nothing is ready, the runner lists every skipped issue
+  with its reason (`has no 'agent-ready' label`, `was applied by 'x', whose role is 'none'`,
+  `was edited after 'agent-ready' was applied`, `waits on #N (OPEN)`).
+- **Follow-up issues the agent files arrive unlabelled.** The prompt forbids it to touch
+  `agent-ready`, but it runs with your `gh` credentials, which could. Review those issues like any
+  other before labelling them.
 
 Then:
 
 ```powershell
 ./run-next-task.ps1 -TaskCount 0
 ```
+
+Add `-TrustedAuthors <login>, <login>` to take only issues opened by those accounts.
 
 `-TaskCount 0` works through every ready issue until none is left. It stops at the first task that
 fails to close cleanly rather than piling more work on a broken state.
