@@ -78,7 +78,7 @@ public sealed class EngineOptionsIsolationTests
         return checkedDown.Value.HandData!;
     }
 
-    private static Card[] HoleOf(HandData handData, byte seatNo)
+    private static IReadOnlyList<Card> HoleOf(HandData handData, byte seatNo)
         => handData.Seats.Single(seat => seat.SeatNo == seatNo).Hole!;
 
     private static Card[] CardsFrom(params string[] cards) => [.. cards.Select(Card.Parse)];

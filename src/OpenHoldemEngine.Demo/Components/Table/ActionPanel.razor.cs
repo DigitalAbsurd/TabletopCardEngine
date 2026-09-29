@@ -60,7 +60,7 @@ public partial class ActionPanel : ComponentBase
 
     private bool IsHandFinished => HandData?.Street == Street.Finished;
 
-    private bool HasActions => HandData is not null && HandData.NextPlayerSeatNo != 0 && HandData.Evaluations.Length > 0;
+    private bool HasActions => HandData is not null && HandData.NextPlayerSeatNo != 0 && HandData.Evaluations.Count > 0;
 
     /// <summary>
     /// The box on the right of the bar: whose decision is owed, or that the hand is over.

@@ -105,7 +105,7 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
             var result = key.Entry.Result;
             dump = key.Kind == DumpKind.Result
                 ? ObjectDump.Create(DumpName(key.Kind), result, typeof(HoldemResult<OpenHoldemEngine.Dto.GameData>))
-                : ObjectDump.Create(DumpName(key.Kind), result?.Value.HandData?.Evaluations, typeof(OpenHoldemEngine.Dto.PlayerActionEvaluationData[]));
+                : ObjectDump.Create(DumpName(key.Kind), result?.Value.HandData?.Evaluations, typeof(IReadOnlyList<OpenHoldemEngine.Dto.PlayerActionEvaluationData>));
             _dumps[key] = dump;
         }
 

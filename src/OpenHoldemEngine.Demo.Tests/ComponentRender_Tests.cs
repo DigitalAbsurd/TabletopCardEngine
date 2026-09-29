@@ -673,7 +673,7 @@ public sealed class ComponentRender_Tests
     {
         return new GameData(
             GameId: Guid.NewGuid(),
-            Options: new GameOptionData { MaxPlayersCount = handData.Seats.Length, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 },
+            Options: new GameOptionData { MaxPlayersCount = handData.Seats.Count, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 },
             HandData: handData);
     }
 
@@ -1274,7 +1274,7 @@ public sealed class ComponentRender_Tests
         var dump = component.Find(".object-dump");
         var rows = dump.QuerySelectorAll("tbody tr");
         rows[0].QuerySelector(".dump-name-text")!.TextContent.Should().Be("availableActions");
-        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("PlayerActionEvaluationData[] (OpenHoldemEngine.Dto)");
+        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("IReadOnlyList<PlayerActionEvaluationData> (System.Collections.Generic)");
         dump.TextContent.Should().Contain("Fold").And.Contain("Call").And.Contain("Raise");
         component.FindAll(".object-dump").Should().HaveCount(1, "opening availableActions leaves result closed");
     }

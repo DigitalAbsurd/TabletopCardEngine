@@ -73,8 +73,8 @@ public record HoldemActionCreateGame(Guid GameId, GameOptionData Options) : Hold
 /// dealt yet; otherwise it fails with <see cref="HoldemErrorCode.GameAlreadyStarted"/>.
 /// </summary>
 /// <param name="GameId">The game to start.</param>
-/// <param name="JoinSeats">The seats to fill, in any order; the engine sorts them by seat number.</param>
-public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : HoldemAction(GameId);
+/// <param name="JoinSeats">The seats to fill, in any order; the engine sorts them by seat number. Any read-only list will do; the engine only reads it.</param>
+public record HoldemActionStartGame(Guid GameId, IReadOnlyList<PlayerJoinData> JoinSeats) : HoldemAction(GameId);
 
 /// <summary>
 /// Deals the next hand, optionally seating or topping up players first. Fails with
@@ -83,8 +83,8 @@ public record HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats) : H
 /// <param name="GameId">The game to deal in.</param>
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
-    /// <summary>Seats to fill before dealing, for players who sit down between hands.</summary>
-    public PlayerJoinData[] JoinSeats { get; init; } = [];
+    /// <summary>Seats to fill before dealing, for players who sit down between hands. Any read-only list will do; the engine only reads it.</summary>
+    public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
 }
 
 /// <summary>Plays one action for the seat whose turn it is.</summary>

@@ -13,12 +13,12 @@ internal static class HandDealer
     /// <summary>Seats <paramref name="joinSeats"/> and deals the next hand.</summary>
     /// <param name="game">The game to deal in.</param>
     /// <param name="joinSeats">
-    /// Seats to fill. The first hand resolves the previous dealer by walking this array in order, so a
+    /// Seats to fill. The first hand resolves the previous dealer by walking this list in order, so a
     /// caller dealing hand 1 has to pass it ascending by seat number.
     /// </param>
     /// <param name="cardShuffler">Supplies predetermined hole cards, or <see langword="null"/> to deal at random.</param>
     /// <param name="cancellationToken">Handed to the shuffler, which may do I/O.</param>
-    internal static async Task DealAsync(Game game, PlayerJoinData[] joinSeats, ICardShuffler? cardShuffler, CancellationToken cancellationToken)
+    internal static async Task DealAsync(Game game, IReadOnlyList<PlayerJoinData> joinSeats, ICardShuffler? cardShuffler, CancellationToken cancellationToken)
     {
         game.JoinPlayers(joinSeats);
         game.CreateNewHand(CalculateStartStacks());

@@ -10,7 +10,7 @@ namespace OpenHoldemEngine.HoldemActionHandlers;
 /// </summary>
 internal static class SeatValidation
 {
-    internal static HoldemError? Validate(Game game, PlayerJoinData[] joinSeats)
+    internal static HoldemError? Validate(Game game, IReadOnlyList<PlayerJoinData> joinSeats)
     {
         var seen = new HashSet<byte>();
         foreach (var join in joinSeats)

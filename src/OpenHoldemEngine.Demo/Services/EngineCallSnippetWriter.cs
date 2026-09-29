@@ -150,7 +150,7 @@ public sealed class EngineCallSnippetWriter
         var sb = new StringBuilder();
         sb.Append("new HoldemActionStartHand(GameId: ").Append(FormatGuid(action.GameId)).Append(')');
 
-        if (action.JoinSeats.Length > 0)
+        if (action.JoinSeats.Count > 0)
         {
             // JoinSeats is optional data, so it is an init property rather than a constructor argument.
             sb.AppendLine();
@@ -175,13 +175,13 @@ public sealed class EngineCallSnippetWriter
         return sb.ToString();
     }
 
-    private static string GeneratePlayerJoinDataArray(PlayerJoinData[] seats, int indent)
+    private static string GeneratePlayerJoinDataArray(IReadOnlyList<PlayerJoinData> seats, int indent)
     {
         var indentStr = new string(' ', indent * 4);
         var nextIndent = new string(' ', (indent + 1) * 4);
         var sb = new StringBuilder();
         sb.Append(indentStr).AppendLine("[");
-        for (int i = 0; i < seats.Length; i++)
+        for (int i = 0; i < seats.Count; i++)
         {
             var seat = seats[i];
             sb.Append(nextIndent)
@@ -192,7 +192,7 @@ public sealed class EngineCallSnippetWriter
                 .Append(", BuyInAmount: ")
                 .Append(FormatDecimal(seat.BuyInAmount))
                 .Append(')');
-            if (i < seats.Length - 1)
+            if (i < seats.Count - 1)
             {
                 sb.AppendLine(",");
             }
