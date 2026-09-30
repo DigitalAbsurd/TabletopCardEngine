@@ -31,7 +31,8 @@ internal static class TestEngineHost
         out IDbContextFactory<HoldemDbContext> contextFactory,
         ICardShuffler? shuffler = null,
         Action<HoldemEngineSettings>? configureSettings = null,
-        Action<HoldemDbContext>? seedAction = null)
+        Action<HoldemDbContext>? seedAction = null,
+        Action<IServiceCollection>? configureServices = null)
     {
         var db3FileName = Environment.GetEnvironmentVariable(Db3FileNameVariable);
         var keepAliveConnection = string.IsNullOrEmpty(db3FileName) ?
@@ -71,6 +72,7 @@ internal static class TestEngineHost
                 }
             }
             );
+        configureServices?.Invoke(services);
         var serviceProvider = services.BuildServiceProvider();
         contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
         using var dbContext = contextFactory.CreateDbContext();

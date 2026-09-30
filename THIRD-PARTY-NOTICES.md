@@ -123,6 +123,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Package | Version | License |
 | --- | --- | --- |
 | Microsoft.EntityFrameworkCore | 9.0.1 | MIT |
+| Microsoft.Extensions.Logging.Abstractions | 9.0.1 | MIT |
 
 ### OpenHoldemEngine.Demo
 
@@ -141,6 +142,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | bunit | 1.40.0 | MIT |
 | FluentAssertions | 6.1.0 | Apache-2.0 |
 | FluentAssertions.Json | 6.1.0 | Apache-2.0 |
+| Microsoft.Extensions.Diagnostics.Testing | 9.1.0 | MIT |
 | Microsoft.NET.Test.Sdk | 17.11.1 | MIT |
 | Microsoft.Playwright | 1.49.0 | MIT |
 | Moq | 4.20.70 | BSD-3-Clause |

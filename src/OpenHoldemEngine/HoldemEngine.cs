@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Diagnostics;
 using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.HoldemActionHandlers;
 using OpenHoldemEngine.Mappers;
@@ -24,10 +26,12 @@ namespace OpenHoldemEngine;
 public sealed class HoldemEngine
 {
     private readonly HoldemEngineOptions _options;
+    private readonly ILogger<HoldemEngine> _logger;
 
-    internal HoldemEngine(HoldemEngineOptions options)
+    internal HoldemEngine(HoldemEngineOptions options, ILogger<HoldemEngine> logger)
     {
         _options = options;
+        _logger = logger;
     }
 
     /// <summary>
@@ -64,20 +68,28 @@ public sealed class HoldemEngine
 
         var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
 
+        var actionType = HoldemActionNames.Of(holdemAction);
+        var handBefore = game.GetCurrentHand();
+        using var scope = _logger.BeginGameScope(holdemAction.GameId, handBefore.No);
+        var before = new HandSnapshot(handBefore.No, game.IsCurrentHandEnded(), handBefore.GetStreet());
+
         var existed = game.Id != default;
         if (existed && holdemAction is not HoldemActionCreateGame && holdemAction.ExpectedVersion is { } expected && expected != game.Version)
         {
+            _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ExpectedVersion);
             return HoldemResult<GameData>.Fail(ConflictError());
         }
 
         var error = await holdemActionHandler.HandleAsync(holdemAction, game, cancellationToken);
         if (error is not null)
         {
+            _logger.ActionRejected(actionType, holdemAction.GameId, error.Code);
             return HoldemResult<GameData>.Fail(error);
         }
 
         if (holdemAction is HoldemActionGetGame)
         {
+            LogApplied(holdemAction, actionType, game, before);
             return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
         }
 
@@ -97,10 +109,50 @@ public sealed class HoldemEngine
         }
         catch (DbUpdateConcurrencyException)
         {
+            _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ConcurrentSave);
             return HoldemResult<GameData>.Fail(ConflictError());
         }
 
+        LogApplied(holdemAction, actionType, game, before);
+
         return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
+    }
+
+    /// <summary>What the current hand looked like before the handler ran, to tell what the call changed.</summary>
+    private readonly record struct HandSnapshot(int No, bool Ended, Street Street);
+
+    /// <summary>Logs the lifecycle events a successful call caused, then the call itself. Scalars only: never the game.</summary>
+    private void LogApplied(HoldemAction holdemAction, string actionType, Game game, HandSnapshot before)
+    {
+        var gameId = holdemAction.GameId;
+        if (holdemAction is HoldemActionCreateGame)
+        {
+            _logger.GameCreated(gameId, game.MaxPlayersCount, game.InitialSmallBlind);
+        }
+
+        var hand = game.GetCurrentHand();
+        var sameHand = hand.No == before.No;
+        if (hand.No > before.No)
+        {
+            _logger.HandStarted(hand.No, gameId, hand.PlayerStartStates.Count);
+        }
+
+        var ended = game.IsCurrentHandEnded();
+        if (ended && !(sameHand && before.Ended))
+        {
+            _logger.HandFinished(hand.No, gameId);
+        }
+        else if (sameHand && !ended && hand.GetStreet() != before.Street)
+        {
+            _logger.StreetDealt(hand.No, gameId, hand.GetStreet());
+        }
+
+        if (holdemAction is HoldemActionFinishGame)
+        {
+            _logger.GameFinished(gameId);
+        }
+
+        _logger.ActionApplied(actionType, gameId, game.Version);
     }
 
     private static HoldemError ConflictError()

@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Options;
 
@@ -38,7 +40,9 @@ public static class ServiceCollectionExtensions
             var resolvedOptions = servicesProvider.GetRequiredService<HoldemEngineOptions>();
             resolvedOptions.DbContextFactory =
                 servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-            return new HoldemEngine(resolvedOptions);
+            var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemEngine>()
+                ?? NullLogger<HoldemEngine>.Instance;
+            return new HoldemEngine(resolvedOptions, logger);
         });
 
         return services;
