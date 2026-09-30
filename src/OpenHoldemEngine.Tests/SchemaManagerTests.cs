@@ -1,11 +1,13 @@
 ﻿using FluentAssertions;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 
 namespace OpenHoldemEngine.Tests;
 
 /// <summary>
-/// The public schema entry point over the test host's plain <c>UseSqlite</c>, which is exactly the
-/// configuration that has no migrations to apply.
+/// The public schema entry point over the test host's migrations via <c>UseHoldemSqlite</c>.
 /// </summary>
 [TestClass]
 public sealed class SchemaManagerTests
@@ -25,7 +27,7 @@ public sealed class SchemaManagerTests
     [TestMethod]
     public async Task SchemaManager_PlainUseSqlite_FailsWithMigrationsNotFound()
     {
-        using var host = TestEngineHost.Setup(out _, out _);
+        using var host = SetupPlainUseSqlite();
         var manager = host.GetRequiredService<IHoldemSchemaManager>();
 
         var thrown = await manager.Invoking(schemaManager => schemaManager.MigrateAsync())
@@ -36,7 +38,7 @@ public sealed class SchemaManagerTests
     }
 
     [TestMethod]
-    public async Task SchemaManager_Status_OnAnEnsureCreatedDatabase()
+    public async Task SchemaManager_Status_OnAMigratedDatabase()
     {
         using var host = TestEngineHost.Setup(out _, out _);
         var manager = host.GetRequiredService<IHoldemSchemaManager>();
@@ -53,7 +55,7 @@ public sealed class SchemaManagerTests
     }
 
     [TestMethod]
-    public async Task SchemaStatus_EnsureCreated_ReportsTheEngineVersion()
+    public async Task SchemaStatus_Migrated_ReportsTheEngineVersion()
     {
         using var host = TestEngineHost.Setup(out _, out _);
         var manager = host.GetRequiredService<IHoldemSchemaManager>();
@@ -143,5 +145,20 @@ public sealed class SchemaManagerTests
     public void SchemaManager_UnknownProviderName_IsUnsupported(string? providerName, bool expected)
     {
         HoldemProviders.IsSupported(providerName).Should().Be(expected);
+    }
+
+    private static TestEngineHost.DisposableTestData SetupPlainUseSqlite()
+    {
+        var keepAliveConnection = new SqliteConnection("DataSource=:memory:");
+        IServiceCollection services = new ServiceCollection();
+        services.AddHoldemEngine(
+            dbOptionsAction: opts => opts.UseSqlite(keepAliveConnection),
+            configure: _ => { }
+        );
+        var serviceProvider = services.BuildServiceProvider();
+        keepAliveConnection.Open();
+        using var dbContext = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>().CreateDbContext();
+        dbContext.Database.EnsureCreated();
+        return new TestEngineHost.DisposableTestData(serviceProvider, keepAliveConnection);
     }
 }

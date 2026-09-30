@@ -183,7 +183,7 @@ What that means in practice:
 
 ## Tests
 
-Shared harness: `TestEngineHost.Setup` spins up a real DI container over SQLite (`:memory:` with a kept-alive connection) and calls `EnsureDeleted()` / `EnsureCreated()`; `TestCardShuffler` is the `ICardShuffler` that feeds pre-determined cards into the cheat deck.
+Shared harness: `TestEngineHost.Setup` spins up a real DI container over SQLite (`:memory:` with a kept-alive connection) through `UseHoldemSqlite` and creates the schema with `IHoldemSchemaManager.MigrateAsync()`, so every engine test runs on the shipped migrations; `TestCardShuffler` is the `ICardShuffler` that feeds pre-determined cards into the cheat deck.
 
 [PhhReplayTests.cs](src/OpenHoldemEngine.Tests/PhhReplayTests.cs) is the integration workhorse. It replays recorded hand histories from an open dataset — the Pluribus subset of the [PHH dataset](https://github.com/uoftcprg/phh-dataset), MIT, vendored as an embedded gzipped `.phhs` under `Resources/phh/` (see its [README](src/OpenHoldemEngine.Tests/Resources/phh/README.md) for provenance and `scripts/pack-phh-fixture.ps1` to regenerate). 10 000 six-handed no-limit hands at 50/100, every hole card recorded and `finishing_stacks` as the oracle.
 

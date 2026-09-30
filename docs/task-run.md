@@ -48,7 +48,7 @@ Test-only environment variables:
 
 | Variable | Effect |
 |---|---|
-| `OHE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. |
+| `OHE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. The file is deleted and migrated fresh on each `Setup`. |
 | `OHE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
 | `OHE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
 | `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
