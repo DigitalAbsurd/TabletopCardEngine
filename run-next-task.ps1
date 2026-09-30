@@ -72,7 +72,7 @@
     script cd's to its own location, which must be the repository root.
 
     Because there is no human review, everything hinges on the agent actually enforcing the
-    repository's own gates (dotnet build / format --verify-no-changes / test / pack) before it
+    repository's own gates (dotnet build / format --verify-no-changes / test / pack .slnf) before it
     merges - the prompt tells it to, but nothing outside the agent double-checks it.
 
     Safety: the committed agent template runs the assistant with its permission prompts
@@ -484,7 +484,7 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 2. Dependencies were already checked before this task was handed to you: every issue listed on the "**Depends on:**" line of the task text (if there is such a line at all) was CLOSED at launch time. Do not re-check them and do not block on them.
 3. Branch off the current main, naming the branch "$BranchPrefix$IssueNumber-<short-slug>".
 4. Implement the task strictly as the issue states it: Scope, Files, Definition of done, Notes for the implementer and Context for an AI assistant are acceptance criteria, not suggestions. Do not widen the scope: if you find something else broken nearby, file a separate issue rather than a second commit.
-5. Run from the repository root: dotnet build, dotnet format OpenHoldemEngine.sln --verify-no-changes, dotnet test, dotnet pack src/OpenHoldemEngine -c Release - all four must finish without errors. This is a precondition for every step below; do not move on if any of them failed.
+5. Run from the repository root: dotnet build, dotnet format OpenHoldemEngine.sln --verify-no-changes, dotnet test, dotnet pack OpenHoldemEngine.Packages.slnf -c Release - all four must finish without errors. This is a precondition for every step below; do not move on if any of them failed.
 6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it spares the slowest steps of CI. Skip it only if it cannot run here, and then say so in the pull request. Only when that run is green and its tests passed rather than skipped, quote its summary line in the pull request and open the pull request with --label browser-gate-local, which lets CI skip the gate; if the branch changes after that run, run the gate again or remove the label. Without such a run, do not use the label. It belongs on the pull request only and is unrelated to the "$ReadyLabel" rule below. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
 7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
 8. Commit with a meaningful message in English and push the branch.

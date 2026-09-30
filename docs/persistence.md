@@ -88,7 +88,7 @@ There is no downgrade: an older engine never runs on a newer database.
 
 Migrations are written per the following rules:
 
-1. **Add migrations only with `scripts/add-migration.ps1 -Name <PascalCaseName>`.** Never run `dotnet ef migrations add` for one provider alone. The script generates the migration for every supported provider at once.
+1. **Add migrations only with `pwsh ./scripts/add-migration.ps1 -Name AddSomething`.** Never run `dotnet ef migrations add` for one provider alone. The script generates the migration for every supported provider at once.
 
 2. **Bump `HoldemSchema.Version` in the same change as every migration.** Also bump `EngineVersion` when the release changes. Make the changes to `HoldemSchema` itself and to the seed data (`HasData`) in each provider's migration in the same commit.
 

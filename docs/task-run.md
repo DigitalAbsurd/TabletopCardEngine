@@ -23,7 +23,7 @@ and green again before anything is merged.
 dotnet build
 dotnet format OpenHoldemEngine.sln --verify-no-changes
 dotnet test
-dotnet pack src/OpenHoldemEngine -c Release
+dotnet pack OpenHoldemEngine.Packages.slnf -c Release
 ```
 
 The last one is the public API gate: it fails on a break against the committed baseline (fact 25).
@@ -275,8 +275,9 @@ docs/persistence.md                     # supported databases, schema versioning
 docs/adr/                               # architecture decision records (ADR-0001: the license,
                                         # ADR-0002: the OpenTelemetry instrumentation package,
                                         # ADR-0003: database provider licences)
-scripts/                                # license audit, PHH fixture packing, public API listing
+scripts/                                # license audit, PHH fixture packing, public API listing, migration scaffolding
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
+OpenHoldemEngine.Packages.slnf          # solution filter for packable projects only
 .github/workflows/                      # ci.yml and deploy-demo.yml
 AGENTS.md                               # codebase guide for AI assistants (alias it locally as CLAUDE.md)
 run-next-task.ps1                       # the unattended runner: picks a vetted, ready issue, drives an agent
@@ -403,16 +404,16 @@ renumber.
     internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
     connection serialises everything.
 25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** The
-    library sets `EnablePackageValidation` with `PackageValidationBaselinePath` pointing at
-    `eng/api-baseline/OpenHoldemEngine.1.0.0-baseline.nupkg`, so
-    `dotnet pack src/OpenHoldemEngine -c Release` fails with `CP0001` (type removed), `CP0002` (member
-    removed) and the other ApiCompat rules on a break; `dotnet build` does not check it. Changing the
-    surface means re-packing the baseline in the same pull request
-    (`dotnet pack src/OpenHoldemEngine -c Release -p:Version=1.0.0-baseline -o eng/api-baseline`),
-    regenerating `docs/public-api.md` with `pwsh ./scripts/list-public-api.ps1 -Update`, and saying
-    why in the pull request. Never add a `CompatibilitySuppressions.xml` or set
-    `ApiCompatGenerateSuppressionFile`. The check is binary compatibility only: removing a
-    parameter's default value is a source break it does not report.
+    library and each provider package set `EnablePackageValidation` with `PackageValidationBaselinePath`
+    pointing at their own baseline, so `dotnet pack OpenHoldemEngine.Packages.slnf -c Release` fails
+    with `CP0001` (type removed), `CP0002` (member removed) and the other ApiCompat rules on a break;
+    `dotnet build` does not check it. Changing a package's surface means re-packing its baseline in
+    the same pull request (`dotnet pack src/OpenHoldemEngine -c Release -p:Version=1.0.0-baseline -o eng/api-baseline`
+    for the core library; `dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -o eng/api-baseline`
+    for the SQLite provider; and likewise for others), regenerating `docs/public-api.md` with
+    `pwsh ./scripts/list-public-api.ps1 -Update`, and saying why in the pull request. Never add a
+    `CompatibilitySuppressions.xml` or set `ApiCompatGenerateSuppressionFile`. The check is binary
+    compatibility only: removing a parameter's default value is a source break it does not report.
 26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
     The three signals are emitted by `HoldemEngine.ApplyWithHookAsync` (the internal seam used by both
     `ApplyHoldemActionAsync` and tests):

@@ -1,0 +1,8 @@
+{
+  "path": "OpenHoldemEngine.sln",
+  "projects": [
+    "src\\OpenHoldemEngine\\OpenHoldemEngine.csproj",
+    "src\\OpenHoldemEngine.OpenTelemetry\\OpenHoldemEngine.OpenTelemetry.csproj",
+    "src\\OpenHoldemEngine.Sqlite\\OpenHoldemEngine.Sqlite.csproj"
+  ]
+}
