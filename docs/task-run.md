@@ -255,6 +255,9 @@ discards it, and `.phh` export is the durable artefact.
 src/OpenHoldemEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
 src/OpenHoldemEngine.OpenTelemetry/     # AddOpenHoldemEngineInstrumentation(); references OpenTelemetry.Api only
 src/OpenHoldemEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
+src/OpenHoldemEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
+src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations
+src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net8.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge

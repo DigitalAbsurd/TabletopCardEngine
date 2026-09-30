@@ -128,4 +128,22 @@ Migrations are written per the following rules:
 
 ## The InMemory provider
 
-The `OpenHoldemEngine.InMemory` package provides an in-memory database provider for testing and development. See the package's documentation for its limits and recommended use cases.
+Reference `OpenHoldemEngine.InMemory`, then register and migrate:
+
+```csharp
+services.AddHoldemEngine(o => o.UseHoldemInMemory("my-game-db"));
+await services.BuildServiceProvider().GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+```
+
+The `MigrateAsync` call is optional for InMemory; on the first engine action the store is created automatically.
+
+### Limits
+
+The InMemory provider is for prototyping, demos and consumers' unit tests, not for production:
+
+- **State lives only in the process and is lost on restart.** A reload discards everything; use `.phh` export to keep a hand.
+- **Foreign keys are not enforced.** The database will not catch referential integrity errors.
+- **There are no transactions.** EF ignores calls to `BeginTransaction`. The engine does not use explicit transactions, so this does not change what a call does.
+- **`decimal` precision is not applied,** although the engine's own validation rule (at most two decimal places) is still enforced by the engine itself.
+
+`GetSchemaStatusAsync` reports `NotVersioned` on InMemory, because the provider has no versioning. Two engines given the same `databaseName` in one process will share the same in-memory store; use a unique name for each isolated engine (one per test, one per tenant).

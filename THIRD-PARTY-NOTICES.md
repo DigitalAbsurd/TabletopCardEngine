@@ -35,6 +35,10 @@ SQLite itself. `Microsoft.EntityFrameworkCore.Design` is development-only: it is
 scaffolds the migrations with, it is referenced with `PrivateAssets="all"`, and it does not appear
 among the package's dependencies.
 
+**The InMemory package, `OpenHoldemEngine.InMemory`**, references the library and
+`Microsoft.EntityFrameworkCore.InMemory` 9.0.1 (MIT) as NuGet packages and redistributes neither.
+It is for prototyping, testing and isolated unit testing, not for production.
+
 **The other persistence packages** (`OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`)
 bring in the PostgreSQL License (Npgsql) and the Microsoft.Data.SqlClient.SNI runtime's proprietary
 licence. Both are documented in [ADR-0003](docs/adr/0003-database-provider-licences.md): the
@@ -172,6 +176,12 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Package | Version | License |
 | --- | --- | --- |
 | Microsoft.EntityFrameworkCore.SqlServer | 9.0.1 | MIT |
+
+### OpenHoldemEngine.InMemory
+
+| Package | Version | License |
+| --- | --- | --- |
+| Microsoft.EntityFrameworkCore.InMemory | 9.0.1 | MIT |
 
 ### OpenHoldemEngine.Demo
 
