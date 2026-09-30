@@ -37,8 +37,15 @@ $sections = [ordered]@{
 }
 $testSection = 'Test and development only'
 
-# SPDX expressions accepted as-is.
-$permissiveExpressions = @('MIT', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause')
+# SPDX expressions accepted as-is. The same as the test's _permissiveLicenses.
+$permissiveExpressions = @(
+    'MIT',
+    'Apache-2.0',
+    'BSD-2-Clause',
+    'BSD-3-Clause',
+    # OSI-approved PostgreSQL License, MIT/BSD-equivalent: permission plus notice (ADR-0003).
+    'PostgreSQL'
+)
 
 # Packages that predate nuspec license expressions and only carry a URL.
 $legacyLicenseUrls = @{
@@ -49,6 +56,12 @@ $legacyLicenseUrls = @{
     'https://raw.githubusercontent.com/dotnet/corefx/master/LICENSE.TXT' = 'MIT'
     # OneOf 2.1.155; the linked licence.md is the MIT license, (c) 2016 Harry McIntyre.
     'https://github.com/mcintyre321/OneOf/blob/master/licence.md' = 'MIT'
+}
+
+# Packages outside the allowlist that are accepted for exactly one package id when reached
+# transitively (not referenced directly). See ADR-0003.
+$acceptedExceptions = @{
+    'Microsoft.Data.SqlClient.SNI.runtime' = 'file:LICENSE.txt'
 }
 
 function Get-PackageLicense([string[]] $packageFolders, [string] $path, [string] $id) {
@@ -138,7 +151,19 @@ for ($rank = 0; $rank -lt $titles.Count; $rank++) {
 }
 
 $accepted = $permissiveExpressions + @('MS-.NET-Library')
-$rejected = @($packages.Values | Where-Object { $accepted -notcontains $_.License })
+$direct = @($direct.Keys | ForEach-Object { $_ -split '/' | Select-Object -First 1 } | Get-Unique)
+$rejected = @($packages.Values | Where-Object {
+    if ($accepted -contains $_.License) {
+        return $false
+    }
+    if ($direct -contains $_.Id) {
+        return $true
+    }
+    if ($acceptedExceptions.ContainsKey($_.Id) -and $acceptedExceptions[$_.Id] -eq $_.License) {
+        return $false
+    }
+    return $true
+})
 if ($rejected.Count -gt 0) {
     Write-Error ("Packages outside the license allowlist:`n" +
         (($rejected | ForEach-Object { "  $($_.Id) $($_.Version): $($_.License)" }) -join "`n"))

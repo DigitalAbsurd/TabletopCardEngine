@@ -29,6 +29,8 @@ public sealed partial class ThirdPartyNoticesTests
         // The pre-SPDX Microsoft .NET Library License of the netstandard1.x-era packages. None of
         // their assemblies is published: the runtime pack's newer ones replace them (see the notices).
         "MS-.NET-Library",
+        // OSI-approved PostgreSQL License, MIT/BSD-equivalent: permission plus notice (ADR-0003).
+        "PostgreSQL",
     ];
 
     // Packages that predate nuspec license expressions and carry only a URL. Kept in step with
@@ -41,6 +43,28 @@ public sealed partial class ThirdPartyNoticesTests
         // OneOf 2.1.155; the linked licence.md is the MIT license, (c) 2016 Harry McIntyre.
         ["https://github.com/mcintyre321/OneOf/blob/master/licence.md"] = "MIT",
     };
+
+    // Packages outside the allowlist that are accepted for exactly one package id when reached
+    // transitively (not referenced directly). See ADR-0003.
+    private static readonly Dictionary<string, string> _acceptedExceptions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Microsoft.Data.SqlClient.SNI.runtime"] = "file:LICENSE.txt",
+    };
+
+    private static bool IsAcceptedLicense(string packageId, string license, bool isDirect)
+    {
+        if (_permissiveLicenses.Contains(license))
+        {
+            return true;
+        }
+
+        if (isDirect)
+        {
+            return false;
+        }
+
+        return _acceptedExceptions.TryGetValue(packageId, out var acceptedLicense) && acceptedLicense == license;
+    }
 
     [TestMethod]
     public void ThirdPartyNotices_ListsEveryDirectPackageWithItsLicense()
@@ -77,10 +101,36 @@ public sealed partial class ThirdPartyNoticesTests
     [TestMethod]
     public void ThirdPartyNotices_EveryResolvedPackageIsPermissivelyLicensed()
     {
-        ReadPackages().Resolved
-            .Where(pair => !_permissiveLicenses.Contains(pair.Value))
+        var packages = ReadPackages();
+        var direct = packages.Direct.Keys.Select(k => k[..k.IndexOf('/', StringComparison.Ordinal)]).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        packages.Resolved
+            .Where(pair =>
+            {
+                var packageId = pair.Key[..pair.Key.IndexOf('/', StringComparison.Ordinal)];
+                var isDirect = direct.Contains(packageId);
+                return !IsAcceptedLicense(packageId, pair.Value, isDirect);
+            })
             .Select(pair => $"{pair.Key}: {pair.Value}")
             .Should().BeEmpty("a license outside the allowlist needs a legal review before it is added");
+    }
+
+    [TestMethod]
+    [DataRow("Npgsql", "PostgreSQL", false)]
+    [DataRow("Npgsql", "PostgreSQL", true)]
+    [DataRow("Microsoft.Data.SqlClient.SNI.runtime", "file:LICENSE.txt", false)]
+    [DataRow("microsoft.data.sqlclient.sni.runtime", "file:LICENSE.txt", false)]
+    [DataRow("Microsoft.Data.SqlClient.SNI.runtime", "file:LICENSE.txt", true)]
+    [DataRow("Microsoft.Data.SqlClient.SNI.runtime", "file:OTHER.txt", false)]
+    [DataRow("Some.Other.Package", "file:LICENSE.txt", false)]
+    [DataRow("Some.Other.Package", "GPL-3.0-only", false)]
+    public void ThirdPartyNotices_AcceptsOnlyTheListedExceptions(string packageId, string license, bool isDirect)
+    {
+        var inPermissive = _permissiveLicenses.Contains(license);
+        var inException = !isDirect && _acceptedExceptions.TryGetValue(packageId, out var ex) && ex == license;
+        var expected = inPermissive || inException;
+
+        IsAcceptedLicense(packageId, license, isDirect).Should().Be(expected);
     }
 
     /// <summary>

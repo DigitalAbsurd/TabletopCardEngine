@@ -216,11 +216,11 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   - a package a project references directly has no row in the notices' package inventory;
   - a row is left for a package nothing references;
   - a row's license differs from the nuspec;
-  - any resolved package, transitive ones included, has a license outside the permissive allowlist.
+  - any resolved package, transitive ones included, has a license outside the permissive allowlist, with the exception recorded in [ADR-0003](adr/0003-database-provider-licences.md).
 
   Transitive packages get no row. Adding or bumping a package means running `pwsh ./scripts/audit-licenses.ps1` and
   pasting its tables over the inventory. A vendored asset has no nuspec, so it needs its row in the
-  notices by hand.
+  notices by hand. The PostgreSQL License and SNI runtime are documented in ADR-0003.
 - **There are no EF migrations.** The schema comes from `HoldemDbContext.OnModelCreating`
   (composite keys throughout) plus `Database.EnsureCreated()`. An entity shape change needs no
   migration but does need the model configuration updated by hand.
@@ -265,7 +265,8 @@ docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/observability.md                   # the engine's logs, traces and metrics
 docs/adr/                               # architecture decision records (ADR-0001: the license,
-                                        # ADR-0002: the OpenTelemetry instrumentation package)
+                                        # ADR-0002: the OpenTelemetry instrumentation package,
+                                        # ADR-0003: database provider licences)
 scripts/                                # license audit, PHH fixture packing, public API listing
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 .github/workflows/                      # ci.yml and deploy-demo.yml

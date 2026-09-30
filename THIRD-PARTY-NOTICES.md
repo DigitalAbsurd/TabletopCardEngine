@@ -27,6 +27,12 @@ After changing a dependency, re-run the script and paste its tables over the one
 none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
 packages, all MIT.
 
+**The persistence packages** (`OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`, `OpenHoldemEngine.Sqlite`)
+bring in the PostgreSQL License (Npgsql) and the Microsoft.Data.SqlClient.SNI runtime's proprietary
+licence. Both are documented in [ADR-0003](docs/adr/0003-database-provider-licences.md): the
+PostgreSQL License is OSI-approved and equivalent to MIT/BSD, and the SNI runtime is accepted as a
+single-package exception for redistribution of object code.
+
 **The instrumentation package, `OpenHoldemEngine.OpenTelemetry`**, references the library and
 `OpenTelemetry.Api` 1.19.1 (Apache-2.0) as NuGet packages and redistributes neither. The API's one
 dependency is `System.Diagnostics.DiagnosticSource` 10.0.0 (MIT), which in a host that references
