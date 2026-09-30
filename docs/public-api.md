@@ -49,17 +49,18 @@ A change to the public surface and the new baseline go in **the same pull reques
 Never suppress the diagnostics instead: no `CompatibilitySuppressions.xml`, and no
 `ApiCompatGenerateSuppressionFile`. A suppressed break is a baseline that no longer means anything.
 
-## The SQLite package
+## The provider packages
 
-`OpenHoldemEngine.Sqlite` has its own baseline,
-[`eng/api-baseline/OpenHoldemEngine.Sqlite.1.0.0-baseline.nupkg`](../eng/api-baseline/), enforced
-the same way by `dotnet pack src/OpenHoldemEngine.Sqlite -c Release`. Its public surface is one
-class, `HoldemSqliteDbContextOptionsBuilderExtensions` with the two `UseHoldemSqlite` overloads;
-the migrations are `internal`. The baseline is packed without validation, because there is nothing
-to compare the first one with:
+`OpenHoldemEngine.Sqlite` and `OpenHoldemEngine.PostgreSql` each have their own baseline,
+[`eng/api-baseline/OpenHoldemEngine.Sqlite.1.0.0-baseline.nupkg`](../eng/api-baseline/) and
+[`eng/api-baseline/OpenHoldemEngine.PostgreSql.1.0.0-baseline.nupkg`](../eng/api-baseline/),
+enforced the same way by `dotnet pack src/OpenHoldemEngine.Sqlite -c Release` and
+`dotnet pack src/OpenHoldemEngine.PostgreSql -c Release`. Each provider's public surface is one
+class with two `UseHoldem*` overloads and its migrations are `internal`. The baselines are packed without validation, because there is nothing to compare the first one with:
 
 ```
 dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/OpenHoldemEngine.PostgreSql -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 The inventory below covers the core package only.

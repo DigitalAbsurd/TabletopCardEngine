@@ -10,6 +10,11 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if (Database.ProviderName is HoldemProviders.PostgreSql or HoldemProviders.SqlServer)
+        {
+            modelBuilder.HasDefaultSchema(HoldemSchema.DatabaseSchema);
+        }
+
         modelBuilder.Entity<Game>()
             .HasMany(game => game.Hands)
             .WithOne(hand => hand.Game)
