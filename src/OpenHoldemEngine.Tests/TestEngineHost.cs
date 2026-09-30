@@ -27,7 +27,7 @@ internal static class TestEngineHost
     /// <summary>Logs EF SQL with sensitive data to the debug output (DEBUG builds only).</summary>
     internal const string SqlDebugVariable = "OHE_TEST_SQL_DEBUG";
 
-    internal static IDisposable Setup(out HoldemEngine holdemEngine,
+    internal static DisposableTestData Setup(out HoldemEngine holdemEngine,
         out IDbContextFactory<HoldemDbContext> contextFactory,
         ICardShuffler? shuffler = null,
         Action<HoldemEngineSettings>? configureSettings = null,
@@ -86,12 +86,24 @@ internal static class TestEngineHost
         return new DisposableTestData(serviceProvider, keepAliveConnection);
     }
 
-    private sealed class DisposableTestData(ServiceProvider serviceProvider, SqliteConnection? sqliteConnection) : IDisposable
+    internal sealed class DisposableTestData : IDisposable
     {
+        private readonly ServiceProvider _serviceProvider;
+        private readonly SqliteConnection? _sqliteConnection;
+
+        internal DisposableTestData(ServiceProvider serviceProvider, SqliteConnection? sqliteConnection)
+        {
+            _serviceProvider = serviceProvider;
+            _sqliteConnection = sqliteConnection;
+        }
+
+        internal T GetRequiredService<T>() where T : notnull
+            => _serviceProvider.GetRequiredService<T>();
+
         public void Dispose()
         {
-            sqliteConnection?.Dispose();
-            serviceProvider?.Dispose();
+            _sqliteConnection?.Dispose();
+            _serviceProvider?.Dispose();
         }
     }
 }

@@ -97,7 +97,7 @@ public sealed class LoggingTests
         }
     }
 
-    private static IDisposable Setup(out HoldemEngine engine, out FakeLogCollector collector)
+    private static TestEngineHost.DisposableTestData Setup(out HoldemEngine engine, out FakeLogCollector collector)
     {
         var fakeCollector = new FakeLogCollector();
         collector = fakeCollector;

@@ -402,7 +402,7 @@ public sealed class HeadsUpTests
 
         internal static readonly GameOptionData Options = new() { MaxPlayersCount = 2, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = ButtonSeatNo };
 
-        private readonly IDisposable _host;
+        private readonly TestEngineHost.DisposableTestData _host;
         private readonly HoldemEngine _engine;
         private readonly PlayerJoinData[] _joinSeats;
         private bool _seated;

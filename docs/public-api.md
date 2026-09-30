@@ -151,6 +151,7 @@ The single entry point for game commands: every game action goes through `ApplyH
 The telemetry sources declared by the Holdem engine for OpenTelemetry hosts.
 
 - `const string ActivitySourceName` — The name of the `ActivitySource` the engine publishes to.
+- `const string MeterName` — The name of the `Meter` the engine publishes to.
 
 #### `HoldemError` (sealed record)
 

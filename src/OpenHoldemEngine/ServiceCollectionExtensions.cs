@@ -3,7 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenHoldemEngine.Data;
+using OpenHoldemEngine.Diagnostics;
 using OpenHoldemEngine.Options;
+using System.Diagnostics.Metrics;
 
 namespace OpenHoldemEngine;
 
@@ -42,7 +44,9 @@ public static class ServiceCollectionExtensions
                 servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
             var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemEngine>()
                 ?? NullLogger<HoldemEngine>.Instance;
-            return new HoldemEngine(resolvedOptions, logger);
+            var meterFactory = servicesProvider.GetService<IMeterFactory>();
+            var metrics = HoldemEngineMetrics.CreateOrGetFallback(meterFactory);
+            return new HoldemEngine(resolvedOptions, logger, metrics);
         });
 
         return services;
