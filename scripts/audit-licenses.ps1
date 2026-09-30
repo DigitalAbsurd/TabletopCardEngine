@@ -4,10 +4,11 @@
 
 .DESCRIPTION
     Reads obj/project.assets.json of every project under src/ (run `dotnet restore` first), looks
-    each package's nuspec up in the NuGet package folders the assets file names, and prints three
+    each package's nuspec up in the NuGet package folders the assets file names, and prints four
     Markdown tables in the shape THIRD-PARTY-NOTICES.md uses:
 
     - "OpenHoldemEngine": the packages the library references.
+    - "OpenHoldemEngine.OpenTelemetry": what the instrumentation package references on top of the library.
     - "OpenHoldemEngine.Demo": what the deployed demo site references on top of the library.
     - "Test and development only": what the test projects reference on top of both.
 
@@ -31,6 +32,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $sections = [ordered]@{
     'OpenHoldemEngine' = 'OpenHoldemEngine'
+    'OpenHoldemEngine.OpenTelemetry' = 'OpenHoldemEngine.OpenTelemetry'
     'OpenHoldemEngine.Demo' = 'OpenHoldemEngine.Demo'
 }
 $testSection = 'Test and development only'
@@ -109,7 +111,7 @@ foreach ($project in Get-ChildItem (Join-Path $repoRoot 'src') -Recurse -Filter 
                 continue
             }
             $key = $resolvedById[$dependency.Name]
-            # A package belongs to the first section that references it: library, then demo, then tests.
+            # A package belongs to the first section that references it: library, then instrumentation, then demo, then tests.
             if (-not $direct.ContainsKey($key) -or $rank -lt $direct[$key]) {
                 $direct[$key] = $rank
             }

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!--
+      No EnablePackageValidation: this package has never shipped, so there is no baseline to
+      compare against yet. The NuGet and Versioning milestones own that.
+    -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The API only, never the SDK: TracerProviderBuilder, MeterProviderBuilder, AddSource and AddMeter live here. -->
+    <PackageReference Include="OpenTelemetry.Api" Version="1.19.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -247,6 +247,7 @@ discards it, and `.phh` export is the durable artefact.
 
 ```
 src/OpenHoldemEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
+src/OpenHoldemEngine.OpenTelemetry/     # AddOpenHoldemEngineInstrumentation(); references OpenTelemetry.Api only
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net8.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge
@@ -263,7 +264,8 @@ src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TES
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/observability.md                   # the engine's logs, traces and metrics
-docs/adr/                               # architecture decision records (ADR-0001: the license)
+docs/adr/                               # architecture decision records (ADR-0001: the license,
+                                        # ADR-0002: the OpenTelemetry instrumentation package)
 scripts/                                # license audit, PHH fixture packing, public API listing
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 .github/workflows/                      # ci.yml and deploy-demo.yml
