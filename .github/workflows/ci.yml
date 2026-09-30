@@ -46,7 +46,10 @@ jobs:
         run: dotnet test
 
       - name: Check the public API against the baseline
-        run: dotnet pack OpenHoldemEngine.Packages.slnf -c Release
+        run: |
+          dotnet pack src/OpenHoldemEngine -c Release
+          dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Release
+          dotnet pack src/OpenHoldemEngine.Sqlite -c Release
 
       # The browser-gate-local label says the gate was run locally and passed (docs/task-run.md).
       # Labels are read now, not from the event payload: gh pr create applies them in a separate
