@@ -60,6 +60,12 @@
     anyone else is skipped even if it carries -ReadyLabel. When omitted, the author is not
     checked, and the label alone (with the checks listed under .NOTES) decides.
 
+.PARAMETER AllowAgentVetting
+    Opt-in, off by default, and never read from the agent settings file: it has to be typed
+    for each run. It lets the prompt permit the agent to apply -ReadyLabel to a follow-up
+    issue it filed itself. The runner will then pick that issue next with no human having
+    read it, including one a prompt injection talked the agent into filing.
+
 .NOTES
     Requires on PATH: gh (authenticated against GitHub), git, dotnet SDK, and whatever
     "command" the agent settings file names. Run from anywhere inside the repository; the
@@ -96,7 +102,11 @@
     The agent runs with your gh credentials, which are allowed to apply labels. The prompt
     forbids it to apply or remove -ReadyLabel, so follow-up issues it files wait for a
     human. Only a prompt stands behind that rule; review follow-up issues before you
-    label them.
+    label them. With -AllowAgentVetting the prompt instead lets the agent apply -ReadyLabel
+    to an issue it filed in this run, when that issue has no "**Open decisions.**" section
+    and the label goes on after its last edit; it may never label any other issue or remove
+    the label. The vetting checks above are unchanged. In both modes, follow-ups go into
+    the Backlog milestone with one size label.
 #>
 
 [CmdletBinding()]
@@ -109,7 +119,8 @@ param(
     [int]$TaskCount = 1,
     [ValidateNotNullOrEmpty()]
     [string]$ReadyLabel = 'agent-ready',
-    [string[]]$TrustedAuthors = @()
+    [string[]]$TrustedAuthors = @(),
+    [switch]$AllowAgentVetting
 )
 
 $ErrorActionPreference = 'Stop'
@@ -456,6 +467,16 @@ function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$Con
     # settings file names them rather than the script hard-coding one.
     $docs = (@('docs/task-run.md') + @($ContextFiles)) -join ', '
 
+    # Follow-ups always go into the Backlog milestone with one size label; only the label
+    # that marks an issue as vetted depends on the switch.
+    $followUpRules = 'Issues you file go into the Backlog milestone (gh issue create --milestone Backlog), carry exactly one size label (7b, 35b or 70b), and list any open forks under an "**Open decisions.**" heading.'
+    $readyLabelRule = if ($AllowAgentVetting) {
+        "Never apply or remove the ""$ReadyLabel"" label on any issue, with one exception: you may apply it to an issue you filed yourself in this run, only when its body has no ""**Open decisions.**"" section, and only after your last edit to its title and body. Never apply it to any other issue, and never remove it from any issue. $followUpRules"
+    }
+    else {
+        "Never apply or remove the ""$ReadyLabel"" label, on any issue. It is how a human marks an issue as vetted for an unattended run. Issues you file stay unlabelled until a maintainer has reviewed them. $followUpRules"
+    }
+
     return @"
 Work in the repository $Repo (the gh CLI is already authenticated). Implement exactly one task - issue #$IssueNumber, and nothing beyond it. Act entirely on your own: there will be no human review, and the decision to merge is yours.
 
@@ -471,7 +492,7 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 10. Wait for CI yourself: GitHub does not enforce the checks in this repository, so nothing else holds the merge back. Use the blocking command gh pr checks <number> -R $Repo --watch --fail-fast. If it says no checks are reported yet, or a tool timeout cuts it off, run it again. Merge only once every check has passed: gh pr merge <number> -R $Repo --squash --delete-branch. If a check fails, fix it on the branch, push, and wait again. Do not leave the pull request open and do not wait for someone else's approval - there will not be one.
 11. After the merge, confirm that issue #$IssueNumber actually closed (gh issue view $IssueNumber -R $Repo --json state). If it did not, close it explicitly with a comment saying why.
 12. If something you learn while implementing contradicts docs/task-run.md, document it in the pull request and file a separate issue to fix the document.
-13. Never apply or remove the "$ReadyLabel" label, on any issue. It is how a human marks an issue as vetted for an unattended run. Issues you file stay unlabelled until a maintainer has reviewed them.
+13. $readyLabelRule
 14. You run non-interactively, and the run ends the moment your reply ends. Nothing will resume you later, so never schedule a later check, a wakeup or a background watcher, and never end with "I'll check again later". Do not end your reply until the pull request is merged and issue #$IssueNumber is closed, or until you have stopped as step 7 describes.
 "@
 }
@@ -533,7 +554,7 @@ $maxTasks = if ($unlimited) { $UnlimitedTaskCap } else { $TaskCount }
 
 Write-Host "Agent: $($agentSettings.Name) ($($agentSettings.Command)). Scope: $(Get-Scope). Branch prefix: '$branchPrefix'. Model: $Model."
 $authorsShown = if ($TrustedAuthors.Count -gt 0) { $TrustedAuthors -join ', ' } else { 'any' }
-Write-Host "Vetting: label '$ReadyLabel', applied by triage or higher, no edit since. Authors: $authorsShown."
+Write-Host "Vetting: label '$ReadyLabel', applied by triage or higher, no edit since. Authors: $authorsShown. Agent vetting: $(if ($AllowAgentVetting) { 'on' } else { 'off' })."
 
 # --- Main loop ----------------------------------------------------------------
 
