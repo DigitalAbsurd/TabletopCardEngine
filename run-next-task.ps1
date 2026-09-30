@@ -468,10 +468,11 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
 8. Commit with a meaningful message in English and push the branch.
 9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The body must contain "Closes #$IssueNumber".
-10. If the repository has required CI checks for pull requests, wait for them to finish. Merge the pull request yourself: gh pr merge <number> --squash --delete-branch --auto. Do not leave it open and do not wait for someone else's approval - there will not be one.
+10. Wait for CI yourself: GitHub does not enforce the checks in this repository, so nothing else holds the merge back. Use the blocking command gh pr checks <number> -R $Repo --watch --fail-fast. If it says no checks are reported yet, or a tool timeout cuts it off, run it again. Merge only once every check has passed: gh pr merge <number> -R $Repo --squash --delete-branch. If a check fails, fix it on the branch, push, and wait again. Do not leave the pull request open and do not wait for someone else's approval - there will not be one.
 11. After the merge, confirm that issue #$IssueNumber actually closed (gh issue view $IssueNumber -R $Repo --json state). If it did not, close it explicitly with a comment saying why.
 12. If something you learn while implementing contradicts docs/task-run.md, document it in the pull request and file a separate issue to fix the document.
 13. Never apply or remove the "$ReadyLabel" label, on any issue. It is how a human marks an issue as vetted for an unattended run. Issues you file stay unlabelled until a maintainer has reviewed them.
+14. You run non-interactively, and the run ends the moment your reply ends. Nothing will resume you later, so never schedule a later check, a wakeup or a background watcher, and never end with "I'll check again later". Do not end your reply until the pull request is merged and issue #$IssueNumber is closed, or until you have stopped as step 7 describes.
 "@
 }
 

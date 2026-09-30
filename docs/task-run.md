@@ -135,17 +135,22 @@ of this applies.
 2. Commit in **English**, with a message that says what changed and why.
 3. Open the pull request against `main`. Its body **must** contain `Closes #<number>` so the merge
    closes the issue.
-4. If the repository has required checks, wait for them. Then merge it yourself — squash, and
-   delete the branch:
+4. Wait for CI yourself, then merge it yourself — squash, and delete the branch. GitHub enforces
+   no required checks in this repository and auto-merge is off, so `--auto` would merge at once and
+   nothing else holds a red pull request back. Wait with a blocking command, and run it again if it
+   reports no checks yet or a tool timeout cuts it off:
 
    ```
-   gh pr merge <number> --squash --delete-branch --auto
+   gh pr checks <number> --watch --fail-fast
+   gh pr merge <number> --squash --delete-branch
    ```
 
 5. Confirm the issue actually closed (`gh issue view <number> --json state`). If it did not, close
    it explicitly with a comment saying why.
 6. **Never leave an open pull request behind.** The task runner refuses to start while one exists
-   on an `*/issue-*` branch, so an abandoned branch blocks every later task, not just yours.
+   on an `*/issue-*` branch, so an abandoned branch blocks every later task, not just yours. An
+   unattended run ends when the agent's reply ends and nothing resumes it, so a scheduled "check CI
+   later" is exactly how a pull request gets abandoned.
 
 ## Repository traps
 
