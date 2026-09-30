@@ -8,12 +8,23 @@ The engine's storage contract: which databases are supported, how the schema is 
 
 | Database | Package | Registration call | Migrations |
 |---|---|---|---|
-| SQLite | `OpenHoldemEngine.Sqlite` | `UseHoldemSqlite(...)` | yes |
+| SQLite | `OpenHoldemEngine.Sqlite` | `UseHoldemSqlite(...)`, [setup](#sqlite) | yes |
 | PostgreSQL | `OpenHoldemEngine.PostgreSql` | `UseHoldemPostgreSql(...)` | yes |
 | SQL Server | `OpenHoldemEngine.SqlServer` | `UseHoldemSqlServer(...)` | yes |
 | EF Core InMemory | `OpenHoldemEngine.InMemory` | `UseHoldemInMemory(databaseName)` | no, created on `MigrateAsync` |
 
 Any other EF Core provider is rejected by `IHoldemSchemaManager` with `HoldemSchemaException(UnsupportedProvider)`. The core `OpenHoldemEngine` package references no database provider, so a SQLite consumer never restores `Npgsql` or `Microsoft.Data.SqlClient`.
+
+### SQLite
+
+Reference `OpenHoldemEngine.Sqlite`, then register and migrate:
+
+```csharp
+services.AddHoldemEngine(o => o.UseHoldemSqlite("Data Source=holdem.db"));
+await services.BuildServiceProvider().GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+```
+
+For an in-memory database, pass an open `SqliteConnection("DataSource=:memory:")` instead of the connection string, and keep it open for as long as the engine runs. The plain `UseSqlite` call is not enough: it points EF at no migrations, and `MigrateAsync` fails with `MigrationsNotFound`.
 
 ## Creating and upgrading the schema
 

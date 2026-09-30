@@ -27,7 +27,15 @@ After changing a dependency, re-run the script and paste its tables over the one
 none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
 packages, all MIT.
 
-**The persistence packages** (`OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`, `OpenHoldemEngine.Sqlite`)
+**The SQLite package, `OpenHoldemEngine.Sqlite`**, references the library and
+`Microsoft.EntityFrameworkCore.Sqlite` 9.0.1 (MIT) as NuGet packages and redistributes neither. Its
+runtime closure on top of the library's is EF Core SQLite and `Microsoft.Data.Sqlite.Core` (MIT),
+and SQLitePCLRaw 2.1.10 (Apache-2.0), whose `SQLitePCLRaw.lib.e_sqlite3` carries the public-domain
+SQLite itself. `Microsoft.EntityFrameworkCore.Design` is development-only: it is what `dotnet ef`
+scaffolds the migrations with, it is referenced with `PrivateAssets="all"`, and it does not appear
+among the package's dependencies.
+
+**The other persistence packages** (`OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`)
 bring in the PostgreSQL License (Npgsql) and the Microsoft.Data.SqlClient.SNI runtime's proprietary
 licence. Both are documented in [ADR-0003](docs/adr/0003-database-provider-licences.md): the
 PostgreSQL License is OSI-approved and equivalent to MIT/BSD, and the SNI runtime is accepted as a
@@ -127,7 +135,7 @@ citation.
 
 Every NuGet package a project references directly, listed under the first project that
 references it. The library comes first, then what the instrumentation package adds, then what the
-demo adds, then what the test projects add.
+SQLite package adds, then what the demo adds, then what the test projects add.
 The inventory leaves out transitive packages. The ones the demo ships are named in
 [What ships](#what-ships-and-under-which-license).
 
@@ -146,6 +154,13 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | --- | --- | --- |
 | OpenTelemetry.Api | 1.19.1 | Apache-2.0 |
 
+### OpenHoldemEngine.Sqlite
+
+| Package | Version | License |
+| --- | --- | --- |
+| Microsoft.EntityFrameworkCore.Design | 9.0.1 | MIT |
+| Microsoft.EntityFrameworkCore.Sqlite | 9.0.1 | MIT |
+
 ### OpenHoldemEngine.Demo
 
 | Package | Version | License |
@@ -153,7 +168,6 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | AntDesign | 0.17.0 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly | 8.0.13 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly.DevServer | 8.0.13 | MIT |
-| Microsoft.EntityFrameworkCore.Sqlite | 9.0.1 | MIT |
 | Tomlyn | 0.19.0 | BSD-2-Clause |
 
 ### Test and development only

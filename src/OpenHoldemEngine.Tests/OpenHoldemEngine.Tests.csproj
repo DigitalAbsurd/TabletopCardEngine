@@ -40,6 +40,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
   </ItemGroup>
 
 </Project>

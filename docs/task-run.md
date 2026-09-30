@@ -221,9 +221,15 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   Transitive packages get no row. Adding or bumping a package means running `pwsh ./scripts/audit-licenses.ps1` and
   pasting its tables over the inventory. A vendored asset has no nuspec, so it needs its row in the
   notices by hand. The PostgreSQL License and SNI runtime are documented in ADR-0003.
-- **There are no EF migrations.** The schema comes from `HoldemDbContext.OnModelCreating`
-  (composite keys throughout) plus `Database.EnsureCreated()`. An entity shape change needs no
-  migration but does need the model configuration updated by hand.
+- **The schema comes from per-provider migrations.** Each `OpenHoldemEngine.<Provider>` package
+  (so far `OpenHoldemEngine.Sqlite`) carries `Migrations/` generated from
+  `HoldemDbContext.OnModelCreating`, applied by `IHoldemSchemaManager.MigrateAsync`. An entity
+  shape change needs the model configuration updated by hand **and** a migration for every
+  provider, under the rules in [docs/persistence.md](persistence.md);
+  `Sqlite_MigratedSchema_HasNoPendingModelChanges` fails when the model and the snapshot disagree.
+  The migrations are generated code (`generated_code = true` in `.editorconfig`) and `internal`.
+  `Database.EnsureCreated()` survives only in the tests and the demo until the milestone moves
+  them; add it nowhere new.
 - *Retired by #137:* engine options are per container now, and both test assemblies run with
   method-level parallelism (`[assembly: Parallelize]`), so any state a test shares is a real defect.
   Don't paper over it with `[DoNotParallelize]`.
@@ -248,6 +254,7 @@ discards it, and `.phh` export is the durable artefact.
 ```
 src/OpenHoldemEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
 src/OpenHoldemEngine.OpenTelemetry/     # AddOpenHoldemEngineInstrumentation(); references OpenTelemetry.Api only
+src/OpenHoldemEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net8.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge

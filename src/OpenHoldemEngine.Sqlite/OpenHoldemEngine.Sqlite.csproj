@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Public API baseline">
+    <!--
+      The same gate as the core library, over this package's own baseline: dotnet pack fails on a
+      removed or changed public member (CP0001, CP0002, ...). Changing the surface means re-packing
+      the baseline in the same pull request: see docs/public-api.md.
+    -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselinePath>$(MSBuildThisFileDirectory)../../eng/api-baseline/OpenHoldemEngine.Sqlite.1.0.0-baseline.nupkg</PackageValidationBaselinePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The provider the migrations are generated for; the core package references no provider. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
+    <!-- What dotnet ef needs to scaffold the migrations. Development only: it never flows to consumers. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+  </ItemGroup>
+
+</Project>

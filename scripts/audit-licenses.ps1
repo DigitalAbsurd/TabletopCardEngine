@@ -4,11 +4,12 @@
 
 .DESCRIPTION
     Reads obj/project.assets.json of every project under src/ (run `dotnet restore` first), looks
-    each package's nuspec up in the NuGet package folders the assets file names, and prints four
+    each package's nuspec up in the NuGet package folders the assets file names, and prints five
     Markdown tables in the shape THIRD-PARTY-NOTICES.md uses:
 
     - "OpenHoldemEngine": the packages the library references.
     - "OpenHoldemEngine.OpenTelemetry": what the instrumentation package references on top of the library.
+    - "OpenHoldemEngine.Sqlite": what the SQLite package references on top of the library.
     - "OpenHoldemEngine.Demo": what the deployed demo site references on top of the library.
     - "Test and development only": what the test projects reference on top of both.
 
@@ -33,6 +34,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $sections = [ordered]@{
     'OpenHoldemEngine' = 'OpenHoldemEngine'
     'OpenHoldemEngine.OpenTelemetry' = 'OpenHoldemEngine.OpenTelemetry'
+    'OpenHoldemEngine.Sqlite' = 'OpenHoldemEngine.Sqlite'
     'OpenHoldemEngine.Demo' = 'OpenHoldemEngine.Demo'
 }
 $testSection = 'Test and development only'
