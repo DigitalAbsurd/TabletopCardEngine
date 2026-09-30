@@ -421,6 +421,7 @@ renumber.
     plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`. The database's version
     is the single row of `__OheSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
+    <br>Each `HoldemEngine` checks `__OheSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
 
 ## A known, deliberate duplication
 

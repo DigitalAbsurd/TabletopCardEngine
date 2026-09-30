@@ -34,6 +34,72 @@ internal sealed class HoldemSchemaManager(IDbContextFactory<HoldemDbContext> con
         await database.MigrateAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Ensures the database schema is compatible with this engine instance on its first call.
+    /// <para>
+    /// Checks once per engine instance and throws <see cref="HoldemSchemaException"/> on a mismatch:
+    /// if the database is newer, if migrations are pending, or if the database is not versioned.
+    /// </para>
+    /// </summary>
+    /// <param name="cancellationToken">Cancels the database work.</param>
+    /// <exception cref="HoldemSchemaException">When the database version does not match the engine.</exception>
+    internal async Task EnsureCompatibleAsync(CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var providerName = RequireSupportedProvider(context);
+        var database = context.Database;
+
+        if (!database.IsRelational())
+        {
+            return;
+        }
+
+        var migrations = database.GetMigrations();
+        var appliedMigrations = await database.GetAppliedMigrationsAsync(cancellationToken);
+
+        if (migrations.Any() && !appliedMigrations.Any())
+        {
+            throw new HoldemSchemaException(
+                HoldemSchemaFailure.MigrationRequired,
+                "The database schema is older than this engine. Call IHoldemSchemaManager.MigrateAsync() first.",
+                status: null);
+        }
+
+        var schemaRow = await context.Set<OheSchemaRow>().AsNoTracking().FirstOrDefaultAsync(r => r.Id == 1, cancellationToken);
+
+        if (schemaRow is null)
+        {
+            throw new HoldemSchemaException(
+                HoldemSchemaFailure.MigrationRequired,
+                "The database schema is not versioned. Call IHoldemSchemaManager.MigrateAsync() first.",
+                status: null);
+        }
+
+        var databaseSchemaVersion = schemaRow.SchemaVersion;
+        var compareState = HoldemSchema.Compare(databaseSchemaVersion, hasPendingMigrations: false);
+
+        switch (compareState)
+        {
+            case HoldemSchemaState.NewerThanEngine:
+                var status = new HoldemSchemaStatus(
+                    compareState,
+                    providerName,
+                    HoldemSchema.Version,
+                    databaseSchemaVersion,
+                    schemaRow.EngineVersion,
+                    EquatableList<string>.Empty);
+                throw new HoldemSchemaException(
+                    HoldemSchemaFailure.DatabaseIsNewer,
+                    $"The database schema (version {databaseSchemaVersion}, engine {schemaRow.EngineVersion}) is newer than this engine (version {HoldemSchema.Version}). The engine must be upgraded.",
+                    status);
+            case HoldemSchemaState.MigrationRequired:
+                throw new HoldemSchemaException(
+                    HoldemSchemaFailure.MigrationRequired,
+                    "The database schema is older than this engine. Call IHoldemSchemaManager.MigrateAsync() first.",
+                    status: null);
+        }
+    }
+
     public async Task<HoldemSchemaStatus> GetSchemaStatusAsync(CancellationToken cancellationToken = default)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);

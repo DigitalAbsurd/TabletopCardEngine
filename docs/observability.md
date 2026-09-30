@@ -76,7 +76,7 @@ GameId:{GameId} HandNo:{HandNo}
 
 ## Traces
 
-The engine opens one `Activity` (a span in OpenTelemetry terminology) per call to `HoldemEngine.ApplyHoldemActionAsync`.
+The engine opens one `Activity` (a span in OpenTelemetry terminology) per call to `HoldemEngine.ApplyHoldemActionAsync`. On the first call of each `HoldemEngine` instance, a schema check runs before the span and the metrics: if the database is newer or needs migration, `HoldemSchemaException` is thrown before any signal is emitted.
 
 **Source name:** `"OpenHoldemEngine"`
 

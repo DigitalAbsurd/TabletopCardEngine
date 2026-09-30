@@ -42,6 +42,10 @@ public static class ServiceCollectionExtensions
 
         configure?.Invoke(new HoldemEngineOptionsBuilder(options));
         services.AddSingleton(options);
+        services.AddSingleton<HoldemSchemaManager>(sp =>
+            new HoldemSchemaManager(sp.GetRequiredService<IDbContextFactory<HoldemDbContext>>()));
+        services.AddSingleton<IHoldemSchemaManager>(sp =>
+            sp.GetRequiredService<HoldemSchemaManager>());
         services.AddSingleton<HoldemEngine>(servicesProvider =>
         {
             var resolvedOptions = servicesProvider.GetRequiredService<HoldemEngineOptions>();
@@ -51,10 +55,9 @@ public static class ServiceCollectionExtensions
                 ?? NullLogger<HoldemEngine>.Instance;
             var meterFactory = servicesProvider.GetService<IMeterFactory>();
             var metrics = HoldemEngineMetrics.CreateOrGetFallback(meterFactory);
-            return new HoldemEngine(resolvedOptions, logger, metrics);
+            var schemaManager = servicesProvider.GetRequiredService<HoldemSchemaManager>();
+            return new HoldemEngine(resolvedOptions, logger, metrics, schemaManager);
         });
-        services.AddSingleton<IHoldemSchemaManager>(sp =>
-            new HoldemSchemaManager(sp.GetRequiredService<IDbContextFactory<HoldemDbContext>>()));
 
         return services;
     }

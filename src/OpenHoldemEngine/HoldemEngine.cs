@@ -29,12 +29,16 @@ public sealed class HoldemEngine
     private readonly HoldemEngineOptions _options;
     private readonly ILogger<HoldemEngine> _logger;
     private readonly HoldemEngineMetrics _metrics;
+    private readonly HoldemSchemaManager _schemaManager;
+    private volatile bool _schemaChecked;
 
-    internal HoldemEngine(HoldemEngineOptions options, ILogger<HoldemEngine> logger, HoldemEngineMetrics metrics)
+    internal HoldemEngine(HoldemEngineOptions options, ILogger<HoldemEngine> logger, HoldemEngineMetrics metrics, HoldemSchemaManager schemaManager)
     {
         _options = options;
         _logger = logger;
         _metrics = metrics;
+        _schemaManager = schemaManager;
+        _schemaChecked = false;
     }
 
     /// <summary>
@@ -65,6 +69,12 @@ public sealed class HoldemEngine
     /// <summary>The same call with a seam between handling the action and saving it, so a test can interleave two writers.</summary>
     internal async Task<HoldemResult<GameData>> ApplyWithHookAsync(HoldemAction holdemAction, Func<Task>? beforeSave, CancellationToken cancellationToken)
     {
+        if (!_schemaChecked)
+        {
+            await _schemaManager.EnsureCompatibleAsync(cancellationToken);
+            _schemaChecked = true;
+        }
+
         long start = Stopwatch.GetTimestamp();
         using var activity = HoldemEngineActivity.Source.StartActivity(HoldemEngineActivity.Name, ActivityKind.Internal);
 

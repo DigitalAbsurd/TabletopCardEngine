@@ -31,10 +31,15 @@ public sealed class DemoDatabase
 
     /// <summary>
     /// Deletes every row of every engine table, leaving the schema in place.
+    /// <para>
+    /// Tables whose names start with <c>__</c> are engine bookkeeping and are never cleared.
+    /// </para>
     /// </summary>
     public void ClearAllData()
     {
-        var tableNames = _browser.GetTableNames();
+        var tableNames = _browser.GetTableNames()
+            .Where(name => !name.StartsWith("__", StringComparison.Ordinal))
+            .ToList();
         if (tableNames.Count == 0)
         {
             return;
