@@ -71,7 +71,7 @@ public sealed class HoldemEngine
         var actionType = HoldemActionNames.Of(holdemAction);
         var handBefore = game.GetCurrentHand();
         using var scope = _logger.BeginGameScope(holdemAction.GameId, handBefore.No);
-        var before = new HandSnapshot(handBefore.No, game.IsCurrentHandEnded(), handBefore.GetStreet());
+        var before = new HandSnapshot(handBefore.No, game.IsCurrentHandEnded(), handBefore.GetStreet(), handBefore.GetDeckCards().Count);
 
         var existed = game.Id != default;
         if (existed && holdemAction is not HoldemActionCreateGame && holdemAction.ExpectedVersion is { } expected && expected != game.Version)
@@ -114,12 +114,13 @@ public sealed class HoldemEngine
         }
 
         LogApplied(holdemAction, actionType, game, before);
+        LogSensitiveCards(game, before);
 
         return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
     }
 
     /// <summary>What the current hand looked like before the handler ran, to tell what the call changed.</summary>
-    private readonly record struct HandSnapshot(int No, bool Ended, Street Street);
+    private readonly record struct HandSnapshot(int No, bool Ended, Street Street, int DeckCardCount);
 
     /// <summary>Logs the lifecycle events a successful call caused, then the call itself. Scalars only: never the game.</summary>
     private void LogApplied(HoldemAction holdemAction, string actionType, Game game, HandSnapshot before)
@@ -153,6 +154,58 @@ public sealed class HoldemEngine
         }
 
         _logger.ActionApplied(actionType, gameId, game.Version);
+    }
+
+    /// <summary>Logs hole cards and board cards when enabled.</summary>
+    private void LogSensitiveCards(Game game, HandSnapshot before)
+    {
+        if (!(_options.Settings.EnableSensitiveCardLogging && _logger.IsEnabled(LogLevel.Trace)))
+        {
+            return;
+        }
+
+        var hand = game.GetCurrentHand();
+        var gameId = game.Id;
+        var sameHand = hand.No == before.No;
+
+        if (hand.No > before.No)
+        {
+            foreach (var playerStartState in hand.PlayerStartStates.OrderBy(p => p.SeatNo))
+            {
+                var holeCards = hand.GetSeatHoleCards(playerStartState.SeatNo);
+                if (holeCards is not null && holeCards.Length > 0)
+                {
+                    _logger.HoleCardsDealt(hand.No, gameId, playerStartState.SeatNo, holeCards);
+                }
+            }
+        }
+
+        if (sameHand)
+        {
+            var deckCards = hand.GetDeckCards();
+            var finalDeckCount = deckCards.Count;
+
+            if (finalDeckCount > before.DeckCardCount)
+            {
+                if (finalDeckCount >= 3 && before.DeckCardCount < 3)
+                {
+                    var flopCards = deckCards.Skip(0).Take(3);
+                    _logger.BoardDealt(hand.No, gameId, Street.Flop, flopCards);
+                }
+
+                if (finalDeckCount >= 4 && before.DeckCardCount < 4)
+                {
+                    var turnCard = deckCards.Skip(3).Take(1);
+                    _logger.BoardDealt(hand.No, gameId, Street.Turn, turnCard);
+                }
+
+                if (finalDeckCount >= 5 && before.DeckCardCount < 5)
+                {
+                    var riverCard = deckCards.Skip(4).Take(1);
+                    _logger.BoardDealt(hand.No, gameId, Street.River, riverCard);
+                }
+            }
+        }
     }
 
     private static HoldemError ConflictError()

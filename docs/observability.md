@@ -52,3 +52,40 @@ The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around
 The engine keeps not catching exceptions — it does not write them to its log either, because the host logs what reaches it. The host is responsible for deciding what to do with an unhandled exception (log it, report it, stop the request, etc.) and for logging the command's failure. Domain failures (`HoldemError`) are results, not exceptions, and are logged and counted as such by the host.
 
 A future instrumentation feature (the tracing issue of this milestone) will record an exception on the command's span (status `Error`) before it propagates.
+
+## Sensitive data
+
+Hole cards and the deck are never logged at Information level or above, and never appear in span tags or metric tags.
+
+### The setting
+
+Enable sensitive card logging with `EnableSensitiveCardLogging = true` in `HoldemEngineSettings`. By default it is `false`.
+
+```csharp
+services.AddHoldemEngine(dbOptions, configure: builder =>
+    builder.WithSettings(settings => settings.EnableSensitiveCardLogging = true));
+```
+
+The setting is ignored unless the `OpenHoldemEngine` category is enabled at Trace level:
+
+```csharp
+services.AddLogging(logging => logging
+    .SetMinimumLevel(LogLevel.Trace)
+    .AddFilter("OpenHoldemEngine", LogLevel.Trace)
+    .AddConsole());
+```
+
+### Card events
+
+When enabled, the engine logs these events:
+
+| Event ID | Name | Level | When |
+|---|---|---|---|
+| 1100 | `HoleCardsDealt` | Trace | Once per seat when a hand starts |
+| 1101 | `BoardDealt` | Trace | Once per street (flop, turn, river) when board cards are dealt |
+
+### Production safety
+
+A host that mistakenly enables the setting but leaves the logger at Information or above will see no card events and pay no performance cost — the events are not written.
+
+**Important:** The host's own EF `EnableSensitiveDataLogging()` prints card values in the `Microsoft.EntityFrameworkCore.Database.Command` category at Information level. That output is outside the engine's control. The test harness's `OHE_TEST_SQL_DEBUG` environment variable enables EF's sensitive data logging and therefore prints card values to the debug output.

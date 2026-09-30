@@ -8,4 +8,11 @@ public sealed class HoldemEngineSettings
 
     /// <summary>Most seats a hand may be dealt to.</summary>
     public int GamePlayersMaxCount { get; set; } = 6;
+
+    /// <summary>
+    /// When <c>true</c>, the engine logs every seat's hole cards and the board at Trace level.
+    /// This feature is <b>disabled by default</b> and must be explicitly enabled — it is never for production.
+    /// The setting is ignored unless the <c>OpenHoldemEngine</c> category is enabled at Trace level.
+    /// </summary>
+    public bool EnableSensitiveCardLogging { get; set; }
 }
