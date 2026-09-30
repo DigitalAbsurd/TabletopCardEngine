@@ -56,14 +56,16 @@ public sealed class EngineCallSnippetWriter
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         sb.AppendLine("using OpenHoldemEngine;");
         sb.AppendLine("using OpenHoldemEngine.Dto;");
+        sb.AppendLine("using OpenHoldemEngine.Sqlite;");
         sb.AppendLine();
 
         // Main entry
         sb.AppendLine("var services = new ServiceCollection();");
         sb.AppendLine("services.AddHoldemEngine(");
-        sb.AppendLine("    opts => opts.UseSqlite(\"DataSource=:memory:\"),");
+        sb.AppendLine("    opts => opts.UseHoldemSqlite(\"DataSource=:memory:\"),");
         sb.AppendLine("    configure: null);");
         sb.AppendLine("var provider = services.BuildServiceProvider();");
+        sb.AppendLine("await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();");
         sb.AppendLine("var engine = provider.GetRequiredService<HoldemEngine>();");
         sb.AppendLine();
 

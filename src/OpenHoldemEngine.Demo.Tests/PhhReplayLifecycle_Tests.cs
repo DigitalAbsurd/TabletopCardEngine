@@ -1,12 +1,11 @@
 ﻿using FluentAssertions;
 using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Engine;
 using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Demo.Tests;
 
@@ -54,17 +53,12 @@ public sealed class PhhReplayLifecycle_Tests
     {
         var services = new ServiceCollection();
         services.AddHoldemEngine(
-            dbOptionsAction: opts => opts.UseSqlite(connection),
+            dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
             configure: _ => { }
         );
 
         var serviceProvider = services.BuildServiceProvider();
-        var dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-
-        using (var dbContext = dbContextFactory.CreateDbContext())
-        {
-            dbContext.Database.EnsureCreated();
-        }
+        serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
 
         return serviceProvider.GetRequiredService<HoldemEngine>();
     }

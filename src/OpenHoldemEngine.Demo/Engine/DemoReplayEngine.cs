@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using OpenHoldemEngine.Demo.Phh;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Demo.Engine;
 
@@ -29,7 +29,7 @@ public sealed class DemoReplayEngine : IDisposable
 
     /// <summary>
     /// Builds the replay engine over an already open connection. The schema is not created here:
-    /// the play engine's host does that once for the shared database.
+    /// <c>Program.Main</c> migrates the shared database once.
     /// </summary>
     /// <param name="connection">The kept-alive connection the play engine uses.</param>
     /// <param name="shuffler">The shuffler the replay controller registers each hand's deck with.</param>
@@ -41,7 +41,7 @@ public sealed class DemoReplayEngine : IDisposable
 
         var services = new ServiceCollection();
         services.AddHoldemEngine(
-            dbOptionsAction: opts => opts.UseSqlite(connection),
+            dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
             configure: opts => opts.WithCardShuffler(shuffler));
 
         return new DemoReplayEngine(services.BuildServiceProvider());

@@ -170,10 +170,17 @@ public sealed class EngineCallSnippetWriter_Tests
         snippet.Should().Contain("using Microsoft.Extensions.DependencyInjection;");
         snippet.Should().Contain("using OpenHoldemEngine;");
         snippet.Should().Contain("using OpenHoldemEngine.Dto;");
+        snippet.Should().Contain("using OpenHoldemEngine.Sqlite;");
         snippet.Should().NotContain("using OpenHoldemEngine.Data;");
         snippet.Should().Contain("var services = new ServiceCollection();");
         snippet.Should().Contain("services.AddHoldemEngine(");
-        snippet.Should().Contain("DataSource=:memory:");
+        snippet.Should().Contain("opts => opts.UseHoldemSqlite(\"DataSource=:memory:\")");
+        snippet.Should().NotContain("opts.UseSqlite");
+        snippet.Should().Contain("await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();");
+        snippet.IndexOf("BuildServiceProvider()", StringComparison.Ordinal).Should().BeLessThan(
+            snippet.IndexOf("MigrateAsync()", StringComparison.Ordinal));
+        snippet.IndexOf("MigrateAsync()", StringComparison.Ordinal).Should().BeLessThan(
+            snippet.IndexOf("var engine", StringComparison.Ordinal));
         snippet.Should().Contain("var engine = provider.GetRequiredService<HoldemEngine>();");
         snippet.Should().Contain("new HoldemActionCreateGame(");
         snippet.Should().Contain("new HoldemActionStartGame(");

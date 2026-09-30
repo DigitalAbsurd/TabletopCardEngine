@@ -138,7 +138,7 @@ The large published size is a known characteristic of Blazor WebAssembly applica
 Cold-start latency is dominated by:
 
 1. **Initial load**: Network download of the .wasm file and IL→JIT compilation
-2. **Database schema creation**: `HoldemDbContext.Database.EnsureCreated()` executes on app startup
+2. **Database schema creation**: `IHoldemSchemaManager.MigrateAsync()` applies the shipped SQLite migrations on app startup
 
 ## Architecture
 
@@ -147,8 +147,9 @@ Cold-start latency is dominated by:
 `Engine/DemoEngineHost.cs` configures the engine for WebAssembly:
 
 - Creates and opens a kept-alive `SqliteConnection` with `DataSource=:memory:`
-- Registers it with dependency injection as both the EF Core provider and a singleton for direct access
-- Calls `Database.EnsureCreated()` to initialize the schema
+- Registers it with dependency injection as both the EF Core provider (`UseHoldemSqlite(connection)`) and a singleton for direct access
+- Does not create the schema: `Program.Main` builds the host, awaits `IHoldemSchemaManager.MigrateAsync()` once for both engines, then runs it. `OpenHoldemEngine.Sqlite` is a trimmer root in the project file, because EF finds its migrations by reflection and a trimmed publish would otherwise arrive with none
+- The inspector therefore also lists `__OheMigrationsHistory` and `__OheSchema`, which "New Game" does not clear
 - Registers a second engine, `DemoReplayEngine`, in a container of its own with the `PhhCardShuffler` installed, over the same connection. `DemoGameSession` switches to it for a replay and back to the play engine afterwards, since engine options belong to the container and are never reconfigured in place
 
 The kept-alive connection is critical: without it, each new `DbContext` instance would see an empty in-memory SQLite database (each connection has its own in-memory database).

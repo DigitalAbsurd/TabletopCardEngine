@@ -4,9 +4,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Components;
 using OpenHoldemEngine.Demo.Components.Database;
 using OpenHoldemEngine.Demo.Components.EngineCalls;
@@ -17,6 +15,7 @@ using OpenHoldemEngine.Demo.Layout;
 using OpenHoldemEngine.Demo.Phh;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Demo.Tests;
 
@@ -64,7 +63,7 @@ public sealed class ComponentRender_Tests
         connection.Open();
 
         services.AddHoldemEngine(
-            dbOptionsAction: opts => opts.UseSqlite(connection),
+            dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
             configure: _ => { }
         );
 
@@ -82,12 +81,7 @@ public sealed class ComponentRender_Tests
 
     private static HoldemEngine CreateAndInitializeEngine(IServiceProvider serviceProvider)
     {
-        var dbContextFactory = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-
-        using (var dbContext = dbContextFactory.CreateDbContext())
-        {
-            dbContext.Database.EnsureCreated();
-        }
+        serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
 
         return serviceProvider.GetRequiredService<HoldemEngine>();
     }

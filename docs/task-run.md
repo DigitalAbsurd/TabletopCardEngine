@@ -228,8 +228,6 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   provider, under the rules in [docs/persistence.md](persistence.md);
   `Sqlite_MigratedSchema_HasNoPendingModelChanges` fails when the model and the snapshot disagree.
   The migrations are generated code (`generated_code = true` in `.editorconfig`) and `internal`.
-  `Database.EnsureCreated()` survives only in the tests and the demo until the milestone moves
-  them; add it nowhere new.
 - *Retired by #137:* engine options are per container now, and both test assemblies run with
   method-level parallelism (`[assembly: Parallelize]`), so any state a test shares is a real defect.
   Don't paper over it with `[DoNotParallelize]`.
@@ -294,8 +292,7 @@ These are the behaviours that are surprising, undocumented in the public API, or
 misleading. An issue names the ones its task can trip over. The numbering is stable — append, never
 renumber.
 
-1. **`HoldemDbContext` is `internal` and declares no `DbSet<>`.** An outside consumer cannot call
-   `Database.EnsureCreated()`. That is the single reason the demo needs `InternalsVisibleTo`.
+1. *Retired by #211:* the demo and every test create the schema with IHoldemSchemaManager.MigrateAsync(); the demo still uses InternalsVisibleTo, for HandEvaluator in Services/HandCombination.cs.
 2. *Retired by #144:* both are implemented; the lifecycle is `CreateGame` → `StartGame` →
    (`StartHand` | player actions)* → `FinishGame`, and `GetGame` is allowed in every state.
    `StartGame` deals hand 1 (`GameAlreadyStarted` once a hand exists), `StartHand` before it fails with
