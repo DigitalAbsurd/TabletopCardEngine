@@ -418,7 +418,9 @@ renumber.
     four providers, by `Database.ProviderName`, and rejects any other with
     `HoldemSchemaException(UnsupportedProvider)`. On a relational provider, `MigrateAsync` needs the
     migrations of the provider's `OpenHoldemEngine.*` package and fails with `MigrationsNotFound` under
-    plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`.
+    plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`. The database's version
+    is the single row of `__OheSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
+    A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
 
 ## A known, deliberate duplication
 

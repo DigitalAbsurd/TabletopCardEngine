@@ -42,12 +42,35 @@ internal sealed class HoldemSchemaManager(IDbContextFactory<HoldemDbContext> con
 
         if (!database.IsRelational())
         {
-            return Status(HoldemSchemaState.NotVersioned, providerName, EquatableList<string>.Empty);
+            return Status(HoldemSchemaState.NotVersioned, providerName, EquatableList<string>.Empty, databaseSchemaVersion: null, databaseEngineVersion: null);
         }
 
+        var migrations = database.GetMigrations();
+        var appliedMigrations = await database.GetAppliedMigrationsAsync(cancellationToken);
         var pending = new EquatableList<string>(await database.GetPendingMigrationsAsync(cancellationToken));
-        var state = pending.Count > 0 ? HoldemSchemaState.MigrationRequired : HoldemSchemaState.UpToDate;
-        return Status(state, providerName, pending);
+
+        int? databaseSchemaVersion = null;
+        string? databaseEngineVersion = null;
+
+        var hasMigrations = migrations.Any();
+        var hasMigrationsApplied = appliedMigrations.Any();
+
+        if (hasMigrations && !hasMigrationsApplied)
+        {
+            var state = HoldemSchemaState.MigrationRequired;
+            return Status(state, providerName, pending, databaseSchemaVersion: null, databaseEngineVersion: null);
+        }
+
+        var schemaRow = await context.Set<OheSchemaRow>().AsNoTracking().FirstOrDefaultAsync(r => r.Id == 1, cancellationToken);
+        if (schemaRow != null)
+        {
+            databaseSchemaVersion = schemaRow.SchemaVersion;
+            databaseEngineVersion = schemaRow.EngineVersion;
+        }
+
+        var hasPendingMigrations = pending.Count > 0;
+        var compareState = HoldemSchema.Compare(databaseSchemaVersion, hasPendingMigrations);
+        return Status(compareState, providerName, pending, databaseSchemaVersion, databaseEngineVersion);
     }
 
     private static string RequireSupportedProvider(HoldemDbContext context)
@@ -64,6 +87,6 @@ internal sealed class HoldemSchemaManager(IDbContextFactory<HoldemDbContext> con
         return providerName!;
     }
 
-    private static HoldemSchemaStatus Status(HoldemSchemaState state, string providerName, EquatableList<string> pending)
-        => new(state, providerName, HoldemSchema.Version, DatabaseSchemaVersion: null, DatabaseEngineVersion: null, pending);
+    private static HoldemSchemaStatus Status(HoldemSchemaState state, string providerName, EquatableList<string> pending, int? databaseSchemaVersion, string? databaseEngineVersion)
+        => new(state, providerName, HoldemSchema.Version, databaseSchemaVersion, databaseEngineVersion, pending);
 }
