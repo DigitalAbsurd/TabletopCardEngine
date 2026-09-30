@@ -72,9 +72,9 @@ How bets and raises are sized in a game.
 
 One playing card.
 
-- `Card()` — The implicit parameterless constructor, for object initializers.
-- `CardType CardType { get; init; }` — The card's rank.
-- `CardSuit CardSuit { get; init; }` — The card's suit.
+- `Card(CardType cardType, CardSuit cardSuit)` — Creates a card; the only way to build one, so every instance has a defined rank and suit.
+- `CardType CardType { get; }` — The card's rank.
+- `CardSuit CardSuit { get; }` — The card's suit.
 - `string ToString()` — Rank then suit, lowercase — e.g. "ah" (ace of hearts), "tc" (ten of clubs), "2s".
 - `static Card Parse(string s)` — Parses a card from exactly two characters, rank and suit in either order, case-insensitively — `"ah"`, `"ha"` and `"AH"` all give the ace of hearts.
 - `static bool TryParse(string? s, out Card? card)` — Parses a card like `Parse` but reports failure instead of throwing.

@@ -18,7 +18,7 @@ public sealed class HandEvaluatorTests
     [
         .. from suit in Enum.GetValues<CardSuit>()
            from type in Enum.GetValues<CardType>()
-           select new Card { CardType = type, CardSuit = suit },
+           select new Card(type, suit),
     ];
 
     [TestMethod]

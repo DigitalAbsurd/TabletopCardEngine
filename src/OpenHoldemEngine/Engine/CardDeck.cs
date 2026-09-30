@@ -41,7 +41,7 @@ internal sealed class CardDeck
 
     private static IEnumerable<Card> FullDeck()
         => Enum.GetValues<CardSuit>()
-            .SelectMany(suit => Enum.GetValues<CardType>().Select(type => new Card { CardSuit = suit, CardType = type }));
+            .SelectMany(suit => Enum.GetValues<CardType>().Select(type => new Card(type, suit)));
 
     private static void Shuffle(List<Card> cards)
     {
