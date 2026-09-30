@@ -47,9 +47,87 @@ public sealed class SchemaManagerTests
         status.ProviderName.Should().Be("Microsoft.EntityFrameworkCore.Sqlite");
         status.PendingMigrations.Should().BeEmpty();
         status.EngineSchemaVersion.Should().Be(1);
-        status.DatabaseSchemaVersion.Should().BeNull();
-        status.DatabaseEngineVersion.Should().BeNull();
+        status.DatabaseSchemaVersion.Should().Be(1);
+        status.DatabaseEngineVersion.Should().Be("1.0.0");
         status.Should().Be(await manager.GetSchemaStatusAsync(), "two reads of the same database compare equal");
+    }
+
+    [TestMethod]
+    public async Task SchemaStatus_EnsureCreated_ReportsTheEngineVersion()
+    {
+        using var host = TestEngineHost.Setup(out _, out _);
+        var manager = host.GetRequiredService<IHoldemSchemaManager>();
+
+        var status = await manager.GetSchemaStatusAsync();
+
+        status.DatabaseSchemaVersion.Should().Be(1);
+        status.DatabaseEngineVersion.Should().Be("1.0.0");
+        status.State.Should().Be(HoldemSchemaState.UpToDate);
+    }
+
+    [TestMethod]
+    public async Task SchemaStatus_NewerDatabase_IsNewerThanEngine()
+    {
+        using var host = TestEngineHost.Setup(out _, out _, seedAction: ctx =>
+        {
+            var row = ctx.Set<OheSchemaRow>().First();
+            row.SchemaVersion = 2;
+            ctx.SaveChanges();
+        });
+        var manager = host.GetRequiredService<IHoldemSchemaManager>();
+
+        var status = await manager.GetSchemaStatusAsync();
+
+        status.State.Should().Be(HoldemSchemaState.NewerThanEngine);
+    }
+
+    [TestMethod]
+    public async Task SchemaStatus_OlderDatabase_NeedsMigration()
+    {
+        using var host = TestEngineHost.Setup(out _, out _, seedAction: ctx =>
+        {
+            var row = ctx.Set<OheSchemaRow>().First();
+            row.SchemaVersion = 0;
+            ctx.SaveChanges();
+        });
+        var manager = host.GetRequiredService<IHoldemSchemaManager>();
+
+        var status = await manager.GetSchemaStatusAsync();
+
+        status.State.Should().Be(HoldemSchemaState.MigrationRequired);
+    }
+
+    [TestMethod]
+    public async Task SchemaStatus_MissingRow_NeedsMigration()
+    {
+        using var host = TestEngineHost.Setup(out _, out _, seedAction: ctx =>
+        {
+            var row = ctx.Set<OheSchemaRow>().First();
+            ctx.Set<OheSchemaRow>().Remove(row);
+            ctx.SaveChanges();
+        });
+        var manager = host.GetRequiredService<IHoldemSchemaManager>();
+
+        var status = await manager.GetSchemaStatusAsync();
+
+        status.State.Should().Be(HoldemSchemaState.MigrationRequired);
+        status.DatabaseSchemaVersion.Should().BeNull();
+    }
+
+    [TestMethod]
+    [DataRow(null, false, HoldemSchemaState.MigrationRequired)]
+    [DataRow(null, true, HoldemSchemaState.MigrationRequired)]
+    [DataRow(0, false, HoldemSchemaState.MigrationRequired)]
+    [DataRow(0, true, HoldemSchemaState.MigrationRequired)]
+    [DataRow(1, false, HoldemSchemaState.UpToDate)]
+    [DataRow(1, true, HoldemSchemaState.MigrationRequired)]
+    [DataRow(2, false, HoldemSchemaState.NewerThanEngine)]
+    [DataRow(2, true, HoldemSchemaState.NewerThanEngine)]
+    public void SchemaCompare_Table(int? databaseVersion, bool hasPendingMigrations, HoldemSchemaState expected)
+    {
+        var result = HoldemSchema.Compare(databaseVersion, hasPendingMigrations);
+
+        result.Should().Be(expected);
     }
 
     [TestMethod]
