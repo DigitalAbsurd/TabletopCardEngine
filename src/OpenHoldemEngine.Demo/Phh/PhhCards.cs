@@ -17,7 +17,7 @@ public static class PhhCards
     /// <summary>The 52-card deck in a fixed order, used to fill in cards a hand history omits.</summary>
     public static readonly IReadOnlyList<Card> FullDeck = [.. Enum.GetValues<CardType>()
         .SelectMany(cardType => Enum.GetValues<CardSuit>()
-            .Select(cardSuit => new Card { CardType = cardType, CardSuit = cardSuit }))];
+            .Select(cardSuit => new Card(cardType, cardSuit)))];
 
     /// <summary>Parses a run of concatenated cards; <c>null</c> marks an unknown (<c>??</c>) card.</summary>
     public static Card?[] ParseMany(string cards)

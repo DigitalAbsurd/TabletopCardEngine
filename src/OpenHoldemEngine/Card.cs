@@ -14,11 +14,31 @@ public record Card : IParsable<Card>
         { 's', CardSuit.Spade }
     };
 
+    /// <summary>Creates a card; the only way to build one, so every instance has a defined rank and suit.</summary>
+    /// <param name="cardType">The card's rank.</param>
+    /// <param name="cardSuit">The card's suit.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="cardType"/> or <paramref name="cardSuit"/> is not a defined member.</exception>
+    public Card(CardType cardType, CardSuit cardSuit)
+    {
+        if (!Enum.IsDefined(cardType))
+        {
+            throw new ArgumentOutOfRangeException(nameof(cardType), cardType, "The rank is not a defined CardType.");
+        }
+
+        if (!Enum.IsDefined(cardSuit))
+        {
+            throw new ArgumentOutOfRangeException(nameof(cardSuit), cardSuit, "The suit is not a defined CardSuit.");
+        }
+
+        CardType = cardType;
+        CardSuit = cardSuit;
+    }
+
     /// <summary>The card's rank.</summary>
-    public CardType CardType { get; init; }
+    public CardType CardType { get; }
 
     /// <summary>The card's suit.</summary>
-    public CardSuit CardSuit { get; init; }
+    public CardSuit CardSuit { get; }
 
     /// <summary>Rank then suit, lowercase — e.g. "ah" (ace of hearts), "tc" (ten of clubs), "2s".</summary>
     public override string ToString()
@@ -86,6 +106,6 @@ public record Card : IParsable<Card>
             _ => null
         };
 
-        return cardType is { } type ? new Card { CardType = type, CardSuit = suit } : null;
+        return cardType is { } type ? new Card(type, suit) : null;
     }
 }
