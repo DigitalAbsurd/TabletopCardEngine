@@ -50,7 +50,7 @@ internal static class EntityExtensions
         => hand.PlayerStartStates.Single(startState => startState.SeatNo == seatNo).StartStack;
 
     internal static decimal GetSeatCurrentStack(this Hand hand, byte seatNo)
-        => hand.GetSeatStartStack(seatNo) - hand.GetSeatActions(seatNo).Select(group => group.Value.LastOrDefault()?.Amount ?? 0).Sum();
+        => hand.GetSeatStartStack(seatNo) - hand.GetSeatBetAmount(seatNo);
 
     internal static decimal GetSeatWinAmount(this Hand hand, byte seatNo)
         => hand.PlayerEndStates.SingleOrDefault(endState => endState.SeatNo == seatNo)?.WinAmount ?? 0;
