@@ -60,7 +60,14 @@ public sealed class DemoDatabase_Tests
         // Assert
         foreach (var tableName in browser.GetTableNames())
         {
-            browser.GetRowCount(tableName).Should().Be(0, $"{tableName} must be empty after a reset");
+            if (tableName.StartsWith("__", StringComparison.Ordinal))
+            {
+                browser.GetRowCount(tableName).Should().BeGreaterThan(0, $"{tableName} is a schema table and must not be cleared");
+            }
+            else
+            {
+                browser.GetRowCount(tableName).Should().Be(0, $"{tableName} must be empty after a reset");
+            }
         }
     }
 
@@ -108,5 +115,32 @@ public sealed class DemoDatabase_Tests
         // Assert
         recreated.Should().BeTrue("the row that made this id taken has been deleted");
         session.CurrentGame!.Options.MaxPlayersCount.Should().Be(2);
+    }
+
+    [TestMethod]
+    public async Task DemoDatabase_ClearAllData_KeepsASecondEngineRunnable()
+    {
+        // Arrange - two engines over the same connection
+        using var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+
+        // First engine
+        using var serviceProvider1 = BuildServices(connection);
+        var session1 = serviceProvider1.GetRequiredService<DemoGameSession>();
+        await PlayOneHandAsync(session1);
+
+        var database = serviceProvider1.GetRequiredService<DemoDatabase>();
+
+        // Act - clear and build a second engine
+        database.ClearAllData();
+
+        // Second engine over the same connection should work fine
+        using var serviceProvider2 = BuildServices(connection);
+        var session2 = serviceProvider2.GetRequiredService<DemoGameSession>();
+
+        // Assert - the second engine can create a game without throwing
+        var gameId = Guid.NewGuid();
+        var result = await session2.CreateGameAsync(DemoGameDefaults.CreateOptions(), gameId);
+        result.Should().BeTrue("the second engine should be able to create a game after ClearAllData");
     }
 }
