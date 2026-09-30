@@ -186,12 +186,59 @@ The outcome of one engine call: a value on success, or the errors that rejected 
 - `IReadOnlyList<HoldemError> Errors { get; }` — The reasons the action was rejected; empty on success.
 - `T? Value { get; }` — The value of a successful call.
 
+#### `HoldemSchemaException : InvalidOperationException, ISerializable` (sealed class)
+
+The database cannot be used as the engine is configured: a deployment fault, not a game result, which is why it is an exception rather than a `HoldemErrorCode`.
+
+- `HoldemSchemaException()` — Creates an exception with no message and no status.
+- `HoldemSchemaException(string? message)` — Creates an exception with a message and no status.
+- `HoldemSchemaException(string? message, Exception? innerException)` — Creates an exception with a message, the exception that caused it, and no status.
+- `HoldemSchemaFailure Failure { get; }` — Why the database cannot be used.
+- `HoldemSchemaStatus? Status { get; }` — The schema status that led to the failure, or `null` when it was not read.
+
+#### `HoldemSchemaFailure` (enum)
+
+Machine-readable reason a `HoldemSchemaException` was thrown.
+
+- `UnsupportedProvider = 1` — The configured EF Core provider is not one of the four the engine supports.
+- `MigrationsNotFound = 2` — The provider is relational but no migrations were found, because it was configured with the plain EF Core call instead of the `UseHoldem*` call of the provider's engine package.
+- `DatabaseIsNewer = 3` — The database was migrated by a newer engine than this one.
+- `MigrationRequired = 4` — The database's schema is behind the engine's and has to be migrated first.
+
+#### `HoldemSchemaState` (enum)
+
+How a database's schema compares with the one the engine expects.
+
+- `UpToDate = 1` — Every migration the engine knows of has been applied.
+- `MigrationRequired = 2` — The engine has migrations the database has not applied yet; call `MigrateAsync`.
+- `NewerThanEngine = 3` — The database was migrated by a newer engine than this one, which must not write to it.
+- `NotVersioned = 4` — The provider keeps no schema history (InMemory), so there is no version to compare.
+
+#### `HoldemSchemaStatus` (sealed record)
+
+What `GetSchemaStatusAsync` found.
+
+- `HoldemSchemaStatus(HoldemSchemaState State, string ProviderName, int EngineSchemaVersion, int? DatabaseSchemaVersion, string? DatabaseEngineVersion, IReadOnlyList<string> PendingMigrations)` — What `GetSchemaStatusAsync` found.
+- `HoldemSchemaState State { get; init; }` — How the database's schema compares with the engine's.
+- `string ProviderName { get; init; }` — The EF Core provider name, such as `Microsoft.EntityFrameworkCore.Sqlite`.
+- `int EngineSchemaVersion { get; init; }` — The schema version this engine expects.
+- `int? DatabaseSchemaVersion { get; init; }` — The schema version recorded in the database, or `null` when none is recorded.
+- `string? DatabaseEngineVersion { get; init; }` — The version of the engine that last migrated the database, or `null` when none is recorded.
+- `IReadOnlyList<string> PendingMigrations { get; init; }` — The migrations the database has not applied yet, in the order they would be applied; empty when there are none.
+
 #### `ICardShuffler` (interface)
 
 Supplies pre-determined cards instead of a real shuffle, which is what makes replaying a recorded hand history possible.
 
 - `ValueTask<IReadOnlyList<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo, CancellationToken cancellationToken)` — The hole cards to deal to one seat, in dealt order.
 - `ValueTask<IReadOnlyList<Card>> GetDeckCardsAsync(Guid gameId, int handNo, CancellationToken cancellationToken)` — The board cards for the hand, in dealt order.
+
+#### `IHoldemSchemaManager` (interface)
+
+The public way to create and inspect the engine's database schema, so that a host never has to reach the engine's internal database context to do it.
+
+- `Task MigrateAsync(CancellationToken cancellationToken = default)` — Brings the schema up to date.
+- `Task<HoldemSchemaStatus> GetSchemaStatusAsync(CancellationToken cancellationToken = default)` — Reports how the database's schema compares with the one this engine expects, without changing anything.
 
 #### `PlayerActionType` (enum)
 
@@ -352,9 +399,9 @@ One action the seat to act may legally take, with its sizing window.
 A player taking a seat, together with the stack they bring to it.
 
 - `PlayerJoinData(string Name, byte SeatNo, decimal BuyInAmount)` — A player taking a seat, together with the stack they bring to it.
-- `string Name { get; init; }` — Display name of the player.
+- `string Name { get; init; }` — Display name of the player; must be 1 to 64 characters and not null or whitespace-only.
 - `byte SeatNo { get; init; }` — The seat to occupy.
-- `decimal BuyInAmount { get; init; }` — The stack the player sits down with.
+- `decimal BuyInAmount { get; init; }` — The stack the player sits down with; must have at most two decimal places.
 
 #### `SeatData` (record)
 

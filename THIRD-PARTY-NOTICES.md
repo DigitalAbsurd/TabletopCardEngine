@@ -136,6 +136,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Package | Version | License |
 | --- | --- | --- |
 | Microsoft.EntityFrameworkCore | 9.0.1 | MIT |
+| Microsoft.EntityFrameworkCore.Relational | 9.0.1 | MIT |
 | Microsoft.Extensions.Diagnostics.Abstractions | 9.0.1 | MIT |
 | Microsoft.Extensions.Logging.Abstractions | 9.0.1 | MIT |
 

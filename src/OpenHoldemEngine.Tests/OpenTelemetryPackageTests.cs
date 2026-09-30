@@ -98,8 +98,11 @@ public sealed class OpenTelemetryPackageTests
 
         // Microsoft.Extensions.Diagnostics.Abstractions is where IMeterFactory lives: the metrics
         // (#185) resolve their Meter through it when the host registers one.
+        // Microsoft.EntityFrameworkCore.Relational holds MigrateAsync and GetPendingMigrationsAsync
+        // for IHoldemSchemaManager (#201), and references no database driver.
         direct.Should().BeEquivalentTo(
             "Microsoft.EntityFrameworkCore",
+            "Microsoft.EntityFrameworkCore.Relational",
             "Microsoft.Extensions.Diagnostics.Abstractions",
             "Microsoft.Extensions.Logging.Abstractions");
     }

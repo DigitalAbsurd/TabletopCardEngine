@@ -19,6 +19,11 @@ public static class ServiceCollectionExtensions
     /// <see cref="HoldemEngineOptions"/> and registers it as a singleton instance, so engines built
     /// from different containers can be configured differently side by side in one process.
     /// </para>
+    /// <para>
+    /// The engine does not create its own tables. The schema is created with
+    /// <see cref="IHoldemSchemaManager.MigrateAsync"/>, which this call registers per container as
+    /// well, over the same database configuration.
+    /// </para>
     /// </summary>
     /// <param name="services">The container to register into.</param>
     /// <param name="dbOptionsAction">Configures the database provider, e.g. <c>opts =&gt; opts.UseSqlite(...)</c>.</param>
@@ -48,6 +53,8 @@ public static class ServiceCollectionExtensions
             var metrics = HoldemEngineMetrics.CreateOrGetFallback(meterFactory);
             return new HoldemEngine(resolvedOptions, logger, metrics);
         });
+        services.AddSingleton<IHoldemSchemaManager>(sp =>
+            new HoldemSchemaManager(sp.GetRequiredService<IDbContextFactory<HoldemDbContext>>()));
 
         return services;
     }
