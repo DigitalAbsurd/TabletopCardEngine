@@ -167,6 +167,12 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | --- | --- | --- |
 | Npgsql.EntityFrameworkCore.PostgreSQL | 9.0.4 | PostgreSQL |
 
+### OpenHoldemEngine.SqlServer
+
+| Package | Version | License |
+| --- | --- | --- |
+| Microsoft.EntityFrameworkCore.SqlServer | 9.0.1 | MIT |
+
 ### OpenHoldemEngine.Demo
 
 | Package | Version | License |
@@ -514,6 +520,18 @@ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE 
 HEREUNDER IS ON AN "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATIONS TO PROVIDE
 MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```
+
+### Microsoft.Data.SqlClient SNI runtime
+
+The `Microsoft.Data.SqlClient.SNI.runtime` package restores a native Windows library (not
+redistributed by this project) when `Microsoft.EntityFrameworkCore.SqlServer` or its dependency
+`Microsoft.Data.SqlClient` is restored on a Windows system. The SNI runtime handles SQL Server
+network communication; on other operating systems, `Microsoft.Data.SqlClient` uses managed
+networking and the package is not restored. The library is covered by the Microsoft Software
+License Terms (`file:LICENSE.txt` in the package). This project resolves the SNI runtime
+transitively and accepts it as a single-package exception, documented in
+[ADR-0003](docs/adr/0003-database-provider-licences.md), for the restricted purpose of serving
+the SQL Server provider package.
 
 ### Microsoft .NET Library License
 

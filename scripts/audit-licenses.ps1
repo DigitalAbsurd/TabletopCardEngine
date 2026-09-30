@@ -35,6 +35,8 @@ $sections = [ordered]@{
     'OpenHoldemEngine' = 'OpenHoldemEngine'
     'OpenHoldemEngine.OpenTelemetry' = 'OpenHoldemEngine.OpenTelemetry'
     'OpenHoldemEngine.Sqlite' = 'OpenHoldemEngine.Sqlite'
+    'OpenHoldemEngine.PostgreSql' = 'OpenHoldemEngine.PostgreSql'
+    'OpenHoldemEngine.SqlServer' = 'OpenHoldemEngine.SqlServer'
     'OpenHoldemEngine.Demo' = 'OpenHoldemEngine.Demo'
 }
 $testSection = 'Test and development only'
