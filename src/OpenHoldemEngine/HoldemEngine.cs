@@ -7,6 +7,7 @@ using OpenHoldemEngine.HoldemActionHandlers;
 using OpenHoldemEngine.Mappers;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Resources;
+using System.Diagnostics;
 
 namespace OpenHoldemEngine;
 
@@ -62,6 +63,27 @@ public sealed class HoldemEngine
     /// <summary>The same call with a seam between handling the action and saving it, so a test can interleave two writers.</summary>
     internal async Task<HoldemResult<GameData>> ApplyWithHookAsync(HoldemAction holdemAction, Func<Task>? beforeSave, CancellationToken cancellationToken)
     {
+        using var activity = HoldemEngineActivity.Source.StartActivity(HoldemEngineActivity.Name, ActivityKind.Internal);
+
+        if (activity is { IsAllDataRequested: true })
+        {
+            activity.SetTag(HoldemEngineActivity.ActionTypeTag, HoldemActionNames.Of(holdemAction));
+            activity.SetTag(HoldemEngineActivity.GameIdTag, holdemAction.GameId.ToString("D"));
+        }
+
+        try
+        {
+            return await ApplyCoreAsync(holdemAction, beforeSave, activity, cancellationToken);
+        }
+        catch (Exception ex) when (RecordException(activity, ex))
+        {
+            throw;
+        }
+    }
+
+    /// <summary>Apply the action and set the outcome tag, guarding expensive tag computation.</summary>
+    private async Task<HoldemResult<GameData>> ApplyCoreAsync(HoldemAction holdemAction, Func<Task>? beforeSave, Activity? activity, CancellationToken cancellationToken)
+    {
         IHoldemActionHandler holdemActionHandler = IHoldemActionHandler.CreateHandlerForAction(holdemAction, _options);
 
         using var dbContext = await _options.DbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -69,6 +91,12 @@ public sealed class HoldemEngine
         var game = await dbContext.LoadGameWithCurrentHandAsync(holdemAction.GameId);
 
         var actionType = HoldemActionNames.Of(holdemAction);
+
+        if (activity is { IsAllDataRequested: true } && holdemAction is HoldemActionPlay playAction)
+        {
+            activity.SetTag(HoldemEngineActivity.PlayerActionTypeTag, playAction.ActionType.ToString());
+        }
+
         var handBefore = game.GetCurrentHand();
         using var scope = _logger.BeginGameScope(holdemAction.GameId, handBefore.No);
         var before = new HandSnapshot(handBefore.No, game.IsCurrentHandEnded(), handBefore.GetStreet(), handBefore.GetDeckCards().Count);
@@ -77,6 +105,7 @@ public sealed class HoldemEngine
         if (existed && holdemAction is not HoldemActionCreateGame && holdemAction.ExpectedVersion is { } expected && expected != game.Version)
         {
             _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ExpectedVersion);
+            SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.Conflict);
             return HoldemResult<GameData>.Fail(ConflictError());
         }
 
@@ -84,12 +113,14 @@ public sealed class HoldemEngine
         if (error is not null)
         {
             _logger.ActionRejected(actionType, holdemAction.GameId, error.Code);
+            SetOutcomeTagsAndReturn(activity, "Failure", error.Code);
             return HoldemResult<GameData>.Fail(error);
         }
 
         if (holdemAction is HoldemActionGetGame)
         {
             LogApplied(holdemAction, actionType, game, before);
+            SetOutcomeTags(activity, game, "Success");
             return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
         }
 
@@ -110,13 +141,55 @@ public sealed class HoldemEngine
         catch (DbUpdateConcurrencyException)
         {
             _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ConcurrentSave);
+            SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.Conflict);
             return HoldemResult<GameData>.Fail(ConflictError());
         }
 
         LogApplied(holdemAction, actionType, game, before);
         LogSensitiveCards(game, before);
 
+        SetOutcomeTags(activity, game, "Success");
         return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
+    }
+
+    /// <summary>Record an exception in the activity and return false to satisfy the exception filter's pattern.</summary>
+    private static bool RecordException(Activity? activity, Exception ex)
+    {
+        if (activity is not null)
+        {
+            activity.SetStatus(ActivityStatusCode.Error, ex.GetType().Name);
+            activity.AddException(ex);
+            activity.SetTag(HoldemEngineActivity.OutcomeTag, "Exception");
+        }
+
+        return false;
+    }
+
+    /// <summary>Set outcome, error code (if a failure), and hand-related tags at return time.</summary>
+    private static void SetOutcomeTagsAndReturn(Activity? activity, string outcome, HoldemErrorCode errorCode)
+    {
+        if (activity is { IsAllDataRequested: true })
+        {
+            activity.SetTag(HoldemEngineActivity.OutcomeTag, outcome);
+            activity.SetTag(HoldemEngineActivity.ErrorCodeTag, errorCode.ToString());
+        }
+    }
+
+    /// <summary>Set outcome, hand.no, and street tags at return time.</summary>
+    private static void SetOutcomeTags(Activity? activity, Game game, string outcome)
+    {
+        if (activity is { IsAllDataRequested: true })
+        {
+            activity.SetTag(HoldemEngineActivity.OutcomeTag, outcome);
+
+            var hand = game.GetCurrentHand();
+            if (hand.No != 0)
+            {
+                activity.SetTag(HoldemEngineActivity.HandNumberTag, hand.No);
+            }
+
+            activity.SetTag(HoldemEngineActivity.StreetTag, hand.GetStreet().ToString());
+        }
     }
 
     /// <summary>What the current hand looked like before the handler ran, to tell what the call changed.</summary>

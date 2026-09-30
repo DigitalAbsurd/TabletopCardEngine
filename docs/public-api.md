@@ -146,6 +146,12 @@ The single entry point for game commands: every game action goes through `ApplyH
 
 - `Task<HoldemResult<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)` — Applies one action to a game and returns the game as it now stands.
 
+#### `HoldemEngineTelemetry` (static class)
+
+The telemetry sources declared by the Holdem engine for OpenTelemetry hosts.
+
+- `const string ActivitySourceName` — The name of the `ActivitySource` the engine publishes to.
+
 #### `HoldemError` (sealed record)
 
 One reason an action was rejected.
