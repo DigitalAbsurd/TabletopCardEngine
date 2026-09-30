@@ -414,6 +414,11 @@ renumber.
     <br>Card values (hole cards and the board) reach the log only at Trace level with `EnableSensitiveCardLogging`, and never appear in span tags or metric tags. All emission is deterministic and guarded by activity/logger state checks (`IsAllDataRequested`, `IsEnabled(LogLevel.Trace)`) so disabled signals pay no cost.
     <br>The `ActivitySource` and the fallback `Meter` (when no `IMeterFactory` is available) are process-wide singletons, so a test that wants to isolate its spans and metrics must filter spans by `openholdemengine.game.id` and collect metrics through its own container's `IMeterFactory`.
     <br>Renaming or removing an event, tag, or instrument, or changing an EventId or unit, is a breaking change, the same as a CP diagnostic on `dotnet pack`. Adding is not. The contract is enforced by `ObservabilityDocsTests`: every log method, tag name, and instrument is checked to appear in `docs/observability.md`.
+27. **`IHoldemSchemaManager` is the public way to create and inspect the schema.** It supports exactly
+    four providers, by `Database.ProviderName`, and rejects any other with
+    `HoldemSchemaException(UnsupportedProvider)`. On a relational provider, `MigrateAsync` needs the
+    migrations of the provider's `OpenHoldemEngine.*` package and fails with `MigrationsNotFound` under
+    plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`.
 
 ## A known, deliberate duplication
 
