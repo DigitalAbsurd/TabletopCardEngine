@@ -31,6 +31,15 @@
 
   <ItemGroup>
     <ProjectReference Include="../OpenHoldemEngine/OpenHoldemEngine.csproj" />
+    <ProjectReference Include="../OpenHoldemEngine.Sqlite/OpenHoldemEngine.Sqlite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      EF finds the migrations by reflection over [Migration]-attributed types that nothing references
+      statically, so the trimmer would drop them and MigrateAsync would throw MigrationsNotFound at start-up.
+    -->
+    <TrimmerRootAssembly Include="OpenHoldemEngine.Sqlite" />
   </ItemGroup>
 
 </Project>

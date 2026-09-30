@@ -1,10 +1,9 @@
 ﻿using FluentAssertions;
 using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Services;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Demo.Tests;
 
@@ -19,7 +18,7 @@ public sealed class DemoDatabase_Tests
     {
         var services = new ServiceCollection();
         services.AddHoldemEngine(
-            dbOptionsAction: opts => opts.UseSqlite(connection),
+            dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
             configure: _ => { });
         services.AddSingleton(connection);
         services.AddScoped<SqliteBrowser>();
@@ -27,8 +26,7 @@ public sealed class DemoDatabase_Tests
         services.AddScoped<DemoGameSession>();
 
         var serviceProvider = services.BuildServiceProvider();
-        using var dbContext = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>().CreateDbContext();
-        dbContext.Database.EnsureCreated();
+        serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
 
         return serviceProvider;
     }
@@ -58,11 +56,17 @@ public sealed class DemoDatabase_Tests
         database.ClearAllData();
 
         // Assert
+        string[] versionTables = ["__OheMigrationsHistory", "__OheSchema"];
         foreach (var tableName in browser.GetTableNames())
         {
-            if (tableName.StartsWith("__", StringComparison.Ordinal))
+            if (versionTables.Contains(tableName))
             {
-                browser.GetRowCount(tableName).Should().BeGreaterThan(0, $"{tableName} is a schema table and must not be cleared");
+                browser.GetRowCount(tableName).Should().Be(1, $"{tableName} is a schema table and must not be cleared");
+            }
+            else if (tableName.StartsWith("__", StringComparison.Ordinal))
+            {
+                // Other bookkeeping (EF's migration lock) is never cleared, and holds no rows to begin with.
+                continue;
             }
             else
             {
@@ -88,7 +92,7 @@ public sealed class DemoDatabase_Tests
         // Act
         database.ClearAllData();
 
-        // Assert - the tables and the connection both survive, which EnsureDeleted would not do
+        // Assert - the tables and the connection both survive, which dropping the database would not do
         browser.GetTableNames().Should().Equal(tablesBefore);
         connection.State.Should().Be(System.Data.ConnectionState.Open);
     }

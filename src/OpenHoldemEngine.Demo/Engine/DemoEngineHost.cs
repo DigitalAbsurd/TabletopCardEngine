@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Demo.Phh;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Demo.Engine;
 
@@ -16,7 +15,8 @@ internal static class DemoEngineHost
     /// <summary>
     /// Configures HoldemEngine services and database for the WebAssembly demo.
     /// The database connection is held open for the lifetime of the application to preserve
-    /// the in-memory SQLite schema and data between DbContext instances.
+    /// the in-memory SQLite schema and data between DbContext instances. The schema itself is not
+    /// created here: <c>Program.Main</c> runs <c>IHoldemSchemaManager.MigrateAsync</c> once the host is built.
     /// </summary>
     /// <param name="services">The service collection to register services with.</param>
     /// <returns>The SQLite connection, which must be kept alive for the duration of the app.</returns>
@@ -26,7 +26,7 @@ internal static class DemoEngineHost
         keepAliveConnection.Open();
 
         services.AddHoldemEngine(
-            dbOptionsAction: opts => opts.UseSqlite(keepAliveConnection),
+            dbOptionsAction: opts => opts.UseHoldemSqlite(keepAliveConnection),
             configure: _ => { }
         );
 
@@ -39,11 +39,6 @@ internal static class DemoEngineHost
         // Register the connection as a singleton so it can be accessed directly if needed
         // (e.g., for querying sqlite_master in the diagnostics page).
         services.AddSingleton(keepAliveConnection);
-
-        // Ensure database schema is created
-        var serviceProvider = services.BuildServiceProvider();
-        using var dbContext = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>().CreateDbContext();
-        dbContext.Database.EnsureCreated();
 
         return keepAliveConnection;
     }

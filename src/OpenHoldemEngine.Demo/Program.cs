@@ -29,6 +29,11 @@ internal sealed class Program
         builder.Services.AddScoped<DemoDatabase>();
         builder.Services.AddScoped<PhhReplayController>();
 
-        await builder.Build().RunAsync();
+        var host = builder.Build();
+
+        // One migration covers the play engine and the replay engine: they share the connection.
+        await host.Services.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+
+        await host.RunAsync();
     }
 }

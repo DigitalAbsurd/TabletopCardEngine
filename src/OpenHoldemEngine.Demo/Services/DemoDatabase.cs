@@ -7,7 +7,7 @@ namespace OpenHoldemEngine.Demo.Services;
 /// SQLite database.
 /// </summary>
 /// <remarks>
-/// The rows go, the schema stays. EF's SQLite <c>EnsureDeleted</c> closes the connection, and here
+/// The rows go, the schema stays. Deleting the database through EF closes the connection, and here
 /// the connection <em>is</em> the database — the kept-alive <see cref="SqliteConnection"/> opened by
 /// <c>DemoEngineHost</c> is what holds <c>:memory:</c> in existence, and <see cref="SqliteBrowser"/>
 /// reads the very same object. Dropping the schema out from under both to recreate it identically
