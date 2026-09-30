@@ -12,3 +12,4 @@ one of *Proposed*, *Accepted*, *Deprecated* or *Superseded by ADR-NNNN*.
 | --- | --- | --- |
 | [0001](0001-project-license.md) | License the project under Apache-2.0 | Accepted |
 | [0002](0002-opentelemetry-instrumentation-package.md) | Ship the OpenTelemetry instrumentation in its own package | Accepted |
+| [0003](0003-database-provider-licences.md) | Database provider licences | Accepted |
