@@ -31,6 +31,7 @@
     <InternalsVisibleTo Include="$(AssemblyName).Demo.Tests" />
     <InternalsVisibleTo Include="$(AssemblyName).Sqlite" />
     <InternalsVisibleTo Include="$(AssemblyName).PostgreSql" />
+    <InternalsVisibleTo Include="$(AssemblyName).SqlServer" />
   </ItemGroup>
 
   <ItemGroup>

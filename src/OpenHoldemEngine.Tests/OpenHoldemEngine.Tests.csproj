@@ -42,6 +42,7 @@
     <ProjectReference Include="..\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.PostgreSql\OpenHoldemEngine.PostgreSql.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.SqlServer\OpenHoldemEngine.SqlServer.csproj" />
   </ItemGroup>
 
 </Project>

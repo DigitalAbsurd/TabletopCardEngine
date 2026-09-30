@@ -30,7 +30,8 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 # Providers that ship migrations. Add one row per new provider package, with a comment pointing here.
 $providers = @(
     @{ Project = 'src/OpenHoldemEngine.Sqlite' }
-    # When a PostgreSQL or SQL Server package is added, insert its row above this comment.
+    @{ Project = 'src/OpenHoldemEngine.PostgreSql' }
+    @{ Project = 'src/OpenHoldemEngine.SqlServer' }
 )
 
 # Ensure dotnet-ef is available.
