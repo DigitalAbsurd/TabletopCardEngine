@@ -18,10 +18,6 @@ namespace OpenHoldemEngine.Tests;
 [TestClass]
 public sealed class PostgreSqlPackageTests
 {
-    private static readonly GameOptionData _options = new() { MaxPlayersCount = 2, InitialSmallBlind = 50M, InitialDealerSeatNo = 1 };
-
-    private static readonly PlayerJoinData[] _joinSeats = [new("Button", 1, 10_000M), new("BigBlind", 2, 10_000M)];
-
     private static readonly string[] _otherDrivers =
     [
         "Microsoft.Data.Sqlite",
