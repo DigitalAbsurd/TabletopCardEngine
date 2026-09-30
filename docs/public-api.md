@@ -142,7 +142,7 @@ The display category of a made hand, ascending in strength.
 
 #### `HoldemEngine` (sealed class)
 
-The engine's whole public surface.
+The single entry point for game commands: every game action goes through `ApplyHoldemActionAsync`.
 
 - `Task<HoldemResult<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)` — Applies one action to a game and returns the game as it now stands.
 
