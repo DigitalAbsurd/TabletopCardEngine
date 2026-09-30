@@ -42,7 +42,7 @@
     /// only number on record is what the game was created with.
     /// </summary>
     private int PlayerCount =>
-        GameData?.HandData is { No: > 0 } hand ? hand.Seats.Length : GameData?.Options.MaxPlayersCount ?? 0;
+        GameData?.HandData is { No: > 0 } hand ? hand.Seats.Count : GameData?.Options.MaxPlayersCount ?? 0;
 
     private decimal SmallBlind => GameData?.Options.InitialSmallBlind ?? 0m;
 

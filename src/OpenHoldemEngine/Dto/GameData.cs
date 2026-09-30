@@ -13,7 +13,7 @@ public record PlayerActionData(Street Street, HandActionType ActionType, decimal
 /// <param name="StartHandStack">The stack this seat sat down with at the start of the hand.</param>
 /// <param name="Stack">The stack right now — <paramref name="StartHandStack"/> minus everything wagered this hand.</param>
 /// <param name="BetSize">The seat's wager on the street now on the clock — its highest cumulative amount in the ledger for that street, the same street <see cref="HandData.StreetPot"/> counts; <see langword="null"/> when the seat has no action on that street yet (a new street opens with everyone at <see langword="null"/>).</param>
-/// <param name="Hole">The seat's hole cards, or <see langword="null"/> when they are not visible to the caller.</param>
+/// <param name="Hole">The seat's hole cards, or <see langword="null"/> when they are not visible to the caller. Record equality compares it element by element for values the engine returns.</param>
 /// <param name="LastAction">The most recent action this seat took, or <see langword="null"/> if it has not acted.</param>
 /// <param name="HandResult">Set once the hand is over; <see langword="null"/> while it is still running.</param>
 public record SeatData(
@@ -22,7 +22,7 @@ public record SeatData(
     decimal StartHandStack,
     decimal Stack,
     decimal? BetSize = null,
-    Card[]? Hole = null,
+    IReadOnlyList<Card>? Hole = null,
     PlayerActionData? LastAction = null,
     HandResultData? HandResult = null)
 {
@@ -31,7 +31,7 @@ public record SeatData(
 
     /// <summary>Whether the seat is still contesting the pot — it has chips and cards, or it is all in.</summary>
     public bool IsActive
-        => (Stack > DecimalMinPrecision && Hole?.Length > 0 && LastAction?.ActionType != HandActionType.Fold)
+        => (Stack > DecimalMinPrecision && Hole?.Count > 0 && LastAction?.ActionType != HandActionType.Fold)
         || (Stack < DecimalMinPrecision && LastAction != null && LastAction.ActionType != HandActionType.Fold);
 
     /// <summary>Whether the seat has folded out of the hand.</summary>
@@ -43,7 +43,7 @@ public record SeatData(
 
 /// <summary>The current hand: who is in it, what is on the board, and what the seat to act may do.</summary>
 /// <param name="No">Hand number within the game, ascending from 1.</param>
-/// <param name="Seats">Every occupied seat, ascending by seat number.</param>
+/// <param name="Seats">Every occupied seat, ascending by seat number. Record equality compares it element by element for values the engine returns.</param>
 /// <param name="DealerSeatNo">Where the button is. Seats are 1-based; <c>0</c> means "no dealer yet".</param>
 /// <param name="SmallBlindSeatNo">The seat that posted the small blind, or <c>0</c> before the hand starts.</param>
 /// <param name="BigBlindSeatNo">The seat that posted the big blind, or <c>0</c> before the hand starts.</param>
@@ -51,11 +51,11 @@ public record SeatData(
 /// <param name="Street">The street now in progress.</param>
 /// <param name="StreetPot">Contributions made on the current street only.</param>
 /// <param name="Pot">Everything contributed on prior streets — <paramref name="StreetPot"/> is not included.</param>
-/// <param name="CommunityCards">The board, in dealt order.</param>
-/// <param name="Evaluations">What <paramref name="NextPlayerSeatNo"/> may legally do; empty when it is nobody's turn.</param>
+/// <param name="CommunityCards">The board, in dealt order. Record equality compares it element by element for values the engine returns.</param>
+/// <param name="Evaluations">What <paramref name="NextPlayerSeatNo"/> may legally do; empty when it is nobody's turn. Record equality compares it element by element for values the engine returns.</param>
 public record HandData(
     int No,
-    SeatData[] Seats,
+    IReadOnlyList<SeatData> Seats,
     byte DealerSeatNo,
     byte SmallBlindSeatNo,
     byte BigBlindSeatNo,
@@ -63,8 +63,8 @@ public record HandData(
     Street Street,
     decimal StreetPot,
     decimal Pot,
-    Card[] CommunityCards,
-    PlayerActionEvaluationData[] Evaluations)
+    IReadOnlyList<Card> CommunityCards,
+    IReadOnlyList<PlayerActionEvaluationData> Evaluations)
 {
     /// <summary>The most recent action taken by anyone in this hand.</summary>
     public PlayerActionData GetLastAction()

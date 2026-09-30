@@ -105,7 +105,7 @@ internal static class EntityExtensions
     internal static int GetNextHandNo(this Game game)
         => game.GetCurrentHand().No + 1;
 
-    internal static void JoinPlayers(this Game game, PlayerJoinData[] playerJoins)
+    internal static void JoinPlayers(this Game game, IReadOnlyList<PlayerJoinData> playerJoins)
     {
         var nextHandNo = game.GetNextHandNo();
 

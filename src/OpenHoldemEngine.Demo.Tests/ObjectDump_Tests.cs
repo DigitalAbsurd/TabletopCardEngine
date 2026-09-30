@@ -136,7 +136,7 @@ public sealed class ObjectDump_Tests
         var seats = node.Children.Single(child => child.Name == "Value")
             .Children.Single(child => child.Name == "HandData")
             .Children.Single(child => child.Name == "Seats");
-        seats.TypeName.Should().Be("SeatData[] (OpenHoldemEngine.Dto)");
+        seats.TypeName.Should().Be("IReadOnlyList<SeatData> (System.Collections.Generic)");
         var hole = seats.Children.Single().Children.Single(child => child.Name == "Hole");
         hole.Value.Should().Be("[ah, kd]");
         seats.Children.Single().Value.Should().Contain("Name = \"Player 1\"").And.Contain("Hole = [ah, kd]");

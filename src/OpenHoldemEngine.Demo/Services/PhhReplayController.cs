@@ -262,7 +262,7 @@ public sealed class PhhReplayController
         }
 
         var currentGame = _session.CurrentGame;
-        if (currentGame?.HandData?.Seats == null || currentGame.HandData.Seats.Length == 0)
+        if (currentGame?.HandData?.Seats == null || currentGame.HandData.Seats.Count == 0)
         {
             FinalStacksMessage = "No final seat data to verify.";
             return;

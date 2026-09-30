@@ -232,7 +232,7 @@ internal sealed class PhhReplayRunner : IDisposable
     {
         var communityCards = gameData.HandData!.CommunityCards;
 
-        communityCards.Should().Equal(_currentDeck.RecordedBoardCards.Take(communityCards.Length),
+        communityCards.Should().Equal(_currentDeck.RecordedBoardCards.Take(communityCards.Count),
             $"the board after '{action.Raw}' should follow the history");
 
         if (gameData.HandData!.Street <= Street.River)

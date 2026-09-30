@@ -14,7 +14,7 @@ internal static class GameDataMapper
 
         var evaluations = lastHandAction.NextSeatNo != 0
             ? BuildEvaluations(game, lastHandAction.NextSeatNo)
-            : [];
+            : EquatableList<PlayerActionEvaluationData>.Empty;
 
         currentHand.TryGetBlindSeats(out var smallBlindSeatNo, out var bigBlindSeatNo);
 
@@ -38,10 +38,10 @@ internal static class GameDataMapper
             HandData: currentHand.No != default
                 ? new HandData(
                     No: currentHand.No,
-                    Seats: [.. game.Players.OrderBy(player => player.SeatNo).Select(player => new SeatData(
+                    Seats: new EquatableList<SeatData>(game.Players.OrderBy(player => player.SeatNo).Select(player => new SeatData(
                             SeatNo: player.SeatNo,
                             Name: player.Name,
-                            Hole: currentHand.GetSeatHoleCards(player.SeatNo),
+                            Hole: currentHand.GetSeatHoleCards(player.SeatNo) is { } hole ? new EquatableList<Card>(hole) : null,
                             LastAction: currentHand.Actions
                                 .Where(action => action.SeatNo == player.SeatNo)
                                 .OrderBy(action => action.No)
@@ -60,7 +60,7 @@ internal static class GameDataMapper
                                     Strength: endState.Strength,
                                     RankType: endState.RankType,
                                     Description: endState.Description))
-                                .SingleOrDefault()))],
+                                .SingleOrDefault()))),
                     DealerSeatNo: currentHand.DealerSeatNo,
                     SmallBlindSeatNo: smallBlindSeatNo,
                     BigBlindSeatNo: bigBlindSeatNo,
@@ -70,7 +70,7 @@ internal static class GameDataMapper
                     // last action's own Street instead counted a street that had just closed in both.
                     StreetPot: playersRoundAmounts.Where(entry => entry.Street == lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
                     Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
-                    CommunityCards: [.. currentHand.GetDeckCards()],
+                    CommunityCards: new EquatableList<Card>(currentHand.GetDeckCards()),
                     Evaluations: evaluations)
                 : null);
     }
@@ -81,7 +81,7 @@ internal static class GameDataMapper
     /// as <see cref="PlayerActionEvaluationData.MinValue"/>/<see cref="PlayerActionEvaluationData.MaxValue"/>
     /// on a <see cref="PlayerActionType.Call"/> are increments — see CLAUDE.md.
     /// </remarks>
-    private static PlayerActionEvaluationData[] BuildEvaluations(Game game, byte nextSeatNo)
+    private static EquatableList<PlayerActionEvaluationData> BuildEvaluations(Game game, byte nextSeatNo)
     {
         var table = HandTableFactory.Build(game);
         var window = BettingRules.LegalActions(table, nextSeatNo);
@@ -100,7 +100,7 @@ internal static class GameDataMapper
             if (MoreThanZero(minRaiseIncrement) && MoreThanZero(maxRaiseTo) && maxRaiseTo >= minRaiseTo)
             {
                 evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, minRaiseTo, maxRaiseTo));
-                return [.. evaluations];
+                return new EquatableList<PlayerActionEvaluationData>(evaluations);
             }
         }
 
@@ -110,7 +110,7 @@ internal static class GameDataMapper
         // rules read as an under-raise and silently turn into a fold.
         var allInRaiseTo = seat.Stack + seat.StreetWager;
         evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInRaiseTo, allInRaiseTo));
-        return [.. evaluations];
+        return new EquatableList<PlayerActionEvaluationData>(evaluations);
     }
 
     private static bool MoreThanZero(decimal amount) => amount > 0.001M;

@@ -28,7 +28,7 @@
 
     <div class="table-center">
         <div class="community-cards">
-            @if (Hand?.CommunityCards is not null && Hand.CommunityCards.Length > 0)
+            @if (Hand?.CommunityCards is not null && Hand.CommunityCards.Count > 0)
             {
                 @foreach (var card in Hand.CommunityCards)
                 {
@@ -51,7 +51,7 @@
                 <div class="pot-breakdown">
                     <span class="pot-small">Prior: @AmountFormat.Format(Hand.Pot)</span>
                     <span class="pot-small">Street: @AmountFormat.Format(Hand.StreetPot)</span>
-                    <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Length</span>
+                    <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Count</span>
                 </div>
             </div>
 
@@ -180,7 +180,7 @@
     private static IEnumerable<SeatData> BottomRowSeats(HandData handData)
         => handData.Seats.Skip(TopRowCount(handData)).Reverse();
 
-    private static int TopRowCount(HandData handData) => (handData.Seats.Length + 1) / 2;
+    private static int TopRowCount(HandData handData) => (handData.Seats.Count + 1) / 2;
 
     private static string ResultClass(decimal net)
         => net > 0 ? "result-winner" : net < 0 ? "result-loser" : "result-neutral";

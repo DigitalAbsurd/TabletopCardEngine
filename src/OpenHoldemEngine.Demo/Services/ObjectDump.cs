@@ -55,18 +55,37 @@ public static class ObjectDump
     /// <summary>Dumps <paramref name="value"/> as a root node called <paramref name="name"/>.</summary>
     /// <param name="name">The name shown for the root, e.g. <c>result</c>.</param>
     /// <param name="value">The object to dump; may be null.</param>
-    /// <param name="declaredType">Shown as the type when <paramref name="value"/> is null.</param>
+    /// <param name="declaredType">
+    /// Shown as the type when <paramref name="value"/> is null, or when its runtime type is not public
+    /// (the engine's collections are internal list types behind <c>IReadOnlyList&lt;T&gt;</c>).
+    /// </param>
     /// <returns>The root node; its children are built on demand.</returns>
     public static ObjectDumpNode Create(string name, object? value, Type declaredType)
     {
         ArgumentNullException.ThrowIfNull(declaredType);
 
-        var type = value?.GetType() ?? declaredType;
+        var type = ShownType(value, declaredType);
         return new ObjectDumpNode(
             name,
             Truncate(Preview(value, depth: 0)),
             FormatTypeName(type),
             () => value is null || IsLeaf(type) ? [] : BuildChildren(value));
+    }
+
+    /// <summary>
+    /// The runtime type when it is public; otherwise its nearest public base type, or the declared type
+    /// when that base is only <see cref="object"/>. A non-public runtime type is an implementation
+    /// detail (the engine's internal list, a compiler-synthesized collection) and naming it would leak it.
+    /// </summary>
+    private static Type ShownType(object? value, Type declaredType)
+    {
+        var type = value?.GetType();
+        while (type is not null && !type.IsVisible)
+        {
+            type = type.BaseType;
+        }
+
+        return type is null || (type == typeof(object) && declaredType != typeof(object)) ? declaredType : type;
     }
 
     /// <summary>The type as RoslynPad shows it: <c>SeatData[] (OpenHoldemEngine.Dto)</c>, <c>List&lt;IError&gt; (System.Collections.Generic)</c>.</summary>

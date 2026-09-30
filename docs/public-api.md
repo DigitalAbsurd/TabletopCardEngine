@@ -242,9 +242,9 @@ The fixed rules a game is created with; they never change once the game exists.
 
 The current hand: who is in it, what is on the board, and what the seat to act may do.
 
-- `HandData(int No, SeatData[] Seats, byte DealerSeatNo, byte SmallBlindSeatNo, byte BigBlindSeatNo, byte NextPlayerSeatNo, Street Street, decimal StreetPot, decimal Pot, Card[] CommunityCards, PlayerActionEvaluationData[] Evaluations)` — The current hand: who is in it, what is on the board, and what the seat to act may do.
+- `HandData(int No, IReadOnlyList<SeatData> Seats, byte DealerSeatNo, byte SmallBlindSeatNo, byte BigBlindSeatNo, byte NextPlayerSeatNo, Street Street, decimal StreetPot, decimal Pot, IReadOnlyList<Card> CommunityCards, IReadOnlyList<PlayerActionEvaluationData> Evaluations)` — The current hand: who is in it, what is on the board, and what the seat to act may do.
 - `int No { get; init; }` — Hand number within the game, ascending from 1.
-- `SeatData[] Seats { get; init; }` — Every occupied seat, ascending by seat number.
+- `IReadOnlyList<SeatData> Seats { get; init; }` — Every occupied seat, ascending by seat number.
 - `byte DealerSeatNo { get; init; }` — Where the button is.
 - `byte SmallBlindSeatNo { get; init; }` — The seat that posted the small blind, or `0` before the hand starts.
 - `byte BigBlindSeatNo { get; init; }` — The seat that posted the big blind, or `0` before the hand starts.
@@ -252,8 +252,8 @@ The current hand: who is in it, what is on the board, and what the seat to act m
 - `Street Street { get; init; }` — The street now in progress.
 - `decimal StreetPot { get; init; }` — Contributions made on the current street only.
 - `decimal Pot { get; init; }` — Everything contributed on prior streets — `StreetPot` is not included.
-- `Card[] CommunityCards { get; init; }` — The board, in dealt order.
-- `PlayerActionEvaluationData[] Evaluations { get; init; }` — What `NextPlayerSeatNo` may legally do; empty when it is nobody's turn.
+- `IReadOnlyList<Card> CommunityCards { get; init; }` — The board, in dealt order.
+- `IReadOnlyList<PlayerActionEvaluationData> Evaluations { get; init; }` — What `NextPlayerSeatNo` may legally do; empty when it is nobody's turn.
 - `PlayerActionData GetLastAction()` — The most recent action taken by anyone in this hand.
 
 #### `HandResultData` (record)
@@ -311,15 +311,15 @@ Plays one action for the seat whose turn it is.
 
 Starts a created game: seats the players and deals hand 1.
 
-- `HoldemActionStartGame(Guid GameId, PlayerJoinData[] JoinSeats)` — Starts a created game: seats the players and deals hand 1.
-- `PlayerJoinData[] JoinSeats { get; init; }` — The seats to fill, in any order; the engine sorts them by seat number.
+- `HoldemActionStartGame(Guid GameId, IReadOnlyList<PlayerJoinData> JoinSeats)` — Starts a created game: seats the players and deals hand 1.
+- `IReadOnlyList<PlayerJoinData> JoinSeats { get; init; }` — The seats to fill, in any order; the engine sorts them by seat number.
 
 #### `HoldemActionStartHand : HoldemAction` (record)
 
 Deals the next hand, optionally seating or topping up players first.
 
 - `HoldemActionStartHand(Guid GameId)` — Deals the next hand, optionally seating or topping up players first.
-- `PlayerJoinData[] JoinSeats { get; init; }` — Seats to fill before dealing, for players who sit down between hands.
+- `IReadOnlyList<PlayerJoinData> JoinSeats { get; init; }` — Seats to fill before dealing, for players who sit down between hands.
 
 #### `PlayerActionData` (record)
 
@@ -353,13 +353,13 @@ A player taking a seat, together with the stack they bring to it.
 
 One seat as it stands in the current hand.
 
-- `SeatData(byte SeatNo, string Name, decimal StartHandStack, decimal Stack, decimal? BetSize = null, Card[]? Hole = null, PlayerActionData? LastAction = null, HandResultData? HandResult = null)` — One seat as it stands in the current hand.
+- `SeatData(byte SeatNo, string Name, decimal StartHandStack, decimal Stack, decimal? BetSize = null, IReadOnlyList<Card>? Hole = null, PlayerActionData? LastAction = null, HandResultData? HandResult = null)` — One seat as it stands in the current hand.
 - `byte SeatNo { get; init; }` — The seat number.
 - `string Name { get; init; }` — Display name of the player in the seat.
 - `decimal StartHandStack { get; init; }` — The stack this seat sat down with at the start of the hand.
 - `decimal Stack { get; init; }` — The stack right now — `StartHandStack` minus everything wagered this hand.
 - `decimal? BetSize { get; init; }` — The seat's wager on the street now on the clock — its highest cumulative amount in the ledger for that street, the same street `StreetPot` counts; `null` when the seat has no action on that street yet (a new street opens with everyone at `null`).
-- `Card[]? Hole { get; init; }` — The seat's hole cards, or `null` when they are not visible to the caller.
+- `IReadOnlyList<Card>? Hole { get; init; }` — The seat's hole cards, or `null` when they are not visible to the caller.
 - `PlayerActionData? LastAction { get; init; }` — The most recent action this seat took, or `null` if it has not acted.
 - `HandResultData? HandResult { get; init; }` — Set once the hand is over; `null` while it is still running.
 - `bool IsActive { get; }` — Whether the seat is still contesting the pot — it has chips and cards, or it is all in.

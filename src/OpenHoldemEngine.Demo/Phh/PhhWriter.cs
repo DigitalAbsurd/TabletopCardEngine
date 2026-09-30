@@ -68,7 +68,7 @@ public static class PhhWriter
         // Metadata section
         lines.Add("[Game]");
         lines.Add($@"variant = ""NT""");
-        var antes = string.Join(", ", Enumerable.Repeat("0", hand.Seats.Length));
+        var antes = string.Join(", ", Enumerable.Repeat("0", hand.Seats.Count));
         lines.Add($"antes = [{antes}]");
         var sb = options.InitialSmallBlind.ToString(CultureInfo.InvariantCulture);
         var bb = (options.InitialSmallBlind * 2).ToString(CultureInfo.InvariantCulture);
@@ -115,9 +115,9 @@ public static class PhhWriter
         // Emit hole cards for all seated players
         foreach (var seat in hand.Seats)
         {
-            if (seat.Hole != null && seat.Hole.Length > 0)
+            if (seat.Hole != null && seat.Hole.Count > 0)
             {
-                var playerIndex = Array.FindIndex(hand.Seats, s => s.SeatNo == seat.SeatNo);
+                var playerIndex = IndexOfSeat(hand, seat.SeatNo);
                 var holeCards = string.Join(" ", seat.Hole.Select(CardToPhh));
                 actions.Add($"d dh p{playerIndex + 1} {holeCards}");
             }
@@ -164,7 +164,7 @@ public static class PhhWriter
                 }
 
                 // Emit board cards once before the first player action (if any board cards exist)
-                if (!boardCardsEmitted && hand.CommunityCards.Length > 0)
+                if (!boardCardsEmitted && hand.CommunityCards.Count > 0)
                 {
                     var boardStr = string.Join(" ", hand.CommunityCards.Select(CardToPhh));
                     actions.Add($"d db {boardStr}");
@@ -172,7 +172,7 @@ public static class PhhWriter
                 }
 
                 // Find the player's index in the seats array
-                var playerIndex = Array.FindIndex(hand.Seats, s => s.SeatNo == seatNo.Value);
+                var playerIndex = IndexOfSeat(hand, seatNo.Value);
                 if (playerIndex >= 0)
                 {
                     var actionStr = ActionToPhh(playerAction.ActionType, playerAction.Size, playerIndex);
@@ -182,6 +182,22 @@ public static class PhhWriter
         }
 
         return actions;
+    }
+
+    /// <summary>
+    /// Position of <paramref name="seatNo"/> in the hand's seat list, or -1 when no such seat is seated.
+    /// </summary>
+    private static int IndexOfSeat(HandData hand, byte seatNo)
+    {
+        for (var i = 0; i < hand.Seats.Count; i++)
+        {
+            if (hand.Seats[i].SeatNo == seatNo)
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>
