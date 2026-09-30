@@ -42,8 +42,6 @@ public sealed partial class ThirdPartyNoticesTests
         ["https://github.com/mcintyre321/OneOf/blob/master/licence.md"] = "MIT",
     };
 
-    private static readonly Lazy<string> _repositoryRoot = new(FindRepositoryRoot);
-
     [TestMethod]
     public void ThirdPartyNotices_ListsEveryDirectPackageWithItsLicense()
     {
@@ -91,7 +89,7 @@ public sealed partial class ThirdPartyNoticesTests
     /// </summary>
     private static Dictionary<string, string> ReadListedPackages()
     {
-        var notices = File.ReadAllText(Path.Combine(_repositoryRoot.Value, NoticesFileName));
+        var notices = File.ReadAllText(Path.Combine(RepositoryRoot.FullPath, NoticesFileName));
         var start = notices.IndexOf("\n## Package inventory", StringComparison.Ordinal);
         var end = notices.IndexOf("\n## ", start + 1, StringComparison.Ordinal);
         start.Should().BeGreaterThan(0, "{0} must have a '## Package inventory' section", NoticesFileName);
@@ -123,7 +121,7 @@ public sealed partial class ThirdPartyNoticesTests
     private static (Dictionary<string, string> Resolved, Dictionary<string, string> Direct) ReadPackages()
     {
         var projects = Directory
-            .EnumerateFiles(Path.Combine(_repositoryRoot.Value, "src"), "*.csproj", SearchOption.AllDirectories)
+            .EnumerateFiles(Path.Combine(RepositoryRoot.FullPath, "src"), "*.csproj", SearchOption.AllDirectories)
             .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                 && !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
             .ToList();
@@ -195,19 +193,6 @@ public sealed partial class ThirdPartyNoticesTests
 
         var url = metadata.Elements().SingleOrDefault(element => element.Name.LocalName == "licenseUrl")?.Value ?? "";
         return _legacyLicenseUrls.TryGetValue(url, out var known) ? known : $"url:{url}";
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "OpenHoldemEngine.sln")))
-            {
-                return directory.FullName;
-            }
-        }
-
-        throw new InvalidOperationException($"Could not find OpenHoldemEngine.sln above {AppContext.BaseDirectory}.");
     }
 
     [GeneratedRegex(@"^\| (?<id>[^\s|]+) \| (?<version>[^\s|]+) \| (?<license>[^\s|]+) \|\r?$", RegexOptions.Multiline)]

@@ -27,6 +27,12 @@ After changing a dependency, re-run the script and paste its tables over the one
 none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
 packages, all MIT.
 
+**The instrumentation package, `OpenHoldemEngine.OpenTelemetry`**, references the library and
+`OpenTelemetry.Api` 1.19.1 (Apache-2.0) as NuGet packages and redistributes neither. The API's one
+dependency is `System.Diagnostics.DiagnosticSource` 10.0.0 (MIT), which in a host that references
+this package replaces the 9.0.1 the library gets through EF Core. It does not reference the
+OpenTelemetry SDK or an exporter: the host brings those.
+
 **The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:
 
@@ -114,7 +120,8 @@ citation.
 ## Package inventory
 
 Every NuGet package a project references directly, listed under the first project that
-references it. The library comes first, then what the demo adds, then what the test projects add.
+references it. The library comes first, then what the instrumentation package adds, then what the
+demo adds, then what the test projects add.
 The inventory leaves out transitive packages. The ones the demo ships are named in
 [What ships](#what-ships-and-under-which-license).
 
@@ -125,6 +132,12 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Microsoft.EntityFrameworkCore | 9.0.1 | MIT |
 | Microsoft.Extensions.Diagnostics.Abstractions | 9.0.1 | MIT |
 | Microsoft.Extensions.Logging.Abstractions | 9.0.1 | MIT |
+
+### OpenHoldemEngine.OpenTelemetry
+
+| Package | Version | License |
+| --- | --- | --- |
+| OpenTelemetry.Api | 1.19.1 | Apache-2.0 |
 
 ### OpenHoldemEngine.Demo
 
@@ -151,6 +164,8 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | MSTest.Analyzers | 3.6.1 | MIT |
 | MSTest.TestAdapter | 3.6.1 | MIT |
 | MSTest.TestFramework | 3.6.1 | MIT |
+| OpenTelemetry | 1.19.1 | Apache-2.0 |
+| OpenTelemetry.Exporter.InMemory | 1.19.1 | Apache-2.0 |
 
 ## License texts
 

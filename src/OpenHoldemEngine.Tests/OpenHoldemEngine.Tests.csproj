@@ -32,11 +32,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="9.1.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.19.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" Version="1.19.1" />
     <PackageReference Include="Tomlyn" Version="0.19.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj" />
   </ItemGroup>
 
 </Project>
