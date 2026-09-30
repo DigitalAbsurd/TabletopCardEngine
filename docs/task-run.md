@@ -60,6 +60,27 @@ for any task that touches layout:
 OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 ```
 
+The first local run needs the browser (build the solution first, so the script exists):
+
+```
+pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install chromium
+```
+
+CI runs the gate as well, and installing the browser plus running the gate is the slowest part of
+a CI run. **If you ran the gate locally, open the pull request with the `browser-gate-local`
+label**, and CI skips both steps on that pull request. The label is a claim, so make it true:
+
+- Put it on only after a green local run in which the gate's tests actually **passed**. Without
+  `OHE_TEST_BROWSER_GATE=1` they are reported as skipped and the run is green having checked
+  nothing; that is not a run.
+- Quote the summary line of that run (total, passed, failed, skipped) in the pull request body.
+- If the branch changes after that run, run the gate again, or remove the label so CI runs it.
+- No local run, no label. CI then runs the gate itself, which is always acceptable.
+
+CI reads the label when it reaches the gate, so removing it and re-running the job brings the gate
+back. The label has no effect on a pull request from a fork, and a push to `main` always runs the
+gate in full, so a wrong label shows up after the merge at the latest.
+
 **Any step that starts the dev server must end by stopping it.** `Ctrl+C` in its terminal, then
 confirm nothing is left listening:
 
@@ -134,7 +155,8 @@ of this applies.
    issue has no milestone.
 2. Commit in **English**, with a message that says what changed and why.
 3. Open the pull request against `main`. Its body **must** contain `Closes #<number>` so the merge
-   closes the issue.
+   closes the issue. Add `--label browser-gate-local` to `gh pr create` when you ran the browser
+   gate locally, under the rules in [Gates](#gates).
 4. Wait for CI yourself, then merge it yourself — squash, and delete the branch. GitHub enforces
    no required checks in this repository and auto-merge is off, so `--auto` would merge at once and
    nothing else holds a red pull request back. Wait with a blocking command, and run it again if it
@@ -298,7 +320,11 @@ renumber.
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
     `Size` keeps the nominal blind.
 19. **`.github/` holds `ci.yml` and `deploy-demo.yml`.** `deploy-demo.yml` declares a `permissions:`
-    block, which means every scope it does not list is dropped to *none*.
+    block, which means every scope it does not list is dropped to *none*. So does `ci.yml`
+    (`contents` and `pull-requests`, both read). `ci.yml` runs on a push to `main` and on
+    `pull_request` only, so a branch with an open pull request gets one run per push, not two, and
+    a newer push cancels the run it supersedes. On a pull request it skips the browser gate when the
+    pull request carries `browser-gate-local` (see [Gates](#gates)).
 20. **AntDesign has no catch-all for unknown parameters.** The base chain `AntDomComponentBase` to
     `AntComponentBase` exposes only `Class`, `ClassMapper`, `ComponentIdGenerator`, `ConfigProvider`,
     `Id`, `Ref`, `RTL`, `Style`, `IsDisposed`, `Js`, `RefBack`, and there is no

@@ -1,8 +1,19 @@
 name: CI
 
+# One run per change: a branch push only reaches CI through its pull request, and main is built
+# again after the merge. A newer push to the same pull request cancels the run it supersedes.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   build:
@@ -37,10 +48,47 @@ jobs:
       - name: Check the public API against the baseline
         run: dotnet pack src/OpenHoldemEngine -c Release
 
+      # The browser-gate-local label says the gate was run locally and passed (docs/task-run.md).
+      # Labels are read now, not from the event payload: gh pr create applies them in a separate
+      # call after the pull request exists, and a re-run after removing the label sees the change.
+      # A push to main always runs the gate, and a pull request from a fork cannot switch it off.
+      - name: Decide whether the browser gate runs
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPO: ${{ github.repository }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          run=true
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$HEAD_REPO" = "$REPO" ]; then
+            if gh api "repos/$REPO/issues/$PR_NUMBER/labels" --jq '.[].name' | grep -qx 'browser-gate-local'; then
+              run=false
+              echo "::notice::Browser layout gate skipped: pull request #$PR_NUMBER carries browser-gate-local, so it was run locally. Remove the label and re-run this job to run it here."
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('src/OpenHoldemEngine.Demo.BrowserTests/*.csproj') }}
+
       - name: Install Playwright browsers
+        if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
 
+      # The cache holds the browser only; the system packages it needs are not cached.
+      - name: Install Playwright system dependencies
+        if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install-deps chromium
+
       - name: Run browser layout gate
+        if: steps.gate.outputs.run == 'true'
         env:
           OHE_TEST_BROWSER_GATE: "1"
         run: dotnet test src/OpenHoldemEngine.Demo.BrowserTests

@@ -54,7 +54,7 @@ Test-only environment variables (read in `TestEngineHost` and `PhhFixture`, and 
 - `OHE_TEST_SQLITE_DB3_FILE_NAME` — write the SQLite DB to a file instead of `:memory:`, so the schema/rows can be inspected after a run.
 - `OHE_TEST_SQL_DEBUG=true` — log EF SQL with sensitive data to the debug output (DEBUG builds only).
 - `OHE_TEST_PHH_HAND_LIMIT` — how many hands of the PHH corpus `PhhPluribusReplay_Test` replays (default 500; `0` replays all 10 000, about four minutes). A capped run takes an evenly spaced sample, not the first N hands, so it still reaches every table in the corpus.
-- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests`).
+- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests`). CI skips the gate on a pull request labelled `browser-gate-local`, meaning it was run locally; the rules are in [docs/task-run.md](docs/task-run.md#gates).
 
 ## What this is
 
