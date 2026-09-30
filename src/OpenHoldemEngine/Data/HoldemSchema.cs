@@ -10,6 +10,12 @@ internal static class HoldemSchema
     internal const string EngineVersion = "1.0.0";
 
     /// <summary>
+    /// The database schema for PostgreSQL and SQL Server, keeping the engine's tables separate from
+    /// a host's own tables.
+    /// </summary>
+    internal const string DatabaseSchema = "ohe";
+
+    /// <summary>
     /// The engine's own migration history table, shared by every provider package, so that it never
     /// collides with a host's EF context keeping the default <c>__EFMigrationsHistory</c> in the same database.
     /// </summary>
