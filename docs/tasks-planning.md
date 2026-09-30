@@ -210,7 +210,7 @@ What each part is for, and where each one has gone wrong before:
   body, they are already in `docs/task-run.md` and you are diluting the part that is new.
 
 Labels: the size label (`7b`, `35b`, `70b`) is required, plus whatever topic labels the repository
-uses (`demo`, `blazor`, `phh`, `ci`, `docs`, `observability`). Do **not** add `agent-ready` while you are still
+uses (`demo`, `blazor`, `phh`, `ci`, `docs`, `observability`, `persistence`). Do **not** add `agent-ready` while you are still
 writing. It is the vetting mark, and it goes on last (step 7).
 
 ## 7. Check the batch before handing it over
