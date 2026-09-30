@@ -54,7 +54,10 @@ Test-only environment variables:
 | `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
 
 The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
-for any task that touches layout:
+locally for **every** task, before you open the pull request, and label the pull request as
+described below. For a task that touches layout or the demo it is required. For any other task it
+is still the preferred way: a local run costs less than the browser install and the gate run in
+CI, and the task cannot merge until `gh pr checks --watch` has seen them finish.
 
 ```
 OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
@@ -75,7 +78,8 @@ label**, and CI skips both steps on that pull request. The label is a claim, so 
   nothing; that is not a run.
 - Quote the summary line of that run (total, passed, failed, skipped) in the pull request body.
 - If the branch changes after that run, run the gate again, or remove the label so CI runs it.
-- No local run, no label. CI then runs the gate itself, which is always acceptable.
+- No local run, no label. Skip the local run only when it cannot be done here (the browser will
+  not install, say), and say so in the pull request; CI then runs the gate itself.
 
 CI reads the label when it reaches the gate, so removing it and re-running the job brings the gate
 back. The label has no effect on a pull request from a fork, and a push to `main` always runs the
