@@ -10,4 +10,10 @@ public static class HoldemEngineTelemetry
     /// Pass this to <c>TracerProviderBuilder.AddSource</c> when wiring up OpenTelemetry.
     /// </summary>
     public const string ActivitySourceName = "OpenHoldemEngine";
+
+    /// <summary>
+    /// The name of the <see cref="System.Diagnostics.Metrics.Meter"/> the engine publishes to.
+    /// Pass this to <c>MeterProviderBuilder.AddMeter</c> when wiring up OpenTelemetry.
+    /// </summary>
+    public const string MeterName = "OpenHoldemEngine";
 }

@@ -37,7 +37,7 @@ internal sealed class PhhReplayRunner : IDisposable
     private const int BoardCardsCount = 5;
 
     private readonly ICardShuffler _shuffler;
-    private IDisposable _host;
+    private TestEngineHost.DisposableTestData _host = null!;
     private HoldemEngine _engine;
     private PhhHandDeck _currentDeck = null!;
     private int _handsOnCurrentDatabase;

@@ -91,7 +91,7 @@ public sealed class SensitiveDataPolicyTests
         messages.Should().Contain(message => message.Contains("River"));
     }
 
-    private static IDisposable Setup(bool enableSensitiveLogging, out HoldemEngine engine, out FakeLogCollector collector)
+    private static TestEngineHost.DisposableTestData Setup(bool enableSensitiveLogging, out HoldemEngine engine, out FakeLogCollector collector)
     {
         var fakeCollector = new FakeLogCollector();
         collector = fakeCollector;
