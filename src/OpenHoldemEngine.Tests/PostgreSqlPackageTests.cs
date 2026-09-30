@@ -2,9 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using OpenHoldemEngine.Data;
-using OpenHoldemEngine.Dto;
 using OpenHoldemEngine.PostgreSql;
-using OpenHoldemEngine.Sqlite;
 using System.Text.Json;
 
 namespace OpenHoldemEngine.Tests;
