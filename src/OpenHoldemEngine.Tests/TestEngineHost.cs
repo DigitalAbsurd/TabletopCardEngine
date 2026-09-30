@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Options;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -39,6 +40,15 @@ internal static class TestEngineHost
             new SqliteConnection("DataSource=:memory:") :
             default;
 
+        if (keepAliveConnection == default && db3FileName != null)
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(db3FileName))
+            {
+                File.Delete(db3FileName);
+            }
+        }
+
         IServiceCollection services = new ServiceCollection();
         services.AddHoldemEngine(
             dbOptionsAction: opts =>
@@ -52,11 +62,11 @@ internal static class TestEngineHost
 #endif
                 if (keepAliveConnection != default)
                 {
-                    opts.UseSqlite(keepAliveConnection);
+                    opts.UseHoldemSqlite(keepAliveConnection);
                 }
                 else
                 {
-                    opts.UseSqlite($"Filename='{db3FileName}'");
+                    opts.UseHoldemSqlite($"Filename='{db3FileName}'");
                 }
             },
             configure: opts =>
@@ -74,12 +84,11 @@ internal static class TestEngineHost
             );
         configureServices?.Invoke(services);
         var serviceProvider = services.BuildServiceProvider();
+        keepAliveConnection?.Open();
+        serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
+
         contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
         using var dbContext = contextFactory.CreateDbContext();
-        keepAliveConnection?.Open();
-        dbContext.Database.EnsureDeleted();
-        dbContext.Database.EnsureCreated();
-
         seedAction?.Invoke(dbContext);
 
         holdemEngine = serviceProvider.GetRequiredService<HoldemEngine>();

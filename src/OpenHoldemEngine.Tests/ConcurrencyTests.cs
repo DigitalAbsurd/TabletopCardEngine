@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Sqlite;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -66,12 +67,15 @@ public sealed class ConcurrencyTests
         var fileName = Path.Combine(Path.GetTempPath(), $"ohe-concurrency-{Guid.NewGuid():N}.db3");
         try
         {
-            using var provider = BuildFileHost(fileName);
-            var contextFactory = provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-            using (var setup = contextFactory.CreateDbContext())
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(fileName))
             {
-                setup.Database.EnsureCreated();
+                File.Delete(fileName);
             }
+
+            using var provider = BuildFileHost(fileName);
+            await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+            var contextFactory = provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
 
             var engine = provider.GetRequiredService<HoldemEngine>();
             var gameId = Guid.NewGuid();
@@ -117,7 +121,7 @@ public sealed class ConcurrencyTests
     private static ServiceProvider BuildFileHost(string fileName)
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(dbOptionsAction: opts => opts.UseSqlite($"Filename='{fileName}'"), configure: _ => { });
+        services.AddHoldemEngine(dbOptionsAction: opts => opts.UseHoldemSqlite($"Filename='{fileName}'"), configure: _ => { });
         return services.BuildServiceProvider();
     }
 
