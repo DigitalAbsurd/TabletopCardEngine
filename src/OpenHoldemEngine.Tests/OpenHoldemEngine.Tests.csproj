@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="9.1.0" />
@@ -41,6 +42,7 @@
     <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.InMemory\OpenHoldemEngine.InMemory.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.PostgreSql\OpenHoldemEngine.PostgreSql.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.SqlServer\OpenHoldemEngine.SqlServer.csproj" />
   </ItemGroup>
