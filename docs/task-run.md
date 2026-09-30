@@ -264,6 +264,7 @@ src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TES
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/observability.md                   # the engine's logs, traces and metrics
+docs/persistence.md                     # supported databases, schema versioning, migration policy
 docs/adr/                               # architecture decision records (ADR-0001: the license,
                                         # ADR-0002: the OpenTelemetry instrumentation package,
                                         # ADR-0003: database provider licences)
