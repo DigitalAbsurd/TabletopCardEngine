@@ -340,6 +340,45 @@ public sealed class HeadsUpTests
         handData.Seats.Should().OnlyContain(seat => seat.Stack >= 0);
     }
 
+    /// <summary>
+    /// A fold row carries <c>Amount = 0</c>, so a stack built from the last row of each street would
+    /// forget what the folder had already put in on the street it folded on.
+    /// </summary>
+    [TestMethod]
+    public async Task HeadsUp_Stack_KeepsTheBlindOfASeatThatFoldsPreFlopToARaise()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+        await session.StartHandAsync();
+        await session.ActAsync(PlayerActionType.Raise, BigBlind * 3);
+
+        var handData = (await session.ActAsync(PlayerActionType.Fold)).HandData!;
+
+        SeatOf(handData, BigBlindSeatNo).Stack.Should().Be(DeepStack - BigBlind, "the big blind is gone for good once it folds");
+        SeatOf(handData, ButtonSeatNo).Stack.Should().Be(DeepStack - BigBlind * 3);
+    }
+
+    [TestMethod]
+    public async Task HeadsUp_Stack_KeepsEveryStreetWagerOfASeatThatFoldsOnTheTurn()
+    {
+        using var session = await HeadsUpSession.CreateAsync();
+        await session.StartHandAsync();
+        await session.ActAsync(PlayerActionType.Call);
+        await session.ActAsync(PlayerActionType.Check);
+
+        // Flop: the big blind acts first, bets, and is called.
+        await session.ActAsync(PlayerActionType.Raise, BigBlind);
+        await session.ActAsync(PlayerActionType.Call);
+
+        // Turn: the big blind bets again, is raised, and folds.
+        await session.ActAsync(PlayerActionType.Raise, BigBlind);
+        await session.ActAsync(PlayerActionType.Raise, BigBlind * 3);
+        var handData = (await session.ActAsync(PlayerActionType.Fold)).HandData!;
+
+        SeatOf(handData, BigBlindSeatNo).Stack.Should().Be(DeepStack - BigBlind * 3, "pre-flop, flop and turn wagers of 100 each");
+        SeatOf(handData, BigBlindSeatNo).IsAllIn.Should().BeFalse();
+        SeatOf(handData, ButtonSeatNo).Stack.Should().Be(DeepStack - BigBlind * 5);
+    }
+
     private static SeatData SeatOf(HandData handData, byte seatNo)
         => handData.Seats.Single(seat => seat.SeatNo == seatNo);
 
