@@ -382,5 +382,6 @@ Validation limits applied to every game the engine runs.
 - `HoldemEngineSettings()` — The implicit parameterless constructor, for object initializers.
 - `int GamePlayersMinCount { get; set; }` — Fewest seats a hand may be dealt to.
 - `int GamePlayersMaxCount { get; set; }` — Most seats a hand may be dealt to.
+- `bool EnableSensitiveCardLogging { get; set; }` — When `true`, the engine logs every seat's hole cards and the board at Trace level.
 
 <!-- END GENERATED -->

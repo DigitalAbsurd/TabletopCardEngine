@@ -56,4 +56,10 @@ internal static partial class HoldemEngineLog
 
     [LoggerMessage(EventId = 1020, Level = LogLevel.Debug, Message = "Hand {HandNo} of game {GameId} moved to {Street}")]
     internal static partial void StreetDealt(this ILogger logger, int handNo, Guid gameId, Street street);
+
+    [LoggerMessage(EventId = 1100, Level = LogLevel.Trace, Message = "Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}")]
+    internal static partial void HoleCardsDealt(this ILogger logger, int handNo, Guid gameId, byte seatNo, IEnumerable<Card> cards);
+
+    [LoggerMessage(EventId = 1101, Level = LogLevel.Trace, Message = "Hand {HandNo} of game {GameId}: {Street} dealt {Cards}")]
+    internal static partial void BoardDealt(this ILogger logger, int handNo, Guid gameId, Street street, IEnumerable<Card> cards);
 }
