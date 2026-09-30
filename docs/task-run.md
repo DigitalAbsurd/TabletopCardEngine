@@ -258,6 +258,7 @@ src/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus serv
 src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
+docs/observability.md                   # the engine's logs, traces and metrics
 docs/adr/                               # architecture decision records (ADR-0001: the license)
 scripts/                                # license audit, PHH fixture packing, public API listing
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
