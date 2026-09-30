@@ -15,6 +15,11 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
             return new HoldemError(HoldemErrorCode.InvalidAction, PackResource.HoldemValidation_InvalidAction);
         }
 
+        if (!AmountRules.HasValidScale(holdemAction.Size))
+        {
+            return new HoldemError(HoldemErrorCode.InvalidAction, PackResource.HoldemValidation_InvalidAction);
+        }
+
         if (game.IsCurrentHandEnded())
         {
             return new HoldemError(HoldemErrorCode.CurrentHandEnded, PackResource.HoldemValidation_CurrentHandEnded);

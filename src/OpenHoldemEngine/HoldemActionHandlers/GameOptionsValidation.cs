@@ -17,6 +17,7 @@ internal static class GameOptionsValidation
         if (options.MaxPlayersCount < settings.GamePlayersMinCount
             || options.MaxPlayersCount > settings.GamePlayersMaxCount
             || options.InitialSmallBlind <= 0
+            || !AmountRules.HasValidScale(options.InitialSmallBlind)
             || options.InitialDealerSeatNo < 1
             || options.InitialDealerSeatNo > options.MaxPlayersCount)
         {
