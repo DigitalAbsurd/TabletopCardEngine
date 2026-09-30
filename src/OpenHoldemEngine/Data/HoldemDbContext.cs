@@ -1,10 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OpenHoldemEngine.Converters;
+using OpenHoldemEngine.HoldemActionHandlers;
 
 namespace OpenHoldemEngine.Data;
 
 internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(dbContextOptions)
 {
+    private const int EnumColumnMaxLength = 32;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Game>()
@@ -25,8 +28,16 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
         modelBuilder.Entity<Player>()
             .HasKey(entity => new { entity.GameId, entity.SeatNo, entity.HandNoStart });
 
+        modelBuilder.Entity<Player>()
+            .Property(entity => entity.Name)
+            .HasMaxLength(AmountRules.PlayerNameMaxLength);
+
         modelBuilder.Entity<BuyIn>()
             .HasKey(entity => new { entity.GameId, entity.SeatNo, entity.HandNo });
+
+        modelBuilder.Entity<BuyIn>()
+            .Property(entity => entity.Amount)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
 
         modelBuilder.Entity<Hand>()
             .HasKey(entity => new { entity.GameId, entity.No });
@@ -34,8 +45,24 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
         modelBuilder.Entity<HandPlayerStartState>()
             .HasKey(entity => new { entity.GameId, entity.HandNo, entity.SeatNo });
 
+        modelBuilder.Entity<HandPlayerStartState>()
+            .Property(entity => entity.StartStack)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
         modelBuilder.Entity<HandPlayerEndState>()
             .HasKey(entity => new { entity.GameId, entity.HandNo, entity.SeatNo });
+
+        modelBuilder.Entity<HandPlayerEndState>()
+            .Property(entity => entity.FinishStack)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<HandPlayerEndState>()
+            .Property(entity => entity.WinAmount)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<HandPlayerEndState>()
+            .Property(entity => entity.Description)
+            .HasMaxLength(32);
 
         modelBuilder.Entity<Hand>()
             .HasMany(hand => hand.PlayerStartStates)
@@ -81,31 +108,57 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasKey(entity => new { entity.GameId, entity.HandNo, entity.No, entity.SeatNo });
 
         modelBuilder.Entity<HandAction>()
+            .Property(entity => entity.Size)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<HandAction>()
+            .Property(entity => entity.Amount)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<HandAction>()
+            .Property(entity => entity.AddAmount)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<HandAction>()
+            .Property(entity => entity.Paid)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<HandAction>()
             .Property(entity => entity.Street)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
 
         modelBuilder.Entity<HandAction>()
             .Property(entity => entity.NextStreet)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
 
         modelBuilder.Entity<HandAction>()
             .Property(entity => entity.ActionType)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
 
         modelBuilder.Entity<Game>()
             .Property(entity => entity.Version)
             .IsConcurrencyToken();
 
         modelBuilder.Entity<Game>()
+            .Property(entity => entity.InitialSmallBlind)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<Game>()
             .Property(entity => entity.GameType)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
 
         modelBuilder.Entity<Game>()
             .Property(entity => entity.BettingStructure)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
 
         modelBuilder.Entity<HandPlayerEndState>()
             .Property(entity => entity.RankType)
-            .HasConversion<string>();
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
     }
 }
