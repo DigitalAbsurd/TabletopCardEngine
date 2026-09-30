@@ -400,6 +400,15 @@ renumber.
     why in the pull request. Never add a `CompatibilitySuppressions.xml` or set
     `ApiCompatGenerateSuppressionFile`. The check is binary compatibility only: removing a
     parameter's default value is a source break it does not report.
+26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
+    The three signals are emitted by `HoldemEngine.ApplyWithHookAsync` (the internal seam used by both
+    `ApplyHoldemActionAsync` and tests):
+    <br>— **Logs** are defined in `Diagnostics/HoldemEngineLog.cs` with `LoggerMessageAttribute` on partial methods; event IDs are stable and never reused.
+    <br>— **Traces** (Activity and tags) are defined in `Diagnostics/HoldemEngineActivity.cs` as static const strings; the source name is `HoldemEngineTelemetry.ActivitySourceName`.
+    <br>— **Metrics** (instruments) are created in `Diagnostics/HoldemEngineMetrics.cs` by name and unit; the meter name is `HoldemEngineTelemetry.MeterName`.
+    <br>Card values (hole cards and the board) reach the log only at Trace level with `EnableSensitiveCardLogging`, and never appear in span tags or metric tags. All emission is deterministic and guarded by activity/logger state checks (`IsAllDataRequested`, `IsEnabled(LogLevel.Trace)`) so disabled signals pay no cost.
+    <br>The `ActivitySource` and the fallback `Meter` (when no `IMeterFactory` is available) are process-wide singletons, so a test that wants to isolate its spans and metrics must filter spans by `openholdemengine.game.id` and collect metrics through its own container's `IMeterFactory`.
+    <br>Renaming or removing an event, tag, or instrument, or changing an EventId or unit, is a breaking change, the same as a CP diagnostic on `dotnet pack`. Adding is not. The contract is enforced by `ObservabilityDocsTests`: every log method, tag name, and instrument is checked to appear in `docs/observability.md`.
 
 ## A known, deliberate duplication
 

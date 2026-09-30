@@ -108,6 +108,10 @@ The DB/`Card.ToString()` format (`"ah"`, rank-then-suit lowercase) is canonical 
 
 When null, `CardDeck.Shuffled` draws a real shuffle that excludes every card already dealt this hand (hole cards and board), so a random rebuild can never repeat a card that is already on the table or in someone's hand. This hook is what makes replaying recorded hand histories possible.
 
+### Observability
+
+The engine publishes logs, traces, and metrics as part of its public contract. Log events (via `ILogger`), span tags (via `ActivitySource`), and metric instruments are defined in `Diagnostics/` and `HoldemEngineTelemetry`, and documented in `docs/observability.md` with one row per event/tag/instrument. Event IDs are stable and never reused; renaming, removing, or changing an ID, tag meaning, or unit is a breaking change equivalent to a removed API surface. The sync test `ObservabilityDocsTests` enforces that every event, tag, and instrument appears in the document. See `docs/task-run.md` fact 26 for the architecture and the signals' scope.
+
 ### Conventions that bite
 
 - **Heads-up changes the positions, not just the ring size.** With two funded seats the button posts
