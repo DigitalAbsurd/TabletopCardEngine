@@ -17,7 +17,8 @@ internal static class SeatValidation
         {
             var outOfRange = join.SeatNo < 1 || join.SeatNo > game.MaxPlayersCount;
             var occupied = game.Players.Any(player => player.SeatNo == join.SeatNo);
-            if (outOfRange || occupied || !seen.Add(join.SeatNo) || join.BuyInAmount <= 0)
+            var invalidName = string.IsNullOrWhiteSpace(join.Name) || join.Name.Length > AmountRules.PlayerNameMaxLength;
+            if (outOfRange || occupied || !seen.Add(join.SeatNo) || join.BuyInAmount <= 0 || !AmountRules.HasValidScale(join.BuyInAmount) || invalidName)
             {
                 return new HoldemError(HoldemErrorCode.InvalidSeat, PackResource.HoldemValidation_InvalidSeat);
             }

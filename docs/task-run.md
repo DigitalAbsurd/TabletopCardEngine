@@ -372,10 +372,14 @@ renumber.
 23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 6
     seats, no antes, no rake. `CreateGame` returns `UnsupportedGameOptions = 5` when `GameType` or
     `BettingStructure` is not a defined member, and `InvalidGameOptions = 6` when `MaxPlayersCount` is
-    outside `[GamePlayersMinCount, GamePlayersMaxCount]`, `InitialSmallBlind <= 0` or
-    `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
-    `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat, or
-    has `BuyInAmount <= 0` (`SeatValidation`; the previous-hand check runs first).
+    outside `[GamePlayersMinCount, GamePlayersMaxCount]`, `InitialSmallBlind <= 0`, `InitialSmallBlind`
+    has more than two decimal places, or `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
+    `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat,
+    has `BuyInAmount <= 0`, `BuyInAmount` has more than two decimal places, or `Name` is `null`, empty,
+    whitespace-only, or longer than 64 characters (`SeatValidation`; the previous-hand check runs first).
+    `Play` returns `InvalidAction = 4` when `Size` has more than two decimal places. Amounts
+    (`InitialSmallBlind`, `BuyInAmount`, `Size`) have at most two decimal places, and a player's `Name` is
+    1 to 64 characters (`AmountRules`).
     `HoldemEngineOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
     with a minimum below 2, a maximum above 6 or a minimum above the maximum: a configuration error, not a
     game result. `GameOptionData` has no positional constructor; build it with an object initializer.

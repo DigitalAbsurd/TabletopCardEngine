@@ -92,7 +92,7 @@ public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 /// <param name="ActionType">What the seat does.</param>
 /// <param name="Size">
 /// For <see cref="PlayerActionType.Raise"/>, the street total to raise <i>to</i> — the same absolute
-/// basis as the raise bounds in <see cref="HandData.Evaluations"/>. Ignored for other actions.
+/// basis as the raise bounds in <see cref="HandData.Evaluations"/>. Must have at most two decimal places. Ignored for other actions.
 /// </param>
 public record HoldemActionPlay(Guid GameId, PlayerActionType ActionType, decimal Size) : HoldemAction(GameId);
 

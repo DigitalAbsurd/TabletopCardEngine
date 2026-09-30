@@ -18,7 +18,7 @@ public sealed record GameOptionData
     /// <summary>How many seats the table has; must lie within the engine's configured seat limits (2 to 6 at most).</summary>
     public int MaxPlayersCount { get; init; } = 6;
 
-    /// <summary>The small blind; the big blind is always twice this. Must be positive.</summary>
+    /// <summary>The small blind; the big blind is always twice this. Must be positive and have at most two decimal places.</summary>
     public decimal InitialSmallBlind { get; init; } = 1;
 
     /// <summary>Where the button sits for the first hand. Seats are 1-based.</summary>
@@ -26,9 +26,9 @@ public sealed record GameOptionData
 }
 
 /// <summary>A player taking a seat, together with the stack they bring to it.</summary>
-/// <param name="Name">Display name of the player.</param>
+/// <param name="Name">Display name of the player; must be 1 to 64 characters and not null or whitespace-only.</param>
 /// <param name="SeatNo">The seat to occupy. Seats are 1-based; <c>0</c> means "no seat".</param>
-/// <param name="BuyInAmount">The stack the player sits down with.</param>
+/// <param name="BuyInAmount">The stack the player sits down with; must have at most two decimal places.</param>
 public record PlayerJoinData(string Name, byte SeatNo, decimal BuyInAmount);
 
 /// <summary>

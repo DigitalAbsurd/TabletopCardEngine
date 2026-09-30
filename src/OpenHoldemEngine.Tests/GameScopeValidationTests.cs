@@ -51,6 +51,20 @@ public sealed class GameScopeValidationTests
         => await AssertCreateGameFailsAsync(new GameOptionData { MaxPlayersCount = 4, InitialDealerSeatNo = 5 }, HoldemErrorCode.InvalidGameOptions);
 
     [TestMethod]
+    public async Task CreateGame_SmallBlindWithThreeDecimals_FailsWithInvalidGameOptions()
+        => await AssertCreateGameFailsAsync(new GameOptionData { InitialSmallBlind = 0.125m }, HoldemErrorCode.InvalidGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_SmallBlindWithTwoDecimals_Succeeds()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+
+        var result = await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { InitialSmallBlind = 0.25m }));
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [TestMethod]
     public async Task CreateGame_NarrowedSettingsMax_RejectsFiveSeatGame()
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory, configureSettings: settings => settings.GamePlayersMaxCount = 4);
@@ -79,6 +93,37 @@ public sealed class GameScopeValidationTests
         => await AssertStartGameFailsAsync([new("Player 1", 1, 1000), new("Player 2", 2, 0)]);
 
     [TestMethod]
+    public async Task StartGame_BuyInWithThreeDecimals_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("Player 1", 1, 1000), new("Player 2", 2, 100.005m)]);
+
+    [TestMethod]
+    public async Task StartGame_NameIsEmpty_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("", 1, 1000), new("Player 2", 2, 1000)]);
+
+    [TestMethod]
+    public async Task StartGame_NameIsWhitespaceOnly_FailsWithInvalidSeat()
+        => await AssertStartGameFailsAsync([new("  ", 1, 1000), new("Player 2", 2, 1000)]);
+
+    [TestMethod]
+    public async Task StartGame_NameExceeds64Characters_FailsWithInvalidSeat()
+    {
+        var longName = new string('x', 65);
+        await AssertStartGameFailsAsync([new(longName, 1, 1000), new("Player 2", 2, 1000)]);
+    }
+
+    [TestMethod]
+    public async Task StartGame_NameIs64Characters_Succeeds()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxPlayersCount = 3 }))).IsSuccess.Should().BeTrue();
+        var exactName = new string('x', 64);
+
+        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, [new(exactName, 1, 1000), new("Player 2", 2, 1000)]));
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [TestMethod]
     public async Task StartHand_OccupiedSeat_FailsWithInvalidSeat()
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
@@ -91,6 +136,21 @@ public sealed class GameScopeValidationTests
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidSeat);
+        (await CountRowsAsync(contextFactory)).Should().Equal(rowsBefore);
+    }
+
+    [TestMethod]
+    public async Task Play_RaiseSizeWithThreeDecimals_FailsWithInvalidActionAndPersistsNothing()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxPlayersCount = 3 }))).IsSuccess.Should().BeTrue();
+        (await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
+        var rowsBefore = await CountRowsAsync(contextFactory);
+
+        var result = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Raise, 4.001m));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidAction);
         (await CountRowsAsync(contextFactory)).Should().Equal(rowsBefore);
     }
 
