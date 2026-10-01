@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <!-- The provider the migrations are generated for; the core package references no provider. -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
     <!--
       Lifts the native SQLite that EF Core SQLite 10.0.1 pulls in (SQLitePCLRaw 2.1.10) past
       GHSA-2m69-gcr7-jv3q (CVE-2025-6965), which NuGet audit reports as NU1903. Same 2.1 line, so
@@ -27,7 +27,7 @@
     -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
     <!-- What dotnet ef needs to scaffold the migrations. Development only: it never flows to consumers. -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

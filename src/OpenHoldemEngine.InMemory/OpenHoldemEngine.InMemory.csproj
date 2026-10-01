@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <!-- The provider for in-memory databases; the core package references no provider. -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>

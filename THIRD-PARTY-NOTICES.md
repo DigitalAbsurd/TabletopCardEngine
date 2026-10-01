@@ -77,8 +77,8 @@ inventory. The license gate accepts them as `MS-.NET-Library`, because **none of
 ships**: the SDK's conflict resolution replaces each of them with the runtime
 pack's newer `8.0.0.0` assembly. A detailed build
 (`dotnet build src/OpenHoldemEngine.Demo -c Release -v:d`) resolves no conflict in favour of a 4.x
-package. Only three NuGet assemblies win over the runtime pack, and all are MIT 10.0.0 packages:
-`System.Diagnostics.DiagnosticSource`, `System.Text.Encodings.Web` and `System.Text.Json`.
+package, and no NuGet assembly wins over the runtime pack at all: since EF Core 10, nothing in the
+demo's graph brings a `System.*` package newer than the runtime pack's own.
 
 `Microsoft.AspNetCore.Components.WebAssembly.DevServer` is the development server, and nothing from
 it is published. The SDK also restores `Microsoft.NET.ILLink.Tasks` and
@@ -149,10 +149,10 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 | Package | Version | License |
 | --- | --- | --- |
-| Microsoft.EntityFrameworkCore | 10.0.1 | MIT |
-| Microsoft.EntityFrameworkCore.Relational | 10.0.1 | MIT |
-| Microsoft.Extensions.Diagnostics.Abstractions | 10.0.1 | MIT |
-| Microsoft.Extensions.Logging.Abstractions | 10.0.1 | MIT |
+| Microsoft.EntityFrameworkCore | 10.0.12 | MIT |
+| Microsoft.EntityFrameworkCore.Relational | 10.0.12 | MIT |
+| Microsoft.Extensions.Diagnostics.Abstractions | 10.0.12 | MIT |
+| Microsoft.Extensions.Logging.Abstractions | 10.0.12 | MIT |
 
 ### OpenHoldemEngine.OpenTelemetry
 
@@ -164,27 +164,28 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 | Package | Version | License |
 | --- | --- | --- |
-| Microsoft.EntityFrameworkCore.Design | 10.0.1 | MIT |
-| Microsoft.EntityFrameworkCore.Sqlite | 10.0.1 | MIT |
+| Microsoft.EntityFrameworkCore.Design | 10.0.12 | MIT |
+| Microsoft.EntityFrameworkCore.Sqlite | 10.0.12 | MIT |
 | SQLitePCLRaw.bundle_e_sqlite3 | 2.1.13 | Apache-2.0 |
 
 ### OpenHoldemEngine.PostgreSql
 
 | Package | Version | License |
 | --- | --- | --- |
-| Npgsql.EntityFrameworkCore.PostgreSQL | 10.0.1 | PostgreSQL |
+| Npgsql.EntityFrameworkCore.PostgreSQL | 10.0.3 | PostgreSQL |
 
 ### OpenHoldemEngine.SqlServer
 
 | Package | Version | License |
 | --- | --- | --- |
-| Microsoft.EntityFrameworkCore.SqlServer | 10.0.1 | MIT |
+| Microsoft.Data.SqlClient | 7.1.1 | MIT |
+| Microsoft.EntityFrameworkCore.SqlServer | 10.0.12 | MIT |
 
 ### OpenHoldemEngine.InMemory
 
 | Package | Version | License |
 | --- | --- | --- |
-| Microsoft.EntityFrameworkCore.InMemory | 10.0.1 | MIT |
+| Microsoft.EntityFrameworkCore.InMemory | 10.0.12 | MIT |
 
 ### OpenHoldemEngine.Demo
 
@@ -202,8 +203,8 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | bunit | 1.40.0 | MIT |
 | FluentAssertions | 6.1.0 | Apache-2.0 |
 | FluentAssertions.Json | 6.1.0 | Apache-2.0 |
-| Microsoft.Extensions.Diagnostics | 10.0.1 | MIT |
-| Microsoft.Extensions.Diagnostics.Testing | 10.1.0 | MIT |
+| Microsoft.Extensions.Diagnostics | 10.0.12 | MIT |
+| Microsoft.Extensions.Diagnostics.Testing | 10.10.0 | MIT |
 | Microsoft.NET.Test.Sdk | 17.11.1 | MIT |
 | Microsoft.Playwright | 1.49.0 | MIT |
 | Moq | 4.20.70 | BSD-3-Clause |

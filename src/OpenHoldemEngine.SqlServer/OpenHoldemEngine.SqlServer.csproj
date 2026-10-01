@@ -19,9 +19,17 @@
 
   <ItemGroup>
     <!-- The provider the migrations are generated for; the core package references no provider. -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+    <!--
+      Pinned above the 6.1.6 that EF Core SqlServer 10.0.12 asks for: 6.1.6 pulls in
+      Microsoft.Identity.Client.Broker and with it Microsoft.Identity.Client.NativeInterop, which is
+      under a proprietary licence outside the allowlist (ADR-0003). 7.x moved Azure/Entra
+      authentication into a separate package, so none of that is resolved. Drop this pin once the
+      EF Core provider depends on a SqlClient without the broker.
+    -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.1" />
     <!-- What dotnet ef needs to scaffold the migrations. Development only: it never flows to consumers. -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
