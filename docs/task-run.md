@@ -397,12 +397,15 @@ renumber.
     check runs even when only child rows changed; `GetGame` does not save and does not increment. It is
     `GameData.Version`. `HoldemAction.ExpectedVersion` (optional, ignored by `CreateGame`) that differs
     from the loaded version fails with `Conflict` before any handler runs, and so does a
-    `DbUpdateConcurrencyException` from the save (the second of two racing writers fails on the `Game`
-    row before it can hit a duplicate `HandAction` key). Nothing is persisted on a conflict. The engine
+    `DbUpdateConcurrencyException` from the save (on a relational database the second of two racing
+    writers fails on the `Game` row before it can hit a duplicate `HandAction` key). EF InMemory applies
+    inserts before updates and has no transactions, so on a non-relational provider the engine re-reads
+    `Game.Version` just before saving and returns `Conflict` when it moved. That check stands in for the
+    token and is skipped when `Version` is not one. Nothing is persisted on a conflict. The engine
     never retries and takes no lock: the caller reloads with `GetGame` and decides. Any other
     `DbUpdateException` is a real fault and is not caught. Tests interleave two writers through the
     internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
-    connection serialises everything.
+    connection serialises everything, and over one named InMemory store.
 25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** The
     library and each provider package set `EnablePackageValidation` with `PackageValidationBaselinePath`
     pointing at their own baseline, so `dotnet pack OpenHoldemEngine.Packages.slnf -c Release` fails

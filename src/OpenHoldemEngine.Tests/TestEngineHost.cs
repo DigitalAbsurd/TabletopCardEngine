@@ -4,11 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Options;
 using OpenHoldemEngine.Sqlite;
+using OpenHoldemEngine.Tests.Persistence;
 
 namespace OpenHoldemEngine.Tests;
 
 /// <summary>
-/// Spins up a real DI container over SQLite for a single test.
+/// Spins up a real DI container over SQLite, or another <see cref="TestDatabaseKind"/>, for a single test.
 /// Shared by every test class, so it lives here rather than inside one of them.
 /// </summary>
 internal static class TestEngineHost
@@ -33,14 +34,19 @@ internal static class TestEngineHost
         ICardShuffler? shuffler = null,
         Action<HoldemEngineSettings>? configureSettings = null,
         Action<HoldemDbContext>? seedAction = null,
-        Action<IServiceCollection>? configureServices = null)
+        Action<IServiceCollection>? configureServices = null,
+        TestDatabaseKind database = TestDatabaseKind.Sqlite)
     {
-        var db3FileName = Environment.GetEnvironmentVariable(Db3FileNameVariable);
-        var keepAliveConnection = string.IsNullOrEmpty(db3FileName) ?
+        // SQLite keeps its own path, file mode included; every other kind comes from the matrix harness.
+        IDisposable? databaseLifetime = null;
+        var configureDatabase = database == TestDatabaseKind.Sqlite ? null : TestDatabase.Configure(database, out databaseLifetime);
+
+        var db3FileName = configureDatabase is null ? Environment.GetEnvironmentVariable(Db3FileNameVariable) : null;
+        var keepAliveConnection = configureDatabase is null && string.IsNullOrEmpty(db3FileName) ?
             new SqliteConnection("DataSource=:memory:") :
             default;
 
-        if (keepAliveConnection == default && db3FileName != null)
+        if (keepAliveConnection == default && !string.IsNullOrEmpty(db3FileName))
         {
             SqliteConnection.ClearAllPools();
             if (File.Exists(db3FileName))
@@ -60,7 +66,11 @@ internal static class TestEngineHost
                     opts.EnableSensitiveDataLogging();
                 }
 #endif
-                if (keepAliveConnection != default)
+                if (configureDatabase is not null)
+                {
+                    configureDatabase(opts);
+                }
+                else if (keepAliveConnection != default)
                 {
                     opts.UseHoldemSqlite(keepAliveConnection);
                 }
@@ -92,18 +102,18 @@ internal static class TestEngineHost
         seedAction?.Invoke(dbContext);
 
         holdemEngine = serviceProvider.GetRequiredService<HoldemEngine>();
-        return new DisposableTestData(serviceProvider, keepAliveConnection);
+        return new DisposableTestData(serviceProvider, keepAliveConnection ?? databaseLifetime);
     }
 
     internal sealed class DisposableTestData : IDisposable
     {
         private readonly ServiceProvider _serviceProvider;
-        private readonly SqliteConnection? _sqliteConnection;
+        private readonly IDisposable? _databaseLifetime;
 
-        internal DisposableTestData(ServiceProvider serviceProvider, SqliteConnection? sqliteConnection)
+        internal DisposableTestData(ServiceProvider serviceProvider, IDisposable? databaseLifetime)
         {
             _serviceProvider = serviceProvider;
-            _sqliteConnection = sqliteConnection;
+            _databaseLifetime = databaseLifetime;
         }
 
         internal T GetRequiredService<T>() where T : notnull
@@ -111,7 +121,7 @@ internal static class TestEngineHost
 
         public void Dispose()
         {
-            _sqliteConnection?.Dispose();
+            _databaseLifetime?.Dispose();
             _serviceProvider?.Dispose();
         }
     }

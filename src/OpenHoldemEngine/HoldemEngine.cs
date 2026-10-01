@@ -146,15 +146,18 @@ public sealed class HoldemEngine
             await beforeSave();
         }
 
+        if (existed && await LostRaceBeforeSaveAsync(dbContext, game, cancellationToken))
+        {
+            return ConcurrentSaveConflict(holdemAction, activity, actionType, start);
+        }
+
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException)
         {
-            _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ConcurrentSave);
-            SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.Conflict, actionType, start);
-            return HoldemResult<GameData>.Fail(ConflictError());
+            return ConcurrentSaveConflict(holdemAction, activity, actionType, start);
         }
 
         LogApplied(holdemAction, actionType, game, before);
@@ -162,6 +165,44 @@ public sealed class HoldemEngine
 
         SetOutcomeTags(activity, game, "Success", actionType, start);
         return HoldemResult<GameData>.Ok(GameDataMapper.ToGameData(game));
+    }
+
+    /// <summary>
+    /// The <c>Game.Version</c> check, run ahead of the save on a non-relational provider. A relational database
+    /// checks the token in the <c>UPDATE Game</c> statement, inside the transaction that also inserts the new
+    /// rows. EF's InMemory provider has no transaction and applies every insert before any update, so a lost
+    /// race there fails on a duplicate <see cref="HandAction"/> key, with an exception that names no conflict,
+    /// before the token is ever compared. This narrows the window rather than closing it, which is all a
+    /// store without transactions allows. It only stands in for the token, so it is skipped when
+    /// <c>Version</c> is not one.
+    /// </summary>
+    private static async Task<bool> LostRaceBeforeSaveAsync(HoldemDbContext dbContext, Game game, CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.IsRelational())
+        {
+            return false;
+        }
+
+        var version = dbContext.Entry(game).Property(g => g.Version);
+        if (!version.Metadata.IsConcurrencyToken)
+        {
+            return false;
+        }
+
+        var storedVersion = await dbContext.Set<Game>()
+            .AsNoTracking()
+            .Where(g => g.Id == game.Id)
+            .Select(g => g.Version)
+            .SingleAsync(cancellationToken);
+        return storedVersion != version.OriginalValue;
+    }
+
+    /// <summary>Reports that another writer saved the game between this call's load and its save.</summary>
+    private HoldemResult<GameData> ConcurrentSaveConflict(HoldemAction holdemAction, Activity? activity, string actionType, long start)
+    {
+        _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ConcurrentSave);
+        SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.Conflict, actionType, start);
+        return HoldemResult<GameData>.Fail(ConflictError());
     }
 
     /// <summary>Record an exception in the activity and record metrics, then return false to satisfy the exception filter's pattern.</summary>
