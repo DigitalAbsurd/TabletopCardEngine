@@ -14,7 +14,8 @@ namespace OpenHoldemEngine.Tests.Persistence;
 
 /// <summary>
 /// The provider matrix: the same schema, upgrade and model checks on every database kind. SQLite and
-/// InMemory run; PostgreSQL and SQL Server report inconclusive until the Testcontainers issue wires them in.
+/// InMemory always run; PostgreSQL and SQL Server run in Docker under <c>OHE_TEST_CONTAINERS=1</c> and
+/// report inconclusive without it.
 /// </summary>
 [TestClass]
 public sealed class ProviderSchemaTests
@@ -150,6 +151,28 @@ public sealed class ProviderSchemaTests
     }
 
     [TestMethod]
+    [DataRow(TestDatabaseKind.PostgreSql, "public")]
+    [DataRow(TestDatabaseKind.SqlServer, "dbo")]
+    public async Task Server_TablesLiveInTheOheSchema(TestDatabaseKind database, string defaultSchema)
+    {
+        var configure = TestDatabase.Configure(database, out var lifetime);
+        using var databaseLifetime = lifetime;
+        using var provider = BuildProvider(configure);
+        await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+
+        await using var context = await provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>().CreateDbContextAsync();
+        var tables = await context.Database
+            .SqlQueryRaw<SchemaTable>("SELECT table_schema AS \"Schema\", table_name AS \"Name\" FROM information_schema.tables WHERE table_type = 'BASE TABLE'")
+            .ToListAsync();
+
+        tables.Where(table => table.Schema == HoldemSchema.DatabaseSchema).Select(table => table.Name)
+            .Should().Contain(["Game", "__OheSchema", HoldemSchema.MigrationsHistoryTable]);
+
+        // The database is this test's own, so anything in the default schema could only be the engine's.
+        tables.Where(table => table.Schema == defaultSchema).Should().BeEmpty();
+    }
+
+    [TestMethod]
     public void Upgrade_EveryMigrationAfterTheFirstHasAFixture()
     {
         var fixtures = DiscoverFixtures();
@@ -199,6 +222,8 @@ public sealed class ProviderSchemaTests
             .Where(type => type is { IsClass: true, IsAbstract: false } && typeof(IUpgradeFixture).IsAssignableFrom(type))
             .Select(type => (IUpgradeFixture)Activator.CreateInstance(type)!)
             .ToList();
+
+    private sealed record SchemaTable(string Schema, string Name);
 
     private static ServiceProvider BuildProvider(Action<DbContextOptionsBuilder> configure)
     {

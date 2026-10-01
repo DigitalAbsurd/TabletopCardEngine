@@ -209,6 +209,8 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | MSTest.TestFramework | 3.6.1 | MIT |
 | OpenTelemetry | 1.19.1 | Apache-2.0 |
 | OpenTelemetry.Exporter.InMemory | 1.19.1 | Apache-2.0 |
+| Testcontainers.MsSql | 4.15.0 | MIT |
+| Testcontainers.PostgreSql | 4.15.0 | MIT |
 
 ## License texts
 
