@@ -2,17 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OpenHoldemEngine.Data;
 
 #nullable disable
 
-namespace OpenHoldemEngine.PostgreSql.Migrations
+namespace OpenHoldemEngine.SqlServer.Migrations
 {
     [DbContext(typeof(HoldemDbContext))]
-    [Migration("20261001072422_InitialCreate")]
+    [Migration("20261001072908_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -22,24 +22,24 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder
                 .HasDefaultSchema("ohe")
                 .HasAnnotation("ProductVersion", "9.0.1")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("OpenHoldemEngine.Data.BuyIn", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte>("SeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<int>("HandNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("GameId", "SeatNo", "HandNo");
 
@@ -49,34 +49,34 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.Game", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("BettingStructure")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("GameType")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<byte>("InitialDealerSeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<decimal>("InitialSmallBlind")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsFinished")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxPlayersCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -86,13 +86,13 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.Hand", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("No")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte>("DealerSeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.HasKey("GameId", "No");
 
@@ -102,50 +102,50 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.HandAction", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("HandNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("No")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte>("SeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("ActionType")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<decimal>("AddAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<byte>("NextSeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("NextStreet")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<decimal>("Paid")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Size")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Street")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("GameId", "HandNo", "No", "SeatNo");
 
@@ -155,18 +155,18 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.HandDeckCard", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("HandNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte>("Sequence")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Card")
                         .IsRequired()
                         .HasMaxLength(2)
-                        .HasColumnType("character varying(2)");
+                        .HasColumnType("nvarchar(2)");
 
                     b.HasKey("GameId", "HandNo", "Sequence");
 
@@ -176,21 +176,21 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.HandHoleCard", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("HandNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte>("SeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<byte>("Sequence")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Card")
                         .IsRequired()
                         .HasMaxLength(2)
-                        .HasColumnType("character varying(2)");
+                        .HasColumnType("nvarchar(2)");
 
                     b.HasKey("GameId", "HandNo", "SeatNo", "Sequence");
 
@@ -200,33 +200,33 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.HandPlayerEndState", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("HandNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte>("SeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Description")
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<decimal>("FinishStack")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RankType")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<long>("Strength")
                         .HasColumnType("bigint");
 
                     b.Property<decimal>("WinAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("GameId", "HandNo", "SeatNo");
 
@@ -236,17 +236,17 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.HandPlayerStartState", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("HandNo")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte>("SeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<decimal>("StartStack")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("GameId", "HandNo", "SeatNo");
 
@@ -256,15 +256,15 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.OheSchemaRow", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("EngineVersion")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<int>("SchemaVersion")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -282,21 +282,21 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
             modelBuilder.Entity("OpenHoldemEngine.Data.Player", b =>
                 {
                     b.Property<Guid>("GameId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte>("SeatNo")
-                        .HasColumnType("smallint");
+                        .HasColumnType("tinyint");
 
                     b.Property<int>("HandNoStart")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int?>("HandNoEnd")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("nvarchar(64)");
 
                     b.HasKey("GameId", "SeatNo", "HandNoStart");
 

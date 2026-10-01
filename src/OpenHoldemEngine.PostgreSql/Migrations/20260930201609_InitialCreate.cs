@@ -139,7 +139,8 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
                         column: x => x.GameId,
                         principalSchema: "ohe",
                         principalTable: "Game",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_HandAction_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },

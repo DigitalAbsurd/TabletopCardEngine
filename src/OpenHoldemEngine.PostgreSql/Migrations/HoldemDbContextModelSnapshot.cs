@@ -327,7 +327,7 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
                     b.HasOne("OpenHoldemEngine.Data.Game", "Game")
                         .WithMany()
                         .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("OpenHoldemEngine.Data.Hand", "Hand")

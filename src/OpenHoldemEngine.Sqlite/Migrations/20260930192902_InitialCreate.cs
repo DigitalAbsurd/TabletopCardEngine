@@ -126,7 +126,8 @@ namespace OpenHoldemEngine.Sqlite.Migrations
                         name: "FK_HandAction_Game_GameId",
                         column: x => x.GameId,
                         principalTable: "Game",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_HandAction_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
