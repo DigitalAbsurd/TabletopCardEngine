@@ -3,7 +3,7 @@
 namespace OpenHoldemEngine.Demo.Services;
 
 /// <summary>
-/// The commit the running demo was built from. The .NET 8 SDK's built-in Source Link appends it to
+/// The commit the running demo was built from. The .NET 10 SDK's built-in Source Link appends it to
 /// the informational version as <c>1.0.0+&lt;sha&gt;</c> whenever the build runs inside a git
 /// checkout — locally and on CI alike — so no build step of our own is needed to stamp it.
 /// </summary>

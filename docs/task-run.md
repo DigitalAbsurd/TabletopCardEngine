@@ -67,7 +67,7 @@ OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
 The first local run needs the browser (build the solution first, so the script exists):
 
 ```
-pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install chromium
+pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
 CI runs the gate as well, and installing the browser plus running the gate is the slowest part of
@@ -249,7 +249,7 @@ These fail the build, or fail review, for reasons that are not obvious from the 
 
 | Area | Decision |
 |---|---|
-| UI stack | Blazor WebAssembly (standalone, net8.0) + Ant Design Blazor |
+| UI stack | Blazor WebAssembly (standalone, net10.0) + Ant Design Blazor |
 | Engine changes | **`InternalsVisibleTo` only.** The library's public API is not widened, and `Phh/` is not extracted out of the test project. |
 | Storage | SQLite `:memory:` behind a kept-alive `SqliteConnection`, the same pattern as `TestEngineHost`. No persistence across reloads; the UI says so explicitly, and `.phh` export is the way to keep a hand. |
 | Play mode | Hot-seat (the visitor acts for every seat) plus step-by-step replay of an imported hand history. No bots. |
@@ -270,7 +270,7 @@ src/OpenHoldemEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migr
 src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations
 src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
-src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net8.0
+src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge
 ├── Services/                           # DemoGameSession, EngineCallJournal, SqliteBrowser
 ├── Phh/                                # ported reader plus the new writer

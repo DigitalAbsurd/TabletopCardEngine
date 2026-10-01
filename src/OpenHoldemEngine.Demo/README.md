@@ -27,8 +27,8 @@ A visitor who has never seen the repository should be able to open the link abov
 
 ### Prerequisites
 
-- .NET 8.0 SDK
-- The `wasm-tools-net8` workload (for native SQLite in WebAssembly)
+- .NET 10 SDK
+- The `wasm-tools` workload (for native SQLite in WebAssembly)
 
 ### Install the workload
 
@@ -42,8 +42,8 @@ This installs the Emscripten toolchain and build tools required for native libra
 
 ### Prerequisites
 
-- .NET 8.0 SDK
-- The `wasm-tools-net8` workload (for native SQLite in WebAssembly)
+- .NET 10 SDK
+- The `wasm-tools` workload (for native SQLite in WebAssembly)
 
 ### Install the workload
 
@@ -65,7 +65,7 @@ dotnet build
 dotnet publish -c Release
 ```
 
-The publish output goes to `bin/Release/net8.0/publish/`.
+The publish output goes to `bin/Release/net10.0/publish/`.
 
 ## Running the demo
 
