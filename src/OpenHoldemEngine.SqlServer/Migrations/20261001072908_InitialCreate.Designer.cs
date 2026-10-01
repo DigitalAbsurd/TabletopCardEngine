@@ -12,7 +12,7 @@ using OpenHoldemEngine.Data;
 namespace OpenHoldemEngine.SqlServer.Migrations
 {
     [DbContext(typeof(HoldemDbContext))]
-    [Migration("20260930204826_InitialCreate")]
+    [Migration("20261001072908_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -330,7 +330,7 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     b.HasOne("OpenHoldemEngine.Data.Game", "Game")
                         .WithMany()
                         .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OpenHoldemEngine.Data.Hand", "Hand")
