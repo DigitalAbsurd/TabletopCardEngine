@@ -153,7 +153,17 @@ public sealed class HoldemEngine
 
         try
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (existed && dbContext.Database.IsRelational())
+            {
+                if (!await SaveVersionFirstAsync(dbContext, game, cancellationToken))
+                {
+                    return ConcurrentSaveConflict(holdemAction, activity, actionType, start);
+                }
+            }
+            else
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -195,6 +205,47 @@ public sealed class HoldemEngine
             .Select(g => g.Version)
             .SingleAsync(cancellationToken);
         return storedVersion != version.OriginalValue;
+    }
+
+    /// <summary>
+    /// The save on a relational database, with the <c>Game.Version</c> check run as a statement of its own before
+    /// any child row is written. A provider that batches the save (Npgsql, SqlClient) sends the token check and
+    /// the new <see cref="HandAction"/> inserts together, so a lost race used to fail on a duplicate key, with an
+    /// exception that names no conflict, before EF looked at the <c>UPDATE Game</c> row count. Here the
+    /// conditional update runs first inside one transaction: a writer that lost the race updates no row and
+    /// rolls back with nothing written, and one that is still racing waits on the row's write lock, which the
+    /// update takes anyway, and then sees the new version. The rest of the change set is saved after it, in the
+    /// same transaction, against the version this call just wrote.
+    /// </summary>
+    /// <returns><see langword="false"/> when another writer saved the game first; nothing is persisted then.</returns>
+    private static Task<bool> SaveVersionFirstAsync(HoldemDbContext dbContext, Game game, CancellationToken cancellationToken)
+    {
+        var version = dbContext.Entry(game).Property(g => g.Version);
+        var loadedVersion = version.OriginalValue;
+        var newVersion = version.CurrentValue;
+
+        // A user-initiated transaction has to run inside the execution strategy, or a consumer's
+        // EnableRetryOnFailure rejects it. A retry repeats the whole unit, which is why both versions are read
+        // before the first attempt rather than from the entry the attempt changes.
+        return dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async ct =>
+        {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+
+            var updated = await dbContext.Set<Game>()
+                .Where(g => g.Id == game.Id && g.Version == loadedVersion)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(g => g.Version, newVersion), ct);
+            if (updated == 0)
+            {
+                return false;
+            }
+
+            // The row already holds the new version, so the change set's own token check is made against it.
+            version.OriginalValue = newVersion;
+            await dbContext.SaveChangesAsync(acceptAllChangesOnSuccess: false, ct);
+            await transaction.CommitAsync(ct);
+            dbContext.ChangeTracker.AcceptAllChanges();
+            return true;
+        }, cancellationToken);
     }
 
     /// <summary>Reports that another writer saved the game between this call's load and its save.</summary>
