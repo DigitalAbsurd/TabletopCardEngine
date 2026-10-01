@@ -30,6 +30,15 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .WithOne(action => action.Hand)
             .HasForeignKey(action => new { action.GameId, action.HandNo });
 
+        // HandAction reaches Game twice: directly, and through Hand, which cascades from Game. SQL Server
+        // rejects two cascade paths to one table, so the direct one does not cascade. Deleting a game still
+        // removes its actions, through Game -> Hand -> HandAction.
+        modelBuilder.Entity<HandAction>()
+            .HasOne(action => action.Game)
+            .WithMany()
+            .HasForeignKey(action => action.GameId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         modelBuilder.Entity<Player>()
             .HasKey(entity => new { entity.GameId, entity.SeatNo, entity.HandNoStart });
 

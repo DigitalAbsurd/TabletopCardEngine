@@ -82,6 +82,47 @@ public sealed class ProviderSchemaTests
 
     [TestMethod]
     [DataRow(TestDatabaseKind.Sqlite)]
+    [DataRow(TestDatabaseKind.InMemory)]
+    [DataRow(TestDatabaseKind.PostgreSql)]
+    [DataRow(TestDatabaseKind.SqlServer)]
+    public async Task DeleteGame_RemovesItsHandsAndActions(TestDatabaseKind database)
+    {
+        var configure = TestDatabase.Configure(database, out var lifetime);
+        using var databaseLifetime = lifetime;
+        using var provider = BuildProvider(configure);
+        await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+        var engine = provider.GetRequiredService<HoldemEngine>();
+        var gameId = Guid.NewGuid();
+        await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
+        await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
+        await ApplyAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
+
+        var factory = provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
+        await using (var context = await factory.CreateDbContextAsync())
+        {
+            (await context.Set<HandAction>().CountAsync(action => action.GameId == gameId)).Should().BePositive();
+
+            if (TestDatabase.IsRelational(database))
+            {
+                // A set-based delete leaves the dependents to the database's own cascades.
+                await context.Set<Game>().Where(game => game.Id == gameId).ExecuteDeleteAsync();
+            }
+            else
+            {
+                // InMemory has no cascades of its own; EF cascades the tracked graph instead.
+                var game = await context.LoadGameWithCurrentHandAsync(gameId);
+                context.Remove(game);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        await using var check = await factory.CreateDbContextAsync();
+        (await check.Set<Hand>().CountAsync(hand => hand.GameId == gameId)).Should().Be(0);
+        (await check.Set<HandAction>().CountAsync(action => action.GameId == gameId)).Should().Be(0);
+    }
+
+    [TestMethod]
+    [DataRow(TestDatabaseKind.Sqlite)]
     [DataRow(TestDatabaseKind.PostgreSql)]
     [DataRow(TestDatabaseKind.SqlServer)]
     public async Task Upgrade_EveryMigrationKeepsItsSeededData(TestDatabaseKind database)

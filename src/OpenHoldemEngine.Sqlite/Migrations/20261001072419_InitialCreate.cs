@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OpenHoldemEngine.SqlServer.Migrations
+namespace OpenHoldemEngine.Sqlite.Migrations
 {
     /// <inheritdoc />
     internal partial class InitialCreate : Migration
@@ -11,17 +11,13 @@ namespace OpenHoldemEngine.SqlServer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.EnsureSchema(
-                name: "ohe");
-
             migrationBuilder.CreateTable(
                 name: "__OheSchema",
-                schema: "ohe",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
-                    SchemaVersion = table.Column<int>(type: "int", nullable: false),
-                    EngineVersion = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    SchemaVersion = table.Column<int>(type: "INTEGER", nullable: false),
+                    EngineVersion = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,17 +26,16 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Game",
-                schema: "ohe",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    InitialSmallBlind = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    MaxPlayersCount = table.Column<int>(type: "int", nullable: false),
-                    InitialDealerSeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    GameType = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    BettingStructure = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    IsFinished = table.Column<bool>(type: "bit", nullable: false),
-                    Version = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    InitialSmallBlind = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    MaxPlayersCount = table.Column<int>(type: "INTEGER", nullable: false),
+                    InitialDealerSeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    GameType = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    BettingStructure = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    IsFinished = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Version = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,13 +44,12 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "BuyIn",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    HandNo = table.Column<int>(type: "int", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    SeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    HandNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -63,7 +57,6 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_BuyIn_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
                         principalTable: "Game",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -71,12 +64,11 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Hand",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    No = table.Column<int>(type: "int", nullable: false),
-                    DealerSeatNo = table.Column<byte>(type: "tinyint", nullable: false)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    No = table.Column<int>(type: "INTEGER", nullable: false),
+                    DealerSeatNo = table.Column<byte>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,7 +76,6 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_Hand_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
                         principalTable: "Game",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -92,14 +83,13 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Player",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    HandNoStart = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    HandNoEnd = table.Column<int>(type: "int", nullable: true)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    SeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    HandNoStart = table.Column<int>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
+                    HandNoEnd = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -107,7 +97,6 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_Player_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
                         principalTable: "Game",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -115,21 +104,20 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandAction",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandNo = table.Column<int>(type: "int", nullable: false),
-                    No = table.Column<int>(type: "int", nullable: false),
-                    SeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    NextSeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    Street = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    NextStreet = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    ActionType = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    Size = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    AddAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Paid = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    HandNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    No = table.Column<int>(type: "INTEGER", nullable: false),
+                    SeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    NextSeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    Street = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    NextStreet = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    ActionType = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    Size = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    AddAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    Paid = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -137,14 +125,11 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandAction_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
                         principalTable: "Game",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_HandAction_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -152,13 +137,12 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandDeckCard",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandNo = table.Column<int>(type: "int", nullable: false),
-                    Sequence = table.Column<byte>(type: "tinyint", nullable: false),
-                    Card = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    HandNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    Sequence = table.Column<byte>(type: "INTEGER", nullable: false),
+                    Card = table.Column<string>(type: "TEXT", maxLength: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -166,7 +150,6 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandDeckCard_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -174,14 +157,13 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandHoleCard",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandNo = table.Column<int>(type: "int", nullable: false),
-                    SeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    Sequence = table.Column<byte>(type: "tinyint", nullable: false),
-                    Card = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    HandNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    SeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    Sequence = table.Column<byte>(type: "INTEGER", nullable: false),
+                    Card = table.Column<string>(type: "TEXT", maxLength: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -189,7 +171,6 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandHoleCard_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -197,17 +178,16 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandPlayerEndState",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandNo = table.Column<int>(type: "int", nullable: false),
-                    SeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    FinishStack = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    WinAmount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Strength = table.Column<long>(type: "bigint", nullable: false),
-                    RankType = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    HandNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    SeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    FinishStack = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    WinAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    Strength = table.Column<uint>(type: "INTEGER", nullable: false),
+                    RankType = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 32, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -215,7 +195,6 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandPlayerEndState_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -223,13 +202,12 @@ namespace OpenHoldemEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandPlayerStartState",
-                schema: "ohe",
                 columns: table => new
                 {
-                    GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    HandNo = table.Column<int>(type: "int", nullable: false),
-                    SeatNo = table.Column<byte>(type: "tinyint", nullable: false),
-                    StartStack = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                    GameId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    HandNo = table.Column<int>(type: "INTEGER", nullable: false),
+                    SeatNo = table.Column<byte>(type: "INTEGER", nullable: false),
+                    StartStack = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -237,14 +215,12 @@ namespace OpenHoldemEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandPlayerStartState_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
-                schema: "ohe",
                 table: "__OheSchema",
                 columns: new[] { "Id", "EngineVersion", "SchemaVersion" },
                 values: new object[] { 1, "1.0.0", 1 });
@@ -254,44 +230,34 @@ namespace OpenHoldemEngine.SqlServer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "__OheSchema",
-                schema: "ohe");
+                name: "__OheSchema");
 
             migrationBuilder.DropTable(
-                name: "BuyIn",
-                schema: "ohe");
+                name: "BuyIn");
 
             migrationBuilder.DropTable(
-                name: "HandAction",
-                schema: "ohe");
+                name: "HandAction");
 
             migrationBuilder.DropTable(
-                name: "HandDeckCard",
-                schema: "ohe");
+                name: "HandDeckCard");
 
             migrationBuilder.DropTable(
-                name: "HandHoleCard",
-                schema: "ohe");
+                name: "HandHoleCard");
 
             migrationBuilder.DropTable(
-                name: "HandPlayerEndState",
-                schema: "ohe");
+                name: "HandPlayerEndState");
 
             migrationBuilder.DropTable(
-                name: "HandPlayerStartState",
-                schema: "ohe");
+                name: "HandPlayerStartState");
 
             migrationBuilder.DropTable(
-                name: "Player",
-                schema: "ohe");
+                name: "Player");
 
             migrationBuilder.DropTable(
-                name: "Hand",
-                schema: "ohe");
+                name: "Hand");
 
             migrationBuilder.DropTable(
-                name: "Game",
-                schema: "ohe");
+                name: "Game");
         }
     }
 }
