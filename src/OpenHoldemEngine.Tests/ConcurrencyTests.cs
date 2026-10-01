@@ -25,6 +25,8 @@ public sealed class ConcurrencyTests
     [TestMethod]
     [DataRow(TestDatabaseKind.Sqlite)]
     [DataRow(TestDatabaseKind.InMemory)]
+    [DataRow(TestDatabaseKind.PostgreSql)]
+    [DataRow(TestDatabaseKind.SqlServer)]
     public async Task ExpectedVersion_Stale_ReturnsConflict(TestDatabaseKind database)
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory, database: database);
@@ -54,6 +56,8 @@ public sealed class ConcurrencyTests
     [TestMethod]
     [DataRow(TestDatabaseKind.Sqlite)]
     [DataRow(TestDatabaseKind.InMemory)]
+    [DataRow(TestDatabaseKind.PostgreSql)]
+    [DataRow(TestDatabaseKind.SqlServer)]
     public async Task GetGame_Twice_KeepsTheVersion(TestDatabaseKind database)
     {
         using var host = TestEngineHost.Setup(out var engine, out _, database: database);
@@ -95,6 +99,18 @@ public sealed class ConcurrencyTests
         // One container, one named store: both writers see each other's saves, as two processes would on a server.
         var databaseName = Guid.NewGuid().ToString("N");
         using var provider = BuildHost(opts => opts.UseHoldemInMemory(databaseName));
+        await RaceTwoWritersAsync(provider);
+    }
+
+    [TestMethod]
+    [DataRow(TestDatabaseKind.PostgreSql)]
+    [DataRow(TestDatabaseKind.SqlServer)]
+    public async Task TwoWriters_SecondGetsConflict_Server(TestDatabaseKind kind)
+    {
+        // A server serialises nothing, so two writers in one container race as two processes would.
+        var configure = TestDatabase.Configure(kind, out var lifetime);
+        using var databaseLifetime = lifetime;
+        using var provider = BuildHost(configure);
         await RaceTwoWritersAsync(provider);
     }
 

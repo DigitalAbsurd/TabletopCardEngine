@@ -1,7 +1,13 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using OpenHoldemEngine.InMemory;
+using OpenHoldemEngine.PostgreSql;
 using OpenHoldemEngine.Sqlite;
+using OpenHoldemEngine.SqlServer;
+using Testcontainers.MsSql;
+using Testcontainers.PostgreSql;
 
 namespace OpenHoldemEngine.Tests.Persistence;
 
@@ -18,8 +24,27 @@ public enum TestDatabaseKind
 /// Gives a test its own isolated database of a given kind, so the matrix tests keep the assembly's
 /// method-level parallelism.
 /// </summary>
+/// <remarks>
+/// PostgreSQL and SQL Server run in Docker, one container per kind for the whole test run, started on
+/// first use and only under <see cref="ContainersVariable"/>=1. Each <see cref="Configure"/> call gets a
+/// database of its own on that server, which <c>MigrateAsync</c> creates; the databases are left to die
+/// with the container, which <see cref="TestContainersCleanup"/> disposes.
+/// </remarks>
 internal static class TestDatabase
 {
+    /// <summary>Set to 1 to run the PostgreSQL and SQL Server rows; needs Docker.</summary>
+    internal const string ContainersVariable = "OHE_TEST_CONTAINERS";
+
+    private static readonly Lazy<Task<PostgreSqlContainer>> _postgreSql = new(() => StartAsync(
+        new PostgreSqlBuilder("postgres:16-alpine").Build()));
+
+    private static readonly Lazy<Task<MsSqlContainer>> _sqlServer = new(() => StartAsync(
+        new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build()));
+
+    /// <summary>Whether <see cref="ContainersVariable"/> switches the server kinds on.</summary>
+    internal static bool ContainersEnabled
+        => Environment.GetEnvironmentVariable(ContainersVariable) is "1" or "true";
+
     /// <summary>Whether the kind is a relational database with migrations of its own.</summary>
     internal static bool IsRelational(TestDatabaseKind kind) => kind != TestDatabaseKind.InMemory;
 
@@ -41,10 +66,56 @@ internal static class TestDatabase
                 var databaseName = Guid.NewGuid().ToString("N");
                 lifetime = NoopLifetime.Instance;
                 return options => options.UseHoldemInMemory(databaseName);
+            case TestDatabaseKind.PostgreSql:
+                RequireContainers();
+                var postgreSql = new NpgsqlConnectionStringBuilder(_postgreSql.Value.GetAwaiter().GetResult().GetConnectionString())
+                {
+                    Database = NewDatabaseName(),
+                }.ConnectionString;
+                lifetime = NoopLifetime.Instance;
+                return options => options.UseHoldemPostgreSql(postgreSql);
+            case TestDatabaseKind.SqlServer:
+                RequireContainers();
+                var sqlServer = new SqlConnectionStringBuilder(_sqlServer.Value.GetAwaiter().GetResult().GetConnectionString())
+                {
+                    InitialCatalog = NewDatabaseName(),
+                }.ConnectionString;
+                lifetime = NoopLifetime.Instance;
+                return options => options.UseHoldemSqlServer(sqlServer);
             default:
-                Assert.Inconclusive($"{kind} joins the provider matrix with the Testcontainers issue.");
-                throw new InvalidOperationException("Unreachable: Assert.Inconclusive throws.");
+                throw new ArgumentOutOfRangeException(nameof(kind), kind, "Not a database kind of the matrix.");
         }
+    }
+
+    /// <summary>Disposes the containers this run started; one never asked for is not started now.</summary>
+    internal static async Task DisposeContainersAsync()
+    {
+        if (_postgreSql.IsValueCreated)
+        {
+            await (await _postgreSql.Value).DisposeAsync();
+        }
+
+        if (_sqlServer.IsValueCreated)
+        {
+            await (await _sqlServer.Value).DisposeAsync();
+        }
+    }
+
+    private static void RequireContainers()
+    {
+        if (!ContainersEnabled)
+        {
+            Assert.Inconclusive($"Set {ContainersVariable}=1 (needs Docker) to run PostgreSQL and SQL Server");
+        }
+    }
+
+    private static string NewDatabaseName() => $"ohe_{Guid.NewGuid():N}";
+
+    private static async Task<TContainer> StartAsync<TContainer>(TContainer container)
+        where TContainer : DotNet.Testcontainers.Containers.IContainer
+    {
+        await container.StartAsync();
+        return container;
     }
 
     private sealed class NoopLifetime : IDisposable

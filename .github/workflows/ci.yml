@@ -92,3 +92,47 @@ jobs:
         env:
           OHE_TEST_BROWSER_GATE: "1"
         run: dotnet test src/OpenHoldemEngine.Demo.BrowserTests
+
+  # PostgreSQL and SQL Server in Docker through Testcontainers (docs/task-run.md, fact 28). Kept out of
+  # the build job, which is already the slowest thing in CI. It runs on every push to main and on a
+  # pull request that touches persistence, or the files that decide whether this check itself works.
+  providers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.x
+
+      - name: Decide whether the provider tests run
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          run=false
+          if [ "$EVENT_NAME" = "push" ]; then
+            run=true
+          elif [ "$EVENT_NAME" = "pull_request" ]; then
+            changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
+            if echo "$changed" | grep -qE '^src/OpenHoldemEngine/Data/|^src/OpenHoldemEngine\.(Sqlite|PostgreSql|SqlServer)/|^src/OpenHoldemEngine\.Tests/Persistence/|^scripts/add-migration\.ps1$|^\.github/workflows/ci\.yml$'; then
+              run=true
+            else
+              echo "::notice::Provider tests skipped: this pull request touches none of Data/, the relational provider packages, Tests/Persistence/, scripts/add-migration.ps1 or ci.yml."
+            fi
+          else
+            echo "::notice::Provider tests skipped: event $EVENT_NAME is neither a push to main nor a pull request."
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+      - name: Run provider tests on PostgreSQL and SQL Server
+        if: steps.scope.outputs.run == 'true'
+        env:
+          OHE_TEST_CONTAINERS: "1"
+        run: dotnet run --project src/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"

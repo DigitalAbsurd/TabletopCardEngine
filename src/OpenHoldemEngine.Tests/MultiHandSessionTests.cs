@@ -41,6 +41,10 @@ public sealed class MultiHandSessionTests
     [DataRow(2, TestDatabaseKind.Sqlite, DisplayName = "heads-up, Sqlite")]
     [DataRow(6, TestDatabaseKind.InMemory, DisplayName = "six-handed, InMemory")]
     [DataRow(2, TestDatabaseKind.InMemory, DisplayName = "heads-up, InMemory")]
+    [DataRow(6, TestDatabaseKind.PostgreSql, DisplayName = "six-handed, PostgreSql")]
+    [DataRow(2, TestDatabaseKind.PostgreSql, DisplayName = "heads-up, PostgreSql")]
+    [DataRow(6, TestDatabaseKind.SqlServer, DisplayName = "six-handed, SqlServer")]
+    [DataRow(2, TestDatabaseKind.SqlServer, DisplayName = "heads-up, SqlServer")]
     public async Task MultiHandSession_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database)
     {
         var gameId = Guid.Parse("{22222222-2222-2222-2222-222222222222}");

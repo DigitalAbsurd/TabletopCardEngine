@@ -52,6 +52,7 @@ Test-only environment variables:
 | `OHE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
 | `OHE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
 | `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
+| `OHE_TEST_CONTAINERS=1` | Runs the `PostgreSql` and `SqlServer` rows of the provider matrix in Docker through Testcontainers (fact 28). Needs Docker; without it those rows are inconclusive. |
 
 The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
 locally for **every** task, before you open the pull request, and label the pull request as
@@ -84,6 +85,18 @@ label**, and CI skips both steps on that pull request. The label is a claim, so 
 CI reads the label when it reaches the gate, so removing it and re-running the job brings the gate
 back. The label has no effect on a pull request from a fork, and a push to `main` always runs the
 gate in full, so a wrong label shows up after the merge at the latest.
+
+**Provider tests.** A task that touches `src/OpenHoldemEngine/Data/`, a relational provider package
+(`OpenHoldemEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `src/OpenHoldemEngine.Tests/Persistence/`,
+`scripts/add-migration.ps1` or `.github/workflows/ci.yml` should run the provider matrix locally on
+PostgreSQL and SQL Server when Docker is available, and quote the summary line:
+
+```
+OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+```
+
+Without Docker, say so in the pull request: CI's `providers` job runs the same command on every push
+to `main` and on every pull request touching those paths, and it is their gate (fact 28).
 
 **Any step that starts the dev server must end by stopping it.** `Ctrl+C` in its terminal, then
 confirm nothing is left listening:
@@ -336,12 +349,16 @@ renumber.
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
     `Size` keeps the nominal blind.
-19. **`.github/` holds `ci.yml` and `deploy-demo.yml`.** `deploy-demo.yml` declares a `permissions:`
+19. **`.github/` holds `ci.yml` and `deploy-demo.yml`, and `ci.yml` has two jobs.** `deploy-demo.yml` declares a `permissions:`
     block, which means every scope it does not list is dropped to *none*. So does `ci.yml`
     (`contents` and `pull-requests`, both read). `ci.yml` runs on a push to `main` and on
     `pull_request` only, so a branch with an open pull request gets one run per push, not two, and
     a newer push cancels the run it supersedes. On a pull request it skips the browser gate when the
-    pull request carries `browser-gate-local` (see [Gates](#gates)).
+    pull request carries `browser-gate-local` (see [Gates](#gates)). The second job, `providers`, runs
+    the provider matrix on PostgreSQL and SQL Server (fact 28) on every push to `main` and on a pull
+    request whose diff touches `src/OpenHoldemEngine/Data/`, `src/OpenHoldemEngine.(Sqlite|PostgreSql|SqlServer)/`,
+    `src/OpenHoldemEngine.Tests/Persistence/`, `scripts/add-migration.ps1` or `ci.yml`; on any other
+    pull request it skips with a `::notice::`.
 20. **AntDesign has no catch-all for unknown parameters.** The base chain `AntDomComponentBase` to
     `AntComponentBase` exposes only `Class`, `ClassMapper`, `ComponentIdGenerator`, `ConfigProvider`,
     `Id`, `Ref`, `RTL`, `Style`, `IsDisposed`, `Js`, `RefBack`, and there is no
@@ -437,6 +454,7 @@ renumber.
     is the single row of `__OheSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
     <br>Each `HoldemEngine` checks `__OheSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
+28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`ohe_<guid>`), and only under `OHE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
 
 ## A known, deliberate duplication
 
