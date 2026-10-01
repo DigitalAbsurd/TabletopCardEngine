@@ -151,28 +151,6 @@ namespace OpenHoldemEngine.PostgreSql.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HandDeckCard",
-                schema: "ohe",
-                columns: table => new
-                {
-                    GameId = table.Column<Guid>(type: "uuid", nullable: false),
-                    HandNo = table.Column<int>(type: "integer", nullable: false),
-                    Sequence = table.Column<byte>(type: "smallint", nullable: false),
-                    Card = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_HandDeckCard", x => new { x.GameId, x.HandNo, x.Sequence });
-                    table.ForeignKey(
-                        name: "FK_HandDeckCard_Hand_GameId_HandNo",
-                        columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
-                        principalTable: "Hand",
-                        principalColumns: new[] { "GameId", "No" },
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "HandHoleCard",
                 schema: "ohe",
                 columns: table => new
