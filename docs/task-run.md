@@ -397,8 +397,11 @@ renumber.
     check runs even when only child rows changed; `GetGame` does not save and does not increment. It is
     `GameData.Version`. `HoldemAction.ExpectedVersion` (optional, ignored by `CreateGame`) that differs
     from the loaded version fails with `Conflict` before any handler runs, and so does a
-    `DbUpdateConcurrencyException` from the save (on a relational database the second of two racing
-    writers fails on the `Game` row before it can hit a duplicate `HandAction` key). EF InMemory applies
+    `DbUpdateConcurrencyException` from the save. On a relational database the save is one explicit transaction that runs
+    the conditional `UPDATE Game ... WHERE Version = @old` as its own statement before any child row is written
+    (`HoldemEngine.SaveVersionFirstAsync`), so the second of two racing writers updates no row and gets `Conflict`
+    before it can reach a duplicate `HandAction` key. That ordering is what makes it hold on PostgreSQL and SQL Server,
+    whose providers batch a save: in a single batch the duplicate insert failed first. EF InMemory applies
     inserts before updates and has no transactions, so on a non-relational provider the engine re-reads
     `Game.Version` just before saving and returns `Conflict` when it moved. That check stands in for the
     token and is skipped when `Version` is not one. Nothing is persisted on a conflict. The engine
