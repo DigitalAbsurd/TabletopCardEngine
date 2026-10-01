@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using FluentAssertions.Execution;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Tests.Persistence;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -36,9 +37,11 @@ public sealed class MultiHandSessionTests
     private const int Seed = 20260825;
 
     [TestMethod]
-    [DataRow(6, DisplayName = "six-handed")]
-    [DataRow(2, DisplayName = "heads-up")]
-    public async Task MultiHandSession_KeepsTheLedgerBalanced(int seatCount)
+    [DataRow(6, TestDatabaseKind.Sqlite, DisplayName = "six-handed, Sqlite")]
+    [DataRow(2, TestDatabaseKind.Sqlite, DisplayName = "heads-up, Sqlite")]
+    [DataRow(6, TestDatabaseKind.InMemory, DisplayName = "six-handed, InMemory")]
+    [DataRow(2, TestDatabaseKind.InMemory, DisplayName = "heads-up, InMemory")]
+    public async Task MultiHandSession_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database)
     {
         var gameId = Guid.Parse("{22222222-2222-2222-2222-222222222222}");
         var random = new Random(Seed);
@@ -47,7 +50,8 @@ public sealed class MultiHandSessionTests
         using var host = TestEngineHost.Setup(out var holdemEngine, out _,
             shuffler: new TestCardShuffler(
                 getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
-                getDeckFunc: handNo => cardsByHand[handNo].Board));
+                getDeckFunc: handNo => cardsByHand[handNo].Board),
+            database: database);
 
         (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(
             GameId: gameId,

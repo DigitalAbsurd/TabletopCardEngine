@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.InMemory;
 using OpenHoldemEngine.Sqlite;
+using OpenHoldemEngine.Tests.Persistence;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -21,9 +23,11 @@ public sealed class ConcurrencyTests
     private static readonly GameOptionData _options = new() { MaxPlayersCount = 6, InitialSmallBlind = 1, InitialDealerSeatNo = 1 };
 
     [TestMethod]
-    public async Task ExpectedVersion_Stale_ReturnsConflict()
+    [DataRow(TestDatabaseKind.Sqlite)]
+    [DataRow(TestDatabaseKind.InMemory)]
+    public async Task ExpectedVersion_Stale_ReturnsConflict(TestDatabaseKind database)
     {
-        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory, database: database);
         var gameId = Guid.NewGuid();
 
         var created = await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
@@ -48,9 +52,11 @@ public sealed class ConcurrencyTests
     }
 
     [TestMethod]
-    public async Task GetGame_Twice_KeepsTheVersion()
+    [DataRow(TestDatabaseKind.Sqlite)]
+    [DataRow(TestDatabaseKind.InMemory)]
+    public async Task GetGame_Twice_KeepsTheVersion(TestDatabaseKind database)
     {
-        using var host = TestEngineHost.Setup(out var engine, out _);
+        using var host = TestEngineHost.Setup(out var engine, out _, database: database);
         var gameId = Guid.NewGuid();
         await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
 
@@ -73,43 +79,8 @@ public sealed class ConcurrencyTests
                 File.Delete(fileName);
             }
 
-            using var provider = BuildFileHost(fileName);
-            await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-            var contextFactory = provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-
-            var engine = provider.GetRequiredService<HoldemEngine>();
-            var gameId = Guid.NewGuid();
-            await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
-            var started = await engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId, _seats));
-            var rowsBefore = await CountActionsAsync(contextFactory, gameId);
-
-            var loadedFirst = new TaskCompletionSource();
-            var loadedSecond = new TaskCompletionSource();
-            var firstSaved = new TaskCompletionSource();
-            var action = HoldemAction.Play(gameId, PlayerActionType.Call);
-
-            // Both writers load version 2 and handle the action; only then does the first save, and the second after it.
-            var first = engine.ApplyWithHookAsync(action, async () =>
-            {
-                loadedFirst.SetResult();
-                await loadedSecond.Task;
-            }, CancellationToken.None);
-            var second = engine.ApplyWithHookAsync(action, async () =>
-            {
-                loadedSecond.SetResult();
-                await loadedFirst.Task;
-                await firstSaved.Task;
-            }, CancellationToken.None);
-
-            var firstResult = await first;
-            firstSaved.SetResult();
-            var secondResult = await second;
-
-            firstResult.IsSuccess.Should().BeTrue();
-            firstResult.Value.Version.Should().Be(started.Value.Version + 1);
-            secondResult.IsSuccess.Should().BeFalse();
-            secondResult.Errors.Should().ContainSingle().Which.Code.Should().Be(HoldemErrorCode.Conflict);
-            (await CountActionsAsync(contextFactory, gameId)).Should().Be(rowsBefore + 1);
+            using var provider = BuildHost(opts => opts.UseHoldemSqlite($"Filename='{fileName}'"));
+            await RaceTwoWritersAsync(provider);
         }
         finally
         {
@@ -118,10 +89,62 @@ public sealed class ConcurrencyTests
         }
     }
 
-    private static ServiceProvider BuildFileHost(string fileName)
+    [TestMethod]
+    public async Task TwoWriters_SecondGetsConflict_InMemory()
+    {
+        // One container, one named store: both writers see each other's saves, as two processes would on a server.
+        var databaseName = Guid.NewGuid().ToString("N");
+        using var provider = BuildHost(opts => opts.UseHoldemInMemory(databaseName));
+        await RaceTwoWritersAsync(provider);
+    }
+
+    /// <summary>
+    /// Both writers load the same version and handle the same action; only then does the first save, and
+    /// the second after it. The second must get <see cref="HoldemErrorCode.Conflict"/> and persist nothing.
+    /// </summary>
+    private static async Task RaceTwoWritersAsync(ServiceProvider provider)
+    {
+        await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+        var contextFactory = provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
+
+        var engine = provider.GetRequiredService<HoldemEngine>();
+        var gameId = Guid.NewGuid();
+        await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
+        var started = await engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId, _seats));
+        var rowsBefore = await CountActionsAsync(contextFactory, gameId);
+
+        var loadedFirst = new TaskCompletionSource();
+        var loadedSecond = new TaskCompletionSource();
+        var firstSaved = new TaskCompletionSource();
+        var action = HoldemAction.Play(gameId, PlayerActionType.Call);
+
+        var first = engine.ApplyWithHookAsync(action, async () =>
+        {
+            loadedFirst.SetResult();
+            await loadedSecond.Task;
+        }, CancellationToken.None);
+        var second = engine.ApplyWithHookAsync(action, async () =>
+        {
+            loadedSecond.SetResult();
+            await loadedFirst.Task;
+            await firstSaved.Task;
+        }, CancellationToken.None);
+
+        var firstResult = await first;
+        firstSaved.SetResult();
+        var secondResult = await second;
+
+        firstResult.IsSuccess.Should().BeTrue();
+        firstResult.Value.Version.Should().Be(started.Value.Version + 1);
+        secondResult.IsSuccess.Should().BeFalse();
+        secondResult.Errors.Should().ContainSingle().Which.Code.Should().Be(HoldemErrorCode.Conflict);
+        (await CountActionsAsync(contextFactory, gameId)).Should().Be(rowsBefore + 1);
+    }
+
+    private static ServiceProvider BuildHost(Action<DbContextOptionsBuilder> configureDatabase)
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(dbOptionsAction: opts => opts.UseHoldemSqlite($"Filename='{fileName}'"), configure: _ => { });
+        services.AddHoldemEngine(dbOptionsAction: configureDatabase, configure: _ => { });
         return services.BuildServiceProvider();
     }
 

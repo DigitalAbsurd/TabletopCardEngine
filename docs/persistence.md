@@ -120,7 +120,7 @@ Migrations are written per the following rules:
    }
    ```
 
-5. **Every migration that changes a key or backfills data ships with an upgrade test on seeded data.** Seed the previous schema, run the migration, and assert the rows survived. Upgrade tests run on every supported database. The test matrix enforces this and fails when a migration has no upgrade fixture.
+5. **Every migration after `InitialCreate` ships with an upgrade fixture on seeded data.** Implement `IUpgradeFixture` in `src/OpenHoldemEngine.Tests/Persistence/Upgrades/`, with `MigrationName` set to the migration's name. `SeedAsync` writes rows with raw SQL valid at the previous migration, per provider: neither the engine nor `HoldemDbContext` speaks the previous schema. `AssertAsync` then checks the rows through a fully migrated engine. `ProviderSchemaTests.Upgrade_EveryMigrationKeepsItsSeededData` runs each fixture on every relational database, and the guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` fails, naming the migration and the provider, when a migration has no fixture or more than one.
 
 6. **Generated migration and snapshot files are `internal` and are not edited**, except for the hand-written parts rules 3 and 4 require.
 
@@ -144,6 +144,7 @@ The InMemory provider is for prototyping, demos and consumers' unit tests, not f
 - **State lives only in the process and is lost on restart.** A reload discards everything; use `.phh` export to keep a hand.
 - **Foreign keys are not enforced.** The database will not catch referential integrity errors.
 - **There are no transactions.** EF ignores calls to `BeginTransaction`. The engine does not use explicit transactions, so this does not change what a call does.
+- **A lost race is detected before the save, not inside it.** InMemory applies a save's inserts before its updates, so the `Game.Version` token would only be compared after a racing writer's rows had hit a duplicate key. On a non-relational provider the engine therefore re-reads `Game.Version` just before saving and returns `Conflict` when it moved. That narrows the window between that read and the save, but cannot close it the way a relational transaction does.
 - **`decimal` precision is not applied,** although the engine's own validation rule (at most two decimal places) is still enforced by the engine itself.
 
 `GetSchemaStatusAsync` reports `NotVersioned` on InMemory, because the provider has no versioning. Two engines given the same `databaseName` in one process will share the same in-memory store; use a unique name for each isolated engine (one per test, one per tenant).
