@@ -49,6 +49,15 @@ A change to the public surface and the new baseline go in **the same pull reques
 Never suppress the diagnostics instead: no `CompatibilitySuppressions.xml`, and no
 `ApiCompatGenerateSuppressionFile`. A suppressed break is a baseline that no longer means anything.
 
+Every baseline in `eng/api-baseline/` holds one `lib/net10.0` asset, because the packages target
+`net10.0` only. Package validation compares assets per target framework, so moving the packages to
+another framework makes `dotnet pack` fail with `PKV006` ("Target framework net10.0 is no longer
+supported in the latest version") before it compares a single member. That is the one case where
+every baseline is re-packed without a surface change: first confirm the members did not move (no
+`CP00xx` diagnostic, and step 3 regenerates the inventory below with no diff), then re-pack each
+package with `-p:EnablePackageValidation=false`, since validating against the old-framework
+baseline is exactly what fails, and run the plain gate again.
+
 ## The provider packages
 
 `OpenHoldemEngine.Sqlite` and `OpenHoldemEngine.PostgreSql` each have their own baseline,

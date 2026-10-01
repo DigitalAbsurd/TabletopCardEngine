@@ -30,10 +30,12 @@ packages, all MIT.
 **The SQLite package, `OpenHoldemEngine.Sqlite`**, references the library and
 `Microsoft.EntityFrameworkCore.Sqlite` 9.0.1 (MIT) as NuGet packages and redistributes neither. Its
 runtime closure on top of the library's is EF Core SQLite and `Microsoft.Data.Sqlite.Core` (MIT),
-and SQLitePCLRaw 2.1.10 (Apache-2.0), whose `SQLitePCLRaw.lib.e_sqlite3` carries the public-domain
-SQLite itself. `Microsoft.EntityFrameworkCore.Design` is development-only: it is what `dotnet ef`
-scaffolds the migrations with, it is referenced with `PrivateAssets="all"`, and it does not appear
-among the package's dependencies.
+and SQLitePCLRaw 2.1.13 (Apache-2.0), whose `SQLitePCLRaw.lib.e_sqlite3` carries the public-domain
+SQLite itself. The package references `SQLitePCLRaw.bundle_e_sqlite3` directly to lift it above the
+2.1.10 EF Core SQLite brings, which NuGet audit flags for CVE-2025-6965.
+`Microsoft.EntityFrameworkCore.Design` is development-only: it is what `dotnet ef` scaffolds the migrations
+with, it is referenced with `PrivateAssets="all"`, and it does not appear among the package's
+dependencies.
 
 **The InMemory package, `OpenHoldemEngine.InMemory`**, references the library and
 `Microsoft.EntityFrameworkCore.InMemory` 9.0.1 (MIT) as NuGet packages and redistributes neither.
@@ -61,7 +63,7 @@ copies its dependencies into the site. On top of the library's closure it ships:
 | Tomlyn 0.19.0 | NuGet `Tomlyn` | BSD-2-Clause |
 | ASP.NET Core Blazor components, `Microsoft.JSInterop`, `Microsoft.Data.Sqlite`, EF Core SQLite | NuGet, Microsoft | MIT |
 | `Microsoft.AspNetCore.Components.DataAnnotations.Validation` 3.2.0-rc1 | NuGet, Microsoft, a dependency of AntDesign | Apache-2.0 |
-| SQLitePCLRaw 2.1.10 | NuGet `SQLitePCLRaw.*`, SourceGear | Apache-2.0 |
+| SQLitePCLRaw 2.1.13 | NuGet `SQLitePCLRaw.*`, SourceGear | Apache-2.0 |
 | SQLite, compiled into `dotnet.native.wasm` by `WasmBuildNative` | NuGet `SQLitePCLRaw.lib.e_sqlite3` | Public domain |
 | The .NET 8 WebAssembly runtime and base class library (`dotnet.*`, `System.*.wasm`) | The SDK's `Microsoft.NETCore.App.Runtime.Mono.browser-wasm` pack | MIT, plus the notices in [dotnet/runtime's THIRD-PARTY-NOTICES.TXT](https://github.com/dotnet/runtime/blob/release/8.0/THIRD-PARTY-NOTICES.TXT) |
 | PrismJS core, its C# grammar and its default theme | Vendored in `wwwroot/lib/prism` | MIT |
@@ -164,6 +166,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | --- | --- | --- |
 | Microsoft.EntityFrameworkCore.Design | 9.0.1 | MIT |
 | Microsoft.EntityFrameworkCore.Sqlite | 9.0.1 | MIT |
+| SQLitePCLRaw.bundle_e_sqlite3 | 2.1.13 | Apache-2.0 |
 
 ### OpenHoldemEngine.PostgreSql
 
@@ -188,8 +191,8 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Package | Version | License |
 | --- | --- | --- |
 | AntDesign | 0.17.0 | MIT |
-| Microsoft.AspNetCore.Components.WebAssembly | 8.0.13 | MIT |
-| Microsoft.AspNetCore.Components.WebAssembly.DevServer | 8.0.13 | MIT |
+| Microsoft.AspNetCore.Components.WebAssembly | 10.0.12 | MIT |
+| Microsoft.AspNetCore.Components.WebAssembly.DevServer | 10.0.12 | MIT |
 | Tomlyn | 0.19.0 | BSD-2-Clause |
 
 ### Test and development only

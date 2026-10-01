@@ -26,7 +26,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.x
+          dotnet-version: 10.x
 
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools
@@ -80,12 +80,12 @@ jobs:
 
       - name: Install Playwright browsers
         if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
+        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
       # The cache holds the browser only; the system packages it needs are not cached.
       - name: Install Playwright system dependencies
         if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install-deps chromium
+        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install-deps chromium
 
       - name: Run browser layout gate
         if: steps.gate.outputs.run == 'true'
@@ -108,7 +108,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.x
+          dotnet-version: 10.x
 
       - name: Decide whether the provider tests run
         id: scope

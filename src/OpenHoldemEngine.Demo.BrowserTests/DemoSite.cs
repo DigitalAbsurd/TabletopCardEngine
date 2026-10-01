@@ -173,7 +173,7 @@ internal sealed class DemoSite : IAsyncDisposable
         {
             throw new InvalidOperationException(
                 $"Playwright could not install Chromium (exit code {exitCode}). Run "
-                + "pwsh bin/Debug/net8.0/playwright.ps1 install --with-deps chromium from this project and try again.");
+                + "pwsh bin/Debug/net10.0/playwright.ps1 install --with-deps chromium from this project and try again.");
         }
     }
 

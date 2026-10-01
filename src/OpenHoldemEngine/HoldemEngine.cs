@@ -331,9 +331,13 @@ public sealed class HoldemEngine
         {
             _logger.HandFinished(hand.No, gameId);
         }
-        else if (sameHand && !ended && hand.GetStreet() != before.Street)
+        else if (sameHand && !ended)
         {
-            _logger.StreetDealt(hand.No, gameId, hand.GetStreet());
+            var street = hand.GetStreet();
+            if (street != before.Street)
+            {
+                _logger.StreetDealt(hand.No, gameId, street);
+            }
         }
 
         if (holdemAction is HoldemActionFinishGame)
