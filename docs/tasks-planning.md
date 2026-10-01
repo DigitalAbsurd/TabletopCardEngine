@@ -30,6 +30,25 @@ prompt with requirements
 Each step is below. The steps are not optional and they are not reorderable: sizing an issue before
 its cause is established produces a confident number about the wrong task.
 
+## Standing condition: all checks and gates run locally
+
+The GitHub Actions minute quota of the account is exhausted, so every workflow in
+`.github/workflows/` (`CI`, `Deploy demo to GitHub Pages`) is **disabled on the GitHub side until
+further notice**. Nothing runs remotely: no CI, no provider matrix job, no deploy.
+
+Until the condition is lifted:
+
+- Every check and gate in [docs/task-run.md](task-run.md#gates) runs **locally, before the push**:
+  build, tests, `dotnet format --verify-no-changes`, the pack and public API baseline check, the
+  Playwright browser gate (`OHE_TEST_BROWSER_GATE=1`) and the provider matrix
+  (`OHE_TEST_CONTAINERS=1`, needs Docker). "CI is green" is not available as evidence, so the
+  evidence for a gate is the local run, quoted in the pull request or the commit message.
+- The `browser-gate-local` label has no meaning, since the gate always runs locally.
+- Do not re-enable a workflow, and do not add a new one, without being told to.
+
+When the quota is available again, re-enable with `gh workflow enable "CI"` and
+`gh workflow enable "Deploy demo to GitHub Pages"`, and remove this section.
+
 ## 1. Establish the facts before writing a word
 
 A requirement arrives as a symptom — "the page is frozen", "the dropdown is empty", "the deploy
