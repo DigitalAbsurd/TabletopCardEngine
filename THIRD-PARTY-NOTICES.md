@@ -65,9 +65,9 @@ copies its dependencies into the site. On top of the library's closure it ships:
 | `Microsoft.AspNetCore.Components.DataAnnotations.Validation` 3.2.0-rc1 | NuGet, Microsoft, a dependency of AntDesign | Apache-2.0 |
 | SQLitePCLRaw 2.1.13 | NuGet `SQLitePCLRaw.*`, SourceGear | Apache-2.0 |
 | SQLite, compiled into `dotnet.native.wasm` by `WasmBuildNative` | NuGet `SQLitePCLRaw.lib.e_sqlite3` | Public domain |
-| The .NET 8 WebAssembly runtime and base class library (`dotnet.*`, `System.*.wasm`) | The SDK's `Microsoft.NETCore.App.Runtime.Mono.browser-wasm` pack | MIT, plus the notices in [dotnet/runtime's THIRD-PARTY-NOTICES.TXT](https://github.com/dotnet/runtime/blob/release/8.0/THIRD-PARTY-NOTICES.TXT) |
+| The .NET 10 WebAssembly runtime and base class library (`dotnet.*`, `System.*.wasm`) | The SDK's `Microsoft.NETCore.App.Runtime.Mono.browser-wasm` pack | MIT, plus the notices in [dotnet/runtime's THIRD-PARTY-NOTICES.TXT](https://github.com/dotnet/runtime/blob/release/10.0/THIRD-PARTY-NOTICES.TXT) |
 | PrismJS core, its C# grammar and its default theme | Vendored in `wwwroot/lib/prism` | MIT |
-| `favicon.png`, `icon-192.png`, and the loading indicator in `index.html` and `css/app.css` | The .NET 8 Blazor project templates; the icons are byte-identical | MIT |
+| `favicon.png`, `icon-192.png`, and the loading indicator in `index.html` and `css/app.css` | The .NET 10 Blazor project templates; the icons are byte-identical | MIT |
 | `sample/sample.phhs` | The PHH dataset | MIT, see [PHH dataset](#phh-dataset) |
 
 The legacy `System.* 4.3.0`, `runtime.*`, `Microsoft.NETCore.*` 1.1.0 and `NETStandard.Library`
