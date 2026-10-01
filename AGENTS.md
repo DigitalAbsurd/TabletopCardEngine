@@ -59,7 +59,7 @@ Test-only environment variables (read in `TestEngineHost`, `PhhFixture` and `Per
 
 ## What this is
 
-A .NET 8 class library modelling Texas Hold'em cash games. There is no executable — consumers register it with `services.AddHoldemEngine(dbOptionsAction, configure)` and drive everything through a single method:
+A .NET 10 class library modelling Texas Hold'em cash games. There is no executable — consumers register it with `services.AddHoldemEngine(dbOptionsAction, configure)` and drive everything through a single method:
 
 ```csharp
 Task<Result<GameData>> HoldemEngine.ApplyHoldemActionAsync(HoldemAction action, CancellationToken ct)

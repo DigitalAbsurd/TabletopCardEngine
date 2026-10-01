@@ -88,7 +88,7 @@ and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no 
 
 ```bash
 # once: install the browser (the fixture also does this, with the same effect)
-pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net8.0/playwright.ps1 install --with-deps chromium
+pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
 # the gate itself
 OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests

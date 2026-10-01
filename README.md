@@ -1,6 +1,10 @@
 # OpenHoldemEngine
 
-A .NET 8 class library modelling Texas Hold'em cash games. This repository ships the engine as a library — there is no executable. Consumers register it via `services.AddHoldemEngine()` and drive everything through one method: `ApplyHoldemActionAsync(action, cancellationToken)`.
+A .NET 10 class library modelling Texas Hold'em cash games. This repository ships the engine as a library — there is no executable. Consumers register it via `services.AddHoldemEngine()` and drive everything through one method: `ApplyHoldemActionAsync(action, cancellationToken)`.
+
+## Supported platform
+
+The libraries target .NET 10 (LTS), supported through November 14, 2028.
 
 ## Try the interactive demo
 
