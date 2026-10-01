@@ -48,20 +48,20 @@ public static class HandCombination
     }
 
     /// <summary>The strongest five of <paramref name="cards"/>, or all of them when there are no more than five.</summary>
-    private static IReadOnlyList<Card> BestFive(Card[] cards)
+    private static Card[] BestFive(Card[] cards)
     {
         if (cards.Length <= HandSize)
         {
             return cards;
         }
 
-        IReadOnlyList<Card> best = [];
+        Card[] best = [];
         var bestStrength = 0u;
         foreach (var subset in Subsets(cards, HandSize))
         {
             // Only the combined card mask matters to the evaluator, so any hole/board split will do.
             var strength = HandEvaluator.EvaluateStrength(subset[..2], subset[2..]);
-            if (best.Count == 0 || strength > bestStrength)
+            if (best.Length == 0 || strength > bestStrength)
             {
                 best = subset;
                 bestStrength = strength;

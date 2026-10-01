@@ -29,7 +29,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.x
+          dotnet-version: 10.x
 
       - name: Install wasm-tools workload
         run: dotnet workload install wasm-tools

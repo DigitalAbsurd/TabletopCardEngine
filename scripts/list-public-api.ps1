@@ -32,7 +32,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $projectDir = Join-Path $repoRoot 'src/OpenHoldemEngine'
 if (-not $AssemblyPath) {
-    $AssemblyPath = Join-Path $projectDir 'bin/Release/net8.0/OpenHoldemEngine.dll'
+    $AssemblyPath = Join-Path $projectDir 'bin/Release/net10.0/OpenHoldemEngine.dll'
 }
 if (-not (Test-Path $AssemblyPath)) {
     throw "$AssemblyPath not found. Run 'dotnet pack src/OpenHoldemEngine -c Release' first."
