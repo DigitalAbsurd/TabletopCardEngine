@@ -64,6 +64,6 @@ configuration and adds the SDK's `AddOpenTelemetry()` logging provider if it wan
 - **No API baseline yet.** Package validation stays off for this project until it has shipped once,
   because there is no earlier version to compare with.
 - **`System.Diagnostics.DiagnosticSource` rises in hosts that take this package.** `OpenTelemetry.Api`
-  1.19.1 depends on `System.Diagnostics.DiagnosticSource` 10.0.0, while the core gets 9.0.1 through
-  EF Core. NuGet resolves the higher one in a host that references this package; the core's own
+  1.19.1 depends on `System.Diagnostics.DiagnosticSource` 10.0.0, while the core gets a compatible version through
+  EF Core 10.x. NuGet resolves the appropriate version in a host that references this package; the core's own
   graph is unchanged.
