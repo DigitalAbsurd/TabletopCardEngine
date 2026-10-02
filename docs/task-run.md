@@ -465,8 +465,12 @@ renumber.
 28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`ohe_<guid>`), and only under `OHE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
 29. **An action is legal only when `HandData.Evaluations` offers it, and a Raise only inside its window.**
     Anything else is rejected with `IllegalAction = 13` and nothing is saved. The engine never corrects an
-    action into a fold; `Evaluations` and the validation share `BettingRules.Evaluate`. `AllIn`
-    is not validated yet (#261). A `Bet` is legal only while nothing is wagered on the street
+    action into a fold (`BettingRules.CorrectAction` throws on an illegal one, which would be a defect);
+    `Evaluations` and the validation share `BettingRules.Evaluate`. `AllIn` is always legal and is
+    resolved in `PlayActionHandler`: with `allInTo = Stack + StreetWager`, it is a call (possibly for
+    less) when `allInTo <= CallTo`, otherwise a raise to `allInTo`, and the ledger records `AllIn`.
+    A recorded `AllIn` row counts as a raise kind in `BettingRules.LastRaise` only when its
+    `AddAmount > 0`, so an all-in call never lowers the minimum raise. A `Bet` is legal only while nothing is wagered on the street
     (`BettingRules.AgreeAmount(table) == 0`, never true pre-flop), only where `Evaluations` offers a `Raise`,
     and only with a `Size` inside that `Raise` window; `Size` is the absolute street total, as for a raise.
     `Evaluations` never lists `Bet`: when nothing is bet, the `Raise` window is the bet window. The ledger

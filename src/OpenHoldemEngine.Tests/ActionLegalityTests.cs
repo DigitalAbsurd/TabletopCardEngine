@@ -148,6 +148,89 @@ public sealed class ActionLegalityTests
         await AssertRejectedAsync(engine, contextFactory, bet, new HoldemActionPlay(gameId, PlayerActionType.Bet, 10));
     }
 
+    [TestMethod]
+    public async Task AllIn_ActsLikeTheEquivalentRaise()
+    {
+        var allIn = await PlayAfterPreFlopActionAsync(PlayerActionType.AllIn, 0);
+        var raise = await PlayAfterPreFlopActionAsync(PlayerActionType.Raise, 100);
+
+        allIn.HandData!.Evaluations.Should().BeEquivalentTo(raise.HandData!.Evaluations, options => options.WithStrictOrdering());
+        allIn.HandData.Seats.Select(seat => (seat.SeatNo, seat.Stack, seat.BetSize))
+            .Should().Equal(raise.HandData.Seats.Select(seat => (seat.SeatNo, seat.Stack, seat.BetSize)));
+        allIn.HandData.StreetPot.Should().Be(raise.HandData.StreetPot);
+        allIn.HandData.Pot.Should().Be(raise.HandData.Pot);
+        allIn.HandData.NextPlayerSeatNo.Should().Be(raise.HandData.NextPlayerSeatNo);
+        allIn.HandData.Seats.Single(seat => seat.SeatNo == ButtonSeatNo).LastAction!.ActionType.Should().Be(HandActionType.AllIn);
+        raise.HandData.Seats.Single(seat => seat.SeatNo == ButtonSeatNo).LastAction!.ActionType.Should().Be(HandActionType.Raise);
+        allIn.HandData.Seats.Single(seat => seat.SeatNo == ButtonSeatNo).Stack.Should().Be(0);
+        allIn.HandData.NextPlayerSeatNo.Should().Be(BigBlindSeatNo);
+    }
+
+    [TestMethod]
+    public async Task AllIn_ForLessThanTheCall_IsAnAllInCall()
+    {
+        var allIn = await PlayShortBigBlindAsync(PlayerActionType.AllIn);
+        var call = await PlayShortBigBlindAsync(PlayerActionType.Call);
+
+        allIn.HandData!.Seats.Single(seat => seat.SeatNo == BigBlindSeatNo).Stack.Should().Be(0);
+        allIn.HandData.Street.Should().Be(Street.Finished);
+        allIn.HandData.Seats.Sum(seat => seat.HandResult!.Net).Should().Be(0);
+        allIn.HandData.Seats.Select(seat => (seat.SeatNo, seat.HandResult!.Net))
+            .Should().Equal(call.HandData!.Seats.Select(seat => (seat.SeatNo, seat.HandResult!.Net)));
+    }
+
+    [TestMethod]
+    public async Task AllIn_AsACall_DoesNotLowerTheMinimumRaise()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _, shuffler: ScriptedDeck());
+        var gameId = Guid.NewGuid();
+        await ApplyOkAsync(engine, new HoldemActionCreateGame(gameId, new GameOptionData { MaxPlayersCount = 3, InitialSmallBlind = 1, InitialDealerSeatNo = 1 }));
+        await ApplyOkAsync(engine, new HoldemActionStartGame(gameId, [new("A", 1, 22), new("B", 2, 100), new("C", 3, 100)]));
+        await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
+        await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
+        var flop = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Check, 0));
+        flop.HandData!.Street.Should().Be(Street.Flop);
+        await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Check, 0));
+        var raised = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Raise, 20));
+        raised.HandData!.NextPlayerSeatNo.Should().Be(1);
+
+        var called = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.AllIn, 0));
+
+        called.HandData!.NextPlayerSeatNo.Should().Be(2);
+        called.HandData.Evaluations.Select(evaluation => (evaluation.PlayerActionType, evaluation.MinValue, evaluation.MaxValue))
+            .Should().Equal(
+                (PlayerActionType.Fold, 0M, 0M),
+                (PlayerActionType.Call, 20M, 20M),
+                (PlayerActionType.Raise, 40M, 98M));
+    }
+
+    private static Card[] Cards(params string[] cards) => [.. cards.Select(Card.Parse)];
+
+    private static TestCardShuffler ScriptedDeck()
+    {
+        Card[][] holes = [Cards("ac", "kc"), Cards("7d", "2h"), Cards("js", "jd")];
+        var board = Cards("4s", "9h", "qd", "3c", "8s");
+        return new TestCardShuffler((_, seatNo) => holes[seatNo - 1], _ => board);
+    }
+
+    private static async Task<GameData> PlayAfterPreFlopActionAsync(PlayerActionType actionType, decimal size)
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _, shuffler: ScriptedDeck());
+        var gameId = Guid.NewGuid();
+        await StartHeadsUpAsync(engine, gameId);
+        return await ApplyOkAsync(engine, new HoldemActionPlay(gameId, actionType, size));
+    }
+
+    private static async Task<GameData> PlayShortBigBlindAsync(PlayerActionType bigBlindAction)
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _, shuffler: ScriptedDeck());
+        var gameId = Guid.NewGuid();
+        await ApplyOkAsync(engine, new HoldemActionCreateGame(gameId, _options));
+        await ApplyOkAsync(engine, new HoldemActionStartGame(gameId, [new("Button", ButtonSeatNo, 100), new("BigBlind", BigBlindSeatNo, 30)]));
+        await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Raise, 50));
+        return await ApplyOkAsync(engine, new HoldemActionPlay(gameId, bigBlindAction, 0));
+    }
+
     private static async Task<GameData> StartOnFlopAsync(HoldemEngine engine, Guid gameId)
     {
         await StartHeadsUpAsync(engine, gameId);
