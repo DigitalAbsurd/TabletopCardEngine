@@ -34,6 +34,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $sections = [ordered]@{
     'OpenHoldemEngine' = 'OpenHoldemEngine'
     'OpenHoldemEngine.OpenTelemetry' = 'OpenHoldemEngine.OpenTelemetry'
+    'OpenHoldemEngine.AspNetCore' = 'OpenHoldemEngine.AspNetCore'
     'OpenHoldemEngine.Sqlite' = 'OpenHoldemEngine.Sqlite'
     'OpenHoldemEngine.PostgreSql' = 'OpenHoldemEngine.PostgreSql'
     'OpenHoldemEngine.SqlServer' = 'OpenHoldemEngine.SqlServer'

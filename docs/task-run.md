@@ -275,6 +275,8 @@ src/OpenHoldemEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migratio
 src/OpenHoldemEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
 src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations
 src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
+src/OpenHoldemEngine.AspNetCore/        # the ASP.NET Core integration (ADR-0004); shared framework and the core only
+src/OpenHoldemEngine.AspNetCore.Tests/  # its tests, including the dependency guard
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge
@@ -291,10 +293,12 @@ src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TES
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/observability.md                   # the engine's logs, traces and metrics
+docs/aspnetcore.md                      # the ASP.NET Core package's user guide
 docs/persistence.md                     # supported databases, schema versioning, migration policy
 docs/adr/                               # architecture decision records (ADR-0001: the license,
                                         # ADR-0002: the OpenTelemetry instrumentation package,
-                                        # ADR-0003: database provider licences)
+                                        # ADR-0003: database provider licences,
+                                        # ADR-0004: the ASP.NET Core integration package)
 scripts/                                # license audit, PHH fixture packing, public API listing, migration scaffolding
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 OpenHoldemEngine.Packages.slnf          # solution filter for packable projects only
