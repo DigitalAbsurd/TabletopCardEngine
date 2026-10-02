@@ -28,8 +28,14 @@
     contract every issue links to - asking it to implement the issue end to end, open a PR
     and merge it itself.
 
+    Before each task it reads the state of the "CI" workflow. When a maintainer has disabled
+    it (disabled_manually), the prompt tells the agent to merge right after the local gates
+    instead of waiting for checks that will never be reported.
+
     After each task, the script switches to main and pulls, so the next task (and the
-    dependency check that picks it) sees the merged result.
+    dependency check that picks it) sees the merged result. It prints how long each task
+    took, and the whole run, in hh:mm:ss; the agent is asked to report each gate's duration
+    the same way.
 
 .PARAMETER Agent
     Which AI code assistant to drive. Selects "agent.<Agent>.json" next to this script.
@@ -136,6 +142,9 @@ $AutomatedBranchPattern = '^[A-Za-z0-9._-]+/issue-\d+'
 # Repository roles that GitHub allows to apply labels. "read" and "" (no access) are not
 # among them.
 $VettingRoles = @('admin', 'maintain', 'write', 'triage')
+
+# The workflow whose checks the agent waits for before merging.
+$CiWorkflowName = 'CI'
 
 # Login -> repository role, so each labeller costs one API call per run.
 $RoleByLogin = @{}
@@ -283,6 +292,20 @@ function Assert-NoInFlightAutomatedPr {
         }
         Fail 'Exiting: resolve the PR(s) above (merge or close manually) before running this script again.'
     }
+}
+
+function Test-CiDisabled {
+    # A maintainer may switch CI off (Actions minutes, an outage). An agent told to wait for
+    # checks would then wait for checks that never come and leave its PR open, so the prompt
+    # is built from this answer, read again before every task.
+    $workflows = (gh workflow list -R $Repo --all --json name,state) | ConvertFrom-Json
+    $ci = @($workflows | Where-Object { $_.name -eq $CiWorkflowName })
+    return ($ci.Count -gt 0 -and $ci[0].state -eq 'disabled_manually')
+}
+
+function Format-Duration([TimeSpan]$Duration) {
+    # TimeSpan's own "hh" wraps at 24 hours; whole hours keep a long run readable.
+    return '{0:00}:{1:00}:{2:00}' -f [math]::Floor($Duration.TotalHours), $Duration.Minutes, $Duration.Seconds
 }
 
 function Get-RepoRole([string]$Login) {
@@ -490,7 +513,7 @@ function Write-TaskFile($Issue) {
     return $path
 }
 
-function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$ContextFiles, [string]$TaskFile) {
+function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$ContextFiles, [string]$TaskFile, [bool]$CiDisabled) {
     # Each assistant has its own house-rules file (CLAUDE.md, AGENTS.md, ...), so the
     # settings file names them rather than the script hard-coding one.
     $docs = (@('docs/task-run.md') + @($ContextFiles)) -join ', '
@@ -505,6 +528,13 @@ function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$Con
         "Never apply or remove the ""$ReadyLabel"" label, on any issue. It is how a human marks an issue as vetted for an unattended run. Issues you file stay unlabelled until a maintainer has reviewed them. $followUpRules"
     }
 
+    $mergeRule = if ($CiDisabled) {
+        "The ""$CiWorkflowName"" workflow is disabled in this repository (state disabled_manually), so no checks will ever be reported: do not run gh pr checks and do not wait for CI. The local gates of steps 5 and 6 are the only checks, so merge right after opening the pull request: gh pr merge <number> -R $Repo --squash --delete-branch. Say in the pull request that it was merged without CI because CI is disabled. Do not enable the workflow. Do not leave the pull request open and do not wait for someone else's approval - there will not be one."
+    }
+    else {
+        "Wait for CI yourself: GitHub does not enforce the checks in this repository, so nothing else holds the merge back. Use the blocking command gh pr checks <number> -R $Repo --watch --fail-fast. If it says no checks are reported yet, or a tool timeout cuts it off, run it again. Merge only once every check has passed: gh pr merge <number> -R $Repo --squash --delete-branch. If a check fails, fix it on the branch, push, and wait again. Do not leave the pull request open and do not wait for someone else's approval - there will not be one."
+    }
+
     return @"
 Work in the repository $Repo (the gh CLI is already authenticated). Implement exactly one task - issue #$IssueNumber, and nothing beyond it. Act entirely on your own: there will be no human review, and the decision to merge is yours.
 
@@ -517,11 +547,12 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
 8. Commit with a meaningful message in English and push the branch.
 9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The body must contain "Closes #$IssueNumber". Add --label browser-gate-local only as step 6 allows.
-10. Wait for CI yourself: GitHub does not enforce the checks in this repository, so nothing else holds the merge back. Use the blocking command gh pr checks <number> -R $Repo --watch --fail-fast. If it says no checks are reported yet, or a tool timeout cuts it off, run it again. Merge only once every check has passed: gh pr merge <number> -R $Repo --squash --delete-branch. If a check fails, fix it on the branch, push, and wait again. Do not leave the pull request open and do not wait for someone else's approval - there will not be one.
+10. $mergeRule
 11. After the merge, confirm that issue #$IssueNumber actually closed (gh issue view $IssueNumber -R $Repo --json state). If it did not, close it explicitly with a comment saying why.
 12. If something you learn while implementing contradicts docs/task-run.md, document it in the pull request and file a separate issue to fix the document.
 13. $readyLabelRule
 14. You run non-interactively, and the run ends the moment your reply ends. Nothing will resume you later, so never schedule a later check, a wakeup or a background watcher, and never end with "I'll check again later". Do not end your reply until the pull request is merged and issue #$IssueNumber is closed, or until you have stopped as step 7 describes.
+15. Measure the wall-clock duration of every gate run in steps 5 and 6 (dotnet build, dotnet format, dotnet test, dotnet pack, the browser gate), for example by reading the clock before and after each command. In your final reply, list each gate with its result and duration in hh:mm:ss (for example "dotnet test - passed - 00:03:12"). When a gate ran more than once, give the duration of its last run.
 "@
 }
 
@@ -587,6 +618,7 @@ Write-Host "Vetting: label '$ReadyLabel', applied by triage or higher, no edit s
 # --- Main loop ----------------------------------------------------------------
 
 $completed = 0
+$runClock = [Diagnostics.Stopwatch]::StartNew()
 
 for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
     if ($unlimited) {
@@ -608,9 +640,15 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
 
     Write-Host "Next ready issue: #$issueNumber - $($readyIssue.title)"
 
-    $taskFile = Write-TaskFile -Issue $readyIssue
-    $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile
+    $ciDisabled = Test-CiDisabled
+    if ($ciDisabled) {
+        Write-Host "The '$CiWorkflowName' workflow is disabled: the agent merges right after the local gates, without waiting for CI."
+    }
 
+    $taskFile = Write-TaskFile -Issue $readyIssue
+    $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile -CiDisabled $ciDisabled
+
+    $taskClock = [Diagnostics.Stopwatch]::StartNew()
     Write-Host "Handing issue #$issueNumber to $($agentSettings.Command) ($modelId), task text in $taskFile..."
     # The settings file is expected to run the agent non-interactively and without
     # permission prompts: with no human review step, every command (git push,
@@ -623,6 +661,9 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
 
     Save-UnfinishedWork -IssueNumber $issueNumber -BranchPrefix $branchPrefix
     Sync-Main
+
+    # Printed before any of the checks below can stop the run, so a failed task is timed too.
+    Write-Host "Task on issue #$issueNumber took $(Format-Duration $taskClock.Elapsed)."
 
     if ($agentExitCode -ne 0) {
         Fail "$($agentSettings.Command) exited with code $agentExitCode while working on issue #$issueNumber. Not continuing to further tasks."
@@ -657,4 +698,4 @@ if ($unlimited -and $completed -eq $UnlimitedTaskCap) {
     Write-Host "Stopped at the $UnlimitedTaskCap-task safety cap with issues still ready. Run again to continue."
 }
 
-Write-Host "Done: completed $completed task(s)."
+Write-Host "Done: completed $completed task(s) in $(Format-Duration $runClock.Elapsed)."

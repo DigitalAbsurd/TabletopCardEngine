@@ -184,6 +184,12 @@ of this applies.
    gh pr merge <number> --squash --delete-branch
    ```
 
+   When the `CI` workflow is disabled (`gh workflow list --all` shows `disabled_manually`), no
+   checks will ever be reported. Then the local gates are the only checks: merge right after
+   opening the pull request, say in it that it was merged without CI, and do not re-enable the
+   workflow. `run-next-task.ps1` reads the state before each task and tells the agent which case
+   applies.
+
 5. Confirm the issue actually closed (`gh issue view <number> --json state`). If it did not, close
    it explicitly with a comment saying why.
 6. **Never leave an open pull request behind.** The task runner refuses to start while one exists
