@@ -8,11 +8,6 @@ internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler) : Hold
 {
     internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartGame holdemAction, Game game, CancellationToken cancellationToken)
     {
-        if (game.Id == default)
-        {
-            return new HoldemError(HoldemErrorCode.GameNotStarted, PackResource.HoldemValidation_GameNotStarted);
-        }
-
         if (game.GetCurrentHand().No != 0)
         {
             return new HoldemError(HoldemErrorCode.GameAlreadyStarted, PackResource.HoldemValidation_GameAlreadyStarted);

@@ -8,11 +8,6 @@ internal sealed class FinishGameActionHandler : HoldemActionHandler<HoldemAction
 {
     internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionFinishGame holdemAction, Game game, CancellationToken cancellationToken)
     {
-        if (game.Id == default)
-        {
-            return Task.FromResult<HoldemError?>(new HoldemError(HoldemErrorCode.GameNotStarted, PackResource.HoldemValidation_GameNotStarted));
-        }
-
         if (!game.IsCurrentHandEnded())
         {
             return Task.FromResult<HoldemError?>(new HoldemError(HoldemErrorCode.PreviousHandNotEnded, PackResource.HoldemValidation_PreviousHandNotEnded));

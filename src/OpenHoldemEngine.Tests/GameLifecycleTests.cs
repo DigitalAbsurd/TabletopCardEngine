@@ -113,7 +113,7 @@ public sealed class GameLifecycleTests
         var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats));
 
         result.IsFailed.Should().BeTrue();
-        result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotStarted);
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
         (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
     }
 
@@ -170,7 +170,45 @@ public sealed class GameLifecycleTests
         var result = await engine.ApplyHoldemActionAsync(new HoldemActionFinishGame(_gameId));
 
         result.IsFailed.Should().BeTrue();
-        result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotStarted);
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
+        (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
+    }
+
+    [TestMethod]
+    [DataRow(nameof(HoldemActionGetGame))]
+    [DataRow(nameof(HoldemActionStartGame))]
+    [DataRow(nameof(HoldemActionStartHand))]
+    [DataRow(nameof(HoldemActionPlay))]
+    [DataRow(nameof(HoldemActionFinishGame))]
+    public async Task Lifecycle_EveryActionButCreateGameOnUnknownGame_FailsWithGameNotFound(string actionName)
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        HoldemAction action = actionName switch
+        {
+            nameof(HoldemActionGetGame) => new HoldemActionGetGame(_gameId),
+            nameof(HoldemActionStartGame) => new HoldemActionStartGame(_gameId, _seats),
+            nameof(HoldemActionStartHand) => new HoldemActionStartHand(_gameId),
+            nameof(HoldemActionPlay) => new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0),
+            nameof(HoldemActionFinishGame) => new HoldemActionFinishGame(_gameId),
+            _ => throw new ArgumentOutOfRangeException(nameof(actionName), actionName, null),
+        };
+
+        var result = await engine.ApplyHoldemActionAsync(action);
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
+        (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
+    }
+
+    [TestMethod]
+    public async Task Lifecycle_UnknownGameWithExpectedVersion_FailsWithGameNotFound()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+
+        var result = await engine.ApplyHoldemActionAsync(new HoldemActionGetGame(_gameId) { ExpectedVersion = 3 });
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
         (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
     }
 

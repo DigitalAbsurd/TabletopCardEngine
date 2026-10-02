@@ -31,7 +31,7 @@ public enum HoldemErrorCode
     /// <summary>The game already has a hand dealt, or was already started, so it cannot be started again.</summary>
     GameAlreadyStarted = 8,
 
-    /// <summary>No hand has been dealt yet, or the game does not exist, so the action needs <c>StartGame</c> first.</summary>
+    /// <summary>No hand has been dealt yet, so the action needs <c>StartGame</c> first.</summary>
     GameNotStarted = 9,
 
     /// <summary>The game was finished, so only reading it back is allowed.</summary>
@@ -39,4 +39,7 @@ public enum HoldemErrorCode
 
     /// <summary>The game was changed by another action since the caller read it, so nothing was applied. Reload it and decide.</summary>
     Conflict = 11,
+
+    /// <summary>No game with the requested id exists. Every action except <c>CreateGame</c> needs one.</summary>
+    GameNotFound = 12,
 }

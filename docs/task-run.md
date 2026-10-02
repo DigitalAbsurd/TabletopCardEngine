@@ -317,7 +317,9 @@ renumber.
    `StartGame` deals hand 1 (`GameAlreadyStarted` once a hand exists), `StartHand` before it fails with
    `GameNotStarted`, and `FinishGame` works between hands only (`PreviousHandNotEnded` otherwise).
    After `FinishGame` every action except `GetGame` fails with `GameFinished`. An action record the
-   engine does not know fails with `InvalidAction` instead of throwing.
+   engine does not know fails with `InvalidAction` instead of throwing. A game id nobody created
+   fails with `GameNotFound` for every action except `CreateGame` (#258), checked once in
+   `HoldemEngine.ApplyCoreAsync` before the `ExpectedVersion` check, so it wins over `Conflict`.
 3. *Retired by #142:* `GameData.HandData` is now nullable; it is `null` between `CreateGame` and the first `StartHand`.
 4. *Retired by #160:* `SeatData.BetSize` and `HandResultData.Description` are populated now.
 5. **`HandData.Evaluations` mixes two bases on purpose.** A `Call`'s `MinValue`/`MaxValue` is an
@@ -346,11 +348,11 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Eleven validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Twelve validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, and `Conflict = 11` of fact 24.
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `Conflict = 11` of fact 24, and `GameNotFound = 12` of fact 2.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
