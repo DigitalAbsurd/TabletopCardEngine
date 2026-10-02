@@ -324,7 +324,7 @@ renumber.
 4. *Retired by #160:* `SeatData.BetSize` and `HandResultData.Description` are populated now.
 5. **`HandData.Evaluations` mixes two bases on purpose.** A `Call`'s `MinValue`/`MaxValue` is an
    *increment* ("how much more to put in"); a `Raise`'s `MinValue`/`MaxValue` are both an *absolute
-   street total* ("raise to"). `HoldemActionPlay.Size` for a raise expects the absolute. A
+   street total* ("raise to"). `HoldemActionPlay.Size` for a raise expects the absolute, and so does a `Bet` (#260). A
    degenerate raise window arrives as a synthetic `Raise(allInTo, allInTo)`.
 6. **`Pot` excludes the current street.** `HandData.Pot` is prior streets only and `StreetPot` is the
    current street's contributions; a total pot display must add them.
@@ -465,8 +465,12 @@ renumber.
 28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`ohe_<guid>`), and only under `OHE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
 29. **An action is legal only when `HandData.Evaluations` offers it, and a Raise only inside its window.**
     Anything else is rejected with `IllegalAction = 13` and nothing is saved. The engine never corrects an
-    action into a fold; `Evaluations` and the validation share `BettingRules.Evaluate`. `Bet` and `AllIn`
-    are not validated yet (#260, #261).
+    action into a fold; `Evaluations` and the validation share `BettingRules.Evaluate`. `AllIn`
+    is not validated yet (#261). A `Bet` is legal only while nothing is wagered on the street
+    (`BettingRules.AgreeAmount(table) == 0`, never true pre-flop), only where `Evaluations` offers a `Raise`,
+    and only with a `Size` inside that `Raise` window; `Size` is the absolute street total, as for a raise.
+    `Evaluations` never lists `Bet`: when nothing is bet, the `Raise` window is the bet window. The ledger
+    still records `HandActionType.Bet`, and `BettingRules` counts it as a raise kind when the table is rebuilt.
 
 ## A known, deliberate duplication
 

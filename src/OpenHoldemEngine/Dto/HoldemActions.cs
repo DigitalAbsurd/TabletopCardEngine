@@ -48,7 +48,7 @@ public abstract record HoldemAction(Guid GameId)
     /// <param name="gameId">The game to act in.</param>
     /// <param name="actionType">What the seat does.</param>
     /// <param name="size">
-    /// For a raise, the street total to raise <i>to</i>; ignored for actions that carry no size.
+    /// For a raise or a bet, the street total to raise or bet <i>to</i>; ignored for actions that carry no size.
     /// </param>
     public static HoldemActionPlay Play(Guid gameId, PlayerActionType actionType, decimal size = 0)
         => new(gameId, actionType, size);
@@ -89,13 +89,13 @@ public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 
 /// <summary>
 /// Plays one action for the seat whose turn it is. An action <see cref="HandData.Evaluations"/> does not
-/// offer, or a raise size outside its window, fails with <see cref="HoldemErrorCode.IllegalAction"/> and
+/// offer, a raise or bet size outside its window, a bet while a wager is open, fails with <see cref="HoldemErrorCode.IllegalAction"/> and
 /// changes nothing.
 /// </summary>
 /// <param name="GameId">The game to act in.</param>
 /// <param name="ActionType">What the seat does.</param>
 /// <param name="Size">
-/// For <see cref="PlayerActionType.Raise"/>, the street total to raise <i>to</i> — the same absolute
+/// For <see cref="PlayerActionType.Raise"/> or <see cref="PlayerActionType.Bet"/>, the street total to raise or bet <i>to</i> — the same absolute
 /// basis as the raise bounds in <see cref="HandData.Evaluations"/>. Must have at most two decimal places. Ignored for other actions.
 /// </param>
 public record HoldemActionPlay(Guid GameId, PlayerActionType ActionType, decimal Size) : HoldemAction(GameId);
