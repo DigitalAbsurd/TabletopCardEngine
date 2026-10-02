@@ -200,7 +200,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 | Package | Version | License |
 | --- | --- | --- |
-| bunit | 1.40.0 | MIT |
+| bunit | 2.11.3 | MIT |
 | FluentAssertions | 6.1.0 | Apache-2.0 |
 | FluentAssertions.Json | 6.1.0 | Apache-2.0 |
 | Microsoft.Extensions.Diagnostics | 10.0.12 | MIT |
