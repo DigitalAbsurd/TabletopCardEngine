@@ -142,6 +142,15 @@ namespace OpenHoldemEngine.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The action is not legal for the seat to act.
+        /// </summary>
+        internal static string HoldemValidation_IllegalAction {
+            get {
+                return ResourceManager.GetString("HoldemValidation_IllegalAction", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The game has not been started.
         /// </summary>
         internal static string HoldemValidation_GameNotStarted {

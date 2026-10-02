@@ -87,7 +87,11 @@ public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
     public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
 }
 
-/// <summary>Plays one action for the seat whose turn it is.</summary>
+/// <summary>
+/// Plays one action for the seat whose turn it is. An action <see cref="HandData.Evaluations"/> does not
+/// offer, or a raise size outside its window, fails with <see cref="HoldemErrorCode.IllegalAction"/> and
+/// changes nothing.
+/// </summary>
 /// <param name="GameId">The game to act in.</param>
 /// <param name="ActionType">What the seat does.</param>
 /// <param name="Size">

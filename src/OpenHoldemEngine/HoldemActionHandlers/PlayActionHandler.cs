@@ -32,6 +32,11 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
         var seat = table[seatNo];
         var window = BettingRules.LegalActions(table, seatNo);
 
+        if (!IsOffered(BettingRules.Evaluate(table, seatNo)))
+        {
+            return new HoldemError(HoldemErrorCode.IllegalAction, PackResource.HoldemValidation_IllegalAction);
+        }
+
         var outcome = HandRunner.ApplyAction(table, holdemAction.ActionType, CalculateBetAmount());
 
         game.AddAction(
@@ -90,6 +95,24 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
         }
 
         return null;
+
+        // Validated against the list the caller was offered, never against the window's own
+        // arithmetic: that list has its special cases (Check versus Call, the synthetic all-in raise).
+        // Bet and AllIn are not validated yet; until they are, BettingRules.CorrectAction still sees them.
+        bool IsOffered(IReadOnlyList<PlayerActionEvaluationData> offered)
+        {
+            if (holdemAction.ActionType is PlayerActionType.Bet or PlayerActionType.AllIn)
+            {
+                return true;
+            }
+            var entry = offered.FirstOrDefault(evaluation => evaluation.PlayerActionType == holdemAction.ActionType);
+            if (entry is null)
+            {
+                return false;
+            }
+            return holdemAction.ActionType != PlayerActionType.Raise
+                || (entry.MinValue <= holdemAction.Size && holdemAction.Size <= entry.MaxValue);
+        }
 
         decimal CalculateBetAmount()
             => holdemAction.ActionType switch

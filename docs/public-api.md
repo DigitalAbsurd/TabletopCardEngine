@@ -202,6 +202,7 @@ Machine-readable reason an action was rejected.
 - `GameFinished = 10` — The game was finished, so only reading it back is allowed.
 - `Conflict = 11` — The game was changed by another action since the caller read it, so nothing was applied.
 - `GameNotFound = 12` — No game with the requested id exists.
+- `IllegalAction = 13` — The action is not one the seat to act may take now, or its size is outside the window offered.
 
 #### `HoldemResult<T>` (sealed class)
 
