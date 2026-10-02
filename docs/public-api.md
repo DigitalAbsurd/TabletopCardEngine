@@ -386,7 +386,7 @@ Plays one action for the seat whose turn it is.
 
 - `HoldemActionPlay(Guid GameId, PlayerActionType ActionType, decimal Size)` — Plays one action for the seat whose turn it is.
 - `PlayerActionType ActionType { get; init; }` — What the seat does.
-- `decimal Size { get; init; }` — For `Raise`, the street total to raise to — the same absolute basis as the raise bounds in `Evaluations`.
+- `decimal Size { get; init; }` — For `Raise` or `Bet`, the street total to raise or bet to — the same absolute basis as the raise bounds in `Evaluations`.
 
 #### `HoldemActionStartGame : HoldemAction` (record)
 

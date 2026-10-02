@@ -98,19 +98,26 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
 
         // Validated against the list the caller was offered, never against the window's own
         // arithmetic: that list has its special cases (Check versus Call, the synthetic all-in raise).
-        // Bet and AllIn are not validated yet; until they are, BettingRules.CorrectAction still sees them.
+        // AllIn is not validated yet; until it is, BettingRules.CorrectAction still sees it.
+        // A Bet is the opening wager of a street: legal only while nothing is wagered, and then only
+        // inside the window the Raise is offered with, which is therefore the bet window.
         bool IsOffered(IReadOnlyList<PlayerActionEvaluationData> offered)
         {
-            if (holdemAction.ActionType is PlayerActionType.Bet or PlayerActionType.AllIn)
+            if (holdemAction.ActionType is PlayerActionType.AllIn)
             {
                 return true;
             }
-            var entry = offered.FirstOrDefault(evaluation => evaluation.PlayerActionType == holdemAction.ActionType);
+            if (holdemAction.ActionType is PlayerActionType.Bet && BettingRules.AgreeAmount(table) != 0)
+            {
+                return false;
+            }
+            var requested = holdemAction.ActionType is PlayerActionType.Bet ? PlayerActionType.Raise : holdemAction.ActionType;
+            var entry = offered.FirstOrDefault(evaluation => evaluation.PlayerActionType == requested);
             if (entry is null)
             {
                 return false;
             }
-            return holdemAction.ActionType != PlayerActionType.Raise
+            return requested != PlayerActionType.Raise
                 || (entry.MinValue <= holdemAction.Size && holdemAction.Size <= entry.MaxValue);
         }
 
@@ -121,7 +128,7 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
                 PlayerActionType.Call => window.CallTo,
                 PlayerActionType.Fold => 0M,
                 PlayerActionType.Raise => holdemAction.Size,
-                PlayerActionType.Bet => holdemAction.Size + seat.StreetWager,
+                PlayerActionType.Bet => holdemAction.Size,
                 _ => throw new UnreachableException()
             };
 

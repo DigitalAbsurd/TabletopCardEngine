@@ -68,6 +68,96 @@ public sealed class ActionLegalityTests
         button.LastAction!.ActionType.Should().Be(Enum.Parse<HandActionType>(actionType.ToString()));
     }
 
+    [TestMethod]
+    public async Task Play_PreFlopBet_FailsWithIllegalActionAndChangesNothing()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        var gameId = Guid.NewGuid();
+        var started = await StartHeadsUpAsync(engine, gameId);
+
+        await AssertRejectedAsync(engine, contextFactory, started, new HoldemActionPlay(gameId, PlayerActionType.Bet, 5));
+    }
+
+    [TestMethod]
+    public async Task Play_FlopBet_IsCountedAsARaiseWhenTheTableIsRebuilt()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        var gameId = Guid.NewGuid();
+        await StartOnFlopAsync(engine, gameId);
+
+        var bet = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Bet, 4));
+
+        bet.HandData!.NextPlayerSeatNo.Should().Be(ButtonSeatNo);
+        bet.HandData.StreetPot.Should().Be(4);
+        var evaluations = bet.HandData.Evaluations;
+        evaluations.Select(evaluation => evaluation.PlayerActionType)
+            .Should().Equal(PlayerActionType.Fold, PlayerActionType.Call, PlayerActionType.Raise);
+        var call = evaluations.Single(evaluation => evaluation.PlayerActionType == PlayerActionType.Call);
+        (call.MinValue, call.MaxValue).Should().Be((4M, 4M));
+        var raise = evaluations.Single(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
+        (raise.MinValue, raise.MaxValue).Should().Be((8M, 98M));
+    }
+
+    [TestMethod]
+    public async Task Play_FlopBetThenCheck_FailsWithIllegalAction()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        var gameId = Guid.NewGuid();
+        await StartOnFlopAsync(engine, gameId);
+        var bet = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Bet, 4));
+
+        await AssertRejectedAsync(engine, contextFactory, bet, new HoldemActionPlay(gameId, PlayerActionType.Check, 0));
+    }
+
+    [TestMethod]
+    public async Task Play_FlopBetThenCall_ClosesTheStreet()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        var gameId = Guid.NewGuid();
+        await StartOnFlopAsync(engine, gameId);
+        await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Bet, 4));
+
+        var called = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
+
+        called.HandData!.Street.Should().Be(Street.Turn);
+        called.HandData.Pot.Should().Be(12);
+        called.HandData.StreetPot.Should().Be(0);
+        called.HandData.NextPlayerSeatNo.Should().Be(BigBlindSeatNo);
+    }
+
+    [TestMethod]
+    [DataRow(1)]
+    [DataRow(99)]
+    public async Task Play_FlopBetOutsideTheWindow_FailsWithIllegalAction(double size)
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        var gameId = Guid.NewGuid();
+        var flop = await StartOnFlopAsync(engine, gameId);
+
+        await AssertRejectedAsync(engine, contextFactory, flop, new HoldemActionPlay(gameId, PlayerActionType.Bet, (decimal)size));
+    }
+
+    [TestMethod]
+    public async Task Play_FlopBetWhileAWagerIsOpen_FailsWithIllegalAction()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        var gameId = Guid.NewGuid();
+        await StartOnFlopAsync(engine, gameId);
+        var bet = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Bet, 4));
+
+        await AssertRejectedAsync(engine, contextFactory, bet, new HoldemActionPlay(gameId, PlayerActionType.Bet, 10));
+    }
+
+    private static async Task<GameData> StartOnFlopAsync(HoldemEngine engine, Guid gameId)
+    {
+        await StartHeadsUpAsync(engine, gameId);
+        await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
+        var flop = await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Check, 0));
+        flop.HandData!.Street.Should().Be(Street.Flop);
+        flop.HandData.NextPlayerSeatNo.Should().Be(BigBlindSeatNo);
+        return flop;
+    }
+
     private static async Task AssertRejectedAsync(
         HoldemEngine engine, IDbContextFactory<HoldemDbContext> contextFactory, GameData before, HoldemActionPlay action)
     {
