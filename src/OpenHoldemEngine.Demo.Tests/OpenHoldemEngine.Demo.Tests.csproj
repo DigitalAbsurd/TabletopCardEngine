@@ -1,4 +1,4 @@
-<Project Sdk="MSTest.Sdk/3.6.1">
+﻿<Project Sdk="MSTest.Sdk/3.6.1">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="bunit" Version="1.40.0" />
+    <PackageReference Include="bunit" Version="2.11.3" />
     <PackageReference Include="FluentAssertions" Version="6.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
     <PackageReference Include="Moq" Version="4.20.70" />
@@ -20,18 +20,6 @@
     <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Demo\OpenHoldemEngine.Demo.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Tests\OpenHoldemEngine.Tests.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!--
-      bunit 1.40.0, the last 1.x, pulls in AngleSharp 1.2.0, which NuGet audit reports as NU1902 for
-      this advisory (an mXSS in HTML parsing; fixed in 1.5.0). The fixed AngleSharp is binary
-      incompatible with bunit 1.x (MissingMethodException on IHtmlCollection's indexer), and only
-      bunit 2.x brings it. AngleSharp here parses the markup our own components render in a test
-      run and never ships. Only this one advisory is suppressed; remove the line with the move to
-      bunit 2.x.
-    -->
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-pgww-w46g-26qg" />
   </ItemGroup>
 
   <ItemGroup>

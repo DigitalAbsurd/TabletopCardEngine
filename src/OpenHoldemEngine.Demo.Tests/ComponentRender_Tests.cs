@@ -32,7 +32,7 @@ public sealed class ComponentRender_Tests
     /// else was wrong with the render. Only <c>GetWindow</c> is a public constant in AntDesign
     /// 0.17.0; the other two identifiers are built inside the library, so they are spelled out.
     /// </remarks>
-    private static void SetupBrowserGeometryInterop(Bunit.TestContext ctx)
+    private static void SetupBrowserGeometryInterop(BunitContext ctx)
     {
         ctx.JSInterop
             .Setup<Window>(AntDesign.JSInteropConstants.GetWindow)
@@ -109,12 +109,12 @@ public sealed class ComponentRender_Tests
     public void MainLayout_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<MainLayout>();
+        var component = ctx.Render<MainLayout>();
 
         // Assert
         component.Markup.Should().Contain("OpenHoldemEngine Demo");
@@ -125,13 +125,13 @@ public sealed class ComponentRender_Tests
     public void MainLayout_Header_CarriesTheCommitAndTheThemeSwitch()
     {
         // Arrange - the script reports a dark page: the visitor's pick, or the OS setting
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.JSInterop.Setup<string>("demoTheme.get").SetResult("dark");
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<MainLayout>();
+        var component = ctx.Render<MainLayout>();
 
         // Assert - the build is stamped with its commit by the SDK's Source Link
         BuildInfo.ShortSha.Should().NotBeNullOrEmpty("the test assembly is built from a git checkout");
@@ -150,15 +150,15 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void FirstVisitWalkthrough_Renders_WithoutException()
+    public async Task FirstVisitWalkthrough_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<FirstVisitWalkthrough>();
+        var component = ctx.Render<FirstVisitWalkthrough>();
 
         // Assert
         // Under loose JS interop, BrowserStorage returns false, so _visible is true and modal appears
@@ -169,17 +169,17 @@ public sealed class ComponentRender_Tests
     public async Task FirstVisitWalkthrough_ShowAsync_RendersStep1()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
-        var walkthrough = ctx.RenderComponent<FirstVisitWalkthrough>();
+        var walkthrough = ctx.Render<FirstVisitWalkthrough>();
 
         // Initially on step 1
         walkthrough.Markup.Should().Contain("Step 1: The Poker Table");
 
         // Advance to step 2 by clicking Next (simulated)
-        var walkthrough2 = ctx.RenderComponent<FirstVisitWalkthrough>();
+        var walkthrough2 = ctx.Render<FirstVisitWalkthrough>();
 
         // Act - Request show through WalkthroughState
         var state = ctx.Services.GetRequiredService<WalkthroughState>();
@@ -193,14 +193,14 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void FirstVisitWalkthrough_Next_WalksFourStepsOneTabEach()
+    public async Task FirstVisitWalkthrough_Next_WalksFourStepsOneTabEach()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
-        var walkthrough = ctx.RenderComponent<FirstVisitWalkthrough>();
+        var walkthrough = ctx.Render<FirstVisitWalkthrough>();
         AngleSharp.Dom.IElement FooterButton(string label)
             => walkthrough.FindAll(".ant-modal-footer button").Single(b => b.TextContent.Trim() == label);
 
@@ -224,13 +224,13 @@ public sealed class ComponentRender_Tests
     public void GameSetup_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
 
         // Act
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
 
         // Assert
         component.Markup.Should().Contain("Game Setup");
@@ -240,13 +240,13 @@ public sealed class ComponentRender_Tests
     public void GameSetup_ShowsNoEngineLimitationsNotice()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
 
         // Act
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
 
         // Assert - no notice, and each player row is Name, Seat and Buy-in under one caption row
         component.Markup.Should().NotContain("Engine Limitations");
@@ -261,13 +261,13 @@ public sealed class ComponentRender_Tests
     public void GameSetup_HasNoSubmitButtonOfItsOwn()
     {
         // Arrange - the host drives the form through ApplyAsync, from the modal's OK button
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
 
         // Act
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
 
         // Assert
         component.Markup.Should().NotContain("Create and Start Game");
@@ -277,13 +277,13 @@ public sealed class ComponentRender_Tests
     public void GameSetup_MaxPlayersSelect_RendersFiveOptions()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
 
         // Act
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
 
         // Assert - one option per supported table size, two through six
         var options = component.FindComponents<AntDesign.SelectOption<int, int>>();
@@ -296,13 +296,13 @@ public sealed class ComponentRender_Tests
     public async Task GameSetup_ApplyAsync_StartsAGameUnderTheFormSettings()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
         var session = ctx.Services.GetRequiredService<DemoGameSession>();
 
         // Act - the defaults are what the untouched form carries
@@ -321,7 +321,7 @@ public sealed class ComponentRender_Tests
     public async Task GameSetup_ApplyAsync_ClearsThePreviousGamesRowsAndCalls()
     {
         // Arrange - a game is already running, as it always is on the single-screen demo
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
@@ -331,7 +331,7 @@ public sealed class ComponentRender_Tests
         var browser = ctx.Services.GetRequiredService<SqliteBrowser>();
         var firstGameId = session.CurrentGameId;
 
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -348,7 +348,7 @@ public sealed class ComponentRender_Tests
     public async Task GameSetup_ApplyAsync_SwitchesAReplayBackToThePlayEngine()
     {
         // Arrange - a replay leaves the session on the replay engine, which deals the recorded cards
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
@@ -358,7 +358,7 @@ public sealed class ComponentRender_Tests
         session.UseReplayEngine();
         session.ActiveEngine.Should().BeSameAs(ctx.Services.GetRequiredService<DemoReplayEngine>().Engine);
 
-        var component = ctx.RenderComponent<GameSetup>();
+        var component = ctx.Render<GameSetup>();
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -373,7 +373,7 @@ public sealed class ComponentRender_Tests
     public void GameSummary_RendersTheOptionsItIsGiven()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
@@ -383,7 +383,7 @@ public sealed class ComponentRender_Tests
             HandData: BuildHandDataWithSeats(6));
 
         // Act
-        var component = ctx.RenderComponent<GameSummary>(parameters => parameters
+        var component = ctx.Render<GameSummary>(parameters => parameters
             .Add(p => p.GameData, gameData));
 
         // Assert - blinds are the small blind and twice it, and the New Game button is on the bar
@@ -396,12 +396,12 @@ public sealed class ComponentRender_Tests
     public void GameSummary_WithoutGameData_RendersWithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<GameSummary>();
+        var component = ctx.Render<GameSummary>();
 
         // Assert
         component.Markup.Should().Contain("game-summary");
@@ -411,12 +411,12 @@ public sealed class ComponentRender_Tests
     public void PokerTable_WithoutGameData_Renders_Empty()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, null));
 
         // Assert - no hand, so no seats, no street and no action bar; New Game is in the page header
@@ -431,14 +431,14 @@ public sealed class ComponentRender_Tests
     public async Task PokerTable_WithHandData_Renders_Seats()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
 
         // Act
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, session.CurrentGame));
 
         // Assert - both seats, the street between the top row and the board, and the action bar on
@@ -458,7 +458,7 @@ public sealed class ComponentRender_Tests
     public void PokerTable_Center_ShowsTheBoardAndPotButNotTheStreet()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
@@ -478,7 +478,7 @@ public sealed class ComponentRender_Tests
         };
 
         // Act
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, BuildGameData(hand)));
 
         // Assert - the street and the hand number live in the top bar, so the centre repeats neither
@@ -495,12 +495,12 @@ public sealed class ComponentRender_Tests
     public void PokerTable_WithFinishedHand_ListsEachSeatsResult()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, CreateFinishedHandGameData()));
 
         // Assert - the outcome is on the table itself, not in an overlay over the page
@@ -519,10 +519,10 @@ public sealed class ComponentRender_Tests
     public void PokerTable_HoveringAResultChip_LightsOnlyThatHandsCombination()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, CreatePairedBoardShowdownGameData()));
         component.FindAll(".playing-card[data-highlighted]").Should().BeEmpty();
 
@@ -546,10 +546,10 @@ public sealed class ComponentRender_Tests
     public void PokerTable_ClickingAResultChip_PinsTheHighlightUntilClickedAgain()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, CreatePairedBoardShowdownGameData()));
 
         // Act - hover, click, leave: the click keeps the cards lit after the pointer has gone
@@ -570,7 +570,7 @@ public sealed class ComponentRender_Tests
     }
 
     /// <summary>The lit cards, as card strings, read back from the suit and rank the card renders.</summary>
-    private static List<string> HighlightedCards(IRenderedFragment component)
+    private static List<string> HighlightedCards(IRenderedComponent<IComponent> component)
         => component.FindAll(".playing-card[data-highlighted]")
             .Select(card => card.QuerySelector(".card-rank")!.TextContent.ToLowerInvariant()
                 + card.GetAttribute("data-suit")![0])
@@ -601,12 +601,12 @@ public sealed class ComponentRender_Tests
     public void PokerTable_WithSixSeats_RendersRowsClockwise()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, BuildGameData(BuildHandDataWithSeats(6))));
 
         // Assert
@@ -622,12 +622,12 @@ public sealed class ComponentRender_Tests
     public void PokerTable_WithFiveSeats_SplitsRowsUnevenly()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<PokerTable>(parameters => parameters
+        var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, BuildGameData(BuildHandDataWithSeats(5))));
 
         // Assert
@@ -680,12 +680,12 @@ public sealed class ComponentRender_Tests
     public void StreetIndicator_MarksTheCurrentStreetAsTheCurrentStep(Street street, int expectedIndex)
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<StreetIndicator>(parameters => parameters
+        var component = ctx.Render<StreetIndicator>(parameters => parameters
             .Add(p => p.Street, street));
 
         // Assert - AntDesign Steps, one step per street, and only the current one in progress
@@ -701,12 +701,12 @@ public sealed class ComponentRender_Tests
     public void StreetIndicator_WithFinishedHand_MarksEveryStepDone()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<StreetIndicator>(parameters => parameters
+        var component = ctx.Render<StreetIndicator>(parameters => parameters
             .Add(p => p.Street, Street.Finished));
 
         // Assert
@@ -718,12 +718,12 @@ public sealed class ComponentRender_Tests
     public void ActionPanel_WithoutHandData_Renders_Empty()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+        var component = ctx.Render<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, null));
 
         // Assert
@@ -735,7 +735,7 @@ public sealed class ComponentRender_Tests
     public async Task ActionPanel_WithHandData_Renders_Actions()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
@@ -744,7 +744,7 @@ public sealed class ComponentRender_Tests
         var actor = hand.Seats.Single(s => s.SeatNo == hand.NextPlayerSeatNo);
 
         // Act
-        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+        var component = ctx.Render<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, hand)
             .Add(p => p.RaiseStep, 50m));
 
@@ -767,14 +767,14 @@ public sealed class ComponentRender_Tests
     public async Task ActionPanel_RaiseSlider_CarriesMinAndAllInWithThePotPresetsBeside()
     {
         // Arrange - heads-up at 50/100 with 1000 behind: the button acts first with 950 left and 50 in
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
 
         // Act
-        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+        var component = ctx.Render<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, session.CurrentHand!)
             .Add(p => p.RaiseStep, 50m));
 
@@ -799,7 +799,7 @@ public sealed class ComponentRender_Tests
     public async Task ActionPanel_RaiseStepsMarksAndPresets_SetTheAmountWithoutSubmitting()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
@@ -808,7 +808,7 @@ public sealed class ComponentRender_Tests
         var raise = hand.Evaluations.Single(e => e.PlayerActionType == PlayerActionType.Raise);
         var callsBefore = session.Journal.Entries.Count;
 
-        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+        var component = ctx.Render<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, hand)
             .Add(p => p.RaiseStep, 50m));
 
@@ -858,14 +858,14 @@ public sealed class ComponentRender_Tests
     public async Task ActionPanel_IllegalAmount_DisablesRaiseUntilTheFixButtonCorrectsIt()
     {
         // Arrange - the window is 150..1000 in steps of 50
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
         var callsBefore = session.Journal.Entries.Count;
 
-        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+        var component = ctx.Render<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, session.CurrentHand!)
             .Add(p => p.RaiseStep, 50m));
 
@@ -905,13 +905,13 @@ public sealed class ComponentRender_Tests
     public void ActionPanel_WithFinishedHand_OffersNextHandOnly()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         var nextHandRaised = false;
 
-        var component = ctx.RenderComponent<ActionPanel>(parameters => parameters
+        var component = ctx.Render<ActionPanel>(parameters => parameters
             .Add(p => p.HandData, CreateFinishedHandGameData().HandData)
             .Add(p => p.OnNextHand, () => nextHandRaised = true));
 
@@ -934,14 +934,14 @@ public sealed class ComponentRender_Tests
     public void PlayingCard_Renders_WithCard()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         var card = Card.Parse("ah"); // ace of hearts
 
         // Act
-        var component = ctx.RenderComponent<PlayingCard>(parameters => parameters
+        var component = ctx.Render<PlayingCard>(parameters => parameters
             .Add(p => p.Card, card));
 
         // Assert
@@ -952,7 +952,7 @@ public sealed class ComponentRender_Tests
     public void Seat_Renders_WithSeatData()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
@@ -967,7 +967,7 @@ public sealed class ComponentRender_Tests
         );
 
         // Act
-        var component = ctx.RenderComponent<Seat>(parameters => parameters
+        var component = ctx.Render<Seat>(parameters => parameters
             .Add(p => p.SeatData, seatData)
             .Add(p => p.IsDealer, true)
             .Add(p => p.IsSmallBlind, false)
@@ -984,14 +984,14 @@ public sealed class ComponentRender_Tests
     public void Seat_BadgesShareTheStackRow()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         var seatData = new SeatData(SeatNo: 1, Name: "Player 1", Stack: 998m, StartHandStack: 1000m);
 
         // Act
-        var component = ctx.RenderComponent<Seat>(parameters => parameters
+        var component = ctx.Render<Seat>(parameters => parameters
             .Add(p => p.SeatData, seatData)
             .Add(p => p.IsDealer, true)
             .Add(p => p.IsBigBlind, true));
@@ -1009,14 +1009,14 @@ public sealed class ComponentRender_Tests
     public void Seat_WithoutBadges_RendersNoEmptyBadgeRow()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         var seatData = new SeatData(SeatNo: 6, Name: "Player 6", Stack: 100m, StartHandStack: 100m);
 
         // Act
-        var component = ctx.RenderComponent<Seat>(parameters => parameters
+        var component = ctx.Render<Seat>(parameters => parameters
             .Add(p => p.SeatData, seatData));
 
         // Assert - the name is the seat's first line, with nothing reserved above it
@@ -1029,7 +1029,7 @@ public sealed class ComponentRender_Tests
     public void Seat_LastAction_IsOneRowOfTypeAndSize()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
@@ -1041,7 +1041,7 @@ public sealed class ComponentRender_Tests
             LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 1m, 1));
 
         // Act
-        var component = ctx.RenderComponent<Seat>(parameters => parameters
+        var component = ctx.Render<Seat>(parameters => parameters
             .Add(p => p.SeatData, seatData)
             .Add(p => p.IsSmallBlind, true));
 
@@ -1055,7 +1055,7 @@ public sealed class ComponentRender_Tests
     public void Seat_FractionalAmounts_ShowOnlyTheDigitsTheyNeed()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
@@ -1067,7 +1067,7 @@ public sealed class ComponentRender_Tests
             LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 0.25m, 1));
 
         // Act
-        var component = ctx.RenderComponent<Seat>(parameters => parameters
+        var component = ctx.Render<Seat>(parameters => parameters
             .Add(p => p.SeatData, seatData));
 
         // Assert - decimals appear once an amount has them, and no more of them than it needs
@@ -1137,14 +1137,14 @@ public sealed class ComponentRender_Tests
     public void DatabaseInspector_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         try
         {
             // Act - DatabaseInspector queries the SQLite database during initialization
-            var component = ctx.RenderComponent<DatabaseInspector>();
+            var component = ctx.Render<DatabaseInspector>();
 
             // Assert - Component should render without exception
             component.Markup.Should().Contain("database-inspector");
@@ -1160,7 +1160,7 @@ public sealed class ComponentRender_Tests
     public void DatabaseInspector_TableDropdown_RendersTableNameOptions()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
@@ -1169,7 +1169,7 @@ public sealed class ComponentRender_Tests
         CreateAndInitializeEngine(serviceProvider);
 
         // Act - DatabaseInspector will load table names in OnInitializedAsync
-        var component = ctx.RenderComponent<DatabaseInspector>();
+        var component = ctx.Render<DatabaseInspector>();
 
         // Assert - The rendered markup should contain real table names as aria-label attributes or option content.
         // The engine creates multiple tables. Check for at least the primary ones.
@@ -1187,7 +1187,7 @@ public sealed class ComponentRender_Tests
     public async Task EngineCalls_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
@@ -1198,7 +1198,7 @@ public sealed class ComponentRender_Tests
         ctx.Services.AddScoped(_ => session);
 
         // Act - EngineCalls is injected with the session
-        var component = ctx.RenderComponent<EngineCalls>();
+        var component = ctx.Render<EngineCalls>();
 
         // Assert
         component.Markup.Should().Contain("engine-calls");
@@ -1208,14 +1208,14 @@ public sealed class ComponentRender_Tests
     public async Task EngineCalls_ResultPanel_RendersTheDumpOnlyOnceExpanded()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
         ctx.Services.AddScoped(_ => session);
 
         // Act
-        var component = ctx.RenderComponent<EngineCalls>();
+        var component = ctx.Render<EngineCalls>();
 
         // Assert - one collapsed result panel per call, and no tree behind any of them yet
         component.FindAll(".engine-call-entry .ant-collapse").Should().HaveCount(session.Journal.Count);
@@ -1246,14 +1246,14 @@ public sealed class ComponentRender_Tests
     public async Task EngineCalls_AvailableActionsPanel_DumpsTheEvaluations()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
         ctx.Services.AddScoped(_ => session);
 
         // Act
-        var component = ctx.RenderComponent<EngineCalls>();
+        var component = ctx.Render<EngineCalls>();
         var startHand = component.FindAll(".engine-call-entry")[1];
 
         // Assert - result, then availableActions, both closed
@@ -1277,14 +1277,14 @@ public sealed class ComponentRender_Tests
     public void ErrorCardContent_Renders_WithMessage()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         var testMessage = "Test error message";
 
         // Act
-        var component = ctx.RenderComponent<ErrorCardContent>(parameters => parameters
+        var component = ctx.Render<ErrorCardContent>(parameters => parameters
             .Add(p => p.ExceptionMessage, testMessage)
             .Add(p => p.OnRetryClick, EventCallback.Factory.Create(this, async () => await Task.CompletedTask)));
 
@@ -1297,12 +1297,12 @@ public sealed class ComponentRender_Tests
     public void HandHistoryImport_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<HandHistoryImport>(parameters => parameters
+        var component = ctx.Render<HandHistoryImport>(parameters => parameters
             .Add(p => p.OnHandSelected, EventCallback.Factory.Create<HandHistoryImport.HandHistoryItem>(this, async (item) => await Task.CompletedTask)));
 
         // Assert
@@ -1314,14 +1314,14 @@ public sealed class ComponentRender_Tests
     public async Task HandHistoryExport_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         var (session, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
 
         // Act
-        var component = ctx.RenderComponent<HandHistoryExport>();
+        var component = ctx.Render<HandHistoryExport>();
 
         // Assert
         component.Markup.Should().Contain("hand-history-export");
@@ -1332,12 +1332,12 @@ public sealed class ComponentRender_Tests
     public void PhhFormatInfo_Renders_DescriptionAndSpecLink()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterCommonServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<PhhFormatInfo>();
+        var component = ctx.Render<PhhFormatInfo>();
 
         // Assert
         component.Find(".phh-format-card").TextContent.Should()
@@ -1355,12 +1355,12 @@ public sealed class ComponentRender_Tests
     public void ReplayControls_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<ReplayControls>(parameters => parameters
+        var component = ctx.Render<ReplayControls>(parameters => parameters
             .Add(p => p.SelectedHand, null));
 
         // Assert
@@ -1369,10 +1369,10 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_OnFirstRender_DealsTheDefaultGame()
+    public async Task Home_OnFirstRender_DealsTheDefaultGame()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
@@ -1380,7 +1380,7 @@ public sealed class ComponentRender_Tests
         var session = ctx.Services.GetRequiredService<DemoGameSession>();
 
         // Act - no click, no form: opening the page is what starts the game
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert
         component.Markup.Should().Contain("home-container");
@@ -1391,17 +1391,17 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_MainRegion_HoldsOnlyThePokerTable()
+    public async Task Home_MainRegion_HoldsOnlyThePokerTable()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert - the street, the summary, the outcome and the actions are all drawn on the table
         var mainRegion = component.Find(".main-region");
@@ -1414,17 +1414,17 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_RendersNoGameSetupScreen()
+    public async Task Home_RendersNoGameSetupScreen()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert - the settings form is only ever reached through the New Game modal, whose button
         // is in the page header (MainLayout)
@@ -1432,17 +1432,17 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_KeepsTheCompanionPanelsWhileAGameRuns()
+    public async Task Home_KeepsTheCompanionPanelsWhileAGameRuns()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert - import stays reachable now that a game is always running
         component.Markup.Should().Contain("Database Inspector");
@@ -1452,17 +1452,17 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_Tabs_GameTableIsActiveOnOpen()
+    public async Task Home_Tabs_GameTableIsActiveOnOpen()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert
         var tabs = component.FindAll(".demo-tab-bar .demo-tab");
@@ -1478,15 +1478,15 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_Tabs_ClickingATabShowsOnlyItsPane()
+    public async Task Home_Tabs_ClickingATabShowsOnlyItsPane()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // The page deals its default hand as it loads; a click that lands while that boot render is
         // still in flight is re-rendered only after it, so wait for the dealt hand first.
@@ -1512,19 +1512,19 @@ public sealed class ComponentRender_Tests
             .GetAttribute("data-tab").Should().Be("hand-history"));
         var active = component.Find(".demo-tab-pane-active");
         active.TextContent.Should().Contain("Hand History Import").And.Contain("Hand History Export");
-        active.Children.Last().ClassList.Should().Contain("phh-format-card", "the format note closes the tab, after Export");
+        active.Children[active.Children.Length - 1].ClassList.Should().Contain("phh-format-card", "the format note closes the tab, after Export");
     }
 
     [TestMethod]
     public async Task Home_Tabs_ApplyingANewGameBringsTheGameTableToFront()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
         component.WaitForElement(".action-bar .action-btn");
         component.Find(".demo-tab[data-tab=database]").Click();
 
@@ -1542,17 +1542,17 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_RendersNoStorageBanner()
+    public async Task Home_RendersNoStorageBanner()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
         // Act
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert - the in-memory warning is an AntDesign notification now, which takes no height
         // from the table; the browser gate sees it open
@@ -1563,14 +1563,14 @@ public sealed class ComponentRender_Tests
     public async Task Diagnostics_Renders_WithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         var (_, _) = await CreateGameWithHandAsync(ctx.Services.BuildServiceProvider());
 
         // Act
-        var component = ctx.RenderComponent<Pages.Diagnostics>();
+        var component = ctx.Render<Pages.Diagnostics>();
 
         // Assert
         component.Markup.Should().Contain("Diagnostics");
@@ -1581,12 +1581,12 @@ public sealed class ComponentRender_Tests
     public void MainLayout_RendersWithoutException()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
         // Act - Render MainLayout which contains an ErrorBoundary around @Body
-        var component = ctx.RenderComponent<MainLayout>();
+        var component = ctx.Render<MainLayout>();
 
         // Assert - Header should render (outside the boundary)
         component.Markup.Should().Contain("OpenHoldemEngine Demo");
@@ -1599,11 +1599,11 @@ public sealed class ComponentRender_Tests
     public async Task MainLayout_RendersTheGameSummaryInTheHeader()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
-        var component = ctx.RenderComponent<MainLayout>();
+        var component = ctx.Render<MainLayout>();
         component.FindAll(".layout-header .game-summary").Should().HaveCount(1);
 
         // Act - a game starts after the layout rendered; the summary follows the session
@@ -1620,7 +1620,7 @@ public sealed class ComponentRender_Tests
     public async Task MainLayout_NewGameButton_RequestsTheNewGameModal()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
 
@@ -1631,7 +1631,7 @@ public sealed class ComponentRender_Tests
             return Task.CompletedTask;
         };
 
-        var component = ctx.RenderComponent<MainLayout>();
+        var component = ctx.Render<MainLayout>();
 
         // Act
         await component.Find(".layout-header .new-game-btn").ClickAsync(new MouseEventArgs());
@@ -1641,17 +1641,17 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void Home_RendersWithWalkthroughErrorBoundary()
+    public async Task Home_RendersWithWalkthroughErrorBoundary()
     {
         // Arrange
-        using var ctx = new Bunit.TestContext();
+        await using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         SetupBrowserGeometryInterop(ctx);
         CreateAndInitializeEngine(ctx.Services);
 
         // Act - Render Home page, which should render without throwing
-        var component = ctx.RenderComponent<Pages.Home>();
+        var component = ctx.Render<Pages.Home>();
 
         // Assert - The home container should render
         component.Markup.Should().Contain("home-container");
