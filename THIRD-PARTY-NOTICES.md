@@ -53,6 +53,11 @@ dependency is `System.Diagnostics.DiagnosticSource` 10.0.0 (MIT), which in a hos
 this package replaces the 10.0.0 the library gets through EF Core. It does not reference the
 OpenTelemetry SDK or an exporter: the host brings those.
 
+**The ASP.NET Core package, `OpenHoldemEngine.AspNetCore`**, references the library and the
+`Microsoft.AspNetCore.App` shared framework, and no NuGet package at all
+([ADR-0004](docs/adr/0004-aspnetcore-integration-package.md)). The shared framework comes with the
+host's .NET runtime (MIT), and the package redistributes none of it.
+
 **The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:
 
@@ -140,8 +145,8 @@ citation.
 ## Package inventory
 
 Every NuGet package a project references directly, listed under the first project that
-references it. The library comes first, then what the instrumentation package adds, then what the
-SQLite package adds, then what the demo adds, then what the test projects add.
+references it. The library comes first, then what the instrumentation package adds, then the ASP.NET Core
+package (which adds none), then what the SQLite package adds, then what the demo adds, then what the test projects add.
 The inventory leaves out transitive packages. The ones the demo ships are named in
 [What ships](#what-ships-and-under-which-license).
 
@@ -159,6 +164,11 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Package | Version | License |
 | --- | --- | --- |
 | OpenTelemetry.Api | 1.19.1 | Apache-2.0 |
+
+### OpenHoldemEngine.AspNetCore
+
+| Package | Version | License |
+| --- | --- | --- |
 
 ### OpenHoldemEngine.Sqlite
 
@@ -203,6 +213,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | bunit | 2.11.3 | MIT |
 | FluentAssertions | 6.1.0 | Apache-2.0 |
 | FluentAssertions.Json | 6.1.0 | Apache-2.0 |
+| Microsoft.AspNetCore.Mvc.Testing | 10.0.12 | MIT |
 | Microsoft.Extensions.Diagnostics | 10.0.12 | MIT |
 | Microsoft.Extensions.Diagnostics.Testing | 10.10.0 | MIT |
 | Microsoft.NET.Test.Sdk | 17.11.1 | MIT |

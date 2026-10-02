@@ -4,6 +4,7 @@
     "projects": [
       "src\\OpenHoldemEngine\\OpenHoldemEngine.csproj",
       "src\\OpenHoldemEngine.OpenTelemetry\\OpenHoldemEngine.OpenTelemetry.csproj",
+      "src\\OpenHoldemEngine.AspNetCore\\OpenHoldemEngine.AspNetCore.csproj",
       "src\\OpenHoldemEngine.Sqlite\\OpenHoldemEngine.Sqlite.csproj",
       "src\\OpenHoldemEngine.InMemory\\OpenHoldemEngine.InMemory.csproj",
       "src\\OpenHoldemEngine.PostgreSql\\OpenHoldemEngine.PostgreSql.csproj",

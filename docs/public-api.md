@@ -72,6 +72,19 @@ dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:
 dotnet pack src/OpenHoldemEngine.PostgreSql -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
+## The ASP.NET Core package
+
+`OpenHoldemEngine.AspNetCore` has its own baseline,
+[`eng/api-baseline/OpenHoldemEngine.AspNetCore.1.0.0-baseline.nupkg`](../eng/api-baseline/),
+enforced the same way by `dotnet pack src/OpenHoldemEngine.AspNetCore -c Release`. It has no public
+type yet: each later issue of the ASP.NET Core milestone adds its own and re-packs the baseline in
+the same pull request. The baseline is packed without validation, because there is nothing to compare
+the first one with:
+
+```
+dotnet pack src/OpenHoldemEngine.AspNetCore -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+```
+
 The inventory below covers the core package only.
 
 ## Inventory
