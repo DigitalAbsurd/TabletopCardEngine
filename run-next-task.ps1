@@ -599,6 +599,14 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
         Fail "$($agentSettings.Command) exited with code $agentExitCode while working on issue #$issueNumber. Not continuing to further tasks."
     }
 
+    # The agent works in this checkout, so anything it leaves behind (a publish folder, a
+    # scratch file) would otherwise surface only as the startup check failing on the next run.
+    $dirty = git status --porcelain
+    if ($dirty) {
+        $shown = ($dirty | Select-Object -First 10) -join [Environment]::NewLine
+        Fail "Task on issue #$issueNumber left the working tree dirty:$([Environment]::NewLine)$shown$([Environment]::NewLine)Not continuing to further tasks."
+    }
+
     $issueAfter = (gh issue view $issueNumber -R $Repo --json state) | ConvertFrom-Json
     $stillOpenPr = Get-InFlightAutomatedPrs
 

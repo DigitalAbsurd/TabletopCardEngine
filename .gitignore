@@ -180,6 +180,8 @@ DocProject/Help/html
 
 # Click-Once directory
 publish/
+# Output of `dotnet publish -o _publish`, as in deploy-demo.yml and demo check 18 of docs/task-run.md
+_publish/
 
 # Publish Web Output
 *.[Pp]ublish.xml
