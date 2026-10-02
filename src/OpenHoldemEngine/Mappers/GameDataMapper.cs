@@ -75,43 +75,8 @@ internal static class GameDataMapper
                 : null);
     }
 
-    /// <remarks>
-    /// <see cref="PlayerActionEvaluationData.MinValue"/> and <see cref="PlayerActionEvaluationData.MaxValue"/>
-    /// on a <see cref="PlayerActionType.Raise"/> are both "raise to" totals, the same absolute basis
-    /// as <see cref="PlayerActionEvaluationData.MinValue"/>/<see cref="PlayerActionEvaluationData.MaxValue"/>
-    /// on a <see cref="PlayerActionType.Call"/> are increments — see CLAUDE.md.
-    /// </remarks>
+    // BettingRules.Evaluate is the one answer to "what may this seat do": the same list validates
+    // a Play request, so the caller is never offered an action the engine would then reject.
     private static EquatableList<PlayerActionEvaluationData> BuildEvaluations(Game game, byte nextSeatNo)
-    {
-        var table = HandTableFactory.Build(game);
-        var window = BettingRules.LegalActions(table, nextSeatNo);
-        var seat = table[nextSeatNo];
-
-        var evaluations = new List<PlayerActionEvaluationData> { new(PlayerActionType.Fold) };
-
-        var callValue = window.CallTo - seat.StreetWager;
-        evaluations.Add(MoreThanZero(callValue)
-            ? new PlayerActionEvaluationData(PlayerActionType.Call, callValue, callValue)
-            : new PlayerActionEvaluationData(PlayerActionType.Check));
-
-        if (window.MinRaiseTo is { } minRaiseTo && window.MaxRaiseTo is { } maxRaiseTo)
-        {
-            var minRaiseIncrement = minRaiseTo - seat.StreetWager;
-            if (MoreThanZero(minRaiseIncrement) && MoreThanZero(maxRaiseTo) && maxRaiseTo >= minRaiseTo)
-            {
-                evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, minRaiseTo, maxRaiseTo));
-                return new EquatableList<PlayerActionEvaluationData>(evaluations);
-            }
-        }
-
-        // All-in is always allowed, even when the raise window above is degenerate. The bound is a
-        // "raise to" total like every other raise bound, so it has to include what the seat already
-        // has on the street — otherwise a seat that has posted a blind would be handed a size the
-        // rules read as an under-raise and silently turn into a fold.
-        var allInRaiseTo = seat.Stack + seat.StreetWager;
-        evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInRaiseTo, allInRaiseTo));
-        return new EquatableList<PlayerActionEvaluationData>(evaluations);
-    }
-
-    private static bool MoreThanZero(decimal amount) => amount > 0.001M;
+        => new(BettingRules.Evaluate(HandTableFactory.Build(game), nextSeatNo));
 }

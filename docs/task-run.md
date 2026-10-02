@@ -348,11 +348,11 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Twelve validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Thirteen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `Conflict = 11` of fact 24, and `GameNotFound = 12` of fact 2.
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, and `IllegalAction = 13` of fact 29.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -463,6 +463,10 @@ renumber.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
     <br>Each `HoldemEngine` checks `__OheSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
 28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`ohe_<guid>`), and only under `OHE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
+29. **An action is legal only when `HandData.Evaluations` offers it, and a Raise only inside its window.**
+    Anything else is rejected with `IllegalAction = 13` and nothing is saved. The engine never corrects an
+    action into a fold; `Evaluations` and the validation share `BettingRules.Evaluate`. `Bet` and `AllIn`
+    are not validated yet (#260, #261).
 
 ## A known, deliberate duplication
 

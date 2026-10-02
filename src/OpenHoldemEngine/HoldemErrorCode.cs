@@ -42,4 +42,10 @@ public enum HoldemErrorCode
 
     /// <summary>No game with the requested id exists. Every action except <c>CreateGame</c> needs one.</summary>
     GameNotFound = 12,
+
+    /// <summary>
+    /// The action is not one the seat to act may take now, or its size is outside the window offered.
+    /// <see cref="Dto.HandData.Evaluations"/> lists what is legal; nothing was applied.
+    /// </summary>
+    IllegalAction = 13,
 }

@@ -1,4 +1,6 @@
-﻿namespace OpenHoldemEngine.Engine;
+﻿using OpenHoldemEngine.Dto;
+
+namespace OpenHoldemEngine.Engine;
 
 /// <summary>What a seat may legally do right now. A null raise bound means raising is not possible.</summary>
 internal readonly record struct ActionEvaluations(decimal CallTo, decimal? MinRaiseTo, decimal? MaxRaiseTo);
@@ -79,6 +81,50 @@ internal static class BettingRules
             ? new ActionEvaluations(AgreeAmount(table), null, null)
             : new ActionEvaluations(AgreeAmount(table), minRaise, maxRaise);
     }
+
+    /// <summary>
+    /// The actions a seat may take now, exactly as <see cref="HandData.Evaluations"/> offers them, and
+    /// the list a <c>Play</c> request is validated against: one source of truth, so a caller choosing
+    /// from what it was offered is never rejected, and anything else is.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="PlayerActionEvaluationData.MinValue"/> and <see cref="PlayerActionEvaluationData.MaxValue"/>
+    /// on a <see cref="PlayerActionType.Raise"/> are both "raise to" totals, the same absolute basis
+    /// as <see cref="HoldemActionPlay.Size"/>, while on a <see cref="PlayerActionType.Call"/> they are
+    /// increments — see AGENTS.md.
+    /// </remarks>
+    internal static IReadOnlyList<PlayerActionEvaluationData> Evaluate(HandTable table, byte seatNo)
+    {
+        var window = LegalActions(table, seatNo);
+        var seat = table[seatNo];
+
+        var evaluations = new List<PlayerActionEvaluationData> { new(PlayerActionType.Fold) };
+
+        var callValue = window.CallTo - seat.StreetWager;
+        evaluations.Add(MoreThanZero(callValue)
+            ? new PlayerActionEvaluationData(PlayerActionType.Call, callValue, callValue)
+            : new PlayerActionEvaluationData(PlayerActionType.Check));
+
+        if (window.MinRaiseTo is { } minRaiseTo && window.MaxRaiseTo is { } maxRaiseTo)
+        {
+            var minRaiseIncrement = minRaiseTo - seat.StreetWager;
+            if (MoreThanZero(minRaiseIncrement) && MoreThanZero(maxRaiseTo) && maxRaiseTo >= minRaiseTo)
+            {
+                evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, minRaiseTo, maxRaiseTo));
+                return evaluations;
+            }
+        }
+
+        // All-in is always allowed, even when the raise window above is degenerate. The bound is a
+        // "raise to" total like every other raise bound, so it has to include what the seat already
+        // has on the street — otherwise a seat that has posted a blind would be handed a size the
+        // rules read as an under-raise.
+        var allInRaiseTo = seat.Stack + seat.StreetWager;
+        evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInRaiseTo, allInRaiseTo));
+        return evaluations;
+    }
+
+    private static bool MoreThanZero(decimal amount) => amount > 0.001M;
 
     /// <summary>
     /// The biggest raise-kind wager this street, scanning seats ascending and, within a seat,
