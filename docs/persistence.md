@@ -45,10 +45,14 @@ await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
 
 `GetSchemaStatusAsync` reports one of four `HoldemSchemaState` values:
 
-- `Ready` — the schema version matches the engine version, and the engine may run.
-- `MigrationRequired` — the schema is older than the engine or does not exist, and must be upgraded before the engine runs.
-- `DatabaseIsNewer` — the schema is newer than the engine, and cannot be downgraded. A newer engine is required.
-- `UnsupportedProvider` — the database provider is not supported by `IHoldemSchemaManager`.
+- `UpToDate` (1) — every migration the engine knows of has been applied, and the engine may run.
+- `MigrationRequired` (2) — the schema is older than the engine or does not exist, and must be upgraded before the engine runs.
+- `NewerThanEngine` (3) — the schema was migrated by a newer engine, and cannot be downgraded. A newer engine is required.
+- `NotVersioned` (4) — the provider keeps no schema history (InMemory), so there is no version to compare; the engine may run.
+
+An unsupported provider is not a state: `GetSchemaStatusAsync` throws
+`HoldemSchemaException(UnsupportedProvider)` for it. A database that cannot be reached is not a state
+either: the provider's own exception surfaces unwrapped.
 
 ### Runtime schema checks
 
