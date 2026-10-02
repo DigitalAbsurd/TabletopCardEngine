@@ -214,6 +214,34 @@ function Import-AgentSettings([string]$AgentName, [string]$Root) {
     }
 }
 
+function Save-UnfinishedWork([int]$IssueNumber, [string]$BranchPrefix) {
+    $dirty = git status --porcelain
+    if (-not $dirty) {
+        return
+    }
+
+    # Determine the target branch
+    $currentBranch = git branch --show-current
+    if ($currentBranch -and $currentBranch -ne 'main') {
+        # Already on a task branch, use it
+        $targetBranch = $currentBranch
+    } else {
+        # On main or detached, create a new branch
+        $targetBranch = "$BranchPrefix$IssueNumber-unfinished"
+        git checkout -b $targetBranch --quiet
+    }
+
+    # Commit everything
+    git add -A
+    $commitMessage = "WIP: unfinished task #$IssueNumber"
+    git commit -m $commitMessage --quiet
+
+    # Get the short hash of the commit
+    $shortHash = git rev-parse --short HEAD
+
+    Write-Host "Unfinished work on issue #$IssueNumber saved to branch '$targetBranch' ($shortHash)"
+}
+
 function Sync-Main {
     git fetch origin --quiet
     git checkout main --quiet
@@ -593,6 +621,7 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
         Remove-Item -LiteralPath $taskFile -ErrorAction SilentlyContinue
     }
 
+    Save-UnfinishedWork -IssueNumber $issueNumber -BranchPrefix $branchPrefix
     Sync-Main
 
     if ($agentExitCode -ne 0) {
