@@ -42,7 +42,11 @@ internal static class BettingRules
             _ => false
         };
 
-    /// <summary>An action the rules cannot honor is silently turned into a fold, exactly as NPokerEngine does.</summary>
+    /// <summary>
+    /// Caps an all-in at the stack. An action the rules cannot honor is a defect in the caller, not
+    /// something to correct: <c>PlayActionHandler</c> validates every action first, so nothing is ever
+    /// turned into a fold.
+    /// </summary>
     internal static (PlayerActionType Action, decimal Amount) CorrectAction(
         HandTable table, byte seatNo, PlayerActionType action, decimal amount)
     {
@@ -53,7 +57,8 @@ internal static class BettingRules
         }
         if (IsIllegal(table, seatNo, action, amount))
         {
-            return (PlayerActionType.Fold, 0M);
+            throw new InvalidOperationException(
+                "PlayActionHandler validates every action before it reaches HandRunner, so an illegal one here is a defect.");
         }
         return (action, amount);
     }
@@ -138,7 +143,10 @@ internal static class BettingRules
         {
             foreach (var bet in seat.StreetBets)
             {
-                if (Array.IndexOf(_raiseKinds, bet.Action) < 0)
+                // An all-in call is recorded as AllIn with AddAmount 0; only an all-in raise counts.
+                var isRaiseKind = Array.IndexOf(_raiseKinds, bet.Action) >= 0
+                    || (bet.Action == HandActionType.AllIn && bet.AddAmount > 0);
+                if (!isRaiseKind)
                 {
                     continue;
                 }

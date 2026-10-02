@@ -37,7 +37,8 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
             return new HoldemError(HoldemErrorCode.IllegalAction, PackResource.HoldemValidation_IllegalAction);
         }
 
-        var outcome = HandRunner.ApplyAction(table, holdemAction.ActionType, CalculateBetAmount());
+        var (runnerAction, runnerAmount) = ToRunnerAction();
+        var outcome = HandRunner.ApplyAction(table, runnerAction, runnerAmount);
 
         game.AddAction(
             seatNo: outcome.SeatNo,
@@ -98,7 +99,7 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
 
         // Validated against the list the caller was offered, never against the window's own
         // arithmetic: that list has its special cases (Check versus Call, the synthetic all-in raise).
-        // AllIn is not validated yet; until it is, BettingRules.CorrectAction still sees it.
+        // AllIn is always legal for the seat to act, so it is never rejected here.
         // A Bet is the opening wager of a street: legal only while nothing is wagered, and then only
         // inside the window the Raise is offered with, which is therefore the bet window.
         bool IsOffered(IReadOnlyList<PlayerActionEvaluationData> offered)
@@ -121,8 +122,19 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
                 || (entry.MinValue <= holdemAction.Size && holdemAction.Size <= entry.MaxValue);
         }
 
-        decimal CalculateBetAmount()
-            => holdemAction.ActionType switch
+        // The one place a request becomes something HandRunner understands, which speaks only Fold,
+        // Call and Raise. AllIn commits the whole stack: a call (possibly for less) when that does not
+        // go past the call amount, otherwise a raise to the full stack, full or short.
+        (PlayerActionType Action, decimal Amount) ToRunnerAction()
+        {
+            if (holdemAction.ActionType is PlayerActionType.AllIn)
+            {
+                var allInTo = seat.Stack + seat.StreetWager;
+                return allInTo <= window.CallTo
+                    ? (PlayerActionType.Call, window.CallTo)
+                    : (PlayerActionType.Raise, allInTo);
+            }
+            return (holdemAction.ActionType, holdemAction.ActionType switch
             {
                 PlayerActionType.Check => seat.StreetWager,
                 PlayerActionType.Call => window.CallTo,
@@ -130,7 +142,8 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
                 PlayerActionType.Raise => holdemAction.Size,
                 PlayerActionType.Bet => holdemAction.Size,
                 _ => throw new UnreachableException()
-            };
+            });
+        }
 
         // The one place a request becomes a ledger entry: every PlayerActionType is also a HandActionType.
         static HandActionType ToHandActionType(PlayerActionType actionType)

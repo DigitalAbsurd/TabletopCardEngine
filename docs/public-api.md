@@ -276,7 +276,7 @@ What a caller may ask a seat to do.
 - `Call = 5` — The seat matches the standing wager.
 - `Raise = 6` — The seat raises the street wager.
 - `Bet = 8` — An opening wager on a street where nothing has been bet.
-- `AllIn = 9` — The seat has committed its whole stack.
+- `AllIn = 9` — Puts the seat's whole stack in: a call when the stack does not exceed the amount to call, otherwise a raise to the full stack.
 
 #### `ServiceCollectionExtensions` (static class)
 

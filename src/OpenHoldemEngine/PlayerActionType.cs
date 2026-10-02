@@ -23,6 +23,6 @@ public enum PlayerActionType : byte
     /// <summary>An opening wager on a street where nothing has been bet.</summary>
     Bet = 8,
 
-    /// <summary>The seat has committed its whole stack.</summary>
+    /// <summary>Puts the seat's whole stack in: a call when the stack does not exceed the amount to call, otherwise a raise to the full stack.</summary>
     AllIn = 9
 }
