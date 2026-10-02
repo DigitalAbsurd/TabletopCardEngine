@@ -198,9 +198,10 @@ Machine-readable reason an action was rejected.
 - `InvalidGameOptions = 6` — A game option is out of range: seat count, small blind or first dealer seat.
 - `InvalidSeat = 7` — A seat to join is out of range, repeated, already occupied, or has a non-positive buy-in.
 - `GameAlreadyStarted = 8` — The game already has a hand dealt, or was already started, so it cannot be started again.
-- `GameNotStarted = 9` — No hand has been dealt yet, or the game does not exist, so the action needs `StartGame` first.
+- `GameNotStarted = 9` — No hand has been dealt yet, so the action needs `StartGame` first.
 - `GameFinished = 10` — The game was finished, so only reading it back is allowed.
 - `Conflict = 11` — The game was changed by another action since the caller read it, so nothing was applied.
+- `GameNotFound = 12` — No game with the requested id exists.
 
 #### `HoldemResult<T>` (sealed class)
 

@@ -114,6 +114,13 @@ public sealed class HoldemEngine
         var before = new HandSnapshot(handBefore.No, game.IsCurrentHandEnded(), handBefore.GetStreet(), handBefore.GetDeckCards().Count);
 
         var existed = game.Id != default;
+        if (!existed && holdemAction is not HoldemActionCreateGame)
+        {
+            _logger.ActionRejected(actionType, holdemAction.GameId, HoldemErrorCode.GameNotFound);
+            SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.GameNotFound, actionType, start);
+            return HoldemResult<GameData>.Fail(new HoldemError(HoldemErrorCode.GameNotFound, PackResource.HoldemValidation_GameNotFound));
+        }
+
         if (existed && holdemAction is not HoldemActionCreateGame && holdemAction.ExpectedVersion is { } expected && expected != game.Version)
         {
             _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ExpectedVersion);

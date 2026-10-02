@@ -133,6 +133,15 @@ namespace OpenHoldemEngine.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The game does not exist.
+        /// </summary>
+        internal static string HoldemValidation_GameNotFound {
+            get {
+                return ResourceManager.GetString("HoldemValidation_GameNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The game has not been started.
         /// </summary>
         internal static string HoldemValidation_GameNotStarted {

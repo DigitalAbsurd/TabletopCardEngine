@@ -141,6 +141,9 @@
   <data name="HoldemValidation_GameAlreadyStarted" xml:space="preserve">
     <value>The game has already been started</value>
   </data>
+  <data name="HoldemValidation_GameNotFound" xml:space="preserve">
+    <value>The game does not exist</value>
+  </data>
   <data name="HoldemValidation_GameNotStarted" xml:space="preserve">
     <value>The game has not been started</value>
   </data>
