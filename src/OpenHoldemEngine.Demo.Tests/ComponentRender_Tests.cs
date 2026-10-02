@@ -1507,9 +1507,10 @@ public sealed class ComponentRender_Tests
         // Act - the import, replay and export tools live together behind one tab
         component.Find(".demo-tab[data-tab=hand-history]").Click();
 
-        // Assert
+        // Assert - wait for the render to complete before checking the active pane
+        component.WaitForAssertion(() => component.Find(".demo-tab-pane-active")
+            .GetAttribute("data-tab").Should().Be("hand-history"));
         var active = component.Find(".demo-tab-pane-active");
-        active.GetAttribute("data-tab").Should().Be("hand-history");
         active.TextContent.Should().Contain("Hand History Import").And.Contain("Hand History Export");
         active.Children.Last().ClassList.Should().Contain("phh-format-card", "the format note closes the tab, after Export");
     }
