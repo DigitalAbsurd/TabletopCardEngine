@@ -125,11 +125,28 @@ your logger configuration. Full details and alternative wiring options are in
 
 ## REST API
 
-Not implemented yet.
+```csharp
+app.MapHoldemEngineApi();                 // under /api/holdem
+app.MapHoldemEngineApi("/poker");         // under a prefix of the host's choice
+```
+
+`MapHoldemEngineApi(prefix = "/api/holdem")` maps the engine's REST API as a minimal API route group and
+returns the `RouteGroupBuilder`, so the host can chain `RequireAuthorization()`, rate limiting and the
+like onto every route. Nothing is mapped unless the host calls it. It needs the registration of this
+package, `services.AddHoldemEngine(configuration, ...)`, and throws `InvalidOperationException` without
+it. The package adds no middleware: the pipeline (`UseAuthorization`, exception handling) is the host's.
+
+Every route goes through one dispatcher: it reads `If-Match` (see [Concurrency](#concurrency)), calls the
+engine with the request's abort token, answers a failure with the problem response of
+[Errors](#errors), and on success sets the `ETag` header and returns the body of [JSON](#json).
 
 ### Routes
 
-Not implemented yet.
+| Method | Path | Engine action | Success | Problem statuses |
+|---|---|---|---|---|
+| `GET` | `/games/{gameId:guid}` | `GetGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 412 `Conflict` |
+
+A `gameId` that is not a GUID does not match the route and answers 404.
 
 ### JSON
 
@@ -283,4 +300,6 @@ Not implemented yet.
 
 ### Security
 
-Not implemented yet.
+The API returns every seat's hole cards, as `GameData` does (ADR-0004). It is a trusted, game-master
+API: protect the group, for example with
+`app.MapHoldemEngineApi().RequireAuthorization("holdem-admin")`. Hiding cards per viewer is not in v1.
