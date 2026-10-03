@@ -1,4 +1,4 @@
-# The ASP.NET Core package
+﻿# The ASP.NET Core package
 
 ## What this document is
 
@@ -40,7 +40,40 @@ throwing `ArgumentOutOfRangeException` from service registration.
 
 ## Health check
 
-Not implemented yet.
+```csharp
+builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+
+app.MapHealthChecks("/health");
+```
+
+`AddHoldemEngineCheck(name = "openholdemengine", failureStatus = null, tags = null)` registers a check
+that calls `IHoldemSchemaManager.GetSchemaStatusAsync` on every probe. It reads `__OheSchema`, a
+single-row query, and caches nothing. It never migrates the database: a health probe must not change
+it, and migrating on start-up is a separate feature (below).
+
+| State | Result | Description |
+|---|---|---|
+| `UpToDate` | `Healthy` | `Schema version {n} is up to date.` |
+| `NotVersioned` | `Healthy` | `The provider keeps no schema version.` |
+| `MigrationRequired` | the failure status | `The database schema needs migrating ({count} pending migrations).` |
+| `NewerThanEngine` | the failure status | `The database was migrated by a newer engine (schema {db}, this engine expects {engine}).` |
+
+The failure status is `Unhealthy` unless the host passes `failureStatus`. Neither failing state is
+"degraded" by default: in both, the engine refuses every call.
+
+The entry's `data` carries `state` (the `HoldemSchemaState` name), `providerName`,
+`engineSchemaVersion`, `pendingMigrations` (a count), and `databaseSchemaVersion` and
+`databaseEngineVersion` when the database records them. A key with no value is left out, never set to
+null.
+
+**Unreachable database.** The check catches no exception. When the provider throws (the server is
+down, the file is not a database) or the provider is unsupported (`HoldemSchemaException`), the health
+check service reports the failure status with the exception attached. One provider quirk: EF Core's
+SQLite provider decides the database exists by looking for the file, without opening it, so a missing
+SQLite file reports `MigrationRequired` rather than an exception. It is unhealthy all the same.
+
+The default response writer of `MapHealthChecks` prints only the status (`Healthy`, `Degraded` or
+`Unhealthy`). The sample shows a JSON writer that includes `data`.
 
 ## Migrating on start-up
 
