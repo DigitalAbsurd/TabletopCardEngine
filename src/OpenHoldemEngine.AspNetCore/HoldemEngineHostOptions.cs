@@ -26,6 +26,13 @@ public sealed class HoldemEngineHostOptions : IValidatableObject
     /// </summary>
     public bool EnableSensitiveCardLogging { get; set; }
 
+    /// <summary>
+    /// When <c>true</c>, the hosted service migrates the database schema on start-up, before any request reaches
+    /// the engine. A failed migration throws out of <c>StartAsync</c> and fails the host. Default is <c>false</c>,
+    /// so a deployment must opt in explicitly.
+    /// </summary>
+    public bool MigrateDatabaseOnStartup { get; set; }
+
     /// <inheritdoc />
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

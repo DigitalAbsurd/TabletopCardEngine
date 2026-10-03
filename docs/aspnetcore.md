@@ -30,6 +30,7 @@ Options pattern, validated with data annotations, and checked when the host star
 | `GamePlayersMinCount` | `int` | `2` | 2 to 6, and not above `GamePlayersMaxCount` |
 | `GamePlayersMaxCount` | `int` | `6` | 2 to 6, and not below `GamePlayersMinCount` |
 | `EnableSensitiveCardLogging` | `bool` | `false` | Logs hole cards and the board at Trace level; never for production |
+| `MigrateDatabaseOnStartup` | `bool` | `false` | Migrates the database schema on start-up when `true` |
 
 A bad value fails `StartAsync` with an `OptionsValidationException` before any request, instead of
 throwing `ArgumentOutOfRangeException` from service registration.
@@ -77,7 +78,34 @@ The default response writer of `MapHealthChecks` prints only the status (`Health
 
 ## Migrating on start-up
 
-Not implemented yet.
+```csharp
+builder.Services.AddHoldemEngine(
+    builder.Configuration.GetSection("HoldemEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+```
+
+```json
+{ "HoldemEngine": { "MigrateDatabaseOnStartup": true } }
+```
+
+When `MigrateDatabaseOnStartup` is set to `true` in the configuration, the engine registers a hosted
+service that calls `IHoldemSchemaManager.MigrateAsync` during application start-up. The migration
+completes before the ASP.NET Core server starts listening, so no request ever reaches an unmigrated
+database.
+
+**Default.** `false`, so a deployment must opt in explicitly. Migrating a production database is an
+intentional decision.
+
+**Failure behaviour.** A failed migration throws out of `StartAsync` and fails the host. There is no
+fallback: a host must not serve against a schema it could not bring up to date.
+
+**Multiple instances.** Rely on EF Core's migration lock. Since EF Core 9, `Migrate` takes a database
+lock on every relational provider, so multiple instances starting concurrently will safely serialize
+their migrations. No lock of our own is needed.
+
+**Start-up ordering.** The hosted service is always registered, but does nothing when the flag is off.
+It runs **before** any other hosted services you register after `AddHoldemEngine`, so the schema is
+guaranteed to be up to date when other services start.
 
 ## Observability
 

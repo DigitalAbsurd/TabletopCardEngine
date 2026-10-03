@@ -64,6 +64,8 @@ public static class HoldemEngineHostingServiceCollectionExtensions
             return instance;
         }));
 
+        services.AddHostedService<HoldemSchemaMigrationHostedService>();
+
         return services;
     }
 }
