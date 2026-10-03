@@ -295,11 +295,13 @@ docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/observability.md                   # the engine's logs, traces and metrics
 docs/aspnetcore.md                      # the ASP.NET Core package's user guide
+docs/docker.md                          # the container host and images
 docs/persistence.md                     # supported databases, schema versioning, migration policy
 docs/adr/                               # architecture decision records (ADR-0001: the license,
                                         # ADR-0002: the OpenTelemetry instrumentation package,
                                         # ADR-0003: database provider licences,
-                                        # ADR-0004: the ASP.NET Core integration package)
+                                        # ADR-0004: the ASP.NET Core integration package,
+                                        # ADR-0005: container host and images)
 scripts/                                # license audit, PHH fixture packing, public API listing, migration scaffolding
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 OpenHoldemEngine.Packages.slnf          # solution filter for packable projects only
