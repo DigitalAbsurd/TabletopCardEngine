@@ -1,4 +1,5 @@
-﻿using OpenTelemetry.Metrics;
+﻿using OpenTelemetry;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
 namespace OpenHoldemEngine.OpenTelemetry;
@@ -44,5 +45,23 @@ public static class OpenHoldemEngineInstrumentationExtensions
     {
         ArgumentNullException.ThrowIfNull(builder);
         return builder.AddMeter(HoldemEngineTelemetry.MeterName);
+    }
+
+    /// <summary>
+    /// Subscribes both the tracer provider and the meter provider to the engine's
+    /// <c>ActivitySource</c> and <c>Meter</c> in a single call. The host wires both signals with:
+    /// <code>services.AddOpenTelemetry().AddOpenHoldemEngineInstrumentation()</code>
+    /// chained with <c>WithTracing()</c> and <c>WithMetrics()</c> to add exporters. The engine's
+    /// telemetry is described in <c>docs/observability.md</c>.
+    /// </summary>
+    /// <param name="builder">The OpenTelemetry builder of the host.</param>
+    /// <returns>The same builder, for chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+    public static IOpenTelemetryBuilder AddOpenHoldemEngineInstrumentation(this IOpenTelemetryBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.ConfigureOpenTelemetryTracerProvider(tracing => tracing.AddOpenHoldemEngineInstrumentation());
+        builder.Services.ConfigureOpenTelemetryMeterProvider(metrics => metrics.AddOpenHoldemEngineInstrumentation());
+        return builder;
     }
 }

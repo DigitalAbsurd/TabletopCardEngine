@@ -48,10 +48,12 @@ PostgreSQL License is OSI-approved and equivalent to MIT/BSD, and the SNI runtim
 single-package exception for redistribution of object code.
 
 **The instrumentation package, `OpenHoldemEngine.OpenTelemetry`**, references the library and
-`OpenTelemetry.Api` 1.19.1 (Apache-2.0) as NuGet packages and redistributes neither. The API's one
-dependency is `System.Diagnostics.DiagnosticSource` 10.0.0 (MIT), which in a host that references
-this package replaces the 10.0.0 the library gets through EF Core. It does not reference the
-OpenTelemetry SDK or an exporter: the host brings those.
+`OpenTelemetry.Api` 1.19.1 (Apache-2.0) and `OpenTelemetry.Api.ProviderBuilderExtensions` 1.19.1
+(Apache-2.0) as NuGet packages and redistributes neither. The API packages' dependencies are
+`System.Diagnostics.DiagnosticSource` 10.0.0 (MIT) and `Microsoft.Extensions.DependencyInjection.Abstractions`
+10.0.0 (MIT), which in a host that references this package replace the ones the library gets through
+EF Core and the framework. It does not reference the OpenTelemetry SDK or an exporter: the host
+brings those.
 
 **The ASP.NET Core package, `OpenHoldemEngine.AspNetCore`**, references the library and the
 `Microsoft.AspNetCore.App` shared framework, and no NuGet package at all
@@ -164,6 +166,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Package | Version | License |
 | --- | --- | --- |
 | OpenTelemetry.Api | 1.19.1 | Apache-2.0 |
+| OpenTelemetry.Api.ProviderBuilderExtensions | 1.19.1 | Apache-2.0 |
 
 ### OpenHoldemEngine.AspNetCore
 
