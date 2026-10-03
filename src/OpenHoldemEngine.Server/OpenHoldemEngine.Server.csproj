@@ -10,7 +10,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpenHoldemEngine.AspNetCore\OpenHoldemEngine.AspNetCore.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.PostgreSql\OpenHoldemEngine.PostgreSql.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\OpenHoldemEngine.SqlServer\OpenHoldemEngine.SqlServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
