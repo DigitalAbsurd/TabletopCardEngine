@@ -101,6 +101,17 @@ OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c 
 Without Docker, say so in the pull request: CI's `providers` job runs the same command on every push
 to `main` and on every pull request touching those paths, and it is their gate (fact 28).
 
+**Container image tests.** A task that touches `Dockerfile`, `.dockerignore`,
+`src/OpenHoldemEngine.Server/`, `src/OpenHoldemEngine.Server.Tests/`, `Directory.Build.props` or
+`.editorconfig` runs the command below locally and quotes the summary line. It builds the `sqlite`,
+`postgres` and `mssql` targets of the `Dockerfile` and drives each image over HTTP next to a database
+container of its own (`ContainerImageTests`). It needs Docker, and the first run builds the images,
+which takes a few minutes:
+
+```
+OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+```
+
 **Any step that starts the dev server must end by stopping it.** `Ctrl+C` in its terminal, then
 confirm nothing is left listening:
 

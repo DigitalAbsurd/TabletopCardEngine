@@ -108,7 +108,34 @@ orchestrator or a load balancer.
 
 ## Testing the images
 
-Not implemented yet.
+`ContainerImageTests` in `src/OpenHoldemEngine.Server.Tests` is the gate for the images. It builds
+the `sqlite`, `postgres` and `mssql` targets from this `Dockerfile` once per run, one after another,
+and runs each image on a Docker network of its own. The `postgres` and `mssql` images run next to a
+`postgres:16-alpine` or `mcr.microsoft.com/mssql/server:2022-latest` container aliased `db`. Each image
+gets only the environment this guide tells a user to set: nothing for `sqlite`, and
+`ConnectionStrings__Holdem` for the other two. The provider and the start-up migration come from the
+image itself. For every target the gate checks that:
+
+- a game can be played from creation to finish over HTTP, the same scenario as the in-process
+  `Server_PlaysAGameFromCreationToFinish`;
+- `/health` returns 200, with the schema `UpToDate` and the expected EF Core provider;
+- `/openapi/v1.json` lists the six `Holdem*` operations;
+- the process runs as the non-root user (`id -u` prints `1654`).
+
+It also checks that the `postgres` and `mssql` images without a connection string exit with a non-zero
+code and a log naming `ConnectionStrings__Holdem`, and that a `sqlite` container keeps a game in its
+`/data` volume across a stop and a start.
+
+The gate needs Docker and runs only with `OHE_TEST_CONTAINERS=1`. Without it every test reports
+inconclusive. From the repository root:
+
+```
+OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+```
+
+The first run builds the images, which takes a few minutes. The test images are tagged
+`openholdemengine-test:<target>` and are removed when the run ends, together with the containers and
+networks it started.
 
 ## Running with compose
 
