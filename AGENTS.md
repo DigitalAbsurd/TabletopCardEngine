@@ -39,6 +39,16 @@ dotnet format OpenHoldemEngine.sln
 dotnet format OpenHoldemEngine.sln --verify-no-changes
 ```
 
+Docker images are built locally from the `Dockerfile` at the repository root. Three targets are supported:
+
+```bash
+docker build --target sqlite -t openholdemengine:sqlite .
+docker build --target postgres -t openholdemengine:postgres .
+docker build --target mssql -t openholdemengine:mssql .
+```
+
+See [docs/docker.md](docs/docker.md) for how to run the images and how to use compose files for PostgreSQL and SQL Server.
+
 Run a single test — **`dotnet test --filter` is silently ignored here** (MSTest.Sdk 3.6.1 / Microsoft.Testing.Platform); the filter must be passed to the test app itself:
 
 ```bash

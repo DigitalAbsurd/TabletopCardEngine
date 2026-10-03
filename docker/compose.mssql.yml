@@ -1,0 +1,31 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD (8+ chars, upper, lower, digit, symbol)}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" || exit 1
+      interval: 10s
+      retries: 20
+      start_period: 20s
+    volumes:
+      - mssqldata:/var/opt/mssql
+
+  server:
+    build:
+      context: ..
+      target: mssql
+    image: openholdemengine:mssql
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__Holdem: "Server=db;Database=holdem;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mssqldata:

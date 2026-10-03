@@ -20,6 +20,13 @@ This teaches the core concept: **there is no in-memory game object — the datab
 
 ![OpenHoldemEngine Demo Layout](src/OpenHoldemEngine.Demo/wwwroot/img/demo-layout.svg)
 
+## Docker
+
+The OpenHoldemEngine server is available as a Docker image for SQLite, PostgreSQL, and SQL Server.
+Build the image locally from the `Dockerfile` at the repository root.
+There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy.
+See [docs/docker.md](docs/docker.md) for the full guide.
+
 ## License
 
 OpenHoldemEngine is released under the [Apache License, Version 2.0](LICENSE). Commercial use
