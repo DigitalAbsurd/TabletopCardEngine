@@ -88,11 +88,14 @@ gate in full, so a wrong label shows up after the merge at the latest.
 
 **Provider tests.** A task that touches `src/OpenHoldemEngine/Data/`, a relational provider package
 (`OpenHoldemEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `src/OpenHoldemEngine.Tests/Persistence/`,
+`src/OpenHoldemEngine.Server/`, `src/OpenHoldemEngine.Server.Tests/`,
 `scripts/add-migration.ps1` or `.github/workflows/ci.yml` should run the provider matrix locally on
-PostgreSQL and SQL Server when Docker is available, and quote the summary line:
+PostgreSQL and SQL Server when Docker is available, and quote the summary line. A task that touches the
+server or its tests runs the second command as well:
 
 ```
 OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
 Without Docker, say so in the pull request: CI's `providers` job runs the same command on every push
