@@ -133,7 +133,69 @@ Not implemented yet.
 
 ### JSON
 
-Not implemented yet.
+The engine's enums and `Card` values have type-specific JSON converters registered in the host's
+`Microsoft.AspNetCore.Http.Json.JsonOptions`, so no other type of the host is affected.
+
+**Enum serialization.** Engine enums (`GameType`, `BettingStructure`, `CardType`, `CardSuit`,
+`HandActionType`, `HandRankType`, `PlayerActionType`, `Street`) are serialized by name — e.g.
+`"Holdem"`, `"NoLimit"`, `"Raise"` — not as numbers. Numbers are rejected on input, so an
+undefined value cannot slip in as a number.
+
+**Card serialization.** `Card` is serialized as a two-character string in the format rank-then-suit,
+lowercase — e.g. `"ah"` (ace of hearts), `"tc"` (ten of clubs), `"2s"` (two of spades). Input is
+case-insensitive and accepts either order — `"AH"`, `"HA"`, and `"ah"` all parse as the ace of
+hearts. Output is always canonical.
+
+**Example.** A heads-up game just after `StartGame`:
+
+```json
+{
+  "gameId": "…",
+  "options": {
+    "gameType": "Holdem",
+    "bettingStructure": "NoLimit",
+    "maxPlayersCount": 2,
+    "initialSmallBlind": 1,
+    "initialDealerSeatNo": 1
+  },
+  "handData": {
+    "no": 1,
+    "seats": [
+      {
+        "seatNo": 1,
+        "name": "a",
+        "startHandStack": 100,
+        "stack": 99,
+        "betSize": 1,
+        "hole": ["2d", "ks"],
+        "lastAction": {
+          "street": "PreFlop",
+          "actionType": "SmallBlind",
+          "size": 1,
+          "no": 1
+        }
+      }
+    ],
+    "dealerSeatNo": 2,
+    "smallBlindSeatNo": 1,
+    "bigBlindSeatNo": 2,
+    "nextPlayerSeatNo": 1,
+    "street": "PreFlop",
+    "streetPot": 3,
+    "pot": 0,
+    "communityCards": [],
+    "evaluations": [
+      {
+        "playerActionType": "Call",
+        "minValue": 1,
+        "maxValue": 1
+      }
+    ]
+  },
+  "isFinished": false,
+  "version": 2
+}
+```
 
 ### Concurrency
 
