@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace OpenHoldemEngine.Server.Tests;
 
-/// <summary>Drives the real <c>src/OpenHoldemEngine.Server</c> application over HTTP, on a SQLite file of its own.</summary>
+/// <summary>Drives the real <c>src/OpenHoldemEngine.Server</c> application over HTTP, on a database of its own for each provider.</summary>
 [TestClass]
 public sealed class ServerEndToEndTests
 {
@@ -39,18 +39,21 @@ public sealed class ServerEndToEndTests
         return request;
     }
 
-    /// <summary>Runs <paramref name="test"/> against a server host whose database is a fresh temporary file, deleted afterwards.</summary>
-    private static async Task RunAsync(bool migrateOnStartup, Func<HttpClient, Task> test)
+    /// <summary>
+    /// Runs <paramref name="test"/> against a server host over a fresh database of <paramref name="providerName"/>;
+    /// a SQLite file is deleted afterwards, a server database dies with its container.
+    /// </summary>
+    private static async Task RunAsync(string providerName, bool migrateOnStartup, Func<HttpClient, Task> test)
     {
-        var dbFile = Path.Combine(Path.GetTempPath(), $"ohe-server-{Guid.NewGuid():N}.db");
+        var connectionString = ServerDatabases.ConnectionStringFor(Enum.Parse<HoldemServerProvider>(providerName));
         try
         {
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 // Not Development, so appsettings.Development.json cannot hide a missing setting.
                 builder.UseEnvironment("Production");
-                builder.UseSetting("HoldemServer:Provider", "Sqlite");
-                builder.UseSetting("ConnectionStrings:Holdem", $"Data Source={dbFile}");
+                builder.UseSetting("HoldemServer:Provider", providerName);
+                builder.UseSetting("ConnectionStrings:Holdem", connectionString);
                 builder.UseSetting("HoldemEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
             });
             using var client = factory.CreateClient();
@@ -58,17 +61,24 @@ public sealed class ServerEndToEndTests
         }
         finally
         {
-            // Release the pooled connections, or Windows keeps the file locked.
-            SqliteConnection.ClearAllPools();
-            foreach (var file in Directory.GetFiles(Path.GetTempPath(), Path.GetFileName(dbFile) + "*"))
+            if (providerName == nameof(HoldemServerProvider.Sqlite))
             {
-                File.Delete(file);
+                // Release the pooled connections, or Windows keeps the file locked.
+                SqliteConnection.ClearAllPools();
+                var dbFile = new SqliteConnectionStringBuilder(connectionString).DataSource;
+                foreach (var file in Directory.GetFiles(Path.GetDirectoryName(dbFile)!, Path.GetFileName(dbFile) + "*"))
+                {
+                    File.Delete(file);
+                }
             }
         }
     }
 
     [TestMethod]
-    public Task Server_PlaysAGameFromCreationToFinish() => RunAsync(true, async client =>
+    [DataRow("Sqlite")]
+    [DataRow("PostgreSql")]
+    [DataRow("SqlServer")]
+    public Task Server_PlaysAGameFromCreationToFinish(string providerName) => RunAsync(providerName, true, async client =>
     {
         var created = await client.PostAsync("/api/holdem/games", Json("{\"options\":{\"maxPlayersCount\":2}}"));
         created.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -129,18 +139,23 @@ public sealed class ServerEndToEndTests
     });
 
     [TestMethod]
-    public Task Server_Health_ReportsTheSchemaState() => RunAsync(true, async client =>
+    [DataRow("Sqlite", "Microsoft.EntityFrameworkCore.Sqlite")]
+    [DataRow("PostgreSql", "Npgsql.EntityFrameworkCore.PostgreSQL")]
+    [DataRow("SqlServer", "Microsoft.EntityFrameworkCore.SqlServer")]
+    public Task Server_Health_ReportsTheSchemaState(string providerName, string expectedEfProvider) => RunAsync(providerName, true, async client =>
     {
         var response = await client.GetAsync("/health");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await ReadJsonAsync(response);
         body.GetProperty("status").GetString().Should().Be("Healthy");
-        body.GetProperty("entries").GetProperty("openholdemengine").GetProperty("data").GetProperty("state").GetString().Should().Be("UpToDate");
+        var data = body.GetProperty("entries").GetProperty("openholdemengine").GetProperty("data");
+        data.GetProperty("state").GetString().Should().Be("UpToDate");
+        data.GetProperty("providerName").GetString().Should().Be(expectedEfProvider);
     });
 
     [TestMethod]
-    public Task Server_Health_WithoutMigration_IsUnhealthy() => RunAsync(false, async client =>
+    public Task Server_Health_WithoutMigration_IsUnhealthy() => RunAsync("Sqlite", false, async client =>
     {
         var response = await client.GetAsync("/health");
 
