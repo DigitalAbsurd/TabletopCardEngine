@@ -137,7 +137,41 @@ Not implemented yet.
 
 ### Concurrency
 
-Not implemented yet.
+Every successful response carries an `ETag: "<version>"` header where `<version>` is the game's current version.
+
+An optional `If-Match` header on a write request specifies the version the client expects. If the header is present and does not match the loaded version, the write fails with status 412 Precondition Failed. If the header is absent, the write proceeds without a version check.
+
+| If-Match value | Meaning | Conflict status |
+|---|---|---|
+| (absent) | No version check | 409 |
+| `*` | No version check | 409 |
+| `"7"` | Check that the version is 7 | 412 if version changed, 409 for other conflicts |
+| Invalid value | 400 Bad Request | N/A |
+
+**Valid and invalid If-Match values:**
+
+Valid:
+- (absent): the header is not sent
+- `*`: wildcard, matches any version
+- `"7"`: a strong entity tag with an integer version
+
+Invalid (answered with 400 Bad Request):
+- `W/"7"`: weak tag (RFC 9110 compares If-Match strongly)
+- `7`: unquoted value
+- `"7", "8"`: list of tags
+- `"abc"`: non-integer tag value
+- `"0"`: version zero (valid versions start at 1)
+- `"-1"`: negative version
+- `"99999999999"`: out of `int` range
+- (whitespace only)
+
+**POST /games and version checks.**
+
+`CreateGame` has no version to compare: it creates a new game. The `If-Match` header is ignored on `POST /games`, but it still counts as present for the 412/409 rule of the `Conflict` code.
+
+**Read operations.**
+
+`GET` operations do not change the ETag and do not increment the version. The ETag of a reload matches the one read before, as long as no write changes the game.
 
 ### Errors
 
