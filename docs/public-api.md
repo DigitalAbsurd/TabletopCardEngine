@@ -76,9 +76,10 @@ dotnet pack src/OpenHoldemEngine.PostgreSql -c Release -p:Version=1.0.0-baseline
 
 `OpenHoldemEngine.AspNetCore` has its own baseline,
 [`eng/api-baseline/OpenHoldemEngine.AspNetCore.1.0.0-baseline.nupkg`](../eng/api-baseline/),
-enforced the same way by `dotnet pack src/OpenHoldemEngine.AspNetCore -c Release`. It has no public
-type yet: each later issue of the ASP.NET Core milestone adds its own and re-packs the baseline in
-the same pull request. The baseline is packed without validation, because there is nothing to compare
+enforced the same way by `dotnet pack src/OpenHoldemEngine.AspNetCore -c Release`. Its public surface so far is
+`HoldemEngineHostingServiceCollectionExtensions`, `HoldemEngineHealthChecksBuilderExtensions`,
+`HoldemEngineHostOptions` and `HoldemEngineEndpointRouteBuilderExtensions`; each later issue of the
+ASP.NET Core milestone adds its own and re-packs the baseline in the same pull request. The baseline is packed without validation, because there is nothing to compare
 the first one with:
 
 ```
