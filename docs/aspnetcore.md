@@ -8,6 +8,37 @@ contract and the security stance, are recorded in
 [ADR-0004](adr/0004-aspnetcore-integration-package.md). Each section below is filled in by the issue
 that implements it.
 
+## Getting started
+
+`samples/AspNetCoreSample` is a complete host: a short `Program.cs`, a SQLite database
+file and no package reference beyond this repository's projects. Read it first, then copy what you need.
+
+```csharp
+builder.Services.AddHoldemEngine(
+    builder.Configuration.GetSection("HoldemEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+
+app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = WriteHealthJsonAsync });
+app.MapHoldemEngineApi();
+```
+
+Its `appsettings.json` points `ConnectionStrings:Holdem` at `holdem.db` and sets
+`HoldemEngine:MigrateDatabaseOnStartup` to `true`, so the first start creates the schema.
+
+1. Run it: `dotnet run --project samples/AspNetCoreSample --urls http://localhost:5299`.
+2. `curl -s http://localhost:5299/health` reports the schema state, `"state":"UpToDate"`.
+3. Play a game with `samples/AspNetCoreSample/AspNetCoreSample.http` (create, start, get, act, a stale
+   `If-Match`, the next hand, finish), or with `curl`:
+   `curl -s -i -X POST http://localhost:5299/api/holdem/games -H "Content-Type: application/json" -d "{}"`
+   answers `201` with `ETag: "1"` and a `Location` header.
+4. Stop the server and delete `samples/AspNetCoreSample/holdem.db` (git ignores it).
+
+`SampleEndToEndTests` in `src/OpenHoldemEngine.AspNetCore.Tests` runs the same sample through
+`WebApplicationFactory<Program>` on a temporary database file: a game from creation to finish, a stale
+`If-Match` answered with 412 `Conflict`, and the health check in both the migrated and the unmigrated
+state. The sample's `Program` is `internal` and reaches the tests through `InternalsVisibleTo`.
+
 ## Registration
 
 ```csharp

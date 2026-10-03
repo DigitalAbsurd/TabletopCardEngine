@@ -26,6 +26,7 @@
     <ProjectReference Include="..\OpenHoldemEngine.AspNetCore\OpenHoldemEngine.AspNetCore.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.InMemory\OpenHoldemEngine.InMemory.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\..\samples\AspNetCoreSample\AspNetCoreSample.csproj" />
   </ItemGroup>
 
 </Project>

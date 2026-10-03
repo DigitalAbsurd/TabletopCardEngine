@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- Generated only so that IDE0005 (unnecessary using) runs at build time; a sample needs no API docs. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- No PackageReference on purpose: nothing audits the notices for samples/ (see docs/task-run.md). -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.AspNetCore\OpenHoldemEngine.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets the tests use the internal top-level Program as WebApplicationFactory<Program>. -->
+    <InternalsVisibleTo Include="OpenHoldemEngine.AspNetCore.Tests" />
+  </ItemGroup>
+
+</Project>
