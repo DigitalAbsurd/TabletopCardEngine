@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using OpenHoldemEngine.AspNetCore.Json;
 using OpenHoldemEngine.Options;
 
 namespace OpenHoldemEngine.AspNetCore;
@@ -47,6 +48,10 @@ public static class HoldemEngineHostingServiceCollectionExtensions
             .ValidateOnStart();
 
         ServiceCollectionExtensions.AddHoldemEngine(services, dbOptionsAction, configure);
+
+        services.ConfigureHttpJsonOptions(o => HoldemJson.AddConverters(o.SerializerOptions.Converters));
+
+        services.AddSingleton<HoldemEngineApiMarker>();
 
         // Keep the instance the core's configure already wrote into (the card shuffler), and apply
         // the bound settings to it when the engine's options are first resolved.
