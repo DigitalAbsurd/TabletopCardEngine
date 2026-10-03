@@ -11,11 +11,13 @@ builder.Services.AddHoldemEngine(
     builder.Configuration.GetSection("HoldemEngine"),
     HoldemServerDatabase.Configure(builder.Configuration));
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
 app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = WriteHealthJsonAsync });
 app.MapHoldemEngineApi();
+app.MapOpenApi();
 
 app.Run();
 
