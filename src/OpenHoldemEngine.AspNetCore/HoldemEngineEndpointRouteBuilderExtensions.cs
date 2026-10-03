@@ -37,6 +37,17 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
 
         var group = endpoints.MapGroup(prefix);
 
+        group.MapPost("/games", (HoldemCreateGameRequest request, HttpContext context, HoldemEngine engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.CreateGame(request.Options, request.GameId),
+                    data => TypedResults.CreatedAtRoute(data, "HoldemGetGame", new { gameId = data.GameId }),
+                    honourIfMatch: false))
+            .WithName("HoldemCreateGame");
+
+        group.MapPost("/games/{gameId:guid}/start", (HoldemStartGameRequest? request, Guid gameId, HttpContext context, HoldemEngine engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.StartGame(gameId, [.. (request?.JoinSeats ?? [])]),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemStartGame");
+
         group.MapGet("/games/{gameId:guid}", (Guid gameId, HttpContext context, HoldemEngine engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.GetGame(gameId), data => TypedResults.Ok(data)))
             .WithName("HoldemGetGame");
