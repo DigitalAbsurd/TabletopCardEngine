@@ -141,7 +141,45 @@ Not implemented yet.
 
 ### Errors
 
-Not implemented yet.
+Every error returned by the engine comes back as an HTTP problem response with a `code` extension field containing the error code as a string.
+
+| Code | Value | Status |
+|---|---|---|
+| `GameAlreadyExists` | 1 | 409 |
+| `CurrentHandEnded` | 2 | 409 |
+| `PreviousHandNotEnded` | 3 | 409 |
+| `InvalidAction` | 4 | 422 |
+| `UnsupportedGameOptions` | 5 | 422 |
+| `InvalidGameOptions` | 6 | 422 |
+| `InvalidSeat` | 7 | 422 |
+| `GameAlreadyStarted` | 8 | 409 |
+| `GameNotStarted` | 9 | 409 |
+| `GameFinished` | 10 | 409 |
+| `Conflict` | 11 | 412 when the request carried `If-Match`, 409 otherwise |
+| `GameNotFound` | 12 | 404 |
+| `IllegalAction` | 13 | 422 |
+
+**The logic.**
+
+- **422 Unprocessable Content**: The request was well-formed JSON, but the engine's rules reject its content. The game state is unchanged.
+- **409 Conflict**: The request is valid, but the game's state does not allow it right now. Try again after reloading the game.
+- **412 Precondition Failed**: Used for `Conflict` when the request carried an `If-Match` header. The game was modified; reload it and decide whether to retry.
+- **404 Not Found**: The game ID does not exist. Valid only for actions other than `CreateGame`.
+- **400 Bad Request**: Handled by the framework: malformed JSON, a binding failure, or a malformed `If-Match` value. Not mapped here.
+
+**Example response body:**
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.4.10",
+  "title": "Conflict",
+  "status": 409,
+  "detail": "The game was changed by another action since you read it. Reload and decide.",
+  "code": "Conflict"
+}
+```
+
+**Exceptions and system errors.** `HoldemSchemaException` and other unhandled exceptions are not mapped here. They reach the host's exception handler, which by default answers 500 Internal Server Error with its own problem response. It is the host's choice how to wire exception handlers and problem details services.
 
 ### OpenAPI
 
