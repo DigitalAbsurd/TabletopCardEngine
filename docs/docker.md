@@ -56,7 +56,55 @@ The OpenAPI document is served at `/openapi/v1.json` and describes every endpoin
 
 ## Images
 
-Not implemented yet.
+The `Dockerfile` at the repository root builds the host in an SDK stage (`builder`) and copies the
+published output into an ASP.NET Core runtime stage (`final`, on `mcr.microsoft.com/dotnet/aspnet:10.0`,
+Ubuntu 24.04). Three targets build `FROM final` and differ only in their environment defaults
+([ADR-0005](adr/0005-container-host-and-images.md), decision 5). Images are built locally; this
+repository publishes none (decision 7). From the repository root:
+
+```
+docker build --target sqlite -t openholdemengine:sqlite .
+docker build --target postgres -t openholdemengine:postgres .
+docker build --target mssql -t openholdemengine:mssql .
+```
+
+`sqlite` is the last stage, so `docker build -t openholdemengine .` without `--target` builds it too.
+
+Every target sets `ASPNETCORE_HTTP_PORTS=8080` (the port it exposes) and
+`HoldemEngine__MigrateDatabaseOnStartup=true`, and runs as the non-root user `app` (`APP_UID=1654`).
+On top of that:
+
+| Target | `HoldemServer__Provider` | `ConnectionStrings__Holdem` |
+|---|---|---|
+| `sqlite` | `Sqlite` | `Data Source=/data/holdem.db` |
+| `postgres` | `PostgreSql` | not set: pass it with `-e` |
+| `mssql` | `SqlServer` | not set: pass it with `-e` |
+
+The `postgres` and `mssql` targets carry no default connection string on purpose: without one the
+host refuses to start (decision 3).
+
+```
+docker run -d -p 8080:8080 -e "ConnectionStrings__Holdem=Host=db;Database=holdem;Username=user;Password=pass" openholdemengine:postgres
+```
+
+**The `/data` volume.** The `sqlite` target keeps its database in `/data`, a directory owned by `app`
+and declared as a volume, because `/app` is not writable by `app`. Mount a named volume there to keep
+the database across containers: `docker run -d -p 8080:8080 -v holdem-data:/data openholdemengine:sqlite`.
+A connection string pointing anywhere `app` cannot write fails at start-up with
+`SQLite Error 14: 'unable to open database file'`.
+
+**`Exited (139)` is a configuration error.** A host that fails at start-up, for example with no
+connection string or an unknown provider, exits with code 139, so `docker ps -a` shows
+`Exited (139)`. It is not a crash of the runtime: `docker logs <container>` shows the exception, which
+names the missing or wrong environment variable.
+
+**SQL Server needs `TrustServerCertificate=True`** against a server with a self-signed certificate,
+such as the `mcr.microsoft.com/mssql/server:2022-latest` container. Without it the connection fails
+with `Certificate failed chain validation`. See [Notes](#notes) above.
+
+**There is no `HEALTHCHECK` instruction** (decision 8). The runtime image has no `curl` or `wget`, and
+none is added just for a probe. Probe `/health` from outside the container instead, from the
+orchestrator or a load balancer.
 
 ## Testing the images
 

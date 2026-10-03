@@ -10,6 +10,8 @@
 *.resx      text eol=crlf
 
 *.md        text eol=lf
+Dockerfile      text eol=lf
+.dockerignore   text eol=lf
 *.phhs      text eol=lf
 *.json      text eol=lf
 
