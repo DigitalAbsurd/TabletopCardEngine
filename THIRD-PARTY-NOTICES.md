@@ -61,7 +61,8 @@ brings those.
 host's .NET runtime (MIT), and the package redistributes none of it.
 
 **The container host, `OpenHoldemEngine.Server`**, is not packed. It references the AspNetCore and
-provider packages of this repository and, so far, no NuGet package of its own.
+provider packages of this repository and `Microsoft.AspNetCore.OpenApi` (MIT), which brings in
+`Microsoft.OpenApi` (MIT).
 
 **The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:
@@ -216,6 +217,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 | Package | Version | License |
 | --- | --- | --- |
+| Microsoft.AspNetCore.OpenApi | 10.0.12 | MIT |
 
 ### Test and development only
 

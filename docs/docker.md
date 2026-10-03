@@ -52,7 +52,7 @@ It serves the REST API under `/api/holdem` and the health report at `/health`.
 
 ## OpenAPI
 
-Not implemented yet.
+The OpenAPI document is served at `/openapi/v1.json` and describes every endpoint of the REST API. There is no UI; the document can be fed to any OpenAPI tool. See `docs/aspnetcore.md#openapi` for the metadata structure.
 
 ## Images
 

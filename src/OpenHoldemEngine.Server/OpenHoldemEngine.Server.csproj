@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Lets the tests use the internal top-level Program as WebApplicationFactory<Program>. -->
     <InternalsVisibleTo Include="OpenHoldemEngine.Server.Tests" />
   </ItemGroup>
