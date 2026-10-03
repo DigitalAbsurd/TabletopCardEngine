@@ -109,7 +109,19 @@ guaranteed to be up to date when other services start.
 
 ## Observability
 
-Not implemented yet.
+To wire the engine's traces and metrics, add the instrumentation in one line:
+
+```csharp
+services
+    .AddOpenTelemetry()
+    .AddOpenHoldemEngineInstrumentation()
+    .WithTracing(tracing => tracing.AddConsoleExporter())
+    .WithMetrics(metrics => metrics.AddConsoleExporter());
+```
+
+The engine publishes logs through `ILogger<HoldemEngine>`. Add the `OpenHoldemEngine` category to
+your logger configuration. Full details and alternative wiring options are in
+[docs/observability.md](observability.md).
 
 ## REST API
 

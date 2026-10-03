@@ -24,6 +24,40 @@ public sealed class OpenTelemetryPackageTests
     private static readonly PlayerJoinData[] _joinSeats = [new("Button", 1, 10_000M), new("BigBlind", 2, 10_000M)];
 
     [TestMethod]
+    public async Task Instrumentation_OneLine_EnablesTracesAndMetrics()
+    {
+        var gameId = Guid.NewGuid();
+        var spans = new List<Activity>();
+        var metrics = new List<Metric>();
+        var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddOpenHoldemEngineInstrumentation()
+            .AddInMemoryExporter(spans)
+            .Build();
+        var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddOpenHoldemEngineInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        using (tracerProvider)
+        using (meterProvider)
+        using (TestEngineHost.Setup(out var engine, out _))
+        {
+            await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
+            await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
+        }
+
+        tracerProvider.ForceFlush();
+        meterProvider.ForceFlush();
+
+        spans
+            .Where(activity => activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+            .Select(activity => activity.DisplayName)
+            .Should().Equal(HoldemEngineActivity.Name, HoldemEngineActivity.Name);
+
+        metrics.Select(metric => metric.Name).Should().Contain(["openholdemengine.actions", "openholdemengine.action.duration"]);
+    }
+
+    [TestMethod]
     public async Task Instrumentation_ExportsTheEngineSpan()
     {
         var gameId = Guid.NewGuid();

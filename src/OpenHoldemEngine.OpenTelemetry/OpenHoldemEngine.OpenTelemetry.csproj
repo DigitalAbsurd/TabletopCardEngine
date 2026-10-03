@@ -14,6 +14,8 @@
   <ItemGroup>
     <!-- The API only, never the SDK: TracerProviderBuilder, MeterProviderBuilder, AddSource and AddMeter live here. -->
     <PackageReference Include="OpenTelemetry.Api" Version="1.19.1" />
+    <!-- IOpenTelemetryBuilder and the ConfigureOpenTelemetry*Provider methods for the builder extension. -->
+    <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" Version="1.19.1" />
   </ItemGroup>
 
   <ItemGroup>

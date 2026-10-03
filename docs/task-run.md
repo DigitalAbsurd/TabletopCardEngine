@@ -270,7 +270,7 @@ discards it, and `.phh` export is the durable artefact.
 
 ```
 src/OpenHoldemEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
-src/OpenHoldemEngine.OpenTelemetry/     # AddOpenHoldemEngineInstrumentation(); references OpenTelemetry.Api only
+src/OpenHoldemEngine.OpenTelemetry/     # AddOpenHoldemEngineInstrumentation(); references OpenTelemetry.Api and OpenTelemetry.Api.ProviderBuilderExtensions only
 src/OpenHoldemEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
 src/OpenHoldemEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
 src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations

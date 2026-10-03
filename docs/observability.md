@@ -9,7 +9,17 @@ This document describes the engine's diagnostics: what logging, tracing and metr
 
 The engine publishes logs, traces and metrics. Wire them up with OpenTelemetry:
 
-**With the OpenTelemetry instrumentation package:**
+**With the OpenTelemetry instrumentation package (recommended):**
+
+```csharp
+services
+    .AddOpenTelemetry()
+    .AddOpenHoldemEngineInstrumentation()
+    .WithTracing(tracing => tracing.AddConsoleExporter())
+    .WithMetrics(metrics => metrics.AddConsoleExporter());
+```
+
+**Alternative: with explicit calls:**
 
 ```csharp
 services
