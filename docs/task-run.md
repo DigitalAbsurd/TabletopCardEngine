@@ -317,6 +317,8 @@ AGENTS.md                               # codebase guide for AI assistants (alia
 run-next-task.ps1                       # the unattended runner: picks a vetted, ready issue, drives an agent
 agent.<name>.json                       # that agent's settings (models, command line); git-ignored
 agent.claude.json.example               # the committed template for agent.<name>.json
+Dockerfile                              # the container images: builder, final, and the postgres, mssql and sqlite targets
+.dockerignore                           # keeps the build context to global.json, Directory.Build.props, .editorconfig and src/
 ```
 
 ## Engine facts

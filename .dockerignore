@@ -1,0 +1,22 @@
+# Build output and local state: the image restores and publishes from source.
+**/bin/
+**/obj/
+.git/
+.vs/
+.vscode/
+.idea/
+.claude/
+
+# Local databases, logs and agent settings.
+**/*.db
+**/*.db-*
+**/*.db3
+test-output.log
+agent.*.json
+**/TestResults/
+
+# Not needed to build the host. global.json, Directory.Build.props, .editorconfig and src/ must stay.
+docs/
+samples/
+eng/
+scripts/
