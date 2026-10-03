@@ -411,3 +411,6 @@ agent.*.json
 
 # The AspNetCoreSample database
 samples/AspNetCoreSample/*.db*
+
+# The OpenHoldemEngine.Server database
+src/OpenHoldemEngine.Server/*.db*

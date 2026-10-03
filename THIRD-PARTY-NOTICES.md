@@ -60,6 +60,9 @@ brings those.
 ([ADR-0004](docs/adr/0004-aspnetcore-integration-package.md)). The shared framework comes with the
 host's .NET runtime (MIT), and the package redistributes none of it.
 
+**The container host, `OpenHoldemEngine.Server`**, is not packed. It references the AspNetCore and
+provider packages of this repository and, so far, no NuGet package of its own.
+
 **The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:
 
@@ -148,7 +151,7 @@ citation.
 
 Every NuGet package a project references directly, listed under the first project that
 references it. The library comes first, then what the instrumentation package adds, then the ASP.NET Core
-package (which adds none), then what the SQLite package adds, then what the demo adds, then what the test projects add.
+package (which adds none), then what the SQLite package adds, then what the demo adds, then the container host (which adds none), then what the test projects add.
 The inventory leaves out transitive packages. The ones the demo ships are named in
 [What ships](#what-ships-and-under-which-license).
 
@@ -208,6 +211,11 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Microsoft.AspNetCore.Components.WebAssembly | 10.0.12 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly.DevServer | 10.0.12 | MIT |
 | Tomlyn | 0.19.0 | BSD-2-Clause |
+
+### OpenHoldemEngine.Server
+
+| Package | Version | License |
+| --- | --- | --- |
 
 ### Test and development only
 
