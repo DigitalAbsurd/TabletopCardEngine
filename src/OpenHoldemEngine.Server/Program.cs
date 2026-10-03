@@ -2,14 +2,14 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using OpenHoldemEngine;
 using OpenHoldemEngine.AspNetCore;
-using OpenHoldemEngine.Sqlite;
+using OpenHoldemEngine.Server;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHoldemEngine(
     builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    HoldemServerDatabase.Configure(builder.Configuration));
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 
 var app = builder.Build();

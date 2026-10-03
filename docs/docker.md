@@ -34,7 +34,8 @@ The settings it reads so far:
 
 | Setting | Meaning |
 |---|---|
-| `ConnectionStrings__Holdem` | The connection string of the database, required. The host runs on SQLite for now, so this is a SQLite connection string such as `Data Source=/data/holdem.db`. |
+| `ConnectionStrings__Holdem` | The connection string of the database, required. Examples per provider:<br/>— SQLite: `Data Source=/data/holdem.db`<br/>— PostgreSQL: `Host=db.example.com;Port=5432;Database=holdem;Username=user;Password=pass`<br/>— SQL Server: `Server=db.example.com,1433;Database=holdem;User Id=sa;Password=pass;TrustServerCertificate=True` (see notes below) |
+| `HoldemServer__Provider` | The database provider: `Sqlite`, `PostgreSql`, or `SqlServer`, required. Case-insensitive. If missing or unknown, the host exits with an error naming the variable. Do not typo this; a silent default would hide a misconfigured image. |
 | `HoldemEngine__*` | The engine's host options, bound to `HoldemEngineHostOptions`: `GamePlayersMinCount`, `GamePlayersMaxCount`, `EnableSensitiveCardLogging` and `MigrateDatabaseOnStartup`. The keys, defaults and rules are in [docs/aspnetcore.md](aspnetcore.md). |
 
 To run the host locally, in the `Development` environment on port 5298:
@@ -44,6 +45,10 @@ dotnet run --project src/OpenHoldemEngine.Server
 ```
 
 It serves the REST API under `/api/holdem` and the health report at `/health`.
+
+### Notes
+
+**SQL Server and TrustServerCertificate.** The `Microsoft.Data.SqlClient` 7 library encrypts connections by default. Most container SQL Server images (including `mcr.microsoft.com/mssql/server:2022-latest`) use self-signed certificates, which fail validation without `TrustServerCertificate=True` in the connection string. Set it there; do not disable SSL altogether. If your SQL Server uses a proper certificate, you can omit this flag.
 
 ## OpenAPI
 

@@ -49,6 +49,7 @@ public sealed class ServerEndToEndTests
             {
                 // Not Development, so appsettings.Development.json cannot hide a missing setting.
                 builder.UseEnvironment("Production");
+                builder.UseSetting("HoldemServer:Provider", "Sqlite");
                 builder.UseSetting("ConnectionStrings:Holdem", $"Data Source={dbFile}");
                 builder.UseSetting("HoldemEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
             });
