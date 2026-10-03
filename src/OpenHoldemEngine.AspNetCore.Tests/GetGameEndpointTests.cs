@@ -127,7 +127,7 @@ public sealed class GetGameEndpointTests
 
         var endpoints = RouteEndpoints(host).Where(e => e.RoutePattern.RawText!.Contains("games")).ToList();
 
-        endpoints.Should().HaveCount(3);
+        endpoints.Should().HaveCount(6);
         foreach (var endpoint in endpoints)
         {
             endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();

@@ -147,6 +147,9 @@ engine with the request's abort token, answers a failure with the problem respon
 | `POST` | `/games` | `CreateGame` | 201 with `GameData`, `Location` header, and an `ETag` | 400 (malformed JSON), 409 `GameAlreadyExists`, 422 `InvalidGameOptions` |
 | `POST` | `/games/{gameId:guid}/start` | `StartGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameAlreadyStarted`, 412 `Conflict`, 422 `InvalidSeat` |
 | `GET` | `/games/{gameId:guid}` | `GetGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 412 `Conflict` |
+| `POST` | `/games/{gameId:guid}/hands` | `StartHand` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `PreviousHandNotEnded`, 412 `Conflict` |
+| `POST` | `/games/{gameId:guid}/actions` | `Play` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`, malformed JSON, numeric enum), 404 `GameNotFound`, 409 `GameFinished`, 412 `Conflict`, 422 `IllegalAction` |
+| `POST` | `/games/{gameId:guid}/finish` | `FinishGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `PreviousHandNotEnded`, 412 `Conflict` |
 
 A `gameId` that is not a GUID does not match the route and answers 404.
 
@@ -175,10 +178,41 @@ A `gameId` that is not a GUID does not match the route and answers 404.
 ```json
 {
   "joinSeats": [
-    { "name": "Alice", "seatNo": 1, "buyIn": 100 },
-    { "name": "Bob", "seatNo": 2, "buyIn": 100 }
+    { "name": "Alice", "seatNo": 1, "buyInAmount": 100 },
+    { "name": "Bob", "seatNo": 2, "buyInAmount": 100 }
   ]
 }
+```
+
+`POST /games/{gameId}/hands` deals the next hand, optionally seating new players (body is optional):
+
+```json
+{
+  "joinSeats": []
+}
+```
+
+`POST /games/{gameId}/actions` plays one action for the seat whose turn it is. For `Raise` and `Bet`, `Size` is the street total to raise or bet *to*, and it is ignored for other actions:
+
+```json
+{
+  "actionType": "Call"
+}
+```
+
+or
+
+```json
+{
+  "actionType": "Raise",
+  "size": 42
+}
+```
+
+`POST /games/{gameId}/finish` closes the game between hands (no body):
+
+```json
+{}
 ```
 
 ### JSON

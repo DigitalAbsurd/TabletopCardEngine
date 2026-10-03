@@ -18,3 +18,20 @@ public sealed record HoldemStartGameRequest
     /// <summary>The players joining the game, in any order.</summary>
     public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
 }
+
+/// <summary>Carries the optional parameters for a <c>POST /games/{gameId}/hands</c> request.</summary>
+public sealed record HoldemStartHandRequest
+{
+    /// <summary>The seats to fill before dealing, for players who sit down between hands. Optional; defaults to an empty list to deal to the players already seated.</summary>
+    public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
+}
+
+/// <summary>Carries the action for a <c>POST /games/{gameId}/actions</c> request.</summary>
+/// <param name="ActionType">What the seat does.</param>
+public sealed record HoldemPlayRequest(PlayerActionType ActionType)
+{
+    /// <summary>
+    /// For a raise or a bet, the street total to raise or bet <i>to</i>; ignored for the other actions.
+    /// </summary>
+    public decimal Size { get; init; }
+}
