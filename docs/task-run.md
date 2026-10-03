@@ -277,6 +277,7 @@ src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migra
 src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
 src/OpenHoldemEngine.AspNetCore/        # the ASP.NET Core integration (ADR-0004); shared framework and the core only
 src/OpenHoldemEngine.AspNetCore.Tests/  # its tests, including the dependency guard
+samples/AspNetCoreSample/               # a runnable host of the ASP.NET Core package; no PackageReference, not packable
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge

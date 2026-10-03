@@ -408,3 +408,6 @@ FodyWeavers.xsd
 # Local, per-machine and possibly holding credentials - never committed.
 # The committed template is agent.claude.json.example.
 agent.*.json
+
+# The AspNetCoreSample database
+samples/AspNetCoreSample/*.db*
