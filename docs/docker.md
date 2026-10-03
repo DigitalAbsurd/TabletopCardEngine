@@ -7,6 +7,26 @@ container strategy, the provider model and the security stance are recorded in
 [ADR-0005](adr/0005-container-host-and-images.md). Each section below is filled in by the issue
 that implements it.
 
+## Quick start
+
+Build the SQLite image, run it, and test the `/health` endpoint:
+
+```bash
+docker build --target sqlite -t openholdemengine:sqlite .
+docker run -d -p 8080:8080 -v holdem-data:/data openholdemengine:sqlite
+curl http://localhost:8080/health
+```
+
+Then create a game:
+
+```bash
+curl -X POST http://localhost:8080/api/holdem/games \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+Both should return 200. Read [Configuration](#configuration) for other database providers.
+
 ## Security
 
 The API returns `GameData` exactly as the engine does, every seat's hole cards included. It is a
@@ -139,4 +159,38 @@ networks it started.
 
 ## Running with compose
 
-Not implemented yet.
+### PostgreSQL
+
+```bash
+docker compose -f docker/compose.postgres.yml up -d --build
+```
+
+The `postgres` service uses a named volume `pgdata` on `/var/lib/postgresql/data` to persist the database. The `server` service reads the connection string from `ConnectionStrings__Holdem` and the database password from `POSTGRES_PASSWORD` (default: `holdem`).
+
+```bash
+docker compose -f docker/compose.postgres.yml down -v
+```
+
+### SQL Server
+
+```bash
+$env:MSSQL_SA_PASSWORD='Probe_Passw0rd!'
+docker compose -f docker/compose.mssql.yml up -d --build
+```
+
+The `mssql` service uses a named volume `mssqldata` on `/var/opt/mssql` to persist the database. The `server` service reads the connection string from `ConnectionStrings__Holdem` and the database password from `MSSQL_SA_PASSWORD`. The password must be at least 8 characters and contain uppercase, lowercase, digit, and symbol characters.
+
+```bash
+docker compose -f docker/compose.mssql.yml down -v
+Remove-Item Env:MSSQL_SA_PASSWORD
+```
+
+### SQLite
+
+SQLite does not need a separate database container. Run a single command:
+
+```bash
+docker run -d -p 8080:8080 -v holdem-data:/data openholdemengine:sqlite
+```
+
+The `sqlite` target keeps its database in `/data`, a named volume `holdem-data`, so the database persists across container restarts.

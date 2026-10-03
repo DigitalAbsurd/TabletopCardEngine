@@ -309,6 +309,7 @@ src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 └── wwwroot/                            # prism.js and prism.css are vendored, not from a CDN
 src/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus service tests
 src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
+docker/                                # compose examples for the PostgreSQL and SQL Server images
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/observability.md                   # the engine's logs, traces and metrics
