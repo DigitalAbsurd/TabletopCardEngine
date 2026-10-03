@@ -144,9 +144,42 @@ engine with the request's abort token, answers a failure with the problem respon
 
 | Method | Path | Engine action | Success | Problem statuses |
 |---|---|---|---|---|
+| `POST` | `/games` | `CreateGame` | 201 with `GameData`, `Location` header, and an `ETag` | 400 (malformed JSON), 409 `GameAlreadyExists`, 422 `InvalidGameOptions` |
+| `POST` | `/games/{gameId:guid}/start` | `StartGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameAlreadyStarted`, 412 `Conflict`, 422 `InvalidSeat` |
 | `GET` | `/games/{gameId:guid}` | `GetGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 412 `Conflict` |
 
 A `gameId` that is not a GUID does not match the route and answers 404.
+
+**Examples.**
+
+`POST /games` with an empty body creates a 6-seat game with 1/2 blinds:
+
+```json
+{}
+```
+
+`POST /games` with options and a game ID:
+
+```json
+{
+  "gameId": "550e8400-e29b-41d4-a716-446655440000",
+  "options": {
+    "maxPlayersCount": 2,
+    "initialSmallBlind": 0.5
+  }
+}
+```
+
+`POST /games/{gameId}/start` joins players to a game:
+
+```json
+{
+  "joinSeats": [
+    { "name": "Alice", "seatNo": 1, "buyIn": 100 },
+    { "name": "Bob", "seatNo": 2, "buyIn": 100 }
+  ]
+}
+```
 
 ### JSON
 

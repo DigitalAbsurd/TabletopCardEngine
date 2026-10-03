@@ -125,9 +125,13 @@ public sealed class GetGameEndpointTests
             map: app => app.MapHoldemEngineApi().RequireAuthorization(),
             configure: b => b.Services.AddAuthorization());
 
-        var endpoint = RouteEndpoints(host).Single(e => e.RoutePattern.RawText!.Contains("games"));
+        var endpoints = RouteEndpoints(host).Where(e => e.RoutePattern.RawText!.Contains("games")).ToList();
 
-        endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        endpoints.Should().HaveCount(3);
+        foreach (var endpoint in endpoints)
+        {
+            endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>().Should().NotBeEmpty();
+        }
     }
 
     [TestMethod]
