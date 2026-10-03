@@ -107,6 +107,8 @@ Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyCon
 ```
 
 An empty result means the ports are free. A run is not finished while a listener is still up.
+The container host, `src/OpenHoldemEngine.Server`, listens on port 5298 under `dotnet run`, so a
+step that starts it checks that port the same way: `-LocalPort 5298`.
 
 ## What "done" means
 
@@ -278,6 +280,8 @@ src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, fo
 src/OpenHoldemEngine.AspNetCore/        # the ASP.NET Core integration (ADR-0004); shared framework and the core only
 src/OpenHoldemEngine.AspNetCore.Tests/  # its tests, including the dependency guard
 samples/AspNetCoreSample/               # a runnable host of the ASP.NET Core package; no PackageReference, not packable
+src/OpenHoldemEngine.Server/            # the container host: REST API, health, ENV config; not packable
+src/OpenHoldemEngine.Server.Tests/      # its tests
 src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge

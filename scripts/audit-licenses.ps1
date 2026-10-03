@@ -40,6 +40,7 @@ $sections = [ordered]@{
     'OpenHoldemEngine.SqlServer' = 'OpenHoldemEngine.SqlServer'
     'OpenHoldemEngine.InMemory' = 'OpenHoldemEngine.InMemory'
     'OpenHoldemEngine.Demo' = 'OpenHoldemEngine.Demo'
+    'OpenHoldemEngine.Server' = 'OpenHoldemEngine.Server'
 }
 $testSection = 'Test and development only'
 
