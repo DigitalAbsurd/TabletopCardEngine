@@ -363,7 +363,34 @@ Every error returned by the engine comes back as an HTTP problem response with a
 
 ### OpenAPI
 
-Not implemented yet.
+Every endpoint is annotated with metadata for OpenAPI document generation: `WithName`, `WithTags`, `WithSummary`, `WithDescription`, and response type declarations (`Produces<GameData>`, `ProducesProblem`). The package ships no document generator — the host supplies its own with `Microsoft.AspNetCore.OpenApi` or a third-party package like Swashbuckle.
+
+**With `Microsoft.AspNetCore.OpenApi`:**
+
+```csharp
+builder.Services.AddOpenApi();
+app.MapOpenApi();
+app.MapHoldemEngineApi();
+```
+
+The generated document will include the engine's endpoints under the tag `OpenHoldemEngine`.
+
+**With Swashbuckle:**
+
+```csharp
+builder.Services.AddSwaggerGen();
+app.UseSwagger();
+app.UseSwaggerUI();
+app.MapHoldemEngineApi();
+```
+
+**Grouping the API in its own document.** Call `WithGroupName` on the returned route group to put the API in a separate document:
+
+```csharp
+app.MapHoldemEngineApi().WithGroupName("holdem");
+```
+
+Both `Microsoft.AspNetCore.OpenApi` and Swashbuckle will then generate a separate document for the engine endpoints.
 
 ### Security
 
