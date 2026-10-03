@@ -52,6 +52,21 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.GetGame(gameId), data => TypedResults.Ok(data)))
             .WithName("HoldemGetGame");
 
+        group.MapPost("/games/{gameId:guid}/hands", (HoldemStartHandRequest? request, Guid gameId, HttpContext context, HoldemEngine engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.StartHand(gameId, [.. (request?.JoinSeats ?? [])]),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemStartHand");
+
+        group.MapPost("/games/{gameId:guid}/actions", (HoldemPlayRequest request, Guid gameId, HttpContext context, HoldemEngine engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.Play(gameId, request.ActionType, request.Size),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemPlay");
+
+        group.MapPost("/games/{gameId:guid}/finish", (Guid gameId, HttpContext context, HoldemEngine engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.FinishGame(gameId),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemFinishGame");
+
         return group;
     }
 }
