@@ -74,6 +74,8 @@ It is recommended to dedicate a database, or at least a login, to the engine.
 
 `HoldemSchema.Version` is an integer, bumped by one in the same change as every migration. `HoldemSchema.EngineVersion` is the release that introduced the schema version.
 
+A migration requires at least a minor release, never a patch, and `EngineVersion` is that release's version without a pre-release suffix. See [docs/versioning.md#the-database-schema-and-the-package-version](versioning.md#the-database-schema-and-the-package-version).
+
 The schema version row is model seed data (`HasData`), so each migration writes it.
 
 ### Start-up rule
@@ -94,7 +96,7 @@ Migrations are written per the following rules:
 
 1. **Add migrations only with `pwsh ./scripts/add-migration.ps1 -Name AddSomething`.** Never run `dotnet ef migrations add` for one provider alone. The script generates the migration for every supported provider at once.
 
-2. **Bump `HoldemSchema.Version` in the same change as every migration.** Also bump `EngineVersion` when the release changes. Make the changes to `HoldemSchema` itself and to the seed data (`HasData`) in each provider's migration in the same commit.
+2. **Bump `HoldemSchema.Version` in the same change as every migration.** Also bump `EngineVersion` when the release changes. Make the changes to `HoldemSchema` itself and to the seed data (`HasData`) in each provider's migration in the same commit. A migration requires at least a minor release; see [docs/versioning.md#the-database-schema-and-the-package-version](versioning.md#the-database-schema-and-the-package-version).
 
 3. **Renames use `migrationBuilder.RenameColumn` / `RenameTable`.** The scaffolder often writes a drop and add instead. Review every generated `Up` method and replace drop + add with a rename. A drop and add on a populated table loses the column's data.
 

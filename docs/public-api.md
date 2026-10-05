@@ -21,7 +21,8 @@ package validation; only `pack` does, which is why it is one of the gates.
 
 What it does not catch: ApiCompat compares the binary surface, so a change that only breaks source
 compatibility, such as removing a parameter's default value, passes. Review that by hand, against the
-signatures below.
+signatures below. A break that the gate reports, or a source break it misses, is a major version under
+[versioning.md](versioning.md).
 
 The baseline is a committed file rather than a published version because there is no published
 version yet. Once 1.0.0 is on nuget.org, the project switches to `PackageValidationBaselineVersion`.
