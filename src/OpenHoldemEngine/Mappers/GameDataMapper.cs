@@ -72,6 +72,10 @@ internal static class GameDataMapper
                     Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
                     CommunityCards: new EquatableList<Card>(currentHand.GetDeckCards()),
                     Evaluations: evaluations)
+                {
+                    SmallBlind = game.InitialSmallBlind,
+                    BigBlind = game.InitialSmallBlind * 2,
+                }
                 : null);
     }
 

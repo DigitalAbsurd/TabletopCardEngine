@@ -66,6 +66,12 @@ public record HandData(
     IReadOnlyList<Card> CommunityCards,
     IReadOnlyList<PlayerActionEvaluationData> Evaluations)
 {
+    /// <summary>The nominal small blind of this hand. Read the blinds here rather than deriving them from <see cref="GameOptionData"/>: a later release may vary them from hand to hand.</summary>
+    public decimal SmallBlind { get; init; }
+
+    /// <summary>The nominal big blind of this hand. A seat short of it posts what it has (see <see cref="SeatData.LastAction"/>), so this is the level, not the amount posted.</summary>
+    public decimal BigBlind { get; init; }
+
     /// <summary>The most recent action taken by anyone in this hand.</summary>
     public PlayerActionData GetLastAction()
         => Seats.Where(seat => seat.LastAction is not null)

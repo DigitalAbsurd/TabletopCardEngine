@@ -336,7 +336,7 @@ The fixed rules a game is created with; they never change once the game exists.
 - `GameType GameType { get; init; }` — The poker variant.
 - `BettingStructure BettingStructure { get; init; }` — How bets are sized.
 - `int MaxPlayersCount { get; init; }` — How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release.
-- `decimal InitialSmallBlind { get; init; }` — The small blind; the big blind is always twice this.
+- `decimal InitialSmallBlind { get; init; }` — The small blind of every hand in this release; the big blind is twice this.
 - `byte InitialDealerSeatNo { get; init; }` — Where the button sits for the first hand.
 
 #### `HandData` (record)
@@ -355,6 +355,8 @@ The current hand: who is in it, what is on the board, and what the seat to act m
 - `decimal Pot { get; init; }` — Everything contributed on prior streets — `StreetPot` is not included.
 - `IReadOnlyList<Card> CommunityCards { get; init; }` — The board, in dealt order.
 - `IReadOnlyList<PlayerActionEvaluationData> Evaluations { get; init; }` — What `NextPlayerSeatNo` may legally do; empty when it is nobody's turn.
+- `decimal SmallBlind { get; init; }` — The nominal small blind of this hand.
+- `decimal BigBlind { get; init; }` — The nominal big blind of this hand.
 - `PlayerActionData GetLastAction()` — The most recent action taken by anyone in this hand.
 
 #### `HandResultData` (record)

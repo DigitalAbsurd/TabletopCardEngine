@@ -85,6 +85,10 @@ public sealed class HoldemEngineTests
                     new(PlayerActionType.Call, 10, 10),
                     new(PlayerActionType.Raise, 15, 100)
                 ])
+            {
+                SmallBlind = 5M,
+                BigBlind = 10M,
+            }
             );
 
         GameData actualGameData;
