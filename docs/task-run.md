@@ -388,7 +388,7 @@ renumber.
     `v*` tag, with no `pull_request`, `branches` or `workflow_dispatch`. Its jobs are `build` (build, format, tests, pack,
     the package-version-matches-the-tag check, the browser gate), `providers` (the provider matrix of fact 28), `docker` (a matrix over the three targets; builds and checks the label; never pushes), `release`
     (the only job with `contents: write`; needs `build`, `providers` and `docker`; packs the seven packages, checks that each carries the tag's version, and creates the GitHub Release with the git-cliff notes and the `.nupkg` files, a pre-release when the tag has `-`), plus
-    `deploy-demo` for a tag without `-`, which needs `release` and calls `deploy-demo.yml`. A release created with `GITHUB_TOKEN` starts no
+    `deploy-demo` for a tag without `-`, which needs `release` and calls `deploy-demo.yml`. `publish-nuget` and `publish-docker` are placeholder jobs (`if: ${{ false }}`; never run) that will be enabled in the milestone `v1.0 · NuGet packages & public launch`. A release created with `GITHUB_TOKEN` starts no
     other workflow, so the deploy is called rather than triggered. `deploy-demo.yml` is a called workflow, plus
     `workflow_dispatch` for a manual redeploy. Both declare a `permissions:` block, which means every scope it
     does not list is dropped to *none*; a called workflow gets no more than its caller job grants, which is why
