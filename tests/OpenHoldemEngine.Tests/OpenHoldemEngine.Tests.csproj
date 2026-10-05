@@ -41,12 +41,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
-    <ProjectReference Include="..\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj" />
-    <ProjectReference Include="..\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
-    <ProjectReference Include="..\OpenHoldemEngine.InMemory\OpenHoldemEngine.InMemory.csproj" />
-    <ProjectReference Include="..\OpenHoldemEngine.PostgreSql\OpenHoldemEngine.PostgreSql.csproj" />
-    <ProjectReference Include="..\OpenHoldemEngine.SqlServer\OpenHoldemEngine.SqlServer.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.InMemory\OpenHoldemEngine.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.PostgreSql\OpenHoldemEngine.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.SqlServer\OpenHoldemEngine.SqlServer.csproj" />
   </ItemGroup>
 
 </Project>

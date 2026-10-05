@@ -20,12 +20,13 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions.Json" Version="6.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
-    <PackageReference Include="Testcontainers.MsSql" Version="4.15.0" />
-    <PackageReference Include="Testcontainers.PostgreSql" Version="4.15.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenHoldemEngine.Server\OpenHoldemEngine.Server.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.AspNetCore\OpenHoldemEngine.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.InMemory\OpenHoldemEngine.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\..\samples\AspNetCoreSample\AspNetCoreSample.csproj" />
   </ItemGroup>
 
 </Project>

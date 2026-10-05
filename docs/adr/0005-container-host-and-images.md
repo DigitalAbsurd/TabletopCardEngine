@@ -19,7 +19,7 @@ reopen them.
 Three options were on the table:
 
 - **`src/OpenHoldemEngine.Server`, a separate host project — chosen.** A .NET 10 executable
-  (`Microsoft.NET.Sdk.Web`, `IsPackable=false`) with tests in `src/OpenHoldemEngine.Server.Tests`.
+  (`Microsoft.NET.Sdk.Web`, `IsPackable=false`) with tests in `tests/OpenHoldemEngine.Server.Tests`.
 - `OpenHoldemEngine.AspNetCore` itself as the host. The package is a packable library with an API
   baseline and no `PackageReference` (ADR-0004, guarded by `AspNetCorePackageTests`). An image
   needs an executable that references all three providers and an OpenAPI generator. Putting the

@@ -128,7 +128,7 @@ orchestrator or a load balancer.
 
 ## Testing the images
 
-`ContainerImageTests` in `src/OpenHoldemEngine.Server.Tests` is the gate for the images. It builds
+`ContainerImageTests` in `tests/OpenHoldemEngine.Server.Tests` is the gate for the images. It builds
 the `sqlite`, `postgres` and `mssql` targets from this `Dockerfile` once per run, one after another,
 and runs each image on a Docker network of its own. The `postgres` and `mssql` images run next to a
 `postgres:16-alpine` or `mcr.microsoft.com/mssql/server:2022-latest` container aliased `db`. Each image
@@ -150,7 +150,7 @@ The gate needs Docker and runs only with `OHE_TEST_CONTAINERS=1`. Without it eve
 inconclusive. From the repository root:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
 ```
 
 The first run builds the images, which takes a few minutes. The test images are tagged

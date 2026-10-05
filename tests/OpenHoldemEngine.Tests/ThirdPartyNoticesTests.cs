@@ -6,7 +6,7 @@ using System.Xml.Linq;
 namespace OpenHoldemEngine.Tests;
 
 /// <summary>
-/// Keeps <c>THIRD-PARTY-NOTICES.md</c> true to what the projects under <c>src/</c> reference. Every
+/// Keeps <c>THIRD-PARTY-NOTICES.md</c> true to what the projects under <c>src/</c> and <c>tests/</c> reference. Every
 /// NuGet package a project references directly must have a row in the notices' package inventory
 /// with the license its nuspec declares, and the inventory must not keep rows for packages no
 /// project references. The inventory skips transitive packages, but their licenses are still
@@ -18,6 +18,9 @@ namespace OpenHoldemEngine.Tests;
 public sealed partial class ThirdPartyNoticesTests
 {
     private const string NoticesFileName = "THIRD-PARTY-NOTICES.md";
+
+    /// <summary>The top-level folders whose projects the notices cover; <c>samples/</c> has no package references on purpose.</summary>
+    private static readonly string[] _projectRoots = ["src", "tests"];
 
     // The same allowlist scripts/audit-licenses.ps1 enforces.
     private static readonly HashSet<string> _permissiveLicenses =
@@ -162,7 +165,7 @@ public sealed partial class ThirdPartyNoticesTests
     }
 
     /// <summary>
-    /// Every NuGet package restore resolved for any project under <c>src/</c> (<c>Resolved</c>), and
+    /// Every NuGet package restore resolved for any project under <c>src/</c> or <c>tests/</c> (<c>Resolved</c>), and
     /// the subset some project references itself (<c>Direct</c>), both keyed <c>Id/Version</c> with
     /// the license its nuspec declares. The packages the SDK adds on its own, such as
     /// <c>Microsoft.NET.ILLink.Tasks</c>, are <c>autoReferenced</c> in the assets file and are not
@@ -170,8 +173,8 @@ public sealed partial class ThirdPartyNoticesTests
     /// </summary>
     private static (Dictionary<string, string> Resolved, Dictionary<string, string> Direct) ReadPackages()
     {
-        var projects = Directory
-            .EnumerateFiles(Path.Combine(RepositoryRoot.FullPath, "src"), "*.csproj", SearchOption.AllDirectories)
+        var projects = _projectRoots
+            .SelectMany(folder => Directory.EnumerateFiles(Path.Combine(RepositoryRoot.FullPath, folder), "*.csproj", SearchOption.AllDirectories))
             .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
                 && !path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
             .ToList();

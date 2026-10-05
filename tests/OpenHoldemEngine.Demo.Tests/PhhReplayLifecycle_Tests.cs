@@ -169,8 +169,8 @@ public sealed class PhhReplayLifecycle_Tests
         // Arrange: Load hand 3 from the bundled sample
         var samplePath = Path.Combine(
             AppContext.BaseDirectory,
-            "..", "..", "..", "..",
-            "OpenHoldemEngine.Demo", "wwwroot", "sample", "sample.phhs");
+            "..", "..", "..", "..", "..",
+            "src", "OpenHoldemEngine.Demo", "wwwroot", "sample", "sample.phhs");
         samplePath = Path.GetFullPath(samplePath);
 
         var phhsText = await File.ReadAllTextAsync(samplePath);

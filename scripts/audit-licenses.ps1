@@ -3,7 +3,7 @@
     Lists the NuGet packages the solution references directly, with the license each nuspec declares.
 
 .DESCRIPTION
-    Reads obj/project.assets.json of every project under src/ (run `dotnet restore` first), looks
+    Reads obj/project.assets.json of every project under src/ and tests/ (run `dotnet restore` first), looks
     each package's nuspec up in the NuGet package folders the assets file names, and prints five
     Markdown tables in the shape THIRD-PARTY-NOTICES.md uses:
 
@@ -95,7 +95,7 @@ function Get-PackageLicense([string[]] $packageFolders, [string] $path, [string]
 
 $packages = @{}
 $direct = @{}
-foreach ($project in Get-ChildItem (Join-Path $repoRoot 'src') -Recurse -Filter '*.csproj' |
+foreach ($project in ('src', 'tests' | ForEach-Object { Get-ChildItem (Join-Path $repoRoot $_) -Recurse -Filter '*.csproj' }) |
         Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' }) {
     $assetsFile = Join-Path $project.DirectoryName 'obj/project.assets.json'
     if (-not (Test-Path $assetsFile)) {

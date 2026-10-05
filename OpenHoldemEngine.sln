@@ -16,15 +16,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Tests", "src\OpenHoldemEngine.Tests\OpenHoldemEngine.Tests.csproj", "{10418B4A-1E5A-4110-BCCD-219B5689BDA4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Tests", "tests\OpenHoldemEngine.Tests\OpenHoldemEngine.Tests.csproj", "{10418B4A-1E5A-4110-BCCD-219B5689BDA4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Demo", "src\OpenHoldemEngine.Demo\OpenHoldemEngine.Demo.csproj", "{2855D805-3582-4B2F-84D5-6C4539E8A8B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Demo.Tests", "src\OpenHoldemEngine.Demo.Tests\OpenHoldemEngine.Demo.Tests.csproj", "{0F36785E-BF7A-4CB8-8BAC-7C8D4EE5665F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Demo.Tests", "tests\OpenHoldemEngine.Demo.Tests\OpenHoldemEngine.Demo.Tests.csproj", "{0F36785E-BF7A-4CB8-8BAC-7C8D4EE5665F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Demo.BrowserTests", "src\OpenHoldemEngine.Demo.BrowserTests\OpenHoldemEngine.Demo.BrowserTests.csproj", "{5A3E0C17-AE16-44E0-8F01-E0FA56531EF8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Demo.BrowserTests", "tests\OpenHoldemEngine.Demo.BrowserTests\OpenHoldemEngine.Demo.BrowserTests.csproj", "{5A3E0C17-AE16-44E0-8F01-E0FA56531EF8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.OpenTelemetry", "src\OpenHoldemEngine.OpenTelemetry\OpenHoldemEngine.OpenTelemetry.csproj", "{F186A95B-3FA6-4C8F-83DE-847F24BF60B8}"
 EndProject
@@ -38,7 +38,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.SqlServer"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.AspNetCore", "src\OpenHoldemEngine.AspNetCore\OpenHoldemEngine.AspNetCore.csproj", "{225AE025-9349-4809-BA50-EB386B7CA788}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.AspNetCore.Tests", "src\OpenHoldemEngine.AspNetCore.Tests\OpenHoldemEngine.AspNetCore.Tests.csproj", "{D95A948A-649B-4644-98DD-CE62C00A2186}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.AspNetCore.Tests", "tests\OpenHoldemEngine.AspNetCore.Tests\OpenHoldemEngine.AspNetCore.Tests.csproj", "{D95A948A-649B-4644-98DD-CE62C00A2186}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
 EndProject
@@ -46,7 +46,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCoreSample", "samples
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Server", "src\OpenHoldemEngine.Server\OpenHoldemEngine.Server.csproj", "{71A8C811-2A65-4A9C-9842-79DC322697F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Server.Tests", "src\OpenHoldemEngine.Server.Tests\OpenHoldemEngine.Server.Tests.csproj", "{E6F1D542-671A-4F67-8C3E-DE369898D3EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenHoldemEngine.Server.Tests", "tests\OpenHoldemEngine.Server.Tests\OpenHoldemEngine.Server.Tests.csproj", "{E6F1D542-671A-4F67-8C3E-DE369898D3EC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{CB844307-B448-4A29-95B4-3534946A2D07}"
 EndProject

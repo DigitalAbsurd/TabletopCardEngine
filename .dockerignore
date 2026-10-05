@@ -18,5 +18,6 @@ agent.*.json
 # Not needed to build the host. global.json, Directory.Build.props, .editorconfig and src/ must stay.
 docs/
 samples/
+tests/
 eng/
 scripts/

@@ -3,7 +3,7 @@
     Rebuilds the vendored PHH test fixture from the upstream phh-dataset repository.
 
 .DESCRIPTION
-    Produces src/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz — every hand of the
+    Produces tests/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz — every hand of the
     `data/pluribus` subset packed into a single gzipped .phhs file (TOML array of tables with
     numeric headers, the layout pokerkit's HandHistory.dump_all emits, so the fixture stays
     readable by third-party PHH tooling).
@@ -22,8 +22,8 @@
 param(
     # Existing checkout of phh-dataset. When omitted, a temporary sparse clone is made and removed.
     [string] $DatasetPath,
-    [string] $OutputPath = (Join-Path $PSScriptRoot '../src/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz'),
-    [string] $LicenseOutputPath = (Join-Path $PSScriptRoot '../src/OpenHoldemEngine.Tests/Resources/phh/LICENSE-phh-dataset.txt')
+    [string] $OutputPath = (Join-Path $PSScriptRoot '../tests/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz'),
+    [string] $LicenseOutputPath = (Join-Path $PSScriptRoot '../tests/OpenHoldemEngine.Tests/Resources/phh/LICENSE-phh-dataset.txt')
 )
 
 $ErrorActionPreference = 'Stop'

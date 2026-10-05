@@ -88,10 +88,10 @@ and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no 
 
 ```bash
 # once: install the browser (the fixture also does this, with the same effect)
-pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
 # the gate itself
-OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
+OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
 ```
 
 On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
@@ -110,7 +110,7 @@ Environment variables:
 To run one check:
 
 ```bash
-OHE_TEST_BROWSER_GATE=1 dotnet run --project src/OpenHoldemEngine.Demo.BrowserTests -- --filter "FullyQualifiedName~HasNoHorizontalOverflow"
+OHE_TEST_BROWSER_GATE=1 dotnet run --project tests/OpenHoldemEngine.Demo.BrowserTests -- --filter "FullyQualifiedName~HasNoHorizontalOverflow"
 ```
 
 CI runs the gate as its own step in [ci.yml](../../.github/workflows/ci.yml), after the ordinary

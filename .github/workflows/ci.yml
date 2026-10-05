@@ -76,22 +76,22 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('src/OpenHoldemEngine.Demo.BrowserTests/*.csproj') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('tests/OpenHoldemEngine.Demo.BrowserTests/*.csproj') }}
 
       - name: Install Playwright browsers
         if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+        run: pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
       # The cache holds the browser only; the system packages it needs are not cached.
       - name: Install Playwright system dependencies
         if: steps.gate.outputs.run == 'true' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install-deps chromium
+        run: pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install-deps chromium
 
       - name: Run browser layout gate
         if: steps.gate.outputs.run == 'true'
         env:
           OHE_TEST_BROWSER_GATE: "1"
-        run: dotnet test src/OpenHoldemEngine.Demo.BrowserTests
+        run: dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
 
   # PostgreSQL and SQL Server in Docker through Testcontainers (docs/task-run.md, fact 28). Kept out of
   # the build job, which is already the slowest thing in CI. It runs on every push to main and on a
@@ -121,7 +121,7 @@ jobs:
             run=true
           elif [ "$EVENT_NAME" = "pull_request" ]; then
             changed=$(git diff --name-only "origin/$BASE_REF...HEAD")
-            if echo "$changed" | grep -qE '^src/OpenHoldemEngine/Data/|^src/OpenHoldemEngine\.(Sqlite|PostgreSql|SqlServer)/|^src/OpenHoldemEngine\.Tests/Persistence/|^scripts/add-migration\.ps1$|^\.github/workflows/ci\.yml$'; then
+            if echo "$changed" | grep -qE '^src/OpenHoldemEngine/Data/|^src/OpenHoldemEngine\.(Sqlite|PostgreSql|SqlServer)/|^tests/OpenHoldemEngine\.Tests/Persistence/|^scripts/add-migration\.ps1$|^\.github/workflows/ci\.yml$'; then
               run=true
             else
               echo "::notice::Provider tests skipped: this pull request touches none of Data/, the relational provider packages, Tests/Persistence/, scripts/add-migration.ps1 or ci.yml."
@@ -135,4 +135,4 @@ jobs:
         if: steps.scope.outputs.run == 'true'
         env:
           OHE_TEST_CONTAINERS: "1"
-        run: dotnet run --project src/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+        run: dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"

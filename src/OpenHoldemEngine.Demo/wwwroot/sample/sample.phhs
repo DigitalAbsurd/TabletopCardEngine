@@ -1,6 +1,6 @@
 # Poker hand histories in PHH format, sample subset for demo.
 # Source: Pluribus subset of the PHH dataset (https://github.com/uoftcprg/phh-dataset.git)
-# MIT License — see LICENSE-phh-dataset.txt in src/OpenHoldemEngine.Tests/Resources/phh/
+# MIT License — see LICENSE-phh-dataset.txt in tests/OpenHoldemEngine.Tests/Resources/phh/
 # These ten hands are a representative sample suitable for learning and testing.
 
 # pluribus/30/0.phh

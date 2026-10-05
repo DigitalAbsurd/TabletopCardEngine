@@ -40,8 +40,8 @@ It exits 0 having run everything, and tells you nothing. Pass the filter to the 
 instead:
 
 ```
-dotnet run --project src/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
-dotnet run --project src/OpenHoldemEngine.Tests -- --list-tests
+dotnet run --project tests/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
+dotnet run --project tests/OpenHoldemEngine.Tests -- --list-tests
 ```
 
 Test-only environment variables:
@@ -51,7 +51,7 @@ Test-only environment variables:
 | `OHE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. The file is deleted and migrated fresh on each `Setup`. |
 | `OHE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
 | `OHE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
-| `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
+| `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `tests/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
 | `OHE_TEST_CONTAINERS=1` | Runs the `PostgreSql` and `SqlServer` rows of the provider matrix in Docker through Testcontainers (fact 28). Needs Docker; without it those rows are inconclusive. |
 
 The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
@@ -61,13 +61,13 @@ is still the preferred way: a local run costs less than the browser install and 
 CI, and the task cannot merge until `gh pr checks --watch` has seen them finish.
 
 ```
-OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests
+OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
 ```
 
 The first local run needs the browser (build the solution first, so the script exists):
 
 ```
-pwsh src/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
+pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
 CI runs the gate as well, and installing the browser plus running the gate is the slowest part of
@@ -87,29 +87,29 @@ back. The label has no effect on a pull request from a fork, and a push to `main
 gate in full, so a wrong label shows up after the merge at the latest.
 
 **Provider tests.** A task that touches `src/OpenHoldemEngine/Data/`, a relational provider package
-(`OpenHoldemEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `src/OpenHoldemEngine.Tests/Persistence/`,
-`src/OpenHoldemEngine.Server/`, `src/OpenHoldemEngine.Server.Tests/`,
+(`OpenHoldemEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `tests/OpenHoldemEngine.Tests/Persistence/`,
+`src/OpenHoldemEngine.Server/`, `tests/OpenHoldemEngine.Server.Tests/`,
 `scripts/add-migration.ps1` or `.github/workflows/ci.yml` should run the provider matrix locally on
 PostgreSQL and SQL Server when Docker is available, and quote the summary line. A task that touches the
 server or its tests runs the second command as well:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
-OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
 Without Docker, say so in the pull request: CI's `providers` job runs the same command on every push
 to `main` and on every pull request touching those paths, and it is their gate (fact 28).
 
 **Container image tests.** A task that touches `Dockerfile`, `.dockerignore`,
-`src/OpenHoldemEngine.Server/`, `src/OpenHoldemEngine.Server.Tests/`, `Directory.Build.props` or
+`src/OpenHoldemEngine.Server/`, `tests/OpenHoldemEngine.Server.Tests/`, `Directory.Build.props` or
 `.editorconfig` runs the command below locally and quotes the summary line. It builds the `sqlite`,
 `postgres` and `mssql` targets of the `Dockerfile` and drives each image over HTTP next to a database
 container of its own (`ContainerImageTests`). It needs Docker, and the first run builds the images,
 which takes a few minutes:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project src/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
 ```
 
 **Any step that starts the dev server must end by stopping it.** `Ctrl+C` in its terminal, then
@@ -297,11 +297,11 @@ src/OpenHoldemEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migr
 src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations
 src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
 src/OpenHoldemEngine.AspNetCore/        # the ASP.NET Core integration (ADR-0004); shared framework and the core only
-src/OpenHoldemEngine.AspNetCore.Tests/  # its tests, including the dependency guard
+tests/OpenHoldemEngine.AspNetCore.Tests/  # its tests, including the dependency guard
 samples/AspNetCoreSample/               # a runnable host of the ASP.NET Core package; no PackageReference, not packable
 src/OpenHoldemEngine.Server/            # the container host: REST API, health, ENV config; not packable
-src/OpenHoldemEngine.Server.Tests/      # its tests
-src/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
+tests/OpenHoldemEngine.Server.Tests/      # its tests
+tests/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
 src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge
 ├── Services/                           # DemoGameSession, EngineCallJournal, SqliteBrowser
@@ -312,8 +312,8 @@ src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 │   └── EngineCalls/                    # the call log with syntax highlighting
 ├── Pages/
 └── wwwroot/                            # prism.js and prism.css are vendored, not from a CDN
-src/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus service tests
-src/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
+tests/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus service tests
+tests/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
 docker/                                # compose examples for the PostgreSQL and SQL Server images
 docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
@@ -398,7 +398,7 @@ renumber.
     pull request carries `browser-gate-local` (see [Gates](#gates)). The second job, `providers`, runs
     the provider matrix on PostgreSQL and SQL Server (fact 28) on every push to `main` and on a pull
     request whose diff touches `src/OpenHoldemEngine/Data/`, `src/OpenHoldemEngine.(Sqlite|PostgreSql|SqlServer)/`,
-    `src/OpenHoldemEngine.Tests/Persistence/`, `scripts/add-migration.ps1` or `ci.yml`; on any other
+    `tests/OpenHoldemEngine.Tests/Persistence/`, `scripts/add-migration.ps1` or `ci.yml`; on any other
     pull request it skips with a `::notice::`.
 20. **AntDesign has no catch-all for unknown parameters.** The base chain `AntDomComponentBase` to
     `AntComponentBase` exposes only `Class`, `ClassMapper`, `ComponentIdGenerator`, `ConfigProvider`,
@@ -423,7 +423,7 @@ renumber.
     dragged the page off its own left edge, and a grid that squeezed its rows until the side panels
     painted over the table all shipped with every gate green and an empty console.
     <br>— CSS is not analysed at all, so a stylesheet can parse, ship and do nothing.
-    <br>The honest gate for a layout defect is a real browser: `src/OpenHoldemEngine.Demo.BrowserTests`
+    <br>The honest gate for a layout defect is a real browser: `tests/OpenHoldemEngine.Demo.BrowserTests`
     (Playwright + MSTest, behind `OHE_TEST_BROWSER_GATE`, wired into `ci.yml`) covers horizontal
     overflow, hit-testing of the action controls, the scroll container and console errors. It covers
     nothing else, so a Definition of done outside its reach must name a measurement — a console probe
@@ -530,7 +530,7 @@ table's height budget is tightest. And the dev server has to be stopped afterwar
 
 1. `dotnet build` and `dotnet test` from the repository root — the analyzer relaxations for the demo
    must not have loosened anything for the library or the tests.
-2. `OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests` passes. Then revert one
+2. `OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests` passes. Then revert one
    layout fix in a working tree and confirm the gate goes red — a gate that has never been seen to fail
    has not been shown to work — and put it back.
 3. Open the demo with the console open and touch nothing: no exception, no `does not have a property

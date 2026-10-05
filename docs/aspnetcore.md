@@ -34,7 +34,7 @@ Its `appsettings.json` points `ConnectionStrings:Holdem` at `holdem.db` and sets
    answers `201` with `ETag: "1"` and a `Location` header.
 4. Stop the server and delete `samples/AspNetCoreSample/holdem.db` (git ignores it).
 
-`SampleEndToEndTests` in `src/OpenHoldemEngine.AspNetCore.Tests` runs the same sample through
+`SampleEndToEndTests` in `tests/OpenHoldemEngine.AspNetCore.Tests` runs the same sample through
 `WebApplicationFactory<Program>` on a temporary database file: a game from creation to finish, a stale
 `If-Match` answered with 412 `Conflict`, and the health check in both the migrated and the unmigrated
 state. The sample's `Program` is `internal` and reaches the tests through `InternalsVisibleTo`.

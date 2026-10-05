@@ -111,8 +111,8 @@ downloads its browsers at test time, and no browser is committed or redistribute
 
 The following hand histories come from the [PHH dataset](https://github.com/uoftcprg/phh-dataset):
 
-- `src/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz`
-- `src/OpenHoldemEngine.Tests/Resources/phh/handhq-headsup.phhs.gz`
+- `tests/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz`
+- `tests/OpenHoldemEngine.Tests/Resources/phh/handhq-headsup.phhs.gz`
 - `src/OpenHoldemEngine.Demo/wwwroot/sample/sample.phhs`, ten Pluribus hands
 
 The two test corpora are pinned to upstream commit `e47fbd5816372360bade4de5d712346fe1bb70f6`. The
@@ -151,7 +151,7 @@ The dataset in turn compiles hands from other sources:
 
 This repository redistributes those records under the dataset's MIT grant, and every copy keeps the
 dataset's copyright notice beside it (`LICENSE-phh-dataset.txt`).
-[The fixture README](src/OpenHoldemEngine.Tests/Resources/phh/README.md) covers provenance and
+[The fixture README](tests/OpenHoldemEngine.Tests/Resources/phh/README.md) covers provenance and
 citation.
 
 ## Package inventory

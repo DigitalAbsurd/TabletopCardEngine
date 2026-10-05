@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
-    <ProjectReference Include="..\OpenHoldemEngine.Demo\OpenHoldemEngine.Demo.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+    <ProjectReference Include="..\..\src\OpenHoldemEngine.Demo\OpenHoldemEngine.Demo.csproj" />
     <ProjectReference Include="..\OpenHoldemEngine.Tests\OpenHoldemEngine.Tests.csproj" />
   </ItemGroup>
 

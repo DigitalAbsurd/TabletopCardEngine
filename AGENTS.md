@@ -52,31 +52,31 @@ See [docs/docker.md](docs/docker.md) for how to run the images and how to use co
 Run a single test — **`dotnet test --filter` is silently ignored here** (MSTest.Sdk 3.6.1 / Microsoft.Testing.Platform); the filter must be passed to the test app itself:
 
 ```bash
-dotnet run --project src/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
+dotnet run --project tests/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
 ```
 
 ```bash
-dotnet run --project src/OpenHoldemEngine.Tests -- --list-tests
+dotnet run --project tests/OpenHoldemEngine.Tests -- --list-tests
 ```
 
 The ASP.NET Core package's tests are a separate assembly and run the same way:
 
 ```bash
-dotnet run --project src/OpenHoldemEngine.AspNetCore.Tests -- --filter "FullyQualifiedName~Package_DependsOnly"
+dotnet run --project tests/OpenHoldemEngine.AspNetCore.Tests -- --filter "FullyQualifiedName~Package_DependsOnly"
 ```
 
 The container host's tests are a third assembly:
 
 ```bash
-dotnet run --project src/OpenHoldemEngine.Server.Tests -- --filter "FullyQualifiedName~ServerEndToEnd"
+dotnet run --project tests/OpenHoldemEngine.Server.Tests -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
-Test-only environment variables (read in `TestEngineHost`, `PhhFixture` and `Persistence/TestDatabase`, and `OHE_TEST_BROWSER_GATE` in `src/OpenHoldemEngine.Demo.BrowserTests`):
+Test-only environment variables (read in `TestEngineHost`, `PhhFixture` and `Persistence/TestDatabase`, and `OHE_TEST_BROWSER_GATE` in `tests/OpenHoldemEngine.Demo.BrowserTests`):
 
 - `OHE_TEST_SQLITE_DB3_FILE_NAME` — write the SQLite DB to a file instead of `:memory:`, so the schema/rows can be inspected after a run.
 - `OHE_TEST_SQL_DEBUG=true` — log EF SQL with sensitive data to the debug output (DEBUG builds only).
 - `OHE_TEST_PHH_HAND_LIMIT` — how many hands of the PHH corpus `PhhPluribusReplay_Test` replays (default 500; `0` replays all 10 000, about four minutes). A capped run takes an evenly spaced sample, not the first N hands, so it still reaches every table in the corpus.
-- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `src/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test src/OpenHoldemEngine.Demo.BrowserTests`). CI skips the gate on a pull request labelled `browser-gate-local`, meaning it was run locally; the rules are in [docs/task-run.md](docs/task-run.md#gates).
+- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `tests/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests`). CI skips the gate on a pull request labelled `browser-gate-local`, meaning it was run locally; the rules are in [docs/task-run.md](docs/task-run.md#gates).
 - `OHE_TEST_CONTAINERS=1` — runs the `PostgreSql` and `SqlServer` rows of the provider matrix (and of the server's `ServerEndToEnd` tests), in one Testcontainers container per kind for the whole run, with a database of its own per test. It also builds the `sqlite`, `postgres` and `mssql` images from the `Dockerfile` and runs each one next to a database container of its own (`ContainerImageTests` in the server's tests). **Needs Docker.** Without it those rows report inconclusive, so a plain `dotnet test` stays green on a machine without Docker. CI's `providers` job sets it; the rules are in [docs/task-run.md](docs/task-run.md#gates).
 
 ## What this is
@@ -210,7 +210,7 @@ Shared harness: `TestEngineHost.Setup` spins up a real DI container over SQLite 
 
 The provider matrix lives in `Persistence/`. `TestDatabase.Configure(TestDatabaseKind, out lifetime)` gives each test its own isolated database of one kind: `Sqlite` (a kept-alive `:memory:` connection), `InMemory` (a `Guid`-named store), or `PostgreSql` / `SqlServer`, which run in Docker under `OHE_TEST_CONTAINERS=1` and report inconclusive without it. `TestEngineHost.Setup` takes an optional last `database` parameter and defaults to SQLite. On SQLite and InMemory alike run the smoke subset (`MultiHandSession_KeepsTheLedgerBalanced`, and `ExpectedVersion_Stale_ReturnsConflict` / `GetGame_Twice_KeepsTheVersion` in `ConcurrencyTests`), the race twins `TwoWriters_SecondGetsConflict` (SQLite file) and `TwoWriters_SecondGetsConflict_InMemory`, and `ProviderSchemaTests` (model check, re-migrate keeps the data). The upgrade test and its guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` cover the relational packages: every migration after `InitialCreate` needs one `IUpgradeFixture` under `Persistence/Upgrades/` (rule 5 in [docs/persistence.md](docs/persistence.md)). `TestDatabaseKind` is `public` because an `internal` enum cannot be a `[DataRow]` parameter of a public test method (CS0051).
 
-[PhhReplayTests.cs](src/OpenHoldemEngine.Tests/PhhReplayTests.cs) is the integration workhorse. It replays recorded hand histories from an open dataset — the Pluribus subset of the [PHH dataset](https://github.com/uoftcprg/phh-dataset), MIT, vendored as an embedded gzipped `.phhs` under `Resources/phh/` (see its [README](src/OpenHoldemEngine.Tests/Resources/phh/README.md) for provenance and `scripts/pack-phh-fixture.ps1` to regenerate). 10 000 six-handed no-limit hands at 50/100, every hole card recorded and `finishing_stacks` as the oracle.
+[PhhReplayTests.cs](tests/OpenHoldemEngine.Tests/PhhReplayTests.cs) is the integration workhorse. It replays recorded hand histories from an open dataset — the Pluribus subset of the [PHH dataset](https://github.com/uoftcprg/phh-dataset), MIT, vendored as an embedded gzipped `.phhs` under `Resources/phh/` (see its [README](tests/OpenHoldemEngine.Tests/Resources/phh/README.md) for provenance and `scripts/pack-phh-fixture.ps1` to regenerate). 10 000 six-handed no-limit hands at 50/100, every hole card recorded and `finishing_stacks` as the oracle.
 
 - `Phh/` holds the reader (`PhhReader` over Tomlyn, `PhhActionParser` for the action grammar, `PhhCards`), the per-hand deck (`PhhHandDeck`) and the driver (`PhhReplayRunner`).
 - Each hand is replayed as its **own game** — the corpus resets stacks every hand and stacks cannot be topped up mid-game. Seat mapping is straight out of the PHH spec: `pI` → `SeatNo = I`, `InitialDealerSeatNo = PlayerCount`, so `p1` is the small blind and the last player is on the button. The first hand is dealt by `StartGame`, which sorts `JoinSeats` by `SeatNo` itself, so the order the runner passes them in does not matter.
@@ -221,8 +221,8 @@ The provider matrix lives in `Persistence/`. `TestDatabase.Configure(TestDatabas
 A second corpus, `handhq-headsup.phhs.gz`, covers heads-up: 2 351 real \$0.25/\$0.50 PokerStars hands, 2 145 of them replayable. It is a **structural** oracle only — handhq records no `finishing_stacks` and rakes its pots, so `AssertHandResult` compares stacks only when a hand has them, and `IsSupported` no longer requires them. `PhhHeadsUpCorpus_ParsesAndIsMostlySupported` pins the supported count instead of asserting nothing is filtered. Heads-up seating in PHH is the one place the spec's two rules collide: the *last* player posts the small blind, not `p1` (see `PhhReplayRunner.BlindSeatsFor` and the fixture README).
 - `PhhReplayRunner` throws away and rebuilds its database every 250 hands. Every hand is its own game, so rows only pile up, and an unbounded run slows down badly as the in-memory database grows.
 
-[MultiHandSessionTests.cs](src/OpenHoldemEngine.Tests/MultiHandSessionTests.cs) covers what per-hand replay cannot: one 200-hand game with stacks carrying over, a seeded action policy, and invariants as the oracle (chip conservation, button rotation, blind placement, no negative stacks, `Sum(Net) == 0`). It runs twice, `[DataRow(6)]` and `[DataRow(2)]`, so the heads-up positions get the same 200 hands.
+[MultiHandSessionTests.cs](tests/OpenHoldemEngine.Tests/MultiHandSessionTests.cs) covers what per-hand replay cannot: one 200-hand game with stacks carrying over, a seeded action policy, and invariants as the oracle (chip conservation, button rotation, blind placement, no negative stacks, `Sum(Net) == 0`). It runs twice, `[DataRow(6)]` and `[DataRow(2)]`, so the heads-up positions get the same 200 hands.
 
-[HeadsUpTests.cs](src/OpenHoldemEngine.Tests/HeadsUpTests.cs) spells the heads-up rules out one at a time on a scripted deck: who posts, who is on the clock street by street, the big blind's option, button alternation, and the two short-stack cases where a blind post is capped at the stack.
+[HeadsUpTests.cs](tests/OpenHoldemEngine.Tests/HeadsUpTests.cs) spells the heads-up rules out one at a time on a scripted deck: who posts, who is on the clock street by street, the big blind's option, button alternation, and the two short-stack cases where a blind post is capped at the stack.
 
 Object comparisons use `actual.ShouldAsJToken().BeEquivalentToAsJToken(expected)` (FluentAssertions.Json, `ObjectAssertionsExtensions`) so records compare structurally with enums as strings. Keep actual-then-expected order. Note that FluentAssertions is pinned at 6.1.0, so the newer spellings (`AllSatisfy`, `BeGreaterThanOrEqualTo`) do not exist.
