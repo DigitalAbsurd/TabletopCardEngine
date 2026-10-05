@@ -472,11 +472,10 @@ renumber.
     packable project (the seven in `OpenHoldemEngine.Packages.slnf`) sets `EnablePackageValidation` with `PackageValidationBaselinePath`
     pointing at their own baseline, so `dotnet pack OpenHoldemEngine.Packages.slnf -c Release` fails
     with `CP0001` (type removed), `CP0002` (member removed) and the other ApiCompat rules on a break;
-    `dotnet build` does not check it. Changing a package's surface means re-packing its baseline in
-    the same pull request (`dotnet pack src/OpenHoldemEngine -c Release -p:Version=1.0.0-baseline -o eng/api-baseline`
-    for the core library; `dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -o eng/api-baseline`
-    for the SQLite provider; and likewise for others), regenerating `docs/public-api.md` with
-    `pwsh ./scripts/list-public-api.ps1 -Update`, and saying why in the pull request. Never add a
+    `dotnet build` does not check it. The baselines are frozen and pinned by `ApiBaselineFreezeTests` (no break in 1.x, additions allowed):
+    an additive change regenerates the inventory only (`pwsh ./scripts/list-public-api.ps1 -Update`), and a `CP`
+    diagnostic means the change is a break. Never re-pack a baseline, never update a pinned hash; that is a
+    maintainer decision (see [docs/public-api.md](public-api.md#the-baseline-is-frozen)). Never add a
     `CompatibilitySuppressions.xml` or set `ApiCompatGenerateSuppressionFile`. The check is binary
     compatibility only: removing a parameter's default value is a source break it does not report.
 26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
