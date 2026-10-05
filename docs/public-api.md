@@ -26,37 +26,44 @@ signatures below.
 The baseline is a committed file rather than a published version because there is no published
 version yet. Once 1.0.0 is on nuget.org, the project switches to `PackageValidationBaselineVersion`.
 
-## How to change the baseline
+## The baseline is frozen
 
-A change to the public surface and the new baseline go in **the same pull request**:
+The rule for 1.x: **no breaking change; additions are allowed.** Package validation runs ApiCompat in
+its default, non-strict mode, which reports removed and changed members (`CP0001`, `CP0002`, ...) and
+not additions, so:
 
-1. Make the API change.
-2. Re-pack the baseline from the changed tree:
+- An additive change needs **no** re-pack of any baseline. Regenerate the inventory below and nothing else:
 
-   ```
-   dotnet pack src/OpenHoldemEngine -c Release -p:Version=1.0.0-baseline -o eng/api-baseline
-   ```
+  ```
+  dotnet pack src/OpenHoldemEngine -c Release
+  pwsh ./scripts/list-public-api.ps1 -Update
+  ```
 
-3. Regenerate the inventory below (step 2 has already built the assembly it reads):
-
-   ```
-   pwsh ./scripts/list-public-api.ps1 -Update
-   ```
-
-4. Run `dotnet pack src/OpenHoldemEngine -c Release` again; it must be green.
-5. Say in the pull request which members were removed or changed, and why a break is acceptable.
-
-Never suppress the diagnostics instead: no `CompatibilitySuppressions.xml`, and no
-`ApiCompatGenerateSuppressionFile`. A suppressed break is a baseline that no longer means anything.
+- A `CP` diagnostic means the change is a break. It is not done in 1.x, and it is never "fixed" by
+  re-packing the baseline. Do not set `EnableStrictModeForBaselineValidation` (it would report
+  additions too), and never add a `CompatibilitySuppressions.xml` or `ApiCompatGenerateSuppressionFile`:
+  a suppressed break is a baseline that no longer means anything.
+- `ApiBaselineFreezeTests` pins the SHA-256 of every file in `eng/api-baseline/`, so a break hidden by
+  a re-pack is a red test. Changing a pinned hash is a maintainer decision recorded in the CHANGELOG,
+  never something an agent does.
+- Members added after the freeze are not in the baselines, so they are not guarded until a release
+  that contains them becomes the baseline. Once 1.0.0 is on nuget.org, the project switches to
+  `PackageValidationBaselineVersion` (#313), which retires `ApiBaselineFreezeTests` together with
+  `eng/api-baseline/`.
 
 Every baseline in `eng/api-baseline/` holds one `lib/net10.0` asset, because the packages target
 `net10.0` only. Package validation compares assets per target framework, so moving the packages to
 another framework makes `dotnet pack` fail with `PKV006` ("Target framework net10.0 is no longer
 supported in the latest version") before it compares a single member. That is the one case where
-every baseline is re-packed without a surface change: first confirm the members did not move (no
-`CP00xx` diagnostic, and step 3 regenerates the inventory below with no diff), then re-pack each
-package with `-p:EnablePackageValidation=false`, since validating against the old-framework
-baseline is exactly what fails, and run the plain gate again.
+every baseline would be re-packed without a surface change; it, too, changes the pinned hashes and is
+a maintainer decision.
+
+### Enums are open
+
+New members may be added to the public enums (`GameType`, `BettingStructure`, `HandActionType`,
+`PlayerActionType`, `HoldemErrorCode`, `HandRankType`, `Street`, `HoldemSchemaState`,
+`HoldemSchemaFailure`) in a minor release. Existing members never change value or meaning. A
+consumer's `switch` over them needs a default arm.
 
 ## The provider packages
 
@@ -69,7 +76,7 @@ class of `UseHoldem*` overloads (`HoldemSqliteDbContextOptionsBuilderExtensions`
 `HoldemPostgreSqlDbContextOptionsBuilderExtensions`, `HoldemSqlServerDbContextOptionsBuilderExtensions`,
 `HoldemInMemoryDbContextOptionsBuilderExtensions`); migrations and design-time factories are
 `internal`. The baselines are packed without validation, because there is nothing to compare the
-first one with:
+first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
 dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
@@ -84,9 +91,8 @@ dotnet pack src/OpenHoldemEngine.InMemory -c Release -p:Version=1.0.0-baseline -
 [`eng/api-baseline/OpenHoldemEngine.AspNetCore.1.0.0-baseline.nupkg`](../eng/api-baseline/),
 enforced the same way by `dotnet pack src/OpenHoldemEngine.AspNetCore -c Release`. Its public surface so far is
 `HoldemEngineHostingServiceCollectionExtensions`, `HoldemEngineHealthChecksBuilderExtensions`,
-`HoldemEngineHostOptions` and `HoldemEngineEndpointRouteBuilderExtensions`; each later issue of the
-ASP.NET Core milestone adds its own and re-packs the baseline in the same pull request. The baseline is packed without validation, because there is nothing to compare
-the first one with:
+`HoldemEngineHostOptions` and `HoldemEngineEndpointRouteBuilderExtensions` (later additions do not re-pack the baseline). The baseline is packed without validation, because there is nothing to compare
+the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
 dotnet pack src/OpenHoldemEngine.AspNetCore -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
@@ -100,7 +106,7 @@ enforced the same way by `dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Rele
 `OpenHoldemEngineInstrumentationExtensions` with the `AddOpenHoldemEngineInstrumentation()` overloads for
 `TracerProviderBuilder`, `MeterProviderBuilder` and `IOpenTelemetryBuilder`; see ADR-0002 for the architecture.
 The baseline is packed without validation, because there is nothing to compare
-the first one with:
+the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
 dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline

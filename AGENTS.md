@@ -21,8 +21,9 @@ dotnet test
 
 The public API gate: packing compares every package against its committed baseline in
 `eng/api-baseline/` and fails on a removed or changed public member (`CP0001`, `CP0002`, ...).
-`dotnet build` does not run it. See [docs/public-api.md](docs/public-api.md) for the inventory and
-how to change the baseline.
+`dotnet build` does not run it. The baselines are frozen and pinned by `ApiBaselineFreezeTests`; never
+re-pack one ([docs/public-api.md#the-baseline-is-frozen](docs/public-api.md#the-baseline-is-frozen)). See
+[docs/public-api.md](docs/public-api.md) for the inventory and the rule.
 
 ```bash
 dotnet pack OpenHoldemEngine.Packages.slnf -c Release
