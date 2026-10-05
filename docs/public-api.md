@@ -60,16 +60,22 @@ baseline is exactly what fails, and run the plain gate again.
 
 ## The provider packages
 
-`OpenHoldemEngine.Sqlite` and `OpenHoldemEngine.PostgreSql` each have their own baseline,
-[`eng/api-baseline/OpenHoldemEngine.Sqlite.1.0.0-baseline.nupkg`](../eng/api-baseline/) and
-[`eng/api-baseline/OpenHoldemEngine.PostgreSql.1.0.0-baseline.nupkg`](../eng/api-baseline/),
-enforced the same way by `dotnet pack src/OpenHoldemEngine.Sqlite -c Release` and
-`dotnet pack src/OpenHoldemEngine.PostgreSql -c Release`. Each provider's public surface is one
-class with two `UseHoldem*` overloads and its migrations are `internal`. The baselines are packed without validation, because there is nothing to compare the first one with:
+`OpenHoldemEngine.Sqlite`, `OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer` and
+`OpenHoldemEngine.InMemory` each have their own baseline,
+`eng/api-baseline/OpenHoldemEngine.<Provider>.1.0.0-baseline.nupkg` in
+[`eng/api-baseline/`](../eng/api-baseline/), enforced the same way by
+`dotnet pack src/OpenHoldemEngine.<Provider> -c Release`. Each provider's public surface is one
+class of `UseHoldem*` overloads (`HoldemSqliteDbContextOptionsBuilderExtensions`,
+`HoldemPostgreSqlDbContextOptionsBuilderExtensions`, `HoldemSqlServerDbContextOptionsBuilderExtensions`,
+`HoldemInMemoryDbContextOptionsBuilderExtensions`); migrations and design-time factories are
+`internal`. The baselines are packed without validation, because there is nothing to compare the
+first one with:
 
 ```
 dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 dotnet pack src/OpenHoldemEngine.PostgreSql -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/OpenHoldemEngine.SqlServer -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/OpenHoldemEngine.InMemory -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 ## The ASP.NET Core package
