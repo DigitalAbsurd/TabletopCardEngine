@@ -127,6 +127,7 @@ public sealed class OpenTelemetryPackageTests
 
             direct.AddRange(dependencies.EnumerateObject()
                 .Where(dependency => !(dependency.Value.TryGetProperty("autoReferenced", out var flag) && flag.GetBoolean()))
+                .Where(dependency => dependency.Name != "MinVer")
                 .Select(dependency => dependency.Name));
         }
 
@@ -134,6 +135,7 @@ public sealed class OpenTelemetryPackageTests
         // (#185) resolve their Meter through it when the host registers one.
         // Microsoft.EntityFrameworkCore.Relational holds MigrateAsync and GetPendingMigrationsAsync
         // for IHoldemSchemaManager (#201), and references no database driver.
+        // MinVer is excluded because it is PrivateAssets="all" and is build-time only (fact 30).
         direct.Should().BeEquivalentTo(
             "Microsoft.EntityFrameworkCore",
             "Microsoft.EntityFrameworkCore.Relational",

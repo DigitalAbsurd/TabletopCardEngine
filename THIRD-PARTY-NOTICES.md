@@ -23,6 +23,11 @@ After changing a dependency, re-run the script and paste its tables over the one
 
 ## What ships, and under which license
 
+**Every project in the repository**, including test and demo projects, references `MinVer` 8.0.0
+(Apache-2.0) with `PrivateAssets="all"`. MinVer is a build-time tool that derives package and
+assembly versions from git tags; nothing of MinVer ships, and it does not appear in the inventories
+below.
+
 **The library, `OpenHoldemEngine`**, references its dependencies as NuGet packages and redistributes
 none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
 packages, all MIT.
@@ -241,6 +246,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | MSTest.Analyzers | 3.6.1 | MIT |
 | MSTest.TestAdapter | 3.6.1 | MIT |
 | MSTest.TestFramework | 3.6.1 | MIT |
+| MinVer | 8.0.0 | Apache-2.0 |
 | OpenTelemetry | 1.19.1 | Apache-2.0 |
 | OpenTelemetry.Exporter.InMemory | 1.19.1 | Apache-2.0 |
 | Testcontainers.MsSql | 4.15.0 | MIT |
