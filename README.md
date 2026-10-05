@@ -27,6 +27,10 @@ Build the image locally from the `Dockerfile` at the repository root.
 There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy.
 See [docs/docker.md](docs/docker.md) for the full guide.
 
+## Roadmap
+
+The v1.0 API is no-limit Texas Hold'em cash games at 2 to 6 seats. What comes next and in which order is in [docs/roadmap.md](docs/roadmap.md).
+
 ## License
 
 OpenHoldemEngine is released under the [Apache License, Version 2.0](LICENSE). Commercial use
