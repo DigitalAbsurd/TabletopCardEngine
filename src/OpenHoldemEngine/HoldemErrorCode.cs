@@ -19,7 +19,7 @@ public enum HoldemErrorCode
     /// <summary>The player action's type is not a defined <see cref="PlayerActionType"/> member.</summary>
     InvalidAction = 4,
 
-    /// <summary>The game's <see cref="GameType"/> or <see cref="BettingStructure"/> is not a defined, supported member.</summary>
+    /// <summary>The game's <see cref="GameType"/> and <see cref="BettingStructure"/> is not a supported combination.</summary>
     UnsupportedGameOptions = 5,
 
     /// <summary>A game option is out of range: seat count, small blind or first dealer seat.</summary>

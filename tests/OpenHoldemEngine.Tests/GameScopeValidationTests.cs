@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OpenHoldemEngine.Data;
 using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.HoldemActionHandlers;
 
 namespace OpenHoldemEngine.Tests;
 
@@ -29,6 +30,36 @@ public sealed class GameScopeValidationTests
     [TestMethod]
     public async Task CreateGame_UndefinedBettingStructure_FailsWithUnsupportedGameOptions()
         => await AssertCreateGameFailsAsync(new GameOptionData { BettingStructure = (BettingStructure)99 }, HoldemErrorCode.UnsupportedGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_EveryDefinedVariant_AcceptedOnlyWhenSupported()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+
+        var supportedVariants = SupportedGameVariants.All.ToList();
+        supportedVariants.Should().Equal([(GameType.Holdem, BettingStructure.NoLimit)]);
+
+        foreach (var gameType in Enum.GetValues<GameType>())
+        {
+            foreach (var bettingStructure in Enum.GetValues<BettingStructure>())
+            {
+                var gameId = Guid.NewGuid();
+                var options = new GameOptionData { GameType = gameType, BettingStructure = bettingStructure };
+                var result = await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(gameId, options));
+
+                var isSupported = SupportedGameVariants.IsSupported(gameType, bettingStructure);
+                if (isSupported)
+                {
+                    result.IsSuccess.Should().BeTrue($"variant {gameType}/{bettingStructure} should be supported");
+                }
+                else
+                {
+                    result.IsFailed.Should().BeTrue($"variant {gameType}/{bettingStructure} should not be supported");
+                    result.Errors.Single().Code.Should().Be(HoldemErrorCode.UnsupportedGameOptions);
+                }
+            }
+        }
+    }
 
     [TestMethod]
     public async Task CreateGame_OneSeat_FailsWithInvalidGameOptions()

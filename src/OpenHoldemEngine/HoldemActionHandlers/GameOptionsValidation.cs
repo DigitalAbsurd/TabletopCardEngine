@@ -9,7 +9,7 @@ internal static class GameOptionsValidation
 {
     internal static HoldemError? Validate(GameOptionData options, HoldemEngineSettings settings)
     {
-        if (!Enum.IsDefined(options.GameType) || !Enum.IsDefined(options.BettingStructure))
+        if (!SupportedGameVariants.IsSupported(options.GameType, options.BettingStructure))
         {
             return new HoldemError(HoldemErrorCode.UnsupportedGameOptions, PackResource.HoldemValidation_UnsupportedGameOptions);
         }
