@@ -178,8 +178,8 @@ leave the issue without one.
 
 The runner takes `-Milestone` as an optional filter: given one, it picks only from that milestone;
 given none, it picks from the whole repository. A milestone nobody asked for therefore does not
-organise anything — it only hides the issue from a scoped run, and it changes the branch prefix
-(`<milestone-slug>/issue-N` rather than `task/issue-N`) for no reason.
+organise anything — it only hides the issue from a scoped run, and it adds a segment to the branch
+name (`feature/mls-7/issue-N` rather than `feature/issue-N`) for no reason.
 
 **The exception is `Backlog`.** Every follow-up an implementer files while working a task goes into
 the `Backlog` milestone ([docs/task-run.md](task-run.md#where-the-task-text-comes-from)), so the pool

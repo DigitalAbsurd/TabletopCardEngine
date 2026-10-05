@@ -184,8 +184,13 @@ of this applies.
 ## Git and pull request protocol
 
 1. Branch from a freshly fetched `main`. The branch name is
-   `<milestone-slug>/issue-<number>-<short-slug>`, or `task/issue-<number>-<short-slug>` when the
-   issue has no milestone.
+   `<type>/mls-<milestone-number>/issue-<number>-<short-slug>`, or
+   `<type>/issue-<number>-<short-slug>` when the issue has no milestone.
+   - `<type>` is `feature` (new behaviour or a refactor), `fix` (a defect) or `doc` (documentation
+     only), whichever describes the task.
+   - `<milestone-number>` is the GitHub number of the issue's own milestone (`Backlog` included),
+     not its title, so the name stays short and survives a rename.
+   - For example: `feature/mls-7/issue-312-heads-up-ante`, `doc/issue-315-docker-readme`.
 2. Commit in **English**, with a message that says what changed and why.
 3. Open the pull request against `main`. Its body **must** contain `Closes #<number>` so the merge
    closes the issue. Add `--label browser-gate-local` to `gh pr create` when you ran the browser
@@ -209,7 +214,7 @@ of this applies.
 5. Confirm the issue actually closed (`gh issue view <number> --json state`). If it did not, close
    it explicitly with a comment saying why.
 6. **Never leave an open pull request behind.** The task runner refuses to start while one exists
-   on an `*/issue-*` branch, so an abandoned branch blocks every later task, not just yours. An
+   on a task branch (`.../issue-<number>-...`), so an abandoned branch blocks every later task, not just yours. An
    unattended run ends when the agent's reply ends and nothing resumes it, so a scheduled "check CI
    later" is exactly how a pull request gets abandoned.
 
