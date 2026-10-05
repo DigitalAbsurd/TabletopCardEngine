@@ -92,6 +92,20 @@ the first one with:
 dotnet pack src/OpenHoldemEngine.AspNetCore -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
+## The OpenTelemetry package
+
+`OpenHoldemEngine.OpenTelemetry` has its own baseline,
+[`eng/api-baseline/OpenHoldemEngine.OpenTelemetry.1.0.0-baseline.nupkg`](../eng/api-baseline/),
+enforced the same way by `dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Release`. Its public surface is
+`OpenHoldemEngineInstrumentationExtensions` with the `AddOpenHoldemEngineInstrumentation()` overloads for
+`TracerProviderBuilder`, `MeterProviderBuilder` and `IOpenTelemetryBuilder`; see ADR-0002 for the architecture.
+The baseline is packed without validation, because there is nothing to compare
+the first one with:
+
+```
+dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+```
+
 The inventory below covers the core package only.
 
 ## Inventory

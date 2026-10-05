@@ -468,8 +468,8 @@ renumber.
     `DbUpdateException` is a real fault and is not caught. Tests interleave two writers through the
     internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
     connection serialises everything, and over one named InMemory store.
-25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** The
-    library and each provider package set `EnablePackageValidation` with `PackageValidationBaselinePath`
+25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** Every
+    packable project (the seven in `OpenHoldemEngine.Packages.slnf`) sets `EnablePackageValidation` with `PackageValidationBaselinePath`
     pointing at their own baseline, so `dotnet pack OpenHoldemEngine.Packages.slnf -c Release` fails
     with `CP0001` (type removed), `CP0002` (member removed) and the other ApiCompat rules on a break;
     `dotnet build` does not check it. Changing a package's surface means re-packing its baseline in
