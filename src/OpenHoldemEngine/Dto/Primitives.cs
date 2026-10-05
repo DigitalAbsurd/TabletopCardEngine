@@ -18,7 +18,7 @@ public sealed record GameOptionData
     /// <summary>How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release.</summary>
     public int MaxPlayersCount { get; init; } = 6;
 
-    /// <summary>The small blind; the big blind is always twice this. Must be positive and have at most two decimal places.</summary>
+    /// <summary>The small blind of every hand in this release; the big blind is twice this. Read a hand's actual blinds from <see cref="HandData.SmallBlind"/> and <see cref="HandData.BigBlind"/>. Must be positive and have at most two decimal places.</summary>
     public decimal InitialSmallBlind { get; init; } = 1;
 
     /// <summary>Where the button sits for the first hand. Seats are 1-based.</summary>

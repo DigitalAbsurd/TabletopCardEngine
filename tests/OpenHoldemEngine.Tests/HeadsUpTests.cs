@@ -75,7 +75,11 @@ public sealed class HeadsUpTests
                     // The big blind's post counts as a bet of 2·sb raised by sb, so the smallest
                     // legal re-raise brings the street total to 3·sb.
                     new(PlayerActionType.Raise, SmallBlind * 3, DeepStack)
-                ])));
+                ])
+            {
+                SmallBlind = SmallBlind,
+                BigBlind = BigBlind,
+            }));
     }
 
     [TestMethod]
@@ -377,6 +381,25 @@ public sealed class HeadsUpTests
         SeatOf(handData, BigBlindSeatNo).Stack.Should().Be(DeepStack - BigBlind * 3, "pre-flop, flop and turn wagers of 100 each");
         SeatOf(handData, BigBlindSeatNo).IsAllIn.Should().BeFalse();
         SeatOf(handData, ButtonSeatNo).Stack.Should().Be(DeepStack - BigBlind * 5);
+    }
+
+    /// <summary>
+    /// When the big blind posts less than a full blind, <see cref="HandData.BigBlind"/> is still the
+    /// nominal <c>2 × InitialSmallBlind</c> while the seat's <see cref="SeatData.LastAction"/> carries
+    /// the nominal level too — not what was actually posted. The stack reaches 0 because the seat
+    /// posted everything it had.
+    /// </summary>
+    [TestMethod]
+    public async Task HeadsUp_BigBlind_IsNominalEvenWhenTheShortBigBlindPostsLess()
+    {
+        const decimal shortStack = 60M;
+        using var session = await HeadsUpSession.CreateAsync(bigBlindStack: shortStack);
+
+        var handData = (await session.StartHandAsync()).HandData!;
+
+        handData.BigBlind.Should().Be(BigBlind, "the big blind nominal is always 2 × InitialSmallBlind");
+        SeatOf(handData, BigBlindSeatNo).LastAction!.Size.Should().Be(BigBlind, "the posted amount size is the nominal blind");
+        SeatOf(handData, BigBlindSeatNo).Stack.Should().Be(0M, "the short stack was exhausted posting what it could");
     }
 
     private static SeatData SeatOf(HandData handData, byte seatNo)

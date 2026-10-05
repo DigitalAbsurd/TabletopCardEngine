@@ -83,6 +83,10 @@ public sealed class JsonContractTests
             eval.GetProperty("playerActionType").GetString().Should().MatchRegex(@"^[A-Z][a-zA-Z]*$");
         }
 
+        // Verify smallBlind and bigBlind are present as JSON numbers
+        root.GetProperty("handData").GetProperty("smallBlind").GetDecimal().Should().Be(1M);
+        root.GetProperty("handData").GetProperty("bigBlind").GetDecimal().Should().Be(2M);
+
         await host.StopAsync();
     }
 
