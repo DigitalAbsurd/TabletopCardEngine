@@ -126,6 +126,10 @@ with `Certificate failed chain validation`. See [Notes](#notes) above.
 none is added just for a probe. Probe `/health` from outside the container instead, from the
 orchestrator or a load balancer.
 
+## Images built by a release
+
+The `release.yml` workflow builds all three targets for every `v*` tag, tagged `openholdemengine:<version>-<target>` (for example `openholdemengine:1.0.0-preview.1-sqlite`), with the version stamped as the `org.opencontainers.image.version` label. They are not published to Docker Hub yet; publishing to a registry comes with the public launch. A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
+
 ## Testing the images
 
 `ContainerImageTests` in `tests/OpenHoldemEngine.Server.Tests` is the gate for the images. It builds
