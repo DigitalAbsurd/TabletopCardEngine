@@ -88,6 +88,11 @@ public sealed class HoldemEngineTests
             {
                 SmallBlind = 5M,
                 BigBlind = 10M,
+                Actions =
+                [
+                    new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 5, 1) { SeatNo = 4, Amount = 5 },
+                    new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, 10, 2) { SeatNo = 5, Amount = 10 }
+                ]
             }
             );
 

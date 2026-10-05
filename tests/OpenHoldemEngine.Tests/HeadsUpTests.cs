@@ -79,6 +79,11 @@ public sealed class HeadsUpTests
             {
                 SmallBlind = SmallBlind,
                 BigBlind = BigBlind,
+                Actions =
+                [
+                    new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, SmallBlind, 1) { SeatNo = ButtonSeatNo, Amount = SmallBlind },
+                    new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, BigBlind, 2) { SeatNo = BigBlindSeatNo, Amount = BigBlind }
+                ]
             }));
     }
 

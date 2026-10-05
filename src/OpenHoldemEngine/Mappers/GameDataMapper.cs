@@ -23,6 +23,10 @@ internal static class GameDataMapper
             .Select(group => new { group.Key.Street, group.Key.SeatNo, Amount = group.Max(action => action.Amount) })
             .ToList();
 
+        var actionsProjection = new EquatableList<PlayerActionData>(currentHand.Actions
+            .OrderBy(action => action.No)
+            .Select(action => new PlayerActionData(action.Street, action.ActionType, action.Size, action.No) { SeatNo = action.SeatNo, Amount = action.Amount }));
+
         return new GameData(
             GameId: game.Id,
             IsFinished: game.IsFinished,
@@ -42,10 +46,8 @@ internal static class GameDataMapper
                             SeatNo: player.SeatNo,
                             Name: player.Name,
                             Hole: currentHand.GetSeatHoleCards(player.SeatNo) is { } hole ? new EquatableList<Card>(hole) : null,
-                            LastAction: currentHand.Actions
+                            LastAction: actionsProjection
                                 .Where(action => action.SeatNo == player.SeatNo)
-                                .OrderBy(action => action.No)
-                                .Select(action => new PlayerActionData(action.Street, action.ActionType, action.Size, action.No) { SeatNo = action.SeatNo, Amount = action.Amount })
                                 .LastOrDefault(),
                             StartHandStack: currentHand.GetSeatStartStack(player.SeatNo),
                             BetSize: playersRoundAmounts
@@ -75,6 +77,7 @@ internal static class GameDataMapper
                 {
                     SmallBlind = game.InitialSmallBlind,
                     BigBlind = game.InitialSmallBlind * 2,
+                    Actions = actionsProjection,
                 }
                 : null);
     }
