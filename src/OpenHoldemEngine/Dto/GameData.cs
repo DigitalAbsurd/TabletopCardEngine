@@ -79,6 +79,9 @@ public record HandData(
     /// <summary>The nominal big blind of this hand. A seat short of it posts what it has (see <see cref="SeatData.LastAction"/>), so this is the level, not the amount posted.</summary>
     public decimal BigBlind { get; init; }
 
+    /// <summary>Every action of this hand in the order it was taken (ascending <c>No</c>), the engine's blind posts included. Record equality compares it element by element for values the engine returns.</summary>
+    public IReadOnlyList<PlayerActionData> Actions { get; init; } = [];
+
     /// <summary>The most recent action taken by anyone in this hand.</summary>
     public PlayerActionData GetLastAction()
         => Seats.Where(seat => seat.LastAction is not null)

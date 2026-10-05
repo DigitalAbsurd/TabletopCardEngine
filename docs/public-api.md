@@ -357,6 +357,7 @@ The current hand: who is in it, what is on the board, and what the seat to act m
 - `IReadOnlyList<PlayerActionEvaluationData> Evaluations { get; init; }` — What `NextPlayerSeatNo` may legally do; empty when it is nobody's turn.
 - `decimal SmallBlind { get; init; }` — The nominal small blind of this hand.
 - `decimal BigBlind { get; init; }` — The nominal big blind of this hand.
+- `IReadOnlyList<PlayerActionData> Actions { get; init; }` — Every action of this hand in the order it was taken (ascending `No`), the engine's blind posts included.
 - `PlayerActionData GetLastAction()` — The most recent action taken by anyone in this hand.
 
 #### `HandResultData` (record)
