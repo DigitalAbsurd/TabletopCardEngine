@@ -495,6 +495,8 @@ renumber.
     maintainer decision (see [docs/public-api.md](public-api.md#the-baseline-is-frozen)). Never add a
     `CompatibilitySuppressions.xml` or set `ApiCompatGenerateSuppressionFile`. The check is binary
     compatibility only: removing a parameter's default value is a source break it does not report.
+    The committed baselines are the gate until 1.0.0 is on nuget.org; then see
+    [docs/public-api.md](public-api.md#after-100-is-on-nugetorg).
 26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
     The three signals are emitted by `HoldemEngine.ApplyWithHookAsync` (the internal seam used by both
     `ApplyHoldemActionAsync` and tests):

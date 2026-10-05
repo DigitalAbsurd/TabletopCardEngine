@@ -25,7 +25,7 @@ signatures below. A break that the gate reports, or a source break it misses, is
 [versioning.md](versioning.md).
 
 The baseline is a committed file rather than a published version because there is no published
-version yet. Once 1.0.0 is on nuget.org, the project switches to `PackageValidationBaselineVersion`.
+version yet. Once 1.0.0 is on nuget.org, see [After 1.0.0 is on nuget.org](#after-100-is-on-nugetorg).
 
 ## The baseline is frozen
 
@@ -58,6 +58,25 @@ another framework makes `dotnet pack` fail with `PKV006` ("Target framework net1
 supported in the latest version") before it compares a single member. That is the one case where
 every baseline would be re-packed without a surface change; it, too, changes the pinned hashes and is
 a maintainer decision.
+
+## After 1.0.0 is on nuget.org
+
+For the first release after the stable 1.0.0 is published on nuget.org, follow these steps:
+
+1. In each of the six projects, replace `PackageValidationBaselinePath` with
+   `<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>`. From then on the
+   baseline is the last stable version on nuget.org, raised after each stable minor.
+
+2. Add `EnablePackageValidation` and `PackageValidationBaselineVersion` to
+   `OpenHoldemEngine.OpenTelemetry` and remove its "never shipped" comment.
+
+3. Delete `eng/api-baseline/` and the re-pack instructions that point at it: this section, fact 25 in
+   `task-run.md`, and the `scripts/list-public-api.ps1` help if it mentions the folder.
+
+4. A surface change then needs no re-pack. A break against the published version fails `dotnet pack`
+   with the same `CP` diagnostics, and it is a major version (see `versioning.md`).
+
+This transition happens in the `v1.0 · NuGet packages & public launch` milestone.
 
 ### Enums are open
 
