@@ -1,0 +1,112 @@
+name: Release
+
+# This workflow runs only when a release tag `v*` is pushed. Checks are run locally before every
+# merge (docs/task-run.md), so nothing runs on a pull request or on a push to main.
+on:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Full history: MinVer reads the version from the tags, and a shallow checkout finds none.
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.x
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build
+
+      - name: Check formatting
+        run: dotnet format OpenHoldemEngine.sln --verify-no-changes
+
+      - name: Run tests
+        env:
+          OHE_TEST_PHH_HAND_LIMIT: 100
+        run: dotnet test
+
+      - name: Check the public API against the baseline
+        run: dotnet pack OpenHoldemEngine.Packages.slnf -c Release -o _packages
+
+      - name: Check the package version matches the tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [ ! -f "_packages/OpenHoldemEngine.$version.nupkg" ]; then
+            echo "::error::Expected _packages/OpenHoldemEngine.$version.nupkg (tag $GITHUB_REF_NAME); MinVer produced:"
+            ls _packages
+            exit 1
+          fi
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('tests/OpenHoldemEngine.Demo.BrowserTests/*.csproj') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+
+      # The cache holds the browser only; the system packages it needs are not cached.
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install-deps chromium
+
+      - name: Run browser layout gate
+        env:
+          OHE_TEST_BROWSER_GATE: "1"
+        run: dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
+
+  # PostgreSQL and SQL Server in Docker through Testcontainers (docs/task-run.md, fact 28). Kept out of
+  # the build job, which is already the slowest thing in the workflow. It runs on every release tag.
+  providers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.x
+
+      - name: Run provider tests on PostgreSQL and SQL Server
+        env:
+          OHE_TEST_CONTAINERS: "1"
+        run: dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+
+  # The demo is deployed for a stable release only (no `-` in the tag). It is a called workflow
+  # because a release created with GITHUB_TOKEN would not trigger one.
+  deploy-demo:
+    needs: [build, providers]
+    if: ${{ !contains(github.ref_name, '-') }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-demo.yml
