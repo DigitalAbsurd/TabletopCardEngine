@@ -231,8 +231,9 @@ What each part is for, and where each one has gone wrong before:
 Labels: the size label (`7b`, `35b`, `70b`) is required, plus whatever topic labels the repository
 uses (`demo`, `blazor`, `phh`, `ci`, `docs`, `observability`, `persistence`, `engine`,
 `aspnetcore`, `docker`, `v2`, `feature`). `v2` marks post-1.0 roadmap epics; `feature` marks new
-capabilities. Do **not** add `agent-ready` while you are still writing. It is the vetting mark,
-and it goes on last (step 7).
+capabilities. Issue titles stay plain imperative English; the implementer turns the title into a
+Conventional Commit for the pull request. Do **not** add `agent-ready` while you are still writing.
+It is the vetting mark, and it goes on last (step 7).
 
 ## 7. Check the batch before handing it over
 
