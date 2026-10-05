@@ -42,6 +42,7 @@ needs Docker). The evidence for a gate is the local run, quoted in the pull requ
 told to. The workflows are `Release` (`release.yml`, only on a pushed `v*` tag) and `Deploy demo to GitHub Pages`
 (`deploy-demo.yml`, called by `Release` for stable releases). The old `CI` entry stays listed as
 `disabled_manually` in `gh workflow list --all`, and nothing reads it.
+The `Release` workflow is enabled and runs only on a pushed `v*` tag; each run spends the account's Actions minutes.
 
 ## 1. Establish the facts before writing a word
 
