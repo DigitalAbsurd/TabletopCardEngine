@@ -191,9 +191,21 @@ of this applies.
    - `<milestone-number>` is the GitHub number of the issue's own milestone (`Backlog` included),
      not its title, so the name stays short and survives a rename.
    - For example: `feature/mls-7/issue-312-heads-up-ante`, `doc/issue-315-docker-readme`.
-2. Commit in **English**, with a message that says what changed and why.
-3. Open the pull request against `main`. Its body **must** contain `Closes #<number>` so the merge
-   closes the issue. Add `--label browser-gate-local` to `gh pr create` when you ran the browser
+2. Commit in **English**, with a message that says what changed and why. The commit message and
+   **the pull request title** follow [Conventional Commits 1.0](https://www.conventionalcommits.org/en/v1.0.0/),
+   `<type>(<scope>)?: <summary>`, because the squash merge makes the title the commit on `main` and
+   `CHANGELOG.md` is generated from it.
+   - Types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`.
+   - Scope is optional and is one of the topic labels (`engine`, `persistence`, `aspnetcore`, `docker`,
+     `observability`, `demo`, `blazor`, `phh`, `ci`, `docs`).
+   - The summary is imperative, starts lower-case and has no final period.
+   - A breaking change adds `!` before the colon (`feat(engine)!: ...`) and says why in the body. It needs
+     a major version under `docs/versioning.md`.
+   - Mapping from the branch type: `feature/` → `feat` (new behaviour) or `refactor` (no behaviour change);
+     `fix/` → `fix`; `doc/` → `docs`.
+   - Two examples: `feat(aspnetcore): add the schema health check`, `fix(engine): reject a raise below the minimum`.
+3. Open the pull request against `main`. Its title follows step 2. Its body **must** contain `Closes #<number>`
+   so the merge closes the issue. Add `--label browser-gate-local` to `gh pr create` when you ran the browser
    gate locally, under the rules in [Gates](#gates).
 4. Wait for CI yourself, then merge it yourself — squash, and delete the branch. GitHub enforces
    no required checks in this repository and auto-merge is off, so `--auto` would merge at once and
