@@ -386,7 +386,7 @@ renumber.
     `Size` keeps the nominal blind.
 19. **`.github/` holds `release.yml` and `deploy-demo.yml`.** `release.yml` (`name: Release`) is triggered only by a pushed
     `v*` tag, with no `pull_request`, `branches` or `workflow_dispatch`. Its jobs are `build` (build, format, tests, pack,
-    the package-version-matches-the-tag check, the browser gate) and `providers` (the provider matrix of fact 28), plus
+    the package-version-matches-the-tag check, the browser gate), `providers` (the provider matrix of fact 28), `docker` (a matrix over the three targets; builds and checks the label; never pushes), plus
     `deploy-demo` for a tag without `-`, which calls `deploy-demo.yml`. A release created with `GITHUB_TOKEN` starts no
     other workflow, so the deploy is called rather than triggered. `deploy-demo.yml` is a called workflow, plus
     `workflow_dispatch` for a manual redeploy. Both declare a `permissions:` block, which means every scope it

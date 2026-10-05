@@ -100,6 +100,33 @@ jobs:
           OHE_TEST_CONTAINERS: "1"
         run: dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
 
+  # The three images of the Dockerfile, built with the release version. They are not pushed:
+  # publishing to Docker Hub is a placeholder until the repository is public.
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [sqlite, postgres, mssql]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Build the ${{ matrix.target }} image
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          docker build --target "${{ matrix.target }}" --build-arg VERSION="$version" \
+            -t "openholdemengine:$version-${{ matrix.target }}" .
+
+      - name: Check the image version label
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          label=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "openholdemengine:$version-${{ matrix.target }}")
+          if [ "$label" != "$version" ]; then
+            echo "::error::Image label is '$label', expected '$version'"
+            exit 1
+          fi
+
   # The demo is deployed for a stable release only (no `-` in the tag). It is a called workflow
   # because a release created with GITHUB_TOKEN would not trigger one.
   deploy-demo:
