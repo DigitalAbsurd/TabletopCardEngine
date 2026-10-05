@@ -15,7 +15,7 @@ public sealed record GameOptionData
     /// <summary>How bets are sized. Only <see cref="OpenHoldemEngine.BettingStructure.NoLimit"/> exists in v1.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 
-    /// <summary>How many seats the table has; must lie within the engine's configured seat limits (2 to 6 at most).</summary>
+    /// <summary>How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release.</summary>
     public int MaxPlayersCount { get; init; } = 6;
 
     /// <summary>The small blind; the big blind is always twice this. Must be positive and have at most two decimal places.</summary>

@@ -89,9 +89,9 @@ Task<Result<GameData>> HoldemEngine.ApplyHoldemActionAsync(HoldemAction action, 
 
 ### Scope of v1
 
-No-Limit Texas Hold'em, cash games, 2 to 6 seats, no antes, no rake. Other structures (Pot-Limit,
-Fixed-Limit) are v2, and `GameOptionData` (`GameType`, `BettingStructure`) is where they will plug in.
-The engine enforces this: see fact 23 in [docs/task-run.md](docs/task-run.md).
+No-Limit Texas Hold'em, cash games, 2 to 6 seats, no antes, no rake. Other structures, more seats,
+antes and tournaments are planned as later minor releases ([docs/roadmap.md](docs/roadmap.md)), and `GameOptionData`
+(`GameType`, `BettingStructure`) is where they will plug in. The engine enforces this: see fact 23 in [docs/task-run.md](docs/task-run.md).
 
 ## Architecture
 

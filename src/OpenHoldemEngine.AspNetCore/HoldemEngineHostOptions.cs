@@ -13,11 +13,11 @@ namespace OpenHoldemEngine.AspNetCore;
 /// </summary>
 public sealed class HoldemEngineHostOptions : IValidatableObject
 {
-    /// <summary>Fewest seats a game may have. The v1 scope allows 2 to 6; a setting can only narrow it.</summary>
+    /// <summary>Fewest seats a game may have. This release allows 2 to 6; a setting can only narrow it.</summary>
     [Range(2, 6)]
     public int GamePlayersMinCount { get; set; } = 2;
 
-    /// <summary>Most seats a game may have. The v1 scope allows 2 to 6; a setting can only narrow it.</summary>
+    /// <summary>Most seats a game may have. This release allows 2 to 6; a setting can only narrow it.</summary>
     [Range(2, 6)]
     public int GamePlayersMaxCount { get; set; } = 6;
 
