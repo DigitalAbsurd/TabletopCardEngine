@@ -30,7 +30,14 @@ This document describes how releases are cut and versioned in this repository. I
 1. `main` is green on the four local gates (`dotnet build`, `dotnet format --verify-no-changes`, `dotnet test`, `dotnet pack`), plus the browser gate and the provider matrix.
 2. Update `CHANGELOG.md` in a pull request titled `chore(release): vX.Y.Z[-pre]` (the command is in [Changelog](#changelog)).
 3. Once it is merged, tag that merge commit: `git tag -a vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`.
-4. The release workflow does the rest (a sibling issue documents it under "The release workflow").
+4. The release workflow does the rest, as described in [The release workflow](#the-release-workflow).
+
+## The release workflow
+
+- A pushed `v*` tag runs `.github/workflows/release.yml`: `build` (the gates, the browser gate and the package version check), `providers` (PostgreSQL and SQL Server), `docker` (the three images, built and not pushed), then `release`, which waits for all three. For a stable tag only, `deploy-demo` follows `release`, so the demo goes live once the release exists.
+- `release` packs the seven projects of `OpenHoldemEngine.Packages.slnf`, requires the count to equal the solution filter's and every file name to end in the tag's version, and writes the notes with `git-cliff --latest`. It then creates the GitHub Release with the notes and the `.nupkg` files. Images and symbol packages are not attached.
+- A tag that contains `-` (`v1.0.0-preview.1`, `v1.0.0-rc.1`) makes a pre-release.
+- A failed run leaves no release. The fix is a new tag, never a moved one.
 
 ## Changelog
 

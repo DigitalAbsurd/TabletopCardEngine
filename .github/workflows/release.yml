@@ -127,6 +127,65 @@ jobs:
             exit 1
           fi
 
+  # Creates the GitHub Release: the notes from git-cliff and the .nupkg files. Images are built only,
+  # and NuGet and Docker Hub publishing are placeholders. Only this job may write to the repository.
+  release:
+    needs: [build, providers, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # Full history: MinVer needs the tag and git-cliff needs the commits.
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.x
+
+      # The solution filter leaves the demo out, so no wasm workload is needed.
+      - name: Pack
+        run: dotnet pack OpenHoldemEngine.Packages.slnf -c Release -o artifacts
+
+      - name: Check every package carries the tag's version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          expected=$(jq '.solution.projects | length' OpenHoldemEngine.Packages.slnf)
+          packages=(artifacts/*.nupkg)
+          bad=0
+          if [ "${#packages[@]}" -ne "$expected" ]; then
+            bad=1
+          fi
+          for package in "${packages[@]}"; do
+            case "$package" in
+              *".$version.nupkg") ;;
+              *) bad=1 ;;
+            esac
+          done
+          if [ "$bad" -ne 0 ]; then
+            echo "::error::Expected $expected packages ending in .$version.nupkg (tag $GITHUB_REF_NAME); found ${#packages[@]}:"
+            ls artifacts
+            exit 1
+          fi
+          echo "${#packages[@]} packages carry version $version"
+
+      - name: Release notes
+        run: |
+          npx --yes git-cliff@2.14.2 --latest --strip all -o release-notes.md
+          test -s release-notes.md
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg             --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag $prerelease
+
   # The demo is deployed for a stable release only (no `-` in the tag). It is a called workflow
   # because a release created with GITHUB_TOKEN would not trigger one.
   deploy-demo:
