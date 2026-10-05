@@ -196,3 +196,34 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/deploy-demo.yml
+
+  # Placeholder: publishing to nuget.org starts with the milestone "v1.0 · NuGet packages & public launch",
+  # once the repository is public. It will use NuGet Trusted Publishing (OIDC, no long-lived API key):
+  # the NuGet/login action exchanges the job's id-token for a short-lived key, then
+  # `dotnet nuget push artifacts/*.nupkg --source https://api.nuget.org/v3/index.json` runs on the
+  # packages the release job built. To enable it: set OHE_PUBLISH to 'enabled', add the steps, and
+  # register this workflow as a trusted publisher on nuget.org. The repository variable is not set.
+  publish-nuget:
+    needs: [release]
+    if: ${{ vars.OHE_PUBLISH == 'enabled' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Publish to nuget.org (placeholder)
+        run: echo "::notice::NuGet publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."
+
+  # Placeholder: publishing the three images to Docker Hub starts with the same milestone. It will
+  # log in with the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets, then push
+  # <namespace>/openholdemengine:<version>-<target>, and also :<target> for a stable tag.
+  # The repository variable is not set.
+  publish-docker:
+    needs: [release, docker]
+    if: ${{ vars.OHE_PUBLISH == 'enabled' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish to Docker Hub (placeholder)
+        run: echo "::notice::Docker Hub publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."
