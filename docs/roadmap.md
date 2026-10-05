@@ -2,7 +2,7 @@
 
 ## What this document is
 
-The features planned after v1.0, their order, and what the v1.0 API already does for them. Implementation is tracked in the `v1.x · Features` milestone. Planning history lives in GitHub, not here.
+The features planned after v1.0, their order, and what the v1.0 API already does for them. Implementation is tracked in the [`v1.x · Features` milestone](https://github.com/miekhra/OpenHoldemEngine/milestone/14). Planning history lives in GitHub, not here.
 
 ## Versioning of the roadmap
 
@@ -44,6 +44,8 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## 9 to 10 seats
 
+[#338](https://github.com/miekhra/OpenHoldemEngine/issues/338)
+
 **Already in v1.0:**
 
 - `SeatNo` is a `byte`
@@ -66,6 +68,8 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## Hand history export (PHH)
 
+[#339](https://github.com/miekhra/OpenHoldemEngine/issues/339)
+
 **Already in v1.0:**
 
 - `HandData.Actions` with `SeatNo` and `Amount` on every `PlayerActionData` (#324, #325)
@@ -82,6 +86,8 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 - Replay a PHH hand, export it, compare with the source
 
 ## Rebuy, buy-in and kick-off
+
+[#340](https://github.com/miekhra/OpenHoldemEngine/issues/340)
 
 **Already in v1.0:**
 
@@ -103,6 +109,8 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## Pot-Limit and Fixed-Limit
 
+[#341](https://github.com/miekhra/OpenHoldemEngine/issues/341)
+
 **Already in v1.0:**
 
 - `GameOptionData.BettingStructure`
@@ -123,6 +131,8 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 - A hand-built pot-limit suite
 
 ## Tournaments: antes and blind levels, then SNG, then MTT
+
+[#342](https://github.com/miekhra/OpenHoldemEngine/issues/342)
 
 **Already in v1.0:**
 
