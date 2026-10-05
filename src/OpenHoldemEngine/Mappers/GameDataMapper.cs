@@ -45,7 +45,7 @@ internal static class GameDataMapper
                             LastAction: currentHand.Actions
                                 .Where(action => action.SeatNo == player.SeatNo)
                                 .OrderBy(action => action.No)
-                                .Select(action => new PlayerActionData(action.Street, action.ActionType, action.Size, action.No))
+                                .Select(action => new PlayerActionData(action.Street, action.ActionType, action.Size, action.No) { SeatNo = action.SeatNo, Amount = action.Amount })
                                 .LastOrDefault(),
                             StartHandStack: currentHand.GetSeatStartStack(player.SeatNo),
                             BetSize: playersRoundAmounts

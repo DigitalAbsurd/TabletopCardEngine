@@ -433,6 +433,8 @@ A single action a seat has taken, as recorded in the hand's ledger.
 - `HandActionType ActionType { get; init; }` — What the seat did.
 - `decimal Size { get; init; }` — The size the caller asked for; `0` for actions that carry no size.
 - `int No { get; init; }` — Position of this action in the hand, ascending from 1.
+- `byte SeatNo { get; init; }` — The seat that took the action.
+- `decimal Amount { get; init; }` — The seat's cumulative wager on this street after the action: what a blind actually posted, the total a call or check stands at, the street total a raise or bet went to; `0` for a fold.
 
 #### `PlayerActionEvaluationData` (record)
 

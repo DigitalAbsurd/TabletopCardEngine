@@ -469,7 +469,7 @@ public sealed class ComponentRender_Tests
             Seats = seats.Select(s => s with
             {
                 Hole = [Card.Parse("2h"), Card.Parse("3h")],
-                LastAction = s.SeatNo == 6 ? new PlayerActionData(Street.Flop, HandActionType.Fold, 0m, 1) : null,
+                LastAction = s.SeatNo == 6 ? new PlayerActionData(Street.Flop, HandActionType.Fold, 0m, 1) { SeatNo = 6, Amount = 0m } : null,
             }).ToArray(),
             Street = Street.Flop,
             Pot = 12m,
@@ -1038,7 +1038,7 @@ public sealed class ComponentRender_Tests
             Name: "Player 2",
             Stack: 99m,
             StartHandStack: 100m,
-            LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 1m, 1));
+            LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 1m, 1) { SeatNo = 2, Amount = 1m });
 
         // Act
         var component = ctx.Render<Seat>(parameters => parameters
@@ -1064,7 +1064,7 @@ public sealed class ComponentRender_Tests
             Name: "Player 1",
             Stack: 12.5m,
             StartHandStack: 12.75m,
-            LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 0.25m, 1));
+            LastAction: new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, 0.25m, 1) { SeatNo = 1, Amount = 0.25m });
 
         // Act
         var component = ctx.Render<Seat>(parameters => parameters

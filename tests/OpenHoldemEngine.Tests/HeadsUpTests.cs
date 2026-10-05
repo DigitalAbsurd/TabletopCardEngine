@@ -50,13 +50,13 @@ public sealed class HeadsUpTests
                     {
                         BetSize = SmallBlind,
                         Hole = _buttonHole,
-                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, SmallBlind, 1)
+                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.SmallBlind, SmallBlind, 1) { SeatNo = ButtonSeatNo, Amount = SmallBlind }
                     },
                     new(BigBlindSeatNo, "BigBlind", DeepStack, DeepStack - BigBlind)
                     {
                         BetSize = BigBlind,
                         Hole = _bigBlindHole,
-                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, BigBlind, 2)
+                        LastAction = new PlayerActionData(Street.PreFlop, HandActionType.BigBlind, BigBlind, 2) { SeatNo = BigBlindSeatNo, Amount = BigBlind }
                     },
                 ],
                 DealerSeatNo: ButtonSeatNo,
@@ -399,6 +399,7 @@ public sealed class HeadsUpTests
 
         handData.BigBlind.Should().Be(BigBlind, "the big blind nominal is always 2 × InitialSmallBlind");
         SeatOf(handData, BigBlindSeatNo).LastAction!.Size.Should().Be(BigBlind, "the posted amount size is the nominal blind");
+        SeatOf(handData, BigBlindSeatNo).LastAction!.Amount.Should().Be(shortStack, "the amount posted is what the seat had");
         SeatOf(handData, BigBlindSeatNo).Stack.Should().Be(0M, "the short stack was exhausted posting what it could");
     }
 

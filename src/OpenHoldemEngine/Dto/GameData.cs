@@ -5,7 +5,14 @@
 /// <param name="ActionType">What the seat did.</param>
 /// <param name="Size">The size the caller asked for; <c>0</c> for actions that carry no size.</param>
 /// <param name="No">Position of this action in the hand, ascending from 1.</param>
-public record PlayerActionData(Street Street, HandActionType ActionType, decimal Size, int No);
+public record PlayerActionData(Street Street, HandActionType ActionType, decimal Size, int No)
+{
+    /// <summary>The seat that took the action. Seats are 1-based.</summary>
+    public byte SeatNo { get; init; }
+
+    /// <summary>The seat's cumulative wager on this street after the action: what a blind actually posted, the total a call or check stands at, the street total a raise or bet went to; <c>0</c> for a fold.</summary>
+    public decimal Amount { get; init; }
+}
 
 /// <summary>One seat as it stands in the current hand.</summary>
 /// <param name="SeatNo">The seat number. Seats are 1-based; <c>0</c> means "no seat".</param>
