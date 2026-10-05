@@ -19,9 +19,11 @@ public sealed class AspNetCorePackageTests
         var framework = assets.RootElement.GetProperty("project").GetProperty("frameworks").GetProperty("net10.0");
 
         var direct = framework.TryGetProperty("dependencies", out var dependencies)
-            ? dependencies.EnumerateObject().Select(dependency => dependency.Name).ToList()
+            ? dependencies.EnumerateObject()
+                .Where(dependency => dependency.Name != "MinVer")
+                .Select(dependency => dependency.Name).ToList()
             : [];
-        direct.Should().BeEmpty("the package takes no NuGet package, not even a Microsoft.Extensions one: the shared framework carries those");
+        direct.Should().BeEmpty("the package takes no NuGet package, not even a Microsoft.Extensions one: the shared framework carries those; MinVer is build-time only with PrivateAssets=\"all\" (fact 30)");
 
         // Microsoft.NETCore.App is the runtime every net10.0 project references implicitly.
         framework.GetProperty("frameworkReferences").EnumerateObject()

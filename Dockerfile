@@ -1,21 +1,27 @@
 # syntax=docker/dockerfile:1
 
+ARG VERSION=0.0.0-local
+
 # builder: restores and publishes the container host only. Building the whole solution would pull
 # in the Blazor demo and its wasm workload, which this SDK image does not have. The analyzers run
-# here exactly as in `dotnet build`, which is why .editorconfig is part of the context.
+# here exactly as in `dotnet build`, which is why .editorconfig is part of the context. The build
+# context has no .git, so the version arrives as the VERSION build argument.
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
+ARG VERSION
 WORKDIR /src
 COPY global.json Directory.Build.props .editorconfig ./
 COPY src/ src/
 RUN dotnet restore src/OpenHoldemEngine.Server/OpenHoldemEngine.Server.csproj
-RUN dotnet publish src/OpenHoldemEngine.Server/OpenHoldemEngine.Server.csproj -c Release --no-restore -o /app
+RUN dotnet publish src/OpenHoldemEngine.Server/OpenHoldemEngine.Server.csproj -c Release --no-restore -p:MinVerVersionOverride=$VERSION -o /app
 
 # final: the provider-neutral runtime image every target below starts from. It sets no provider and
 # no connection string, runs as the non-root user `app`, and migrates the database on start-up.
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+ARG VERSION
 LABEL org.opencontainers.image.source="https://github.com/miekhra/OpenHoldemEngine" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.title="OpenHoldemEngine"
+      org.opencontainers.image.title="OpenHoldemEngine" \
+      org.opencontainers.image.version="$VERSION"
 WORKDIR /app
 COPY --from=builder /app .
 ENV ASPNETCORE_HTTP_PORTS=8080 \

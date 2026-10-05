@@ -31,4 +31,15 @@
     <WarningsNotAsErrors></WarningsNotAsErrors>
   </PropertyGroup>
 
+  <PropertyGroup Label="Versioning">
+    <!-- Versions come from git tags (v1.2.3, v1.2.3-preview.1) through MinVer; see docs/versioning.md. -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+    <MinVerMinimumMajorMinor>1.0</MinVerMinimumMajorMinor>
+  </PropertyGroup>
+
+  <ItemGroup Label="Versioning">
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
 </Project>
