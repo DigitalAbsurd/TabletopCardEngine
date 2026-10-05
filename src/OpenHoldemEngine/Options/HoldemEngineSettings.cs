@@ -3,10 +3,10 @@
 /// <summary>Validation limits applied to every game the engine runs.</summary>
 public sealed class HoldemEngineSettings
 {
-    /// <summary>Fewest seats a hand may be dealt to.</summary>
+    /// <summary>Fewest seats a hand may be dealt to. Within 2 to 6 in this release; <c>WithSettings</c> throws outside that range.</summary>
     public int GamePlayersMinCount { get; set; } = 2;
 
-    /// <summary>Most seats a hand may be dealt to.</summary>
+    /// <summary>Most seats a hand may be dealt to. Within 2 to 6 in this release; <c>WithSettings</c> throws outside that range.</summary>
     public int GamePlayersMaxCount { get; set; } = 6;
 
     /// <summary>

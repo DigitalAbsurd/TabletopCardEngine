@@ -77,13 +77,13 @@ public record HoldemActionCreateGame(Guid GameId, GameOptionData Options) : Hold
 public record HoldemActionStartGame(Guid GameId, IReadOnlyList<PlayerJoinData> JoinSeats) : HoldemAction(GameId);
 
 /// <summary>
-/// Deals the next hand, optionally seating or topping up players first. Fails with
+/// Deals the next hand, optionally seating players in empty seats first. Fails with
 /// <see cref="HoldemErrorCode.GameNotStarted"/> until <see cref="HoldemActionStartGame"/> has dealt hand 1.
 /// </summary>
 /// <param name="GameId">The game to deal in.</param>
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
-    /// <summary>Seats to fill before dealing, for players who sit down between hands. Any read-only list will do; the engine only reads it.</summary>
+    /// <summary>Players who sit down between hands, each into a seat that has never been occupied in this game; topping up an occupied seat is not supported. Any read-only list will do; the engine only reads it.</summary>
     public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
 }
 

@@ -214,7 +214,7 @@ Machine-readable reason an action was rejected.
 - `CurrentHandEnded = 2` — The current hand is completed, so no player action can be applied to it.
 - `PreviousHandNotEnded = 3` — The previous hand is not completed, so a new hand cannot start yet.
 - `InvalidAction = 4` — The player action's type is not a defined `PlayerActionType` member.
-- `UnsupportedGameOptions = 5` — The game's `GameType` or `BettingStructure` is not a defined, supported member.
+- `UnsupportedGameOptions = 5` — The game's `GameType` and `BettingStructure` is not a supported combination.
 - `InvalidGameOptions = 6` — A game option is out of range: seat count, small blind or first dealer seat.
 - `InvalidSeat = 7` — A seat to join is out of range, repeated, already occupied, or has a non-positive buy-in.
 - `GameAlreadyStarted = 8` — The game already has a hand dealt, or was already started, so it cannot be started again.
@@ -335,7 +335,7 @@ The fixed rules a game is created with; they never change once the game exists.
 - `GameOptionData()` — The implicit parameterless constructor, for object initializers.
 - `GameType GameType { get; init; }` — The poker variant.
 - `BettingStructure BettingStructure { get; init; }` — How bets are sized.
-- `int MaxPlayersCount { get; init; }` — How many seats the table has; must lie within the engine's configured seat limits (2 to 6 at most).
+- `int MaxPlayersCount { get; init; }` — How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release.
 - `decimal InitialSmallBlind { get; init; }` — The small blind; the big blind is always twice this.
 - `byte InitialDealerSeatNo { get; init; }` — Where the button sits for the first hand.
 
@@ -417,10 +417,10 @@ Starts a created game: seats the players and deals hand 1.
 
 #### `HoldemActionStartHand : HoldemAction` (record)
 
-Deals the next hand, optionally seating or topping up players first.
+Deals the next hand, optionally seating players in empty seats first.
 
-- `HoldemActionStartHand(Guid GameId)` — Deals the next hand, optionally seating or topping up players first.
-- `IReadOnlyList<PlayerJoinData> JoinSeats { get; init; }` — Seats to fill before dealing, for players who sit down between hands.
+- `HoldemActionStartHand(Guid GameId)` — Deals the next hand, optionally seating players in empty seats first.
+- `IReadOnlyList<PlayerJoinData> JoinSeats { get; init; }` — Players who sit down between hands, each into a seat that has never been occupied in this game; topping up an occupied seat is not supported.
 
 #### `PlayerActionData` (record)
 
