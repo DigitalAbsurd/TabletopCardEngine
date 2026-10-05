@@ -319,6 +319,7 @@ docs/tasks-planning.md                  # how requirements become issues
 docs/task-run.md                        # this document
 docs/versioning.md                      # SemVer policy, breaking changes, schema vs package version
 docs/roadmap.md                         # the features planned after 1.0 and their order
+docs/release-process.md                 # branching, tags, cutting a release
 docs/observability.md                   # the engine's logs, traces and metrics
 docs/aspnetcore.md                      # the ASP.NET Core package's user guide
 docs/docker.md                          # the container host and images
