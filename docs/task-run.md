@@ -55,10 +55,9 @@ Test-only environment variables:
 | `OHE_TEST_CONTAINERS=1` | Runs the `PostgreSql` and `SqlServer` rows of the provider matrix in Docker through Testcontainers (fact 28). Needs Docker; without it those rows are inconclusive. |
 
 The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
-locally for **every** task, before you open the pull request, and label the pull request as
-described below. For a task that touches layout or the demo it is required. For any other task it
-is still the preferred way: a local run costs less than the browser install and the gate run in
-CI, and the task cannot merge until `gh pr checks --watch` has seen them finish.
+locally for **every** task, before you open the pull request. For a task that touches layout or the
+demo it is required. For any other task it is still the preferred way: a local run checks the gate
+that matters most.
 
 ```
 OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
@@ -70,21 +69,11 @@ The first local run needs the browser (build the solution first, so the script e
 pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
-CI runs the gate as well, and installing the browser plus running the gate is the slowest part of
-a CI run. **If you ran the gate locally, open the pull request with the `browser-gate-local`
-label**, and CI skips both steps on that pull request. The label is a claim, so make it true:
-
-- Put it on only after a green local run in which the gate's tests actually **passed**. Without
-  `OHE_TEST_BROWSER_GATE=1` they are reported as skipped and the run is green having checked
-  nothing; that is not a run.
-- Quote the summary line of that run (total, passed, failed, skipped) in the pull request body.
-- If the branch changes after that run, run the gate again, or remove the label so CI runs it.
-- No local run, no label. Skip the local run only when it cannot be done here (the browser will
-  not install, say), and say so in the pull request; CI then runs the gate itself.
-
-CI reads the label when it reaches the gate, so removing it and re-running the job brings the gate
-back. The label has no effect on a pull request from a fork, and a push to `main` always runs the
-gate in full, so a wrong label shows up after the merge at the latest.
+Quote the summary line of that run (total, passed, failed, skipped) in the pull request body. The
+tests must have passed rather than been skipped — without `OHE_TEST_BROWSER_GATE=1` they are
+reported as skipped and the run is green having checked nothing; that is not a run. Skip the local
+run only when it cannot be done here (the browser will not install, say), and say so in the pull
+request. The release workflow runs the gate once more on a release tag.
 
 **Provider tests.** A task that touches `src/OpenHoldemEngine/Data/`, a relational provider package
 (`OpenHoldemEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `tests/OpenHoldemEngine.Tests/Persistence/`,
@@ -98,8 +87,7 @@ OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Tests -c Relea
 OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
-Without Docker, say so in the pull request: CI's `providers` job runs the same command on every push
-to `main` and on every pull request touching those paths, and it is their gate (fact 28).
+Without Docker, say so in the pull request. Nothing else runs the matrix before the release workflow does on a release tag, so a provider defect then surfaces only at release time.
 
 **Container image tests.** A task that touches `Dockerfile`, `.dockerignore`,
 `src/OpenHoldemEngine.Server/`, `tests/OpenHoldemEngine.Server.Tests/`, `Directory.Build.props` or
@@ -205,23 +193,11 @@ of this applies.
      `fix/` → `fix`; `doc/` → `docs`.
    - Two examples: `feat(aspnetcore): add the schema health check`, `fix(engine): reject a raise below the minimum`.
 3. Open the pull request against `main`. Its title follows step 2. Its body **must** contain `Closes #<number>`
-   so the merge closes the issue. Add `--label browser-gate-local` to `gh pr create` when you ran the browser
-   gate locally, under the rules in [Gates](#gates).
-4. Wait for CI yourself, then merge it yourself — squash, and delete the branch. GitHub enforces
-   no required checks in this repository and auto-merge is off, so `--auto` would merge at once and
-   nothing else holds a red pull request back. Wait with a blocking command, and run it again if it
-   reports no checks yet or a tool timeout cuts it off:
-
-   ```
-   gh pr checks <number> --watch --fail-fast
-   gh pr merge <number> --squash --delete-branch
-   ```
-
-   When the `CI` workflow is disabled (`gh workflow list --all` shows `disabled_manually`), no
-   checks will ever be reported. Then the local gates are the only checks: merge right after
-   opening the pull request, say in it that it was merged without CI, and do not re-enable the
-   workflow. `run-next-task.ps1` reads the state before each task and tells the agent which case
-   applies.
+   so the merge closes the issue.
+4. Merge it yourself right after opening the pull request — squash, and delete the branch. No workflow
+   runs on a pull request or on `main` by design; CI runs only on release tags (see `release-process.md`).
+   Merge with `gh pr merge <number> --squash --delete-branch`. Say in the pull request that the local
+   gates were its only checks. GitHub enforces no required checks, and auto-merge is off.
 
 5. Confirm the issue actually closed (`gh issue view <number> --json state`). If it did not, close
    it explicitly with a comment saying why.

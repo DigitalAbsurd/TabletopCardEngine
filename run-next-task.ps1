@@ -26,11 +26,8 @@
     It then writes the vetted title and body to a temporary file and invokes the agent with
     an instruction prompt that points at that file and at docs/task-run.md - the execution
     contract every issue links to - asking it to implement the issue end to end, open a PR
-    and merge it itself.
-
-    Before each task it reads the state of the "CI" workflow. When a maintainer has disabled
-    it (disabled_manually), the prompt tells the agent to merge right after the local gates
-    instead of waiting for checks that will never be reported.
+    and merge it itself. No workflow runs on pull requests or on pushes to main in this
+    repository, so the agent merges after the local gates.
 
     After each task, the script switches to main and pulls, so the next task (and the
     dependency check that picks it) sees the merged result. It prints how long each task
@@ -143,9 +140,6 @@ $AutomatedBranchPattern = '^[A-Za-z0-9._-]+/(mls-\d+/)?issue-\d+'
 # Repository roles that GitHub allows to apply labels. "read" and "" (no access) are not
 # among them.
 $VettingRoles = @('admin', 'maintain', 'write', 'triage')
-
-# The workflow whose checks the agent waits for before merging.
-$CiWorkflowName = 'CI'
 
 # Login -> repository role, so each labeller costs one API call per run.
 $RoleByLogin = @{}
@@ -290,15 +284,6 @@ function Assert-NoInFlightAutomatedPr {
         }
         Fail 'Exiting: resolve the PR(s) above (merge or close manually) before running this script again.'
     }
-}
-
-function Test-CiDisabled {
-    # A maintainer may switch CI off (Actions minutes, an outage). An agent told to wait for
-    # checks would then wait for checks that never come and leave its PR open, so the prompt
-    # is built from this answer, read again before every task.
-    $workflows = (gh workflow list -R $Repo --all --json name,state) | ConvertFrom-Json
-    $ci = @($workflows | Where-Object { $_.name -eq $CiWorkflowName })
-    return ($ci.Count -gt 0 -and $ci[0].state -eq 'disabled_manually')
 }
 
 function Format-Duration([TimeSpan]$Duration) {
@@ -512,7 +497,7 @@ function Write-TaskFile($Issue) {
     return $path
 }
 
-function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$ContextFiles, [string]$TaskFile, [bool]$CiDisabled) {
+function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$ContextFiles, [string]$TaskFile) {
     # Each assistant has its own house-rules file (CLAUDE.md, AGENTS.md, ...), so the
     # settings file names them rather than the script hard-coding one.
     $docs = (@('docs/task-run.md') + @($ContextFiles)) -join ', '
@@ -527,12 +512,7 @@ function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$Con
         "Never apply or remove the ""$ReadyLabel"" label, on any issue. It is how a human marks an issue as vetted for an unattended run. Issues you file stay unlabelled until a maintainer has reviewed them. $followUpRules"
     }
 
-    $mergeRule = if ($CiDisabled) {
-        "The ""$CiWorkflowName"" workflow is disabled in this repository (state disabled_manually), so no checks will ever be reported: do not run gh pr checks and do not wait for CI. The local gates of steps 5 and 6 are the only checks, so merge right after opening the pull request: gh pr merge <number> -R $Repo --squash --delete-branch. Say in the pull request that it was merged without CI because CI is disabled. Do not enable the workflow. Do not leave the pull request open and do not wait for someone else's approval - there will not be one."
-    }
-    else {
-        "Wait for CI yourself: GitHub does not enforce the checks in this repository, so nothing else holds the merge back. Use the blocking command gh pr checks <number> -R $Repo --watch --fail-fast. If it says no checks are reported yet, or a tool timeout cuts it off, run it again. Merge only once every check has passed: gh pr merge <number> -R $Repo --squash --delete-branch. If a check fails, fix it on the branch, push, and wait again. Do not leave the pull request open and do not wait for someone else's approval - there will not be one."
-    }
+    $mergeRule = "No workflow runs on pull requests or on pushes to main in this repository: CI runs only when a release tag is pushed (docs/task-run.md, Git and pull request protocol). No checks will ever be reported on your pull request, so do not run gh pr checks and do not wait for CI. The local gates of steps 5 and 6 are the only checks: merge right after opening the pull request with gh pr merge <number> -R $Repo --squash --delete-branch, and say in the pull request that the local gates were its only checks. Do not add a pull_request or push trigger to any workflow, and do not enable a workflow. Do not leave the pull request open and do not wait for someone else's approval - there will not be one."
 
     return @"
 Work in the repository $Repo (the gh CLI is already authenticated). Implement exactly one task - issue #$IssueNumber, and nothing beyond it. Act entirely on your own: there will be no human review, and the decision to merge is yours.
@@ -542,10 +522,10 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 3. Branch off the current main, naming the branch "<type>/$BranchPrefix$IssueNumber-<short-slug>", where <type> is feature, fix or doc according to the task, as docs/task-run.md defines them.
 4. Implement the task strictly as the issue states it: Scope, Files, Definition of done, Notes for the implementer and Context for an AI assistant are acceptance criteria, not suggestions. Do not widen the scope: if you find something else broken nearby, file a separate issue rather than a second commit.
 5. Run from the repository root: dotnet build, dotnet format OpenHoldemEngine.sln --verify-no-changes, dotnet test, dotnet pack OpenHoldemEngine.Packages.slnf -c Release - all four must finish without errors. This is a precondition for every step below; do not move on if any of them failed.
-6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it spares the slowest steps of CI. Skip it only if it cannot run here, and then say so in the pull request. Only when that run is green and its tests passed rather than skipped, quote its summary line in the pull request and open the pull request with --label browser-gate-local, which lets CI skip the gate; if the branch changes after that run, run the gate again or remove the label. Without such a run, do not use the label. It belongs on the pull request only and is unrelated to the "$ReadyLabel" rule below. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
+6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it runs the gate that matters most. Skip it only if it cannot run here, and then say so in the pull request. Quote the summary line of that run (total, passed, failed, skipped), whose tests must have passed rather than been skipped. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
 7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
 8. Commit with a meaningful message in English, as a Conventional Commit (see docs/task-run.md, Git and pull request protocol, step 2), and push the branch.
-9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The title is a Conventional Commit, <type>(<scope>)?: <summary>, because the squash merge turns it into the commit on main that CHANGELOG.md is generated from. The body must contain "Closes #$IssueNumber". Add --label browser-gate-local only as step 6 allows.
+9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The title is a Conventional Commit, <type>(<scope>)?: <summary>, because the squash merge turns it into the commit on main that CHANGELOG.md is generated from. The body must contain "Closes #$IssueNumber".
 10. $mergeRule
 11. After the merge, confirm that issue #$IssueNumber actually closed (gh issue view $IssueNumber -R $Repo --json state). If it did not, close it explicitly with a comment saying why.
 12. If something you learn while implementing contradicts docs/task-run.md, document it in the pull request and file a separate issue to fix the document.
@@ -640,13 +620,8 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
 
     Write-Host "Next ready issue: #$issueNumber - $($readyIssue.title). Branch: '<type>/$branchPrefix$issueNumber-...'"
 
-    $ciDisabled = Test-CiDisabled
-    if ($ciDisabled) {
-        Write-Host "The '$CiWorkflowName' workflow is disabled: the agent merges right after the local gates, without waiting for CI."
-    }
-
     $taskFile = Write-TaskFile -Issue $readyIssue
-    $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile -CiDisabled $ciDisabled
+    $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile
 
     $taskClock = [Diagnostics.Stopwatch]::StartNew()
     Write-Host "Handing issue #$issueNumber to $($agentSettings.Command) ($modelId), task text in $taskFile..."
