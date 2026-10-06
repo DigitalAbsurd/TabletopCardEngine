@@ -158,6 +158,12 @@ dataset's copyright notice beside it (`LICENSE-phh-dataset.txt`).
 [The fixture README](tests/OpenHoldemEngine.Tests/Resources/phh/README.md) covers provenance and
 citation.
 
+## Contributor Covenant
+
+`CODE_OF_CONDUCT.md` at the repository root is the Contributor Covenant, version 2.1, licensed under
+CC BY 4.0. The source is https://www.contributor-covenant.org/version/2/1/code_of_conduct/, and the
+license is https://creativecommons.org/licenses/by/4.0/.
+
 ## Package inventory
 
 Every NuGet package a project references directly, listed under the first project that
