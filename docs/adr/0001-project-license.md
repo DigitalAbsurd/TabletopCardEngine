@@ -20,7 +20,7 @@ The choice has two requirements:
    its author.
 
 The dependencies do not narrow the choice. The audit behind
-[THIRD-PARTY-NOTICES.md](../../THIRD-PARTY-NOTICES.md) resolved every package the projects use,
+[THIRD-PARTY-NOTICES.md](https://github.com/miekhra/OpenHoldemEngine/blob/main/THIRD-PARTY-NOTICES.md) resolved every package the projects use,
 transitive ones included. Each is MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, public domain
 (SQLite) or the legacy Microsoft .NET Library License, and the vendored PHH corpus is MIT. None of
 these is copyleft, so none of them limits what the project's own code may be licensed under. All of
@@ -79,7 +79,7 @@ Fails requirement 1.
 ## Decision
 
 The project is licensed under the **Apache License, Version 2.0**. The attribution the author
-requires lives in [NOTICE](../../NOTICE) at the repository root. `LICENSE` carries the verbatim
+requires lives in [NOTICE](https://github.com/miekhra/OpenHoldemEngine/blob/main/NOTICE) at the repository root. `LICENSE` carries the verbatim
 license text, and the README's License section says both.
 
 The relicensing from MIT is possible without anyone else's consent: every commit so far is by the

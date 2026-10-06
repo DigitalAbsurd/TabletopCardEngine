@@ -207,7 +207,7 @@ The library throws 17 exceptions across 10 files. Each is one of three classes: 
 
 ### Exception handling
 
-The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around `SaveChangesAsync` in `HoldemEngine.ApplyHoldemActionAsync`, and it turns the exception into `HoldemErrorCode.Conflict` (see [docs/task-run.md](task-run.md), fact 24). Every other exception reaches the caller unhandled.
+The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around `SaveChangesAsync` in `HoldemEngine.ApplyHoldemActionAsync`, and it turns the exception into `HoldemErrorCode.Conflict` (see [`docs/task-run.md`](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/task-run.md#engine-facts), fact 24). Every other exception reaches the caller unhandled.
 
 ### How exceptions will surface
 
