@@ -47,6 +47,7 @@ validation:
 
 nav:
   - Home: index.md
+  - Getting started: getting-started.md
   - Concepts:
       - Key concepts: concepts/index.md
       - The hand ledger: concepts/hand-ledger.md
