@@ -156,3 +156,8 @@ if (!result.IsSuccess && result.Errors.Any(e => e.Code == HoldemErrorCode.Confli
 When `ExpectedVersion` is set and no longer matches the game's current version, the call fails with `HoldemErrorCode.Conflict` before any handler runs and before anything is persisted. Two writers racing without `ExpectedVersion` will also get a `Conflict` — one wins, one loses — because the engine detects the concurrent save.
 
 The engine never retries and takes no locks. It is the caller's job to reload and decide whether to retry after a conflict. In an HTTP service this pattern maps to ETag / If-Match: every response includes an ETag with the version, and the client passes it back as an If-Match header on the next write.
+
+## Read more
+
+- **[The hand ledger](hand-ledger.md)** — Every action recorded, how `Amount` accumulates, and how pots are calculated from the ledger.
+- **[Legal actions and bet sizing](evaluations.md)** — Understanding the evaluations offered at each decision, and why `Call` and `Raise` windows are on different bases.
