@@ -47,6 +47,8 @@ validation:
 
 nav:
   - Home: index.md
+  - Concepts:
+      - Key concepts: concepts/index.md
   - Guides:
       - ASP.NET Core: aspnetcore.md
       - Container images: docker.md
