@@ -317,7 +317,8 @@ docs/adr/                               # architecture decision records (ADR-000
                                         # ADR-0002: the OpenTelemetry instrumentation package,
                                         # ADR-0003: database provider licences,
                                         # ADR-0004: the ASP.NET Core integration package,
-                                        # ADR-0005: container host and images)
+                                        # ADR-0005: container host and images,
+                                        # ADR-0006: the documentation site)
 scripts/                                # license audit, PHH fixture packing, public API listing, migration scaffolding
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 OpenHoldemEngine.Packages.slnf          # solution filter for packable projects only
