@@ -1,0 +1,73 @@
+name: Bug report
+description: Report a defect you have found
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Security vulnerability?** Please report it through [SECURITY.md](https://github.com/miekhra/OpenHoldemEngine/blob/main/SECURITY.md) instead, not as a public issue.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The package or image version where you found this
+      placeholder: "1.0.0 (or SHA / Docker image tag)"
+    validations:
+      required: true
+  - type: dropdown
+    id: packages
+    attributes:
+      label: Packages
+      description: Which packages are affected?
+      multiple: true
+      options:
+        - OpenHoldemEngine
+        - OpenHoldemEngine.AspNetCore
+        - OpenHoldemEngine.OpenTelemetry
+        - OpenHoldemEngine.Sqlite
+        - OpenHoldemEngine.PostgreSql
+        - OpenHoldemEngine.SqlServer
+        - OpenHoldemEngine.InMemory
+        - Container image
+        - Demo
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Database provider
+      description: Which provider were you using?
+      options:
+        - Not applicable
+        - SQLite
+        - PostgreSQL
+        - SQL Server
+        - InMemory
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly and concisely
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduce
+      description: The sequence of HoldemActions or HTTP requests that triggered the bug
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Any error messages or logs
+      render: text
