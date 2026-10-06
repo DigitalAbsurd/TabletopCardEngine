@@ -20,6 +20,7 @@ An interactive walkthrough that shows how the engine works:
 
 ## Where to go next
 
+- **[Key concepts](concepts/index.md)** — the core ideas: one method, the database is the state, deterministic dealing, and optimistic concurrency
 - **Getting started** — prerequisites and your first hand (coming soon)
 - **[Guides](aspnetcore.md)** — usage patterns, container images, databases, and observability
 - **[Reference](public-api.md)** — the public API and supported databases
