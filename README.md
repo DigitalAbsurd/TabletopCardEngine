@@ -1,35 +1,151 @@
 # OpenHoldemEngine
 
-A .NET 10 class library modelling Texas Hold'em cash games. This repository ships the engine as a library — there is no executable. Consumers register it via `services.AddHoldemEngine()` and drive everything through one method: `ApplyHoldemActionAsync(action, cancellationToken)`.
+A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `ApplyHoldemActionAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
 
-## Supported platform
+[![Release](https://github.com/miekhra/OpenHoldemEngine/actions/workflows/release.yml/badge.svg)](https://github.com/miekhra/OpenHoldemEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/OpenHoldemEngine)](https://www.nuget.org/packages/OpenHoldemEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
-The libraries target .NET 10 (LTS), supported through November 14, 2028.
+## Demo
 
-## Try the interactive demo
+Try the [interactive Blazor WebAssembly demo](https://miekhra.github.io/OpenHoldemEngine/): play hands or replay imported hand histories, and watch the database inspector and the engine call log show exactly what each action writes.
 
-[**OpenHoldemEngine Blazor WebAssembly Demo**](https://miekhra.github.io/OpenHoldemEngine/)
+![The OpenHoldemEngine demo](docs/assets/demo.png)
 
-An interactive walkthrough that shows how the engine works:
+## Features and limits
 
-- Play hands or replay imported hand histories
-- Watch the database inspector reveal the exact tables and rows the engine writes
-- See the engine call log showing the exact C# code that created each state change
+The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1 is limited on purpose: No-Limit Hold'em cash games only, 2 to 6 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/roadmap.md).
 
-This teaches the core concept: **there is no in-memory game object — the database is the state**.
+| Package | Use it for |
+|---|---|
+| [OpenHoldemEngine](https://www.nuget.org/packages/OpenHoldemEngine) | The core engine: the `HoldemEngine` class, the `GameData` DTOs and the schema manager. It references no database provider. |
+| [OpenHoldemEngine.Sqlite](https://www.nuget.org/packages/OpenHoldemEngine.Sqlite) | SQLite storage and its migrations (`UseHoldemSqlite`). Brings the core with it. |
+| [OpenHoldemEngine.PostgreSql](https://www.nuget.org/packages/OpenHoldemEngine.PostgreSql) | PostgreSQL storage and its migrations (`UseHoldemPostgreSql`). |
+| [OpenHoldemEngine.SqlServer](https://www.nuget.org/packages/OpenHoldemEngine.SqlServer) | SQL Server storage and its migrations (`UseHoldemSqlServer`). |
+| [OpenHoldemEngine.InMemory](https://www.nuget.org/packages/OpenHoldemEngine.InMemory) | EF Core in-memory storage (`UseHoldemInMemory`), for tests and demos. |
+| [OpenHoldemEngine.AspNetCore](https://www.nuget.org/packages/OpenHoldemEngine.AspNetCore) | ASP.NET Core integration: configuration binding, a schema health check and the REST API (`MapHoldemEngineApi`). |
+| [OpenHoldemEngine.OpenTelemetry](https://www.nuget.org/packages/OpenHoldemEngine.OpenTelemetry) | `AddOpenHoldemEngineInstrumentation()` for OpenTelemetry traces and metrics. |
 
-![OpenHoldemEngine Demo Layout](src/OpenHoldemEngine.Demo/wwwroot/img/demo-layout.svg)
+## Quick start
 
-## Docker
+You need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). Docker is needed only for the images.
 
-The OpenHoldemEngine server is available as a Docker image for SQLite, PostgreSQL, and SQL Server.
-Build the image locally from the `Dockerfile` at the repository root.
-There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy.
-See [docs/docker.md](docs/docker.md) for the full guide.
+```bash
+dotnet new console -n HoldemQuickStart
+cd HoldemQuickStart
+dotnet add package OpenHoldemEngine.Sqlite --prerelease
+```
 
-## Roadmap
+The SQLite package brings the core package with it. Replace the generated `Program.cs` with:
 
-The v1.0 API is no-limit Texas Hold'em cash games at 2 to 6 seats. What comes next and in which order is in [docs/roadmap.md](docs/roadmap.md).
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using OpenHoldemEngine;
+using OpenHoldemEngine.Dto;
+using OpenHoldemEngine.Sqlite;
+
+var services = new ServiceCollection();
+services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
+using var provider = services.BuildServiceProvider();
+
+// Create or upgrade the schema once, at start-up.
+await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+var engine = provider.GetRequiredService<HoldemEngine>();
+
+// A heads-up game: blinds 1/2, two players with 100 each.
+var created = await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(new GameOptionData
+{
+    MaxPlayersCount = 2,
+    InitialSmallBlind = 1,
+}));
+var gameId = created.Value.GameId;
+
+// StartGame seats the players, deals hand 1 and posts the blinds.
+var game = (await engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId,
+[
+    new PlayerJoinData("Alice", 1, 100),
+    new PlayerJoinData("Bob", 2, 100),
+]))).Value;
+
+// Play the hand to the end: check when allowed, otherwise call.
+while (game.HandData!.NextPlayerSeatNo != 0)
+{
+    var canCheck = game.HandData.Evaluations.Any(e => e.PlayerActionType == PlayerActionType.Check);
+    var action = canCheck ? PlayerActionType.Check : PlayerActionType.Call;
+    var result = await engine.ApplyHoldemActionAsync(HoldemAction.Play(gameId, action));
+    if (!result.IsSuccess)
+    {
+        Console.WriteLine(result.Errors[0].Message);
+        return 1;
+    }
+
+    game = result.Value;
+}
+
+Console.WriteLine($"Board: {string.Join(" ", game.HandData.CommunityCards)}");
+foreach (var seat in game.HandData.Seats)
+{
+    // Stack excludes the winnings until the next hand; the outcome is HandResult.Net.
+    var net = seat.HandResult!.Net;
+    Console.WriteLine($"{seat.Name}: {string.Join(" ", seat.Hole ?? [])}, {seat.HandResult.Description}, {net:+0;-0;0}");
+}
+
+return 0;
+```
+
+Run it with:
+
+```bash
+dotnet run
+```
+
+The [getting started guide](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/getting-started.md) explains each step.
+
+## Usage
+
+### The command and `GameData` loop
+
+Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evaluations` lists what the player on the clock may do, `HandData.NextPlayerSeatNo` names that player (`0` when nobody acts), and an optional `ExpectedVersion` on the action turns a stale write into a `Conflict`. See [Key concepts](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/concepts/index.md).
+
+### REST API
+
+The `OpenHoldemEngine.AspNetCore` package binds the engine's options from configuration and maps the REST API:
+
+```csharp
+builder.Services.AddHoldemEngine(
+    builder.Configuration.GetSection("HoldemEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+
+app.MapHoldemEngineApi();
+```
+
+See [ASP.NET Core](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/aspnetcore.md).
+
+### Docker images
+
+Images for SQLite, PostgreSQL and SQL Server run the same REST API:
+
+```bash
+docker run -d -p 8080:8080 -v holdem-data:/data miekhra/openholdemengine:sqlite
+```
+
+There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy. See [Container images](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/docker.md).
+
+## Configuration
+
+The container host reads these settings from the environment:
+
+| Setting | Meaning |
+|---|---|
+| `ConnectionStrings__Holdem` | The connection string of the database, required. |
+| `HoldemServer__Provider` | The database provider: `Sqlite`, `PostgreSql` or `SqlServer`, required. |
+| `HoldemEngine__*` | The engine's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
+
+The details are in [Configuration](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/docker.md#configuration).
+
+## Contributing
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) explains how to build, test and propose a change.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) sets the standard of behaviour in the project's spaces.
+- [SECURITY.md](SECURITY.md) says how to report a vulnerability privately.
 
 ## License
 
