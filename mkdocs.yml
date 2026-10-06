@@ -55,6 +55,8 @@ nav:
   - Guides:
       - ASP.NET Core: aspnetcore.md
       - Container images: docker.md
+      - Database providers: providers.md
+      - Migrations: migrations.md
       - Persistence: persistence.md
       - Observability: observability.md
   - Reference:

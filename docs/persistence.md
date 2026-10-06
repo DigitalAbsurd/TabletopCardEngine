@@ -2,7 +2,7 @@
 
 ## What this document is
 
-The engine's storage contract: which databases are supported, how the schema is created and versioned, and the rules for writing a migration. This document is for maintainers and for consumers.
+The engine's storage contract: which databases are supported, how the schema is created and versioned, and the rules for writing a migration. This document is for maintainers and for consumers. Consumers new to the engine should start with [Database providers](providers.md) and [Migrations](migrations.md), which cover choosing a provider and managing the schema; this document covers the maintainer's rules for writing a migration and the internal structure of the schema version row.
 
 ## Supported databases
 
