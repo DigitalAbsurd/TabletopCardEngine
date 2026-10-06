@@ -16,6 +16,7 @@
     -->
     <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselinePath>$(MSBuildThisFileDirectory)../../eng/api-baseline/OpenHoldemEngine.1.0.0-baseline.nupkg</PackageValidationBaselinePath>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -49,6 +50,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PackResource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
