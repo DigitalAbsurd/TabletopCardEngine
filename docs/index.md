@@ -20,8 +20,8 @@ An interactive walkthrough that shows how the engine works:
 
 ## Where to go next
 
+- **[Getting started](getting-started.md)** — prerequisites and your first hand
 - **[Key concepts](concepts/index.md)** — the core ideas: one method, the database is the state, deterministic dealing, and optimistic concurrency
-- **Getting started** — prerequisites and your first hand (coming soon)
 - **[Database providers](providers.md)** — choosing and configuring a database
 - **[Migrations](migrations.md)** — creating and upgrading the database schema
 - **[Guides](aspnetcore.md)** — usage patterns, container images, and observability
