@@ -414,3 +414,6 @@ samples/AspNetCoreSample/*.db*
 
 # The OpenHoldemEngine.Server database
 src/OpenHoldemEngine.Server/*.db*
+
+# MkDocs generated site
+site/
