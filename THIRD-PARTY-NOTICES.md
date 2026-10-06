@@ -71,9 +71,8 @@ provider packages of this repository and `Microsoft.AspNetCore.OpenApi` (MIT), w
 
 **The container images** are built from the repository's `Dockerfile` on top of
 `mcr.microsoft.com/dotnet/aspnet:10.0` (Ubuntu 24.04), which carries the .NET runtime (MIT) and
-Ubuntu packages under their own licences. This repository publishes no image
-([ADR-0005](docs/adr/0005-container-host-and-images.md), decision 7). Whoever builds an image and
-distributes it also distributes those components.
+Ubuntu packages under their own licences. The release workflow publishes the three targets to Docker Hub as
+`miekhra/openholdemengine` ([ADR-0005](docs/adr/0005-container-host-and-images.md)). Whoever distributes these images also distributes the base image's components.
 
 **The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:

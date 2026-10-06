@@ -8,11 +8,10 @@ container strategy, the provider model and the security stance are recorded in
 
 ## Quick start
 
-Build the SQLite image, run it, and test the `/health` endpoint:
+Pull the published SQLite image, run it, and test the `/health` endpoint:
 
 ```bash
-docker build --target sqlite -t openholdemengine:sqlite .
-docker run -d -p 8080:8080 -v holdem-data:/data openholdemengine:sqlite
+docker run -d -p 8080:8080 -v holdem-data:/data miekhra/openholdemengine:sqlite
 curl http://localhost:8080/health
 ```
 
@@ -73,13 +72,21 @@ It serves the REST API under `/api/holdem` and the health report at `/health`.
 
 The OpenAPI document is served at `/openapi/v1.json` and describes every endpoint of the REST API. There is no UI; the document can be fed to any OpenAPI tool. See `docs/aspnetcore.md#openapi` for the metadata structure.
 
+## Published images
+
+The repository publishes images to Docker Hub as `miekhra/openholdemengine`. The available tags are:
+
+- **`sqlite`, `postgres`, `mssql`** — the latest stable release, one tag per database provider.
+- **`<version>-<target>`** — a specific version and target, for example `1.0.0-sqlite` or `1.0.0-preview.1-postgres`. Pre-releases are published with a `-preview` or similar suffix.
+
+The `org.opencontainers.image.version` label on each image carries its version. For production workloads, pin a version tag rather than using `latest` (the release tag without a version prefix), so updates are deliberate.
+
 ## Images
 
 The `Dockerfile` at the repository root builds the host in an SDK stage (`builder`) and copies the
 published output into an ASP.NET Core runtime stage (`final`, on `mcr.microsoft.com/dotnet/aspnet:10.0`,
 Ubuntu 24.04). Three targets build `FROM final` and differ only in their environment defaults
-([ADR-0005](adr/0005-container-host-and-images.md), decision 5). Images are built locally; this
-repository publishes none (decision 7). From the repository root:
+([ADR-0005](adr/0005-container-host-and-images.md), decision 5). Build the images locally from source with:
 
 ```
 docker build --target sqlite -t openholdemengine:sqlite .
@@ -127,7 +134,7 @@ orchestrator or a load balancer.
 
 ## Images built by a release
 
-The `release.yml` workflow builds all three targets for every `v*` tag, tagged `openholdemengine:<version>-<target>` (for example `openholdemengine:1.0.0-preview.1-sqlite`), with the version stamped as the `org.opencontainers.image.version` label. They are not published to Docker Hub yet; publishing to a registry comes with the public launch. A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
+The `release.yml` workflow builds all three targets for every `v*` tag and publishes them to Docker Hub as `miekhra/openholdemengine:<version>-<target>` (for example `miekhra/openholdemengine:1.0.0-preview.1-sqlite`), with the version stamped as the `org.opencontainers.image.version` label. For a stable release (no `-preview` or similar suffix), the workflow also publishes with the target-only tag (`miekhra/openholdemengine:sqlite`, `miekhra/openholdemengine:postgres`, `miekhra/openholdemengine:mssql`). A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
 
 ## Testing the images
 
@@ -193,7 +200,7 @@ Remove-Item Env:MSSQL_SA_PASSWORD
 SQLite does not need a separate database container. Run a single command:
 
 ```bash
-docker run -d -p 8080:8080 -v holdem-data:/data openholdemengine:sqlite
+docker run -d -p 8080:8080 -v holdem-data:/data miekhra/openholdemengine:sqlite
 ```
 
 The `sqlite` target keeps its database in `/data`, a named volume `holdem-data`, so the database persists across container restarts.
