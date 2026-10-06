@@ -161,3 +161,4 @@ The engine never retries and takes no locks. It is the caller's job to reload an
 
 - **[The hand ledger](hand-ledger.md)** — Every action recorded, how `Amount` accumulates, and how pots are calculated from the ledger.
 - **[Legal actions and bet sizing](evaluations.md)** — Understanding the evaluations offered at each decision, and why `Call` and `Raise` windows are on different bases.
+- **[Heads-up play](heads-up.md)** — Two-player poker: position rules, the big blind's option, and how stacks below a blind are handled.

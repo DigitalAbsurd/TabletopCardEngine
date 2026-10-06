@@ -51,6 +51,7 @@ nav:
       - Key concepts: concepts/index.md
       - The hand ledger: concepts/hand-ledger.md
       - Legal actions and bet sizing: concepts/evaluations.md
+      - Heads-up play: concepts/heads-up.md
   - Guides:
       - ASP.NET Core: aspnetcore.md
       - Container images: docker.md
