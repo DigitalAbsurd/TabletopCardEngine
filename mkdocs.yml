@@ -1,0 +1,69 @@
+site_name: OpenHoldemEngine
+site_description: A .NET class library modelling Texas Hold'em cash games
+repo_url: https://github.com/miekhra/OpenHoldemEngine
+repo_name: miekhra/OpenHoldemEngine
+edit_uri: edit/main/docs/
+copyright: Copyright 2025-2026 Mikhail Khrapunov. Licensed under Apache-2.0.
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, '']
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  palette:
+    - scheme: light
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: dark
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - admonition
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+exclude_docs: |
+  task-run.md
+  tasks-planning.md
+  requirements.txt
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+  not_found: warn
+
+nav:
+  - Home: index.md
+  - Guides:
+      - ASP.NET Core: aspnetcore.md
+      - Container images: docker.md
+      - Persistence: persistence.md
+      - Observability: observability.md
+  - Reference:
+      - Public API: public-api.md
+  - Project:
+      - Versioning: versioning.md
+      - Support policy: support-policy.md
+      - Release process: release-process.md
+      - Roadmap: roadmap.md
+      - Architecture decisions:
+          - adr/README.md
+          - adr/0001-project-license.md
+          - adr/0002-opentelemetry-instrumentation-package.md
+          - adr/0003-database-provider-licences.md
+          - adr/0004-aspnetcore-integration-package.md
+          - adr/0005-container-host-and-images.md
+          - adr/0006-documentation-site.md
