@@ -15,6 +15,7 @@
     -->
     <EnablePackageValidation>true</EnablePackageValidation>
     <PackageValidationBaselinePath>$(MSBuildThisFileDirectory)../../eng/api-baseline/OpenHoldemEngine.PostgreSql.1.0.0-baseline.nupkg</PackageValidationBaselinePath>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OpenHoldemEngine\OpenHoldemEngine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
