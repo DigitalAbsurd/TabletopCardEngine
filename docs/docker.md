@@ -4,8 +4,7 @@
 
 The user guide for the OpenHoldemEngine container images. The decisions behind the host, the
 container strategy, the provider model and the security stance are recorded in
-[ADR-0005](adr/0005-container-host-and-images.md). Each section below is filled in by the issue
-that implements it.
+[ADR-0005](adr/0005-container-host-and-images.md).
 
 ## Quick start
 

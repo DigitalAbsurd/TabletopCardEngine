@@ -5,8 +5,7 @@
 The user guide of `OpenHoldemEngine.AspNetCore`, the package that wires the engine into an ASP.NET
 Core host and exposes it over HTTP. The decisions behind it, the name, the dependency rule, the HTTP
 contract and the security stance, are recorded in
-[ADR-0004](adr/0004-aspnetcore-integration-package.md). Each section below is filled in by the issue
-that implements it.
+[ADR-0004](adr/0004-aspnetcore-integration-package.md).
 
 ## Getting started
 
