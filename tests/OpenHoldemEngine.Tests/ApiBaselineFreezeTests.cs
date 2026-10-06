@@ -29,8 +29,9 @@ public sealed class ApiBaselineFreezeTests
     [TestMethod]
     public void ApiBaseline_FileSet_IsTheSevenPackages()
     {
+        // The filter writes Windows separators, which Path does not split on outside Windows.
         var expected = ReadPackagesFilter()
-            .Select(project => $"{Path.GetFileNameWithoutExtension(project)}.1.0.0-baseline.nupkg")
+            .Select(project => $"{Path.GetFileNameWithoutExtension(project.Replace('\\', '/'))}.1.0.0-baseline.nupkg")
             .OrderBy(x => x, StringComparer.Ordinal)
             .ToList();
 
