@@ -57,6 +57,8 @@ The host accepts these variables:
 | `ASPNETCORE_HTTP_PORTS` | No | Port number | 8080 | The base image's default |
 | `Logging__LogLevel__Default` | No | Logging level | — | Standard ASP.NET Core logging setting |
 
+The keys in this table were renamed by [ADR-0007 §3a](0007-rename-to-tabletopcardengine.md).
+
 ### 4. OpenAPI document from `Microsoft.AspNetCore.OpenApi`
 
 - **Use `Microsoft.AspNetCore.OpenApi` (MIT), referenced by the host only — chosen.** The package

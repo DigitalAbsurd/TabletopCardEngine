@@ -31,9 +31,9 @@ public sealed class OpenApiDocumentTests
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Production");
-                builder.UseSetting("HoldemServer:Provider", "Sqlite");
-                builder.UseSetting("ConnectionStrings:Holdem", connectionString);
-                builder.UseSetting("HoldemEngine:MigrateDatabaseOnStartup", "true");
+                builder.UseSetting("TabletopCardEngineServer:Provider", "Sqlite");
+                builder.UseSetting("ConnectionStrings:TabletopCardEngine", connectionString);
+                builder.UseSetting("TabletopCardEngine:MigrateDatabaseOnStartup", "true");
             });
             using var client = factory.CreateClient();
             await test(client);

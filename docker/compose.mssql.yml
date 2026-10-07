@@ -22,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      ConnectionStrings__Holdem: "Server=db;Database=holdem;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
+      ConnectionStrings__TabletopCardEngine: "Server=db;Database=holdem;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True"
     depends_on:
       db:
         condition: service_healthy

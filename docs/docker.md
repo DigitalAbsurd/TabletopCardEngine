@@ -42,19 +42,19 @@ The container host is `src/TabletopCardEngine.Server`, an ASP.NET Core applicati
 overriding the one before it:
 
 1. `appsettings.json`, which carries logging and `AllowedHosts` only. It holds no connection string
-   and no `HoldemEngine` section, so nothing database-specific is baked into an image.
+   and no `TabletopCardEngine` section, so nothing database-specific is baked into an image.
 2. `appsettings.Development.json`, read only when `ASPNETCORE_ENVIRONMENT` is `Development`. It
    points at a local SQLite file, `holdem.db`, and migrates it on start-up.
 3. Environment variables, where `__` stands for the `:` of a configuration key
-   (`HoldemEngine__MigrateDatabaseOnStartup` sets `HoldemEngine:MigrateDatabaseOnStartup`).
+   (`TabletopCardEngine__MigrateDatabaseOnStartup` sets `TabletopCardEngine:MigrateDatabaseOnStartup`).
 
 The settings it reads so far:
 
 | Setting | Meaning |
 |---|---|
-| `ConnectionStrings__Holdem` | The connection string of the database, required. Examples per provider:<br/>— SQLite: `Data Source=/data/holdem.db`<br/>— PostgreSQL: `Host=db.example.com;Port=5432;Database=holdem;Username=user;Password=pass`<br/>— SQL Server: `Server=db.example.com,1433;Database=holdem;User Id=sa;Password=pass;TrustServerCertificate=True` (see notes below) |
-| `HoldemServer__Provider` | The database provider: `Sqlite`, `PostgreSql`, or `SqlServer`, required. Case-insensitive. If missing or unknown, the host exits with an error naming the variable. Do not typo this; a silent default would hide a misconfigured image. |
-| `HoldemEngine__*` | The engine's host options, bound to `HoldemEngineHostOptions`: `GamePlayersMinCount`, `GamePlayersMaxCount`, `EnableSensitiveCardLogging` and `MigrateDatabaseOnStartup`. The keys, defaults and rules are in [docs/aspnetcore.md](aspnetcore.md). |
+| `ConnectionStrings__TabletopCardEngine` | The connection string of the database, required. Examples per provider:<br/>— SQLite: `Data Source=/data/holdem.db`<br/>— PostgreSQL: `Host=db.example.com;Port=5432;Database=holdem;Username=user;Password=pass`<br/>— SQL Server: `Server=db.example.com,1433;Database=holdem;User Id=sa;Password=pass;TrustServerCertificate=True` (see notes below) |
+| `TabletopCardEngineServer__Provider` | The database provider: `Sqlite`, `PostgreSql`, or `SqlServer`, required. Case-insensitive. If missing or unknown, the host exits with an error naming the variable. Do not typo this; a silent default would hide a misconfigured image. |
+| `TabletopCardEngine__*` | The engine's host options, bound to `HoldemEngineHostOptions`: `GamePlayersMinCount`, `GamePlayersMaxCount`, `EnableSensitiveCardLogging` and `MigrateDatabaseOnStartup`. The keys, defaults and rules are in [docs/aspnetcore.md](aspnetcore.md). |
 
 To run the host locally, in the `Development` environment on port 5298:
 
@@ -97,10 +97,10 @@ docker build --target mssql -t tabletopcardengine:mssql .
 `sqlite` is the last stage, so `docker build -t tabletopcardengine .` without `--target` builds it too.
 
 Every target sets `ASPNETCORE_HTTP_PORTS=8080` (the port it exposes) and
-`HoldemEngine__MigrateDatabaseOnStartup=true`, and runs as the non-root user `app` (`APP_UID=1654`).
+`TabletopCardEngine__MigrateDatabaseOnStartup=true`, and runs as the non-root user `app` (`APP_UID=1654`).
 On top of that:
 
-| Target | `HoldemServer__Provider` | `ConnectionStrings__Holdem` |
+| Target | `TabletopCardEngineServer__Provider` | `ConnectionStrings__TabletopCardEngine` |
 |---|---|---|
 | `sqlite` | `Sqlite` | `Data Source=/data/holdem.db` |
 | `postgres` | `PostgreSql` | not set: pass it with `-e` |
@@ -110,7 +110,7 @@ The `postgres` and `mssql` targets carry no default connection string on purpose
 host refuses to start (decision 3).
 
 ```
-docker run -d -p 8080:8080 -e "ConnectionStrings__Holdem=Host=db;Database=holdem;Username=user;Password=pass" tabletopcardengine:postgres
+docker run -d -p 8080:8080 -e "ConnectionStrings__TabletopCardEngine=Host=db;Database=holdem;Username=user;Password=pass" tabletopcardengine:postgres
 ```
 
 **The `/data` volume.** The `sqlite` target keeps its database in `/data`, a directory owned by `app`
@@ -143,7 +143,7 @@ the `sqlite`, `postgres` and `mssql` targets from this `Dockerfile` once per run
 and runs each image on a Docker network of its own. The `postgres` and `mssql` images run next to a
 `postgres:16-alpine` or `mcr.microsoft.com/mssql/server:2022-latest` container aliased `db`. Each image
 gets only the environment this guide tells a user to set: nothing for `sqlite`, and
-`ConnectionStrings__Holdem` for the other two. The provider and the start-up migration come from the
+`ConnectionStrings__TabletopCardEngine` for the other two. The provider and the start-up migration come from the
 image itself. For every target the gate checks that:
 
 - a game can be played from creation to finish over HTTP, the same scenario as the in-process
@@ -153,7 +153,7 @@ image itself. For every target the gate checks that:
 - the process runs as the non-root user (`id -u` prints `1654`).
 
 It also checks that the `postgres` and `mssql` images without a connection string exit with a non-zero
-code and a log naming `ConnectionStrings__Holdem`, and that a `sqlite` container keeps a game in its
+code and a log naming `ConnectionStrings__TabletopCardEngine`, and that a `sqlite` container keeps a game in its
 `/data` volume across a stop and a start.
 
 The gate needs Docker and runs only with `TCE_TEST_CONTAINERS=1`. Without it every test reports
@@ -175,7 +175,7 @@ networks it started.
 docker compose -f docker/compose.postgres.yml up -d --build
 ```
 
-The `postgres` service uses a named volume `pgdata` on `/var/lib/postgresql/data` to persist the database. The `server` service reads the connection string from `ConnectionStrings__Holdem` and the database password from `POSTGRES_PASSWORD` (default: `holdem`).
+The `postgres` service uses a named volume `pgdata` on `/var/lib/postgresql/data` to persist the database. The `server` service reads the connection string from `ConnectionStrings__TabletopCardEngine` and the database password from `POSTGRES_PASSWORD` (default: `holdem`).
 
 ```bash
 docker compose -f docker/compose.postgres.yml down -v
@@ -188,7 +188,7 @@ $env:MSSQL_SA_PASSWORD='Probe_Passw0rd!'
 docker compose -f docker/compose.mssql.yml up -d --build
 ```
 
-The `mssql` service uses a named volume `mssqldata` on `/var/opt/mssql` to persist the database. The `server` service reads the connection string from `ConnectionStrings__Holdem` and the database password from `MSSQL_SA_PASSWORD`. The password must be at least 8 characters and contain uppercase, lowercase, digit, and symbol characters.
+The `mssql` service uses a named volume `mssqldata` on `/var/opt/mssql` to persist the database. The `server` service reads the connection string from `ConnectionStrings__TabletopCardEngine` and the database password from `MSSQL_SA_PASSWORD`. The password must be at least 8 characters and contain uppercase, lowercase, digit, and symbol characters.
 
 ```bash
 docker compose -f docker/compose.mssql.yml down -v

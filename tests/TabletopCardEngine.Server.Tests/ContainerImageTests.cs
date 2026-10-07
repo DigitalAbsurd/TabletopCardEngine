@@ -96,14 +96,14 @@ public sealed class ContainerImageTests
                 case "postgres":
                     database = new PostgreSqlBuilder("postgres:16-alpine").WithNetwork(network).WithNetworkAliases("db").Build();
                     await database.StartAsync();
-                    environment["ConnectionStrings__Holdem"] = "Host=db;Database=holdem;Username=postgres;Password=postgres";
+                    environment["ConnectionStrings__TabletopCardEngine"] = "Host=db;Database=holdem;Username=postgres;Password=postgres";
                     break;
                 case "mssql":
                     var sqlServer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").WithNetwork(network).WithNetworkAliases("db").Build();
                     database = sqlServer;
                     await sqlServer.StartAsync();
                     var password = new SqlConnectionStringBuilder(sqlServer.GetConnectionString()).Password;
-                    environment["ConnectionStrings__Holdem"] = $"Server=db;Database=holdem;User Id=sa;Password={password};TrustServerCertificate=True";
+                    environment["ConnectionStrings__TabletopCardEngine"] = $"Server=db;Database=holdem;User Id=sa;Password={password};TrustServerCertificate=True";
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(target), target, "Not a target of the Dockerfile.");
@@ -209,7 +209,7 @@ public sealed class ContainerImageTests
 
         exitCode.Should().NotBe(0);
         var (stdout, stderr) = await server.GetLogsAsync();
-        (stdout + stderr).Should().Contain("ConnectionStrings__Holdem");
+        (stdout + stderr).Should().Contain("ConnectionStrings__TabletopCardEngine");
     }
 
     [TestMethod]

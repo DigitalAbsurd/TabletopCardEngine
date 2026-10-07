@@ -67,8 +67,6 @@ The following names refer to the game, not the brand, and are kept:
 - `UseHoldem*` — configuration extension methods
 - `AddHoldemEngine*` — service collection extensions
 - `MapHoldemEngineApi` — API mapping
-- The `HoldemEngine` configuration section
-- `ConnectionStrings__Holdem` — connection string key
 - The `holdem-data` volume — Docker volume
 - The `holdem` database name
 
@@ -76,6 +74,19 @@ Renaming these would be a design change, not a rename. The copyright holder in `
 (`Copyright 2025-2026 Mikhail Khrapunov`) remains unchanged: moving the repository to an
 organization changes where it is hosted, not who holds the copyright. Only the project name and the
 URL in `NOTICE` change.
+
+### 3a. Amendment (2026-10-07): configuration keys
+
+The maintainer reversed the part of §3 that kept the `HoldemEngine` configuration section and the
+`ConnectionStrings__Holdem` key as game names, and decided to rename the container host's keys before
+the public launch, because they are the image's user-facing surface. The `HoldemServer` key, which §3
+did not mention, is renamed with them. The host has no public API, so no baseline changes.
+
+| Old key (environment variable) | New key (environment variable) |
+|---|---|
+| `ConnectionStrings:Holdem` (`ConnectionStrings__Holdem`) | `ConnectionStrings:TabletopCardEngine` (`ConnectionStrings__TabletopCardEngine`) |
+| `HoldemServer:Provider` (`HoldemServer__Provider`) | `TabletopCardEngineServer:Provider` (`TabletopCardEngineServer__Provider`) |
+| section `HoldemEngine` (`HoldemEngine__*`), bound to `HoldemEngineHostOptions` | section `TabletopCardEngine` (`TabletopCardEngine__*`) |
 
 ### 4. Exception 1: API baselines are re-packed once
 

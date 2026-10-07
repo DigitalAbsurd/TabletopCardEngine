@@ -7,8 +7,8 @@ namespace TabletopCardEngine.Server;
 
 internal static class HoldemServerDatabase
 {
-    internal const string ProviderKey = "HoldemServer:Provider";
-    internal const string ConnectionStringName = "Holdem";
+    internal const string ProviderKey = "TabletopCardEngineServer:Provider";
+    internal const string ConnectionStringName = "TabletopCardEngine";
 
     internal static Action<DbContextOptionsBuilder> Configure(IConfiguration configuration)
     {
@@ -20,12 +20,12 @@ internal static class HoldemServerDatabase
 
         if (provider is null)
         {
-            throw new InvalidOperationException($"HoldemServer:Provider must be one of {string.Join(", ", validProviders)} (environment variable HoldemServer__Provider); got '{providerValue}'.");
+            throw new InvalidOperationException($"TabletopCardEngineServer:Provider must be one of {string.Join(", ", validProviders)} (environment variable TabletopCardEngineServer__Provider); got '{providerValue}'.");
         }
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new InvalidOperationException("ConnectionStrings:Holdem is not set (environment variable ConnectionStrings__Holdem).");
+            throw new InvalidOperationException("ConnectionStrings:TabletopCardEngine is not set (environment variable ConnectionStrings__TabletopCardEngine).");
         }
 
         var providerEnum = Enum.Parse<HoldemServerProvider>(provider, ignoreCase: true);
