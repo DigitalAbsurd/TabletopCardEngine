@@ -2,6 +2,13 @@
 
 A .NET 10 class library for Texas Hold'em cash games. Register the engine with a database provider and drive everything through a single async method: `ApplyHoldemActionAsync(action, cancellationToken)`.
 
+## Not for real-money gambling
+
+TabletopCardEngine is a game-logic library for learning, simulation, research, testing and
+play-money games. It is not intended, designed or certified for real-money gambling. It makes no
+claim to meet the requirements a gaming regulator sets for such games, such as a certified random
+number generator or a tamper-evident audit trail.
+
 Install the core package alongside a provider package (SQLite, PostgreSQL, SQL Server, or in-memory):
 
 ```bash

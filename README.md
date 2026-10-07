@@ -24,6 +24,13 @@ The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rou
 | [TabletopCardEngine.AspNetCore](https://www.nuget.org/packages/TabletopCardEngine.AspNetCore) | ASP.NET Core integration: configuration binding, a schema health check and the REST API (`MapHoldemEngineApi`). |
 | [TabletopCardEngine.OpenTelemetry](https://www.nuget.org/packages/TabletopCardEngine.OpenTelemetry) | `AddTabletopCardEngineInstrumentation()` for OpenTelemetry traces and metrics. |
 
+## Not for real-money gambling
+
+TabletopCardEngine is a game-logic library for learning, simulation, research, testing and
+play-money games. It is not intended, designed or certified for real-money gambling. It makes no
+claim to meet the requirements a gaming regulator sets for such games, such as a certified random
+number generator or a tamper-evident audit trail.
+
 ## Quick start
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). Docker is needed only for the images.
