@@ -16,3 +16,4 @@ one of *Proposed*, *Accepted*, *Deprecated* or *Superseded by ADR-NNNN*.
 | [0004](0004-aspnetcore-integration-package.md) | Ship the ASP.NET Core integration as one package, OpenHoldemEngine.AspNetCore | Accepted |
 | [0005](0005-container-host-and-images.md) | Container host and images | Accepted |
 | [0006](0006-documentation-site.md) | Publish the documentation as a MkDocs Material site on Read the Docs | Accepted |
+| [0007](0007-rename-to-tabletopcardengine.md) | Rename to TabletopCardEngine | Accepted |
