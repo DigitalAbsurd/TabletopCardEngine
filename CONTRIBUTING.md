@@ -45,7 +45,7 @@ dotnet run --project tests/TabletopCardEngine.Tests -- --list-tests
 Run the browser layout gate locally before you open the pull request:
 
 ```
-OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
+TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 ```
 
 The first run needs the browser installed (build the solution first):
@@ -63,14 +63,14 @@ A task that touches specific areas needs additional tests:
 - **Provider matrix** (PostgreSQL and SQL Server in Docker):
   - Changes to `src/TabletopCardEngine/Data/`, relational provider packages, persistence tests, the server, or `scripts/add-migration.ps1`
   - ```
-    OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
-    OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
+    TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+    TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
     ```
 
 - **Container image tests** (builds the Dockerfile targets):
   - Changes to `Dockerfile`, `.dockerignore`, the server, `Directory.Build.props` or `.editorconfig`
   - ```
-    OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+    TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
     ```
 
 - **Documentation site** (requires Docker):

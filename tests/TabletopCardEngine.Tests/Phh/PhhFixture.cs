@@ -13,7 +13,7 @@ internal static class PhhFixture
     /// Caps how many hands the corpus-wide replay covers, so <c>dotnet test</c> stays quick.
     /// Set to <c>0</c> to replay all of them.
     /// </summary>
-    internal const string HandLimitVariable = "OHE_TEST_PHH_HAND_LIMIT";
+    internal const string HandLimitVariable = "TCE_TEST_PHH_HAND_LIMIT";
 
     private const int DefaultHandLimit = 500;
     private const string PluribusResourceSuffix = "Resources.phh.pluribus.phhs.gz";

@@ -18,7 +18,7 @@ namespace TabletopCardEngine.Server.Tests;
 internal static class ServerDatabases
 {
     /// <summary>Set to 1 to run the PostgreSQL and SQL Server rows; needs Docker.</summary>
-    internal const string ContainersVariable = "OHE_TEST_CONTAINERS";
+    internal const string ContainersVariable = "TCE_TEST_CONTAINERS";
 
     private static readonly Lazy<Task<PostgreSqlContainer>> _postgreSql = new(() => StartAsync(
         new PostgreSqlBuilder("postgres:16-alpine").Build()));
@@ -32,7 +32,7 @@ internal static class ServerDatabases
 
     /// <summary>
     /// Returns a connection string to a fresh database of <paramref name="provider"/>: a new temporary
-    /// file for SQLite (the caller deletes it), a new <c>ohe_&lt;guid&gt;</c> database on the container's
+    /// file for SQLite (the caller deletes it), a new <c>tce_&lt;guid&gt;</c> database on the container's
     /// server otherwise. The server kinds report the test inconclusive without <see cref="ContainersVariable"/>.
     /// </summary>
     internal static string ConnectionStringFor(HoldemServerProvider provider)
@@ -40,7 +40,7 @@ internal static class ServerDatabases
         switch (provider)
         {
             case HoldemServerProvider.Sqlite:
-                return $"Data Source={Path.Combine(Path.GetTempPath(), $"ohe-server-{Guid.NewGuid():N}.db")}";
+                return $"Data Source={Path.Combine(Path.GetTempPath(), $"tce-server-{Guid.NewGuid():N}.db")}";
             case HoldemServerProvider.PostgreSql:
                 RequireContainers();
                 return new NpgsqlConnectionStringBuilder(_postgreSql.Value.GetAwaiter().GetResult().GetConnectionString())
@@ -80,7 +80,7 @@ internal static class ServerDatabases
         }
     }
 
-    private static string NewDatabaseName() => $"ohe_{Guid.NewGuid():N}";
+    private static string NewDatabaseName() => $"tce_{Guid.NewGuid():N}";
 
     private static async Task<TContainer> StartAsync<TContainer>(TContainer container)
         where TContainer : DotNet.Testcontainers.Containers.IContainer

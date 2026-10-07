@@ -25,7 +25,7 @@ public sealed class SchemaCheckTests
     {
         using var host = TestEngineHost.Setup(out var engine, out _, seedAction: async context =>
         {
-            var schemaRow = await context.Set<OheSchemaRow>().FirstAsync(r => r.Id == 1);
+            var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
             schemaRow.SchemaVersion = 2;
             await context.SaveChangesAsync();
         });
@@ -46,7 +46,7 @@ public sealed class SchemaCheckTests
     {
         using var host = TestEngineHost.Setup(out var engine, out _, seedAction: async context =>
         {
-            var schemaRow = await context.Set<OheSchemaRow>().FirstAsync(r => r.Id == 1);
+            var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
             schemaRow.SchemaVersion = 0;
             await context.SaveChangesAsync();
         });
@@ -65,7 +65,7 @@ public sealed class SchemaCheckTests
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory, seedAction: async context =>
         {
-            var schemaRow = await context.Set<OheSchemaRow>().FirstAsync(r => r.Id == 1);
+            var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
             schemaRow.SchemaVersion = 2;
             await context.SaveChangesAsync();
         });
@@ -78,7 +78,7 @@ public sealed class SchemaCheckTests
 
         // Fix the schema version
         await using var context = await contextFactory.CreateDbContextAsync();
-        var schemaRow = await context.Set<OheSchemaRow>().FirstAsync(r => r.Id == 1);
+        var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
         schemaRow.SchemaVersion = HoldemSchema.Version;
         await context.SaveChangesAsync();
 
@@ -91,7 +91,7 @@ public sealed class SchemaCheckTests
     {
         using var host = TestEngineHost.Setup(out var engine, out _, seedAction: async context =>
         {
-            var schemaRow = await context.Set<OheSchemaRow>().FirstAsync(r => r.Id == 1);
+            var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
             schemaRow.SchemaVersion = 2;
             await context.SaveChangesAsync();
         });

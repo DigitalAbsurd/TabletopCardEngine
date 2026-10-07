@@ -72,7 +72,7 @@ public sealed class SchemaManagerTests
     {
         using var host = TestEngineHost.Setup(out _, out _, seedAction: ctx =>
         {
-            var row = ctx.Set<OheSchemaRow>().First();
+            var row = ctx.Set<TceSchemaRow>().First();
             row.SchemaVersion = 2;
             ctx.SaveChanges();
         });
@@ -88,7 +88,7 @@ public sealed class SchemaManagerTests
     {
         using var host = TestEngineHost.Setup(out _, out _, seedAction: ctx =>
         {
-            var row = ctx.Set<OheSchemaRow>().First();
+            var row = ctx.Set<TceSchemaRow>().First();
             row.SchemaVersion = 0;
             ctx.SaveChanges();
         });
@@ -104,8 +104,8 @@ public sealed class SchemaManagerTests
     {
         using var host = TestEngineHost.Setup(out _, out _, seedAction: ctx =>
         {
-            var row = ctx.Set<OheSchemaRow>().First();
-            ctx.Set<OheSchemaRow>().Remove(row);
+            var row = ctx.Set<TceSchemaRow>().First();
+            ctx.Set<TceSchemaRow>().Remove(row);
             ctx.SaveChanges();
         });
         var manager = host.GetRequiredService<IHoldemSchemaManager>();

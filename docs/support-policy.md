@@ -32,7 +32,7 @@ This document defines the supported platforms, dependencies, and versions of Tab
 
 ## Deprecation
 
-- A public member or type is deprecated with `[Obsolete("<what to use instead>", DiagnosticId = "OHE0001")]`, with one sequential `OHExxxx` ID per deprecation.
+- A public member or type is deprecated with `[Obsolete("<what to use instead>", DiagnosticId = "TCE0001")]`, with one sequential `TCExxxx` ID per deprecation.
 - The ID is listed in the "Deprecated IDs" section below.
 - The deprecated member stays for at least one minor release, and is removed only in the next major release.
 - The release that deprecates it mentions "deprecate" in the commit body (see [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#git-and-pull-request-protocol), Git and pull request protocol).

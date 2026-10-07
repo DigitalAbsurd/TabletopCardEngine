@@ -33,7 +33,7 @@ public enum TestDatabaseKind
 internal static class TestDatabase
 {
     /// <summary>Set to 1 to run the PostgreSQL and SQL Server rows; needs Docker.</summary>
-    internal const string ContainersVariable = "OHE_TEST_CONTAINERS";
+    internal const string ContainersVariable = "TCE_TEST_CONTAINERS";
 
     private static readonly Lazy<Task<PostgreSqlContainer>> _postgreSql = new(() => StartAsync(
         new PostgreSqlBuilder("postgres:16-alpine").Build()));
@@ -109,7 +109,7 @@ internal static class TestDatabase
         }
     }
 
-    private static string NewDatabaseName() => $"ohe_{Guid.NewGuid():N}";
+    private static string NewDatabaseName() => $"tce_{Guid.NewGuid():N}";
 
     private static async Task<TContainer> StartAsync<TContainer>(TContainer container)
         where TContainer : DotNet.Testcontainers.Containers.IContainer

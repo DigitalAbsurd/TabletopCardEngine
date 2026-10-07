@@ -176,24 +176,24 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasConversion<string>()
             .HasMaxLength(EnumColumnMaxLength);
 
-        modelBuilder.Entity<OheSchemaRow>()
-            .ToTable("__OheSchema");
+        modelBuilder.Entity<TceSchemaRow>()
+            .ToTable("__TceSchema");
 
-        modelBuilder.Entity<OheSchemaRow>()
+        modelBuilder.Entity<TceSchemaRow>()
             .HasKey(entity => entity.Id);
 
-        modelBuilder.Entity<OheSchemaRow>()
+        modelBuilder.Entity<TceSchemaRow>()
             .Property(entity => entity.Id)
             .ValueGeneratedNever();
 
-        modelBuilder.Entity<OheSchemaRow>()
+        modelBuilder.Entity<TceSchemaRow>()
             .Property(entity => entity.SchemaVersion);
 
-        modelBuilder.Entity<OheSchemaRow>()
+        modelBuilder.Entity<TceSchemaRow>()
             .Property(entity => entity.EngineVersion)
             .HasMaxLength(32);
 
-        modelBuilder.Entity<OheSchemaRow>()
-            .HasData(new OheSchemaRow { Id = 1, SchemaVersion = HoldemSchema.Version, EngineVersion = HoldemSchema.EngineVersion });
+        modelBuilder.Entity<TceSchemaRow>()
+            .HasData(new TceSchemaRow { Id = 1, SchemaVersion = HoldemSchema.Version, EngineVersion = HoldemSchema.EngineVersion });
     }
 }

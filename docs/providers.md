@@ -57,7 +57,7 @@ services.AddHoldemEngine(o => o.UseHoldemPostgreSql(dataSource));
 
 **Namespace.** Add `using TabletopCardEngine.PostgreSql;` to your code.
 
-**Schema.** All tables live in the schema `ohe`, and the migration history table is `ohe.__OheMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
+**Schema.** All tables live in the schema `tce`, and the migration history table is `tce.__TceMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
 
 **Licences.** The Npgsql package carries the PostgreSQL License. See [ADR-0003](adr/0003-database-provider-licences.md) for the licence terms and the decision to accept it.
 
@@ -78,7 +78,7 @@ services.AddHoldemEngine(o => o.UseHoldemSqlServer(connection));
 
 **Namespace.** Add `using TabletopCardEngine.SqlServer;` to your code.
 
-**Schema.** All tables live in the schema `ohe`, and the migration history table is `ohe.__OheMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
+**Schema.** All tables live in the schema `tce`, and the migration history table is `tce.__TceMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
 
 **Self-signed certificates require `TrustServerCertificate=True`.** The `Microsoft.Data.SqlClient` library encrypts connections by default. Most container SQL Server images use self-signed certificates, which fail validation without `TrustServerCertificate=True` in the connection string. If your SQL Server uses a proper certificate, you can omit this flag. Never disable SSL altogether; the flag only skips certificate validation.
 

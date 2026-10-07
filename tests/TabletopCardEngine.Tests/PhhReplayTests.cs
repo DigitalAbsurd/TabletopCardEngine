@@ -67,7 +67,7 @@ public sealed class PhhReplayTests
     }
 
     /// <summary>
-    /// The corpus-wide replay. Capped by <c>OHE_TEST_PHH_HAND_LIMIT</c> so a normal
+    /// The corpus-wide replay. Capped by <c>TCE_TEST_PHH_HAND_LIMIT</c> so a normal
     /// <c>dotnet test</c> stays quick; set it to <c>0</c> to replay all
     /// <see cref="PluribusHandCount"/> hands.
     /// </summary>

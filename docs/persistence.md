@@ -62,11 +62,11 @@ Each `HoldemEngine` checks the schema version on its first call. A schema newer 
 
 ## Where the engine's tables live
 
-On PostgreSQL and SQL Server, every table is in the schema `ohe`. SQLite has no schemas.
+On PostgreSQL and SQL Server, every table is in the schema `tce`. SQLite has no schemas.
 
-The migration history is the table `__OheMigrationsHistory`, not EF's default `__EFMigrationsHistory`, so it never collides with a host's own EF context running over the same database.
+The migration history is the table `__TceMigrationsHistory`, not EF's default `__EFMigrationsHistory`, so it never collides with a host's own EF context running over the same database.
 
-The schema version is the single row of `__OheSchema` with `Id = 1`, holding `SchemaVersion` and `EngineVersion`. This row is model seed data (`HasData`), and so each migration writes it.
+The schema version is the single row of `__TceSchema` with `Id = 1`, holding `SchemaVersion` and `EngineVersion`. This row is model seed data (`HasData`), and so each migration writes it.
 
 It is recommended to dedicate a database, or at least a login, to the engine.
 
@@ -106,14 +106,14 @@ Migrations are written per the following rules:
    if (migrationBuilder.ActiveProvider == "Npgsql.EntityFrameworkCore.PostgreSQL")
    {
        migrationBuilder.Sql(@"
-           UPDATE ohe.player_seats
+           UPDATE tce.player_seats
            SET name = TRIM(name)
        ");
    }
    else if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
    {
        migrationBuilder.Sql(@"
-           UPDATE [ohe].[player_seats]
+           UPDATE [tce].[player_seats]
            SET [name] = TRIM([name])
        ");
    }
@@ -126,7 +126,7 @@ Migrations are written per the following rules:
    }
    ```
 
-5. **Every migration after `InitialCreate` ships with an upgrade fixture on seeded data.** Implement `IUpgradeFixture` in `tests/TabletopCardEngine.Tests/Persistence/Upgrades/`, with `MigrationName` set to the migration's name. `SeedAsync` writes rows with raw SQL valid at the previous migration, per provider: neither the engine nor `HoldemDbContext` speaks the previous schema. `AssertAsync` then checks the rows through a fully migrated engine. `ProviderSchemaTests.Upgrade_EveryMigrationKeepsItsSeededData` runs each fixture on every relational database, and the guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` fails, naming the migration and the provider, when a migration has no fixture or more than one. The upgrade tests run on SQLite in every `dotnet test`, and on PostgreSQL and SQL Server in Docker under `OHE_TEST_CONTAINERS=1`: locally when Docker is available, and always in CI's `providers` job, on `main` and on every pull request that touches `Data/`, a provider package or the migrations' tests.
+5. **Every migration after `InitialCreate` ships with an upgrade fixture on seeded data.** Implement `IUpgradeFixture` in `tests/TabletopCardEngine.Tests/Persistence/Upgrades/`, with `MigrationName` set to the migration's name. `SeedAsync` writes rows with raw SQL valid at the previous migration, per provider: neither the engine nor `HoldemDbContext` speaks the previous schema. `AssertAsync` then checks the rows through a fully migrated engine. `ProviderSchemaTests.Upgrade_EveryMigrationKeepsItsSeededData` runs each fixture on every relational database, and the guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` fails, naming the migration and the provider, when a migration has no fixture or more than one. The upgrade tests run on SQLite in every `dotnet test`, and on PostgreSQL and SQL Server in Docker under `TCE_TEST_CONTAINERS=1`: locally when Docker is available, and always in CI's `providers` job, on `main` and on every pull request that touches `Data/`, a provider package or the migrations' tests.
 
 6. **Generated migration and snapshot files are `internal` and are not edited**, except for the hand-written parts rules 3 and 4 require.
 

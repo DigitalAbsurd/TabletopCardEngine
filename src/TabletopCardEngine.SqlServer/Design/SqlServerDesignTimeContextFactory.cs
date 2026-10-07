@@ -12,5 +12,5 @@ namespace TabletopCardEngine.SqlServer.Design;
 internal sealed class SqlServerDesignTimeContextFactory : IDesignTimeDbContextFactory<HoldemDbContext>
 {
     public HoldemDbContext CreateDbContext(string[] args)
-        => new(new DbContextOptionsBuilder<HoldemDbContext>().UseHoldemSqlServer("Server=localhost;Database=ohe_design;Trusted_Connection=True;TrustServerCertificate=True").Options);
+        => new(new DbContextOptionsBuilder<HoldemDbContext>().UseHoldemSqlServer("Server=localhost;Database=tce_design;Trusted_Connection=True;TrustServerCertificate=True").Options);
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -12,7 +12,7 @@ namespace TabletopCardEngine.Sqlite.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "__OheSchema",
+                name: "__TceSchema",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false),
@@ -21,7 +21,7 @@ namespace TabletopCardEngine.Sqlite.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK___OheSchema", x => x.Id);
+                    table.PrimaryKey("PK___TceSchema", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -222,7 +222,7 @@ namespace TabletopCardEngine.Sqlite.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "__OheSchema",
+                table: "__TceSchema",
                 columns: new[] { "Id", "EngineVersion", "SchemaVersion" },
                 values: new object[] { 1, "1.0.0", 1 });
         }
@@ -231,7 +231,7 @@ namespace TabletopCardEngine.Sqlite.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "__OheSchema");
+                name: "__TceSchema");
 
             migrationBuilder.DropTable(
                 name: "BuyIn");

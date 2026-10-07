@@ -15,7 +15,7 @@ public static class HoldemSqliteDbContextOptionsBuilderExtensions
 {
     /// <summary>
     /// Uses the SQLite database at <paramref name="connectionString"/>, with the migrations of this
-    /// package and the engine's own history table, <c>__OheMigrationsHistory</c>.
+    /// package and the engine's own history table, <c>__TceMigrationsHistory</c>.
     /// </summary>
     /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
     /// <param name="connectionString">A SQLite connection string, e.g. <c>Data Source=holdem.db</c>.</param>

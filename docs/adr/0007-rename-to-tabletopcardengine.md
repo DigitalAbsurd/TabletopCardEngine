@@ -48,9 +48,9 @@ These mappings are applied throughout the codebase:
 | `OpenHoldemEngine` | `TabletopCardEngine` | Namespaces, assemblies, package IDs, folders, solution, telemetry names, prose, URLs |
 | `openholdemengine` | `tabletopcardengine` | Docker image names, health check default name, lowercase URLs |
 | `OpenHoldem Engine` | `Tabletop Card Engine` | Prose title (`CONTRIBUTING.md`) |
-| `OHE_` (env vars), `OHE0001` (diagnostic IDs) | `TCE_`, `TCE0001` | Tests, scripts, docs, workflows |
-| `ohe` (database schema), `ohe_` (test databases), `ohe-` (storage keys, temp paths) | `tce`, `tce_`, `tce-` | Engine, migrations, tests, demo |
-| `__OheSchema`, `__OheMigrationsHistory`, `OheSchemaRow` | `__TceSchema`, `__TceMigrationsHistory`, `TceSchemaRow` | Engine, migrations, tests |
+| `OHE_` (env vars), `TCE0001` (diagnostic IDs) | `TCE_`, `TCE0001` | Tests, scripts, docs, workflows |
+| `ohe` (database schema), `tce_` (test databases), `ohe-` (storage keys, temp paths) | `tce`, `tce_`, `tce-` | Engine, migrations, tests, demo |
+| `__TceSchema`, `__TceMigrationsHistory`, `TceSchemaRow` | `__TceSchema`, `__TceMigrationsHistory`, `TceSchemaRow` | Engine, migrations, tests |
 
 The owner-qualified rows (`miekhra/...` → `DigitalAbsurd/...`) are applied first, because the plain
 `OpenHoldemEngine` row would otherwise turn `miekhra/OpenHoldemEngine` into `miekhra/TabletopCardEngine`,

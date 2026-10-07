@@ -14,7 +14,7 @@ namespace TabletopCardEngine.Tests.Persistence;
 
 /// <summary>
 /// The provider matrix: the same schema, upgrade and model checks on every database kind. SQLite and
-/// InMemory always run; PostgreSQL and SQL Server run in Docker under <c>OHE_TEST_CONTAINERS=1</c> and
+/// InMemory always run; PostgreSQL and SQL Server run in Docker under <c>TCE_TEST_CONTAINERS=1</c> and
 /// report inconclusive without it.
 /// </summary>
 [TestClass]
@@ -153,7 +153,7 @@ public sealed class ProviderSchemaTests
     [TestMethod]
     [DataRow(TestDatabaseKind.PostgreSql, "public")]
     [DataRow(TestDatabaseKind.SqlServer, "dbo")]
-    public async Task Server_TablesLiveInTheOheSchema(TestDatabaseKind database, string defaultSchema)
+    public async Task Server_TablesLiveInTheTceSchema(TestDatabaseKind database, string defaultSchema)
     {
         var configure = TestDatabase.Configure(database, out var lifetime);
         using var databaseLifetime = lifetime;
@@ -166,7 +166,7 @@ public sealed class ProviderSchemaTests
             .ToListAsync();
 
         tables.Where(table => table.Schema == HoldemSchema.DatabaseSchema).Select(table => table.Name)
-            .Should().Contain(["Game", "__OheSchema", HoldemSchema.MigrationsHistoryTable]);
+            .Should().Contain(["Game", "__TceSchema", HoldemSchema.MigrationsHistoryTable]);
 
         // The database is this test's own, so anything in the default schema could only be the engine's.
         tables.Where(table => table.Schema == defaultSchema).Should().BeEmpty();
