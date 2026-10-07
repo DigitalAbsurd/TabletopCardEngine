@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-03
-- **Issue:** [#292](https://github.com/miekhra/OpenHoldemEngine/issues/292), milestone
+- **Issue:** [#292](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/292), milestone
   `v1.0 · Docker images`
 
 ## Context
@@ -14,13 +14,13 @@ reopen them.
 
 ## Decision
 
-### 1. A separate host project, `src/OpenHoldemEngine.Server`
+### 1. A separate host project, `src/TabletopCardEngine.Server`
 
 Three options were on the table:
 
-- **`src/OpenHoldemEngine.Server`, a separate host project — chosen.** A .NET 10 executable
-  (`Microsoft.NET.Sdk.Web`, `IsPackable=false`) with tests in `tests/OpenHoldemEngine.Server.Tests`.
-- `OpenHoldemEngine.AspNetCore` itself as the host. The package is a packable library with an API
+- **`src/TabletopCardEngine.Server`, a separate host project — chosen.** A .NET 10 executable
+  (`Microsoft.NET.Sdk.Web`, `IsPackable=false`) with tests in `tests/TabletopCardEngine.Server.Tests`.
+- `TabletopCardEngine.AspNetCore` itself as the host. The package is a packable library with an API
   baseline and no `PackageReference` (ADR-0004, guarded by `AspNetCorePackageTests`). An image
   needs an executable that references all three providers and an OpenAPI generator. Putting the
   executable inside the package would make it a non-packable host, which breaks the package's
@@ -60,7 +60,7 @@ The host accepts these variables:
 ### 4. OpenAPI document from `Microsoft.AspNetCore.OpenApi`
 
 - **Use `Microsoft.AspNetCore.OpenApi` (MIT), referenced by the host only — chosen.** The package
-  is a NuGet package, not part of the shared framework, so the `OpenHoldemEngine.AspNetCore`
+  is a NuGet package, not part of the shared framework, so the `TabletopCardEngine.AspNetCore`
   package itself still ships metadata only, not a document generator (#273).
 - There is no Swagger UI, Scalar UI, or any other interactive document viewer in the image, because
   that would require adding one more NuGet package and one more row to the notices for a feature
@@ -107,7 +107,7 @@ The host accepts these variables:
 - **A host project with its own tests.** It is not a package, so it has no API baseline, no README
   package metadata, and no row in `THIRD-PARTY-NOTICES.md`.
 - **All three provider packages are referenced.** The host's project file references
-  `OpenHoldemEngine.Sqlite`, `OpenHoldemEngine.PostgreSql`, and `OpenHoldemEngine.SqlServer`.
+  `TabletopCardEngine.Sqlite`, `TabletopCardEngine.PostgreSql`, and `TabletopCardEngine.SqlServer`.
 - **One runtime binary supports all three providers.** The builder stage compiles against all three,
   and the runtime environment picks one at start-up.
 - **Docker is not a hard requirement.** Users can also build and run the host locally for testing.

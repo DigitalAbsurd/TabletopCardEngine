@@ -39,7 +39,7 @@ jobs:
         run: dotnet build
 
       - name: Check formatting
-        run: dotnet format OpenHoldemEngine.sln --verify-no-changes
+        run: dotnet format TabletopCardEngine.sln --verify-no-changes
 
       - name: Run tests
         env:
@@ -47,13 +47,13 @@ jobs:
         run: dotnet test
 
       - name: Check the public API against the baseline
-        run: dotnet pack OpenHoldemEngine.Packages.slnf -c Release -o _packages
+        run: dotnet pack TabletopCardEngine.Packages.slnf -c Release -o _packages
 
       - name: Check the package version matches the tag
         run: |
           version="${GITHUB_REF_NAME#v}"
-          if [ ! -f "_packages/OpenHoldemEngine.$version.nupkg" ]; then
-            echo "::error::Expected _packages/OpenHoldemEngine.$version.nupkg (tag $GITHUB_REF_NAME); MinVer produced:"
+          if [ ! -f "_packages/TabletopCardEngine.$version.nupkg" ]; then
+            echo "::error::Expected _packages/TabletopCardEngine.$version.nupkg (tag $GITHUB_REF_NAME); MinVer produced:"
             ls _packages
             exit 1
           fi
@@ -63,21 +63,21 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('tests/OpenHoldemEngine.Demo.BrowserTests/*.csproj') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('tests/TabletopCardEngine.Demo.BrowserTests/*.csproj') }}
 
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+        run: pwsh tests/TabletopCardEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
       # The cache holds the browser only; the system packages it needs are not cached.
       - name: Install Playwright system dependencies
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install-deps chromium
+        run: pwsh tests/TabletopCardEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install-deps chromium
 
       - name: Run browser layout gate
         env:
           OHE_TEST_BROWSER_GATE: "1"
-        run: dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
+        run: dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 
   # PostgreSQL and SQL Server in Docker through Testcontainers (docs/task-run.md, fact 28). Kept out of
   # the build job, which is already the slowest thing in the workflow. It runs on every release tag.
@@ -98,7 +98,7 @@ jobs:
       - name: Run provider tests on PostgreSQL and SQL Server
         env:
           OHE_TEST_CONTAINERS: "1"
-        run: dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+        run: dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
 
   # The three images of the Dockerfile, built with the release version. They are not pushed:
   # publishing to Docker Hub is a placeholder until the repository is public.
@@ -116,12 +116,12 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           docker build --target "${{ matrix.target }}" --build-arg VERSION="$version" \
-            -t "openholdemengine:$version-${{ matrix.target }}" .
+            -t "tabletopcardengine:$version-${{ matrix.target }}" .
 
       - name: Check the image version label
         run: |
           version="${GITHUB_REF_NAME#v}"
-          label=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "openholdemengine:$version-${{ matrix.target }}")
+          label=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "tabletopcardengine:$version-${{ matrix.target }}")
           if [ "$label" != "$version" ]; then
             echo "::error::Image label is '$label', expected '$version'"
             exit 1
@@ -149,12 +149,12 @@ jobs:
 
       # The solution filter leaves the demo out, so no wasm workload is needed.
       - name: Pack
-        run: dotnet pack OpenHoldemEngine.Packages.slnf -c Release -o artifacts
+        run: dotnet pack TabletopCardEngine.Packages.slnf -c Release -o artifacts
 
       - name: Check every package carries the tag's version
         run: |
           version="${GITHUB_REF_NAME#v}"
-          expected=$(jq '.solution.projects | length' OpenHoldemEngine.Packages.slnf)
+          expected=$(jq '.solution.projects | length' TabletopCardEngine.Packages.slnf)
           packages=(artifacts/*.nupkg)
           bad=0
           if [ "${#packages[@]}" -ne "$expected" ]; then
@@ -216,7 +216,7 @@ jobs:
 
   # Placeholder: publishing the three images to Docker Hub starts with the same milestone. It will
   # log in with the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets, then push
-  # <namespace>/openholdemengine:<version>-<target>, and also :<target> for a stable tag.
+  # <namespace>/tabletopcardengine:<version>-<target>, and also :<target> for a stable tag.
   # The repository variable is not set.
   publish-docker:
     needs: [release, docker]

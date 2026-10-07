@@ -1,0 +1,115 @@
+﻿@using TabletopCardEngine.Dto
+@using TabletopCardEngine
+@using DataCard = TabletopCardEngine.Card
+@using TabletopCardEngine.Demo.Services
+
+@* The badges share the stack's row rather than a row of their own: most seats carry none, and a
+   reserved badge row was empty space in every one of them. *@
+<div class="seat @GetSeatClasses()">
+    <div class="seat-content">
+        <div class="seat-name">@SeatData.Name</div>
+
+        <div class="seat-stack">
+            @if (IsDealer)
+            {
+                <span class="badge badge-dealer" title="Dealer Button">D</span>
+            }
+            @if (IsSmallBlind)
+            {
+                <span class="badge badge-small-blind" title="Small Blind">SB</span>
+            }
+            @if (IsBigBlind)
+            {
+                <span class="badge badge-big-blind" title="Big Blind">BB</span>
+            }
+            <span class="stack-amount">@AmountFormat.Format(SeatData.Stack)</span>
+            @if (StackDelta != 0)
+            {
+                var sign = StackDelta > 0 ? "+" : "";
+                var deltaClass = StackDelta > 0 ? "delta-positive" : "delta-negative";
+                <span class="@deltaClass">(@sign@AmountFormat.Format(StackDelta))</span>
+            }
+        </div>
+
+        @if (SeatData.Hole?.Count > 0)
+        {
+            <div class="seat-hole-cards">
+                @foreach (var card in SeatData.Hole)
+                {
+                    <PlayingCard Card="card" IsHighlighted="@(HighlightedCards?.Contains(card) == true)" />
+                }
+            </div>
+        }
+
+        @if (SeatData.LastAction is not null)
+        {
+            <div class="seat-last-action">
+                <span class="action-type">@FormatActionType(SeatData.LastAction.ActionType)</span>
+                @if (SeatData.LastAction.Size > 0)
+                {
+                    <span class="action-size">@AmountFormat.Format(SeatData.LastAction.Size)</span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>The seat data to display.</summary>
+    [Parameter]
+    public required SeatData SeatData { get; set; }
+
+    /// <summary>Whether this seat has the dealer button.</summary>
+    [Parameter]
+    public bool IsDealer { get; set; }
+
+    /// <summary>Whether this seat posted the small blind.</summary>
+    [Parameter]
+    public bool IsSmallBlind { get; set; }
+
+    /// <summary>Whether this seat posted the big blind.</summary>
+    [Parameter]
+    public bool IsBigBlind { get; set; }
+
+    /// <summary>Whether this seat is currently to act.</summary>
+    [Parameter]
+    public bool IsActing { get; set; }
+
+    /// <summary>The cards of this seat's combination to light up, or null when no result chip points here.</summary>
+    [Parameter]
+    public IReadOnlySet<DataCard>? HighlightedCards { get; set; }
+
+    private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
+
+    private string GetSeatClasses()
+    {
+        var classes = new List<string>();
+
+        if (IsActing)
+            classes.Add("seat-acting");
+
+        if (SeatData.IsFolded)
+            classes.Add("seat-folded");
+
+        if (SeatData.IsAllIn)
+            classes.Add("seat-all-in");
+
+        return string.Join(" ", classes);
+    }
+
+    private static string FormatActionType(HandActionType actionType)
+    {
+        return actionType switch
+        {
+            HandActionType.SmallBlind => "SB",
+            HandActionType.BigBlind => "BB",
+            HandActionType.Fold => "Fold",
+            HandActionType.Check => "Check",
+            HandActionType.Call => "Call",
+            HandActionType.Raise => "Raise",
+            HandActionType.Bet => "Bet",
+            HandActionType.AllIn => "All-In",
+            _ => actionType.ToString()
+        };
+    }
+}

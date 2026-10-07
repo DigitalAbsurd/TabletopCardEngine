@@ -1,6 +1,6 @@
 # Third-party notices
 
-OpenHoldemEngine is licensed under the Apache License 2.0, in [LICENSE](LICENSE), with its own
+TabletopCardEngine is licensed under the Apache License 2.0, in [LICENSE](LICENSE), with its own
 attribution notice in [NOTICE](NOTICE). It builds on the third-party
 components listed here, and the demo site redistributes some of them. Each component keeps its own
 license, and this file reproduces the notices those licenses require.
@@ -28,11 +28,11 @@ After changing a dependency, re-run the script and paste its tables over the one
 assembly versions from git tags; nothing of MinVer ships, and it does not appear in the inventories
 below.
 
-**The library, `OpenHoldemEngine`**, references its dependencies as NuGet packages and redistributes
+**The library, `TabletopCardEngine`**, references its dependencies as NuGet packages and redistributes
 none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
 packages, all MIT.
 
-**The SQLite package, `OpenHoldemEngine.Sqlite`**, references the library and
+**The SQLite package, `TabletopCardEngine.Sqlite`**, references the library and
 `Microsoft.EntityFrameworkCore.Sqlite` 10.0.0 (MIT) as NuGet packages and redistributes neither. Its
 runtime closure on top of the library's is EF Core SQLite and `Microsoft.Data.Sqlite.Core` (MIT),
 and SQLitePCLRaw 2.1.13 (Apache-2.0), whose `SQLitePCLRaw.lib.e_sqlite3` carries the public-domain
@@ -42,17 +42,17 @@ SQLite itself. The package references `SQLitePCLRaw.bundle_e_sqlite3` directly t
 with, it is referenced with `PrivateAssets="all"`, and it does not appear among the package's
 dependencies.
 
-**The InMemory package, `OpenHoldemEngine.InMemory`**, references the library and
+**The InMemory package, `TabletopCardEngine.InMemory`**, references the library and
 `Microsoft.EntityFrameworkCore.InMemory` 10.0.0 (MIT) as NuGet packages and redistributes neither.
 It is for prototyping, testing and isolated unit testing, not for production.
 
-**The other persistence packages** (`OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`)
+**The other persistence packages** (`TabletopCardEngine.PostgreSql`, `TabletopCardEngine.SqlServer`)
 bring in the PostgreSQL License (Npgsql) and the Microsoft.Data.SqlClient.SNI runtime's proprietary
 licence. Both are documented in [ADR-0003](docs/adr/0003-database-provider-licences.md): the
 PostgreSQL License is OSI-approved and equivalent to MIT/BSD, and the SNI runtime is accepted as a
 single-package exception for redistribution of object code.
 
-**The instrumentation package, `OpenHoldemEngine.OpenTelemetry`**, references the library and
+**The instrumentation package, `TabletopCardEngine.OpenTelemetry`**, references the library and
 `OpenTelemetry.Api` 1.19.1 (Apache-2.0) and `OpenTelemetry.Api.ProviderBuilderExtensions` 1.19.1
 (Apache-2.0) as NuGet packages and redistributes neither. The API packages' dependencies are
 `System.Diagnostics.DiagnosticSource` 10.0.0 (MIT) and `Microsoft.Extensions.DependencyInjection.Abstractions`
@@ -60,21 +60,21 @@ single-package exception for redistribution of object code.
 EF Core and the framework. It does not reference the OpenTelemetry SDK or an exporter: the host
 brings those.
 
-**The ASP.NET Core package, `OpenHoldemEngine.AspNetCore`**, references the library and the
+**The ASP.NET Core package, `TabletopCardEngine.AspNetCore`**, references the library and the
 `Microsoft.AspNetCore.App` shared framework, and no NuGet package at all
 ([ADR-0004](docs/adr/0004-aspnetcore-integration-package.md)). The shared framework comes with the
 host's .NET runtime (MIT), and the package redistributes none of it.
 
-**The container host, `OpenHoldemEngine.Server`**, is not packed. It references the AspNetCore and
+**The container host, `TabletopCardEngine.Server`**, is not packed. It references the AspNetCore and
 provider packages of this repository and `Microsoft.AspNetCore.OpenApi` (MIT), which brings in
 `Microsoft.OpenApi` (MIT).
 
 **The container images** are built from the repository's `Dockerfile` on top of
 `mcr.microsoft.com/dotnet/aspnet:10.0` (Ubuntu 24.04), which carries the .NET runtime (MIT) and
 Ubuntu packages under their own licences. The release workflow publishes the three targets to Docker Hub as
-`miekhra/openholdemengine` ([ADR-0005](docs/adr/0005-container-host-and-images.md)). Whoever distributes these images also distributes the base image's components.
+`digitalabsurd/tabletopcardengine` ([ADR-0005](docs/adr/0005-container-host-and-images.md)). Whoever distributes these images also distributes the base image's components.
 
-**The demo site, `OpenHoldemEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
+**The demo site, `TabletopCardEngine.Demo`**, is a Blazor WebAssembly application, so publishing it
 copies its dependencies into the site. On top of the library's closure it ships:
 
 | Component | Where it comes from | License |
@@ -97,7 +97,7 @@ arrive transitively through AntDesign's `netstandard` dependencies, so they have
 inventory. The license gate accepts them as `MS-.NET-Library`, because **none of their assemblies
 ships**: the SDK's conflict resolution replaces each of them with the runtime
 pack's newer `8.0.0.0` assembly. A detailed build
-(`dotnet build src/OpenHoldemEngine.Demo -c Release -v:d`) resolves no conflict in favour of a 4.x
+(`dotnet build src/TabletopCardEngine.Demo -c Release -v:d`) resolves no conflict in favour of a 4.x
 package, and no NuGet assembly wins over the runtime pack at all: since EF Core 10, nothing in the
 demo's graph brings a `System.*` package newer than the runtime pack's own.
 
@@ -115,9 +115,9 @@ downloads its browsers at test time, and no browser is committed or redistribute
 
 The following hand histories come from the [PHH dataset](https://github.com/uoftcprg/phh-dataset):
 
-- `tests/OpenHoldemEngine.Tests/Resources/phh/pluribus.phhs.gz`
-- `tests/OpenHoldemEngine.Tests/Resources/phh/handhq-headsup.phhs.gz`
-- `src/OpenHoldemEngine.Demo/wwwroot/sample/sample.phhs`, ten Pluribus hands
+- `tests/TabletopCardEngine.Tests/Resources/phh/pluribus.phhs.gz`
+- `tests/TabletopCardEngine.Tests/Resources/phh/handhq-headsup.phhs.gz`
+- `src/TabletopCardEngine.Demo/wwwroot/sample/sample.phhs`, ten Pluribus hands
 
 The two test corpora are pinned to upstream commit `e47fbd5816372360bade4de5d712346fe1bb70f6`. The
 dataset is published under the MIT license:
@@ -155,7 +155,7 @@ The dataset in turn compiles hands from other sources:
 
 This repository redistributes those records under the dataset's MIT grant, and every copy keeps the
 dataset's copyright notice beside it (`LICENSE-phh-dataset.txt`).
-[The fixture README](tests/OpenHoldemEngine.Tests/Resources/phh/README.md) covers provenance and
+[The fixture README](tests/TabletopCardEngine.Tests/Resources/phh/README.md) covers provenance and
 citation.
 
 ## Contributor Covenant
@@ -172,7 +172,7 @@ package (which adds none), then what the SQLite package adds, then what the demo
 The inventory leaves out transitive packages. The ones the demo ships are named in
 [What ships](#what-ships-and-under-which-license).
 
-### OpenHoldemEngine
+### TabletopCardEngine
 
 | Package | Version | License |
 | --- | --- | --- |
@@ -181,19 +181,19 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Microsoft.Extensions.Diagnostics.Abstractions | 10.0.12 | MIT |
 | Microsoft.Extensions.Logging.Abstractions | 10.0.12 | MIT |
 
-### OpenHoldemEngine.OpenTelemetry
+### TabletopCardEngine.OpenTelemetry
 
 | Package | Version | License |
 | --- | --- | --- |
 | OpenTelemetry.Api | 1.19.1 | Apache-2.0 |
 | OpenTelemetry.Api.ProviderBuilderExtensions | 1.19.1 | Apache-2.0 |
 
-### OpenHoldemEngine.AspNetCore
+### TabletopCardEngine.AspNetCore
 
 | Package | Version | License |
 | --- | --- | --- |
 
-### OpenHoldemEngine.Sqlite
+### TabletopCardEngine.Sqlite
 
 | Package | Version | License |
 | --- | --- | --- |
@@ -201,26 +201,26 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Microsoft.EntityFrameworkCore.Sqlite | 10.0.12 | MIT |
 | SQLitePCLRaw.bundle_e_sqlite3 | 2.1.13 | Apache-2.0 |
 
-### OpenHoldemEngine.PostgreSql
+### TabletopCardEngine.PostgreSql
 
 | Package | Version | License |
 | --- | --- | --- |
 | Npgsql.EntityFrameworkCore.PostgreSQL | 10.0.3 | PostgreSQL |
 
-### OpenHoldemEngine.SqlServer
+### TabletopCardEngine.SqlServer
 
 | Package | Version | License |
 | --- | --- | --- |
 | Microsoft.Data.SqlClient | 7.1.1 | MIT |
 | Microsoft.EntityFrameworkCore.SqlServer | 10.0.12 | MIT |
 
-### OpenHoldemEngine.InMemory
+### TabletopCardEngine.InMemory
 
 | Package | Version | License |
 | --- | --- | --- |
 | Microsoft.EntityFrameworkCore.InMemory | 10.0.12 | MIT |
 
-### OpenHoldemEngine.Demo
+### TabletopCardEngine.Demo
 
 | Package | Version | License |
 | --- | --- | --- |
@@ -229,7 +229,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | Microsoft.AspNetCore.Components.WebAssembly.DevServer | 10.0.12 | MIT |
 | Tomlyn | 0.19.0 | BSD-2-Clause |
 
-### OpenHoldemEngine.Server
+### TabletopCardEngine.Server
 
 | Package | Version | License |
 | --- | --- | --- |

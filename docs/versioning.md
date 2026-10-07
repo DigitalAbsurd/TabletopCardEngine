@@ -6,7 +6,7 @@ This document states the versioning policy for the Holdem engine and its package
 
 ## Semantic Versioning
 
-The packages follow [Semantic Versioning 2.0.0](https://semver.org/). **One version for everything (lockstep):** the seven packages in `OpenHoldemEngine.Packages.slnf` (`OpenHoldemEngine`, `.OpenTelemetry`, `.AspNetCore`, `.Sqlite`, `.PostgreSql`, `.SqlServer`, `.InMemory`) and the Docker images all get the same version from one git tag `vX.Y.Z` or `vX.Y.Z-preview.N` / `vX.Y.Z-rc.N`. A package with no change since the last release still gets the new version.
+The packages follow [Semantic Versioning 2.0.0](https://semver.org/). **One version for everything (lockstep):** the seven packages in `TabletopCardEngine.Packages.slnf` (`TabletopCardEngine`, `.OpenTelemetry`, `.AspNetCore`, `.Sqlite`, `.PostgreSql`, `.SqlServer`, `.InMemory`) and the Docker images all get the same version from one git tag `vX.Y.Z` or `vX.Y.Z-preview.N` / `vX.Y.Z-rc.N`. A package with no change since the last release still gets the new version.
 
 The pre-release ladder for 1.0 is `1.0.0-preview.1`, then `1.0.0-preview.2`, ..., then `1.0.0-rc.1`, `1.0.0-rc.2`, ..., then `1.0.0`. The public API of 1.0 is frozen from `1.0.0-preview.1` on. When a pre-release breaks a prior pre-release, the maintainers record the reason in the CHANGELOG.
 
@@ -14,7 +14,7 @@ The pre-release ladder for 1.0 is `1.0.0-preview.1`, then `1.0.0-preview.2`, ...
 
 A major version increment (e.g., `1.0.0` → `2.0.0`) is required for any breaking change. A breaking change is any of:
 
-- **The public .NET surface** — whatever `dotnet pack OpenHoldemEngine.Packages.slnf -c Release` reports with a `CP` diagnostic (`CP0001`, `CP0002`, ...) per [docs/public-api.md](public-api.md). Also source-only breaks that package validation cannot detect, such as removing a parameter's default value or changing a member's optional parameter.
+- **The public .NET surface** — whatever `dotnet pack TabletopCardEngine.Packages.slnf -c Release` reports with a `CP` diagnostic (`CP0001`, `CP0002`, ...) per [docs/public-api.md](public-api.md). Also source-only breaks that package validation cannot detect, such as removing a parameter's default value or changing a member's optional parameter.
 
 - **The numeric value or meaning of a `HoldemErrorCode`** — the stable machine-readable codes in the `HoldemErrorCode` enum (`GameAlreadyExists`, `CurrentHandEnded`, etc.). Changing a code's value or its semantic meaning is a break.
 

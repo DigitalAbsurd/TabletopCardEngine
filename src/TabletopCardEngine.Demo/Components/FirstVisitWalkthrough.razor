@@ -1,0 +1,204 @@
+﻿@using AntDesign
+@using TabletopCardEngine.Demo.Services
+@implements IAsyncDisposable
+@inject BrowserStorage Storage
+@inject WalkthroughState WalkthroughState
+
+<Modal Visible="_visible"
+    Title="Welcome to TabletopCardEngine Demo"
+    OkText="@OkLabel"
+    OnOk="OnClose"
+    CancelText="@CancelLabel"
+    OnCancel="OnSkip"
+    Width="600"
+    Closable="true">
+    <div class="walkthrough-content">
+        @if (_currentStep == 1)
+        {
+            <div class="step-content">
+                <h3>Step 1: The Poker Table</h3>
+                <p>
+                    The demo is four tabs in one bar under the header. <strong>Game Table</strong> is in front, and a six-handed game is already dealt:
+                </p>
+                <ul>
+                    <li><strong>Play every seat:</strong> The action bar along the bottom of the table names the player on the clock and offers Fold, Check, Call or Raise — only what the engine says is legal</li>
+                    <li><strong>Size a raise:</strong> Drag the slider, click its <em>Min</em> or <em>All-in</em> mark, press <em>½ Pot</em> or <em>Pot</em> beside the amount (a pot-limit raise: call first, then raise by the pot as it stands after the call — hover a button to see the sum), step by one small blind with −/+, or type the amount — an amount that is not a legal raise turns red, and the round button next to it corrects it. None of these submits anything; Raise does</li>
+                    <li><strong>Follow the hand:</strong> The seats show cards, stacks and the dealer and blind buttons, the street steps and the board move from pre-flop to the river, and the pot is shown with the current street's bets</li>
+                    <li><strong>See who won:</strong> After the showdown, hover or click a player's result to light up the cards that make the combination</li>
+                    <li><strong>Carry on:</strong> Next Hand deals the next one with the stacks carried over. New Game, in the header, opens the settings — players, seats, buy-ins, blinds, dealer — and applying them clears the database and deals a fresh game</li>
+                </ul>
+                <p class="step-note">
+                    Everything lives in this tab's memory: a reload starts over. Export a hand history from the Hand History tab to keep it.
+                </p>
+            </div>
+        }
+        else if (_currentStep == 2)
+        {
+            <div class="step-content">
+                <h3>Step 2: The Database Inspector</h3>
+                <p>
+                    The <strong>Database Inspector</strong> tab shows the <strong>physical SQLite database</strong> — the exact tables and rows the engine writes:
+                </p>
+                <ul>
+                    <li><strong>Real tables:</strong> Pick <code>Game</code>, <code>Hand</code>, <code>HandAction</code>, <code>HandDeckCard</code> and the rest from the dropdown</li>
+                    <li><strong>No in-memory game object:</strong> Every engine call reloads the game from these rows and writes the result back — the database IS the state</li>
+                    <li><strong>See what changed:</strong> After each action, the inspector highlights the tables whose row count changed</li>
+                    <li><strong>Read the ledger:</strong> <code>HandAction</code> holds each seat's cumulative street wager; enums are stored as text and cards as two-character strings like <code>ah</code> (ace of hearts)</li>
+                </ul>
+                <p class="step-note">
+                    This is the central lesson: there is no hidden game state, only the database.
+                </p>
+            </div>
+        }
+        else if (_currentStep == 3)
+        {
+            <div class="step-content">
+                <h3>Step 3: The Engine Calls Log</h3>
+                <p>
+                    The <strong>Engine Calls</strong> tab shows the <strong>exact C# code</strong> behind every change:
+                </p>
+                <ul>
+                    <li><strong>Readable snippets:</strong> Each call is shown as C# with named arguments and syntax highlighting, and the log follows the newest one</li>
+                    <li><strong>Inspect the result:</strong> Expand a call's <code>result</code> panel to browse the <code>GameData</code> the engine returned, field by field</li>
+                    <li><strong>Failed calls visible:</strong> If an action fails validation, you see the error instead of the result</li>
+                    <li><strong>Copy and paste:</strong> Copy one snippet, or the whole session as a compilable console-project snippet</li>
+                </ul>
+            </div>
+        }
+        else if (_currentStep == 4)
+        {
+            <div class="step-content">
+                <h3>Step 4: Hand History</h3>
+                <p>
+                    The <strong>Hand History</strong> tab replays and keeps hands in the open <a href="https://github.com/uoftcprg/phh-dataset" target="_blank" rel="noopener">PHH</a> format:
+                </p>
+                <ul>
+                    <li><strong>Import:</strong> Load a <code>.phh</code> or <code>.phhs</code> file, or the bundled sample</li>
+                    <li><strong>Replay:</strong> Step through a recorded hand one action at a time and watch the table, the database and the call log move together</li>
+                    <li><strong>Export:</strong> Save the current hand or the whole session as <code>.phh</code> — the one way to keep a game past a reload</li>
+                </ul>
+                <p class="step-note">
+                    You can reopen this walkthrough at any time from the <strong>?</strong> button in the header.
+                </p>
+            </div>
+        }
+    </div>
+</Modal>
+
+<style>
+    .walkthrough-content {
+        padding: 1rem 0;
+    }
+
+    .step-content h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: #1890ff;
+    }
+
+    .step-content p {
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+
+    .step-content ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+
+    .step-content li {
+        margin: 0.5rem 0;
+        line-height: 1.6;
+    }
+
+    .step-content .step-note {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+        color: var(--demo-muted-text);
+    }
+
+    .step-content code {
+        background-color: var(--demo-muted-surface);
+        padding: 0.2rem 0.4rem;
+        border-radius: 2px;
+        font-family: 'Courier New', monospace;
+    }
+</style>
+
+@code {
+    private bool _visible = false;
+    private int _currentStep = 1;
+    private const string WalkthroughDismissedKey = "ohe-demo-walkthrough-dismissed";
+
+    /// <summary>One step per tab: Game Table, Database Inspector, Engine Calls, Hand History.</summary>
+    private const int StepCount = 4;
+
+    private string OkLabel => _currentStep < StepCount ? "Next" : "Done";
+    private const string CancelLabel = "Skip";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var isDismissed = await Storage.GetFlagAsync(WalkthroughDismissedKey);
+            _visible = !isDismissed;
+        }
+        catch
+        {
+            // If storage service fails, show the walkthrough
+            _visible = true;
+        }
+
+        WalkthroughState.ShowRequested += Show;
+    }
+
+    /// <summary>
+    /// Opens the walkthrough and resets it to step 1.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task Show()
+    {
+        _currentStep = 1;
+        _visible = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnClose()
+    {
+        if (_currentStep < StepCount)
+        {
+            _currentStep++;
+        }
+        else
+        {
+            _visible = false;
+            try
+            {
+                await Storage.SetFlagAsync(WalkthroughDismissedKey, true);
+            }
+            catch
+            {
+                // Ignore storage errors
+            }
+        }
+    }
+
+    private async Task OnSkip()
+    {
+        _visible = false;
+        try
+        {
+            await Storage.SetFlagAsync(WalkthroughDismissedKey, true);
+        }
+        catch
+        {
+            // Ignore storage errors
+        }
+    }
+
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        WalkthroughState.ShowRequested -= Show;
+        await Task.CompletedTask;
+    }
+}

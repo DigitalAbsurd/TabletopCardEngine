@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Security vulnerability?** Please report it through [SECURITY.md](https://github.com/miekhra/OpenHoldemEngine/blob/main/SECURITY.md) instead, not as a public issue.
+        **Security vulnerability?** Please report it through [SECURITY.md](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/SECURITY.md) instead, not as a public issue.
   - type: input
     id: version
     attributes:
@@ -21,13 +21,13 @@ body:
       description: Which packages are affected?
       multiple: true
       options:
-        - OpenHoldemEngine
-        - OpenHoldemEngine.AspNetCore
-        - OpenHoldemEngine.OpenTelemetry
-        - OpenHoldemEngine.Sqlite
-        - OpenHoldemEngine.PostgreSql
-        - OpenHoldemEngine.SqlServer
-        - OpenHoldemEngine.InMemory
+        - TabletopCardEngine
+        - TabletopCardEngine.AspNetCore
+        - TabletopCardEngine.OpenTelemetry
+        - TabletopCardEngine.Sqlite
+        - TabletopCardEngine.PostgreSql
+        - TabletopCardEngine.SqlServer
+        - TabletopCardEngine.InMemory
         - Container image
         - Demo
     validations:

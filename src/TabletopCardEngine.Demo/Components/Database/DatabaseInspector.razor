@@ -1,0 +1,60 @@
+@using AntDesign
+@using TabletopCardEngine.Demo.Services
+@inherits DatabaseInspectorBase
+
+<Card Class="companion-card database-inspector-card">
+    <div class="database-inspector-content">
+        <div class="table-selector">
+            <Select TItemValue="string"
+                    TItem="string"
+                    Placeholder="Select a table..."
+                    Value="SelectedTable"
+                    OnSelectedItemChanged="@(async (value) => await OnTableSelectedAsync(value))"
+                    Style="width: 100%">
+                <SelectOptions>
+                    @foreach (var tableName in TableNames)
+                    {
+                        <SelectOption TItemValue="string" TItem="string" Value="@tableName" Label="@tableName" />
+                    }
+                </SelectOptions>
+            </Select>
+        </div>
+
+        @if (!string.IsNullOrEmpty(SelectedTable) && Columns.Count > 0)
+        {
+            <div class="table-info">
+                <div class="row-count">
+                    <span class="label">Rows:</span>
+                    <span class="value">@RowCount</span>
+                </div>
+            </div>
+
+            @if (Rows.Count > 0)
+            {
+                <div class="table-grid-container">
+                    <table class="simple-table">
+                        <thead>
+                            <tr>
+                                @foreach (var column in Columns)
+                                {
+                                    <th>@column.Name</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Rows)
+                            {
+                                <tr>
+                                    @foreach (var column in Columns)
+                                    {
+                                        <td>@FormatCellValue(row, column.Name)</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    </div>
+</Card>

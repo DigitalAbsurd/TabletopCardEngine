@@ -1,28 +1,28 @@
-# OpenHoldemEngine
+# TabletopCardEngine
 
 A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `ApplyHoldemActionAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
 
-[![Release](https://github.com/miekhra/OpenHoldemEngine/actions/workflows/release.yml/badge.svg)](https://github.com/miekhra/OpenHoldemEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/OpenHoldemEngine)](https://www.nuget.org/packages/OpenHoldemEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
 ## Demo
 
-Try the [interactive Blazor WebAssembly demo](https://miekhra.github.io/OpenHoldemEngine/): play hands or replay imported hand histories, and watch the database inspector and the engine call log show exactly what each action writes.
+Try the [interactive Blazor WebAssembly demo](https://digitalabsurd.github.io/TabletopCardEngine/): play hands or replay imported hand histories, and watch the database inspector and the engine call log show exactly what each action writes.
 
-![The OpenHoldemEngine demo](docs/assets/demo.png)
+![The TabletopCardEngine demo](docs/assets/demo.png)
 
 ## Features and limits
 
-The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1 is limited on purpose: No-Limit Hold'em cash games only, 2 to 6 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/roadmap.md).
+The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1 is limited on purpose: No-Limit Hold'em cash games only, 2 to 6 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/roadmap.md).
 
 | Package | Use it for |
 |---|---|
-| [OpenHoldemEngine](https://www.nuget.org/packages/OpenHoldemEngine) | The core engine: the `HoldemEngine` class, the `GameData` DTOs and the schema manager. It references no database provider. |
-| [OpenHoldemEngine.Sqlite](https://www.nuget.org/packages/OpenHoldemEngine.Sqlite) | SQLite storage and its migrations (`UseHoldemSqlite`). Brings the core with it. |
-| [OpenHoldemEngine.PostgreSql](https://www.nuget.org/packages/OpenHoldemEngine.PostgreSql) | PostgreSQL storage and its migrations (`UseHoldemPostgreSql`). |
-| [OpenHoldemEngine.SqlServer](https://www.nuget.org/packages/OpenHoldemEngine.SqlServer) | SQL Server storage and its migrations (`UseHoldemSqlServer`). |
-| [OpenHoldemEngine.InMemory](https://www.nuget.org/packages/OpenHoldemEngine.InMemory) | EF Core in-memory storage (`UseHoldemInMemory`), for tests and demos. |
-| [OpenHoldemEngine.AspNetCore](https://www.nuget.org/packages/OpenHoldemEngine.AspNetCore) | ASP.NET Core integration: configuration binding, a schema health check and the REST API (`MapHoldemEngineApi`). |
-| [OpenHoldemEngine.OpenTelemetry](https://www.nuget.org/packages/OpenHoldemEngine.OpenTelemetry) | `AddOpenHoldemEngineInstrumentation()` for OpenTelemetry traces and metrics. |
+| [TabletopCardEngine](https://www.nuget.org/packages/TabletopCardEngine) | The core engine: the `HoldemEngine` class, the `GameData` DTOs and the schema manager. It references no database provider. |
+| [TabletopCardEngine.Sqlite](https://www.nuget.org/packages/TabletopCardEngine.Sqlite) | SQLite storage and its migrations (`UseHoldemSqlite`). Brings the core with it. |
+| [TabletopCardEngine.PostgreSql](https://www.nuget.org/packages/TabletopCardEngine.PostgreSql) | PostgreSQL storage and its migrations (`UseHoldemPostgreSql`). |
+| [TabletopCardEngine.SqlServer](https://www.nuget.org/packages/TabletopCardEngine.SqlServer) | SQL Server storage and its migrations (`UseHoldemSqlServer`). |
+| [TabletopCardEngine.InMemory](https://www.nuget.org/packages/TabletopCardEngine.InMemory) | EF Core in-memory storage (`UseHoldemInMemory`), for tests and demos. |
+| [TabletopCardEngine.AspNetCore](https://www.nuget.org/packages/TabletopCardEngine.AspNetCore) | ASP.NET Core integration: configuration binding, a schema health check and the REST API (`MapHoldemEngineApi`). |
+| [TabletopCardEngine.OpenTelemetry](https://www.nuget.org/packages/TabletopCardEngine.OpenTelemetry) | `AddTabletopCardEngineInstrumentation()` for OpenTelemetry traces and metrics. |
 
 ## Quick start
 
@@ -31,16 +31,16 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10
 ```bash
 dotnet new console -n HoldemQuickStart
 cd HoldemQuickStart
-dotnet add package OpenHoldemEngine.Sqlite --prerelease
+dotnet add package TabletopCardEngine.Sqlite --prerelease
 ```
 
 The SQLite package brings the core package with it. Replace the generated `Program.cs` with:
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
-using OpenHoldemEngine;
-using OpenHoldemEngine.Dto;
-using OpenHoldemEngine.Sqlite;
+using TabletopCardEngine;
+using TabletopCardEngine.Dto;
+using TabletopCardEngine.Sqlite;
 
 var services = new ServiceCollection();
 services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
@@ -97,17 +97,17 @@ Run it with:
 dotnet run
 ```
 
-The [getting started guide](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/getting-started.md) explains each step.
+The [getting started guide](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/getting-started.md) explains each step.
 
 ## Usage
 
 ### The command and `GameData` loop
 
-Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evaluations` lists what the player on the clock may do, `HandData.NextPlayerSeatNo` names that player (`0` when nobody acts), and an optional `ExpectedVersion` on the action turns a stale write into a `Conflict`. See [Key concepts](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/concepts/index.md).
+Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evaluations` lists what the player on the clock may do, `HandData.NextPlayerSeatNo` names that player (`0` when nobody acts), and an optional `ExpectedVersion` on the action turns a stale write into a `Conflict`. See [Key concepts](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/concepts/index.md).
 
 ### REST API
 
-The `OpenHoldemEngine.AspNetCore` package binds the engine's options from configuration and maps the REST API:
+The `TabletopCardEngine.AspNetCore` package binds the engine's options from configuration and maps the REST API:
 
 ```csharp
 builder.Services.AddHoldemEngine(
@@ -117,17 +117,17 @@ builder.Services.AddHoldemEngine(
 app.MapHoldemEngineApi();
 ```
 
-See [ASP.NET Core](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/aspnetcore.md).
+See [ASP.NET Core](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/aspnetcore.md).
 
 ### Docker images
 
 Images for SQLite, PostgreSQL and SQL Server run the same REST API:
 
 ```bash
-docker run -d -p 8080:8080 -v holdem-data:/data miekhra/openholdemengine:sqlite
+docker run -d -p 8080:8080 -v holdem-data:/data digitalabsurd/tabletopcardengine:sqlite
 ```
 
-There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy. See [Container images](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/docker.md).
+There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy. See [Container images](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/docker.md).
 
 ## Configuration
 
@@ -139,7 +139,7 @@ The container host reads these settings from the environment:
 | `HoldemServer__Provider` | The database provider: `Sqlite`, `PostgreSql` or `SqlServer`, required. |
 | `HoldemEngine__*` | The engine's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
 
-The details are in [Configuration](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/docker.md#configuration).
+The details are in [Configuration](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/docker.md#configuration).
 
 ## Contributing
 
@@ -149,7 +149,7 @@ The details are in [Configuration](https://github.com/miekhra/OpenHoldemEngine/b
 
 ## License
 
-OpenHoldemEngine is released under the [Apache License, Version 2.0](LICENSE). Commercial use
+TabletopCardEngine is released under the [Apache License, Version 2.0](LICENSE). Commercial use
 is allowed. Anyone who redistributes the engine or a work derived from it must keep the attribution
 in [NOTICE](NOTICE), as section 4(d) of the license requires.
 [ADR-0001](docs/adr/0001-project-license.md) explains why this license was chosen.

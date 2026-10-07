@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "TabletopCardEngine.Tests": {
+      "commandName": "Project"
+    }
+  }
+}

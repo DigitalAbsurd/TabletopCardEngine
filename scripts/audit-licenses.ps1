@@ -7,10 +7,10 @@
     each package's nuspec up in the NuGet package folders the assets file names, and prints five
     Markdown tables in the shape THIRD-PARTY-NOTICES.md uses:
 
-    - "OpenHoldemEngine": the packages the library references.
-    - "OpenHoldemEngine.OpenTelemetry": what the instrumentation package references on top of the library.
-    - "OpenHoldemEngine.Sqlite": what the SQLite package references on top of the library.
-    - "OpenHoldemEngine.Demo": what the deployed demo site references on top of the library.
+    - "TabletopCardEngine": the packages the library references.
+    - "TabletopCardEngine.OpenTelemetry": what the instrumentation package references on top of the library.
+    - "TabletopCardEngine.Sqlite": what the SQLite package references on top of the library.
+    - "TabletopCardEngine.Demo": what the deployed demo site references on top of the library.
     - "Test and development only": what the test projects reference on top of both.
 
     Only direct references are listed: transitive packages, and the ones the SDK adds implicitly
@@ -32,15 +32,15 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $sections = [ordered]@{
-    'OpenHoldemEngine' = 'OpenHoldemEngine'
-    'OpenHoldemEngine.OpenTelemetry' = 'OpenHoldemEngine.OpenTelemetry'
-    'OpenHoldemEngine.AspNetCore' = 'OpenHoldemEngine.AspNetCore'
-    'OpenHoldemEngine.Sqlite' = 'OpenHoldemEngine.Sqlite'
-    'OpenHoldemEngine.PostgreSql' = 'OpenHoldemEngine.PostgreSql'
-    'OpenHoldemEngine.SqlServer' = 'OpenHoldemEngine.SqlServer'
-    'OpenHoldemEngine.InMemory' = 'OpenHoldemEngine.InMemory'
-    'OpenHoldemEngine.Demo' = 'OpenHoldemEngine.Demo'
-    'OpenHoldemEngine.Server' = 'OpenHoldemEngine.Server'
+    'TabletopCardEngine' = 'TabletopCardEngine'
+    'TabletopCardEngine.OpenTelemetry' = 'TabletopCardEngine.OpenTelemetry'
+    'TabletopCardEngine.AspNetCore' = 'TabletopCardEngine.AspNetCore'
+    'TabletopCardEngine.Sqlite' = 'TabletopCardEngine.Sqlite'
+    'TabletopCardEngine.PostgreSql' = 'TabletopCardEngine.PostgreSql'
+    'TabletopCardEngine.SqlServer' = 'TabletopCardEngine.SqlServer'
+    'TabletopCardEngine.InMemory' = 'TabletopCardEngine.InMemory'
+    'TabletopCardEngine.Demo' = 'TabletopCardEngine.Demo'
+    'TabletopCardEngine.Server' = 'TabletopCardEngine.Server'
 }
 $testSection = 'Test and development only'
 

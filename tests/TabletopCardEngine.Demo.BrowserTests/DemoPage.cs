@@ -1,0 +1,706 @@
+﻿using Microsoft.Playwright;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
+namespace TabletopCardEngine.Demo.BrowserTests;
+
+/// <summary>
+/// One browser tab on the demo, with the probes the layout gate asserts on.
+/// </summary>
+/// <remarks>
+/// Every measurement is taken inside the page with <c>getBoundingClientRect</c> and
+/// <c>document.elementFromPoint</c>, so it is the browser's own geometry and hit-testing that
+/// answers rather than anything this process computes.
+/// </remarks>
+internal sealed class DemoPage : IAsyncDisposable
+{
+    /// <summary>
+    /// The element the routed page renders into, and the page's only scroll container.
+    /// </summary>
+    public const string LayoutContentSelector = "main.layout-content";
+
+    /// <summary>
+    /// document.scrollingElement. It scrolled the whole demo until issue #72; now it is the
+    /// element that must <em>not</em> scroll, which is what keeps the header in place.
+    /// </summary>
+    public const string DocumentScrollerSelector = "";
+
+    /// <summary>The header bar, which stays put while the content scrolls underneath it.</summary>
+    public const string HeaderSelector = "header.layout-header";
+
+    /// <summary>The action buttons, in the order the action bar renders them.</summary>
+    public static readonly string[] ActionButtonSelectors =
+        [".action-btn.fold-btn", ".action-btn.check-btn", ".action-btn.call-btn", ".action-btn.raise-btn"];
+
+    /// <summary>
+    /// Any action button on the bar along the bottom of the table. The bar renders them only while
+    /// a seat is on the clock, so their presence means a hand is waiting for a decision, and their
+    /// absence that the hand is over.
+    /// </summary>
+    public const string ActionBarButtonSelector = ".action-bar .action-btn";
+
+    /// <summary>The table, which holds the whole game area and must fit the viewport's height.</summary>
+    public const string PokerTableSelector = ".poker-table";
+
+    /// <summary>The action bar along the bottom of the table, whose bottom edge must be on screen.</summary>
+    public const string ActionBarSelector = ".action-bar";
+
+    /// <summary>
+    /// The banner the "in-memory only" warning used to be, above the table. It must be gone: the
+    /// warning is a notification now, which takes no height from the table.
+    /// </summary>
+    public const string StorageAlertSelector = ".storage-alert";
+
+    /// <summary>
+    /// The "in-memory only" notification, which every load opens and which closes itself after ten
+    /// seconds. AntDesign renders it in an overlay outside the page's own markup.
+    /// </summary>
+    public const string StorageNoticeSelector = ".ant-notification-notice.storage-notice";
+
+    /// <summary>
+    /// The Quick Actions dropdown the raise presets used to sit behind. It must be gone: the
+    /// presets are marks on the raise slider now.
+    /// </summary>
+    public const string QuickActionsButtonSelector = ".action-bar .quick-actions-btn";
+
+    /// <summary>One caption under the raise slider (Min or All-in), each a button of its own.</summary>
+    public const string RaiseMarkSelector = ".action-bar .raise-slider .raise-mark";
+
+    /// <summary>The ½ Pot and Pot buttons stacked beside the raise amount box.</summary>
+    public const string RaisePresetSelector = ".action-bar .raise-presets .raise-preset-btn";
+
+    /// <summary>The raise amount box, an AntDesign Input inside a span of the demo's own.</summary>
+    public const string RaiseInputSelector = ".action-bar .raise-input input";
+
+    /// <summary>The round button that corrects an illegal raise amount; shown only while there is one.</summary>
+    public const string RaiseFixButtonSelector = ".action-bar .raise-fix-btn";
+
+    /// <summary>The header's Light / Dark switch.</summary>
+    public const string ThemeSwitchSelector = "header.layout-header .layout-theme-switch";
+
+    /// <summary>The short commit SHA beside the header's title.</summary>
+    public const string CommitShaSelector = "header.layout-header .layout-commit-sha code";
+
+    /// <summary>The settings form inside the New Game modal.</summary>
+    public const string GameSetupSelector = ".ant-modal .game-setup-card";
+
+    /// <summary>The "+ Add Player" button under the players in the New Game modal.</summary>
+    public const string AddPlayerButtonSelector = ".ant-modal .game-setup-card .add-player-btn";
+
+    /// <summary>The Raise button, whose label carries the amount the raise is sized to.</summary>
+    public const string RaiseButtonSelector = ".action-bar .raise-btn";
+
+    /// <summary>A row of seats on the table; the top row is first, the bottom row last.</summary>
+    public const string SeatRowSelector = ".table-seats-row";
+
+    /// <summary>One entry in the engine-call log; the log is mounted even while its tab is hidden.</summary>
+    public const string EngineCallEntrySelector = ".engine-call-entry";
+
+    /// <summary>
+    /// The ✓ Success / ✗ Failed text in an engine-call entry's header. It is the inner span that is
+    /// measured, because its wrapper is what used to stretch across the row.
+    /// </summary>
+    public const string EngineCallStatusTextSelector = ".engine-call-entry .entry-status > span";
+
+    /// <summary>The Copy button in an engine-call entry's header.</summary>
+    public const string EngineCallCopyButtonSelector = ".engine-call-entry .copy-btn";
+
+    /// <summary>The header of an engine-call entry's collapsed <c>result</c> panel.</summary>
+    public const string EngineCallResultHeaderSelector = ".engine-call-entry .result-dump .ant-collapse-header";
+
+    /// <summary>The tree an open <c>result</c> panel renders.</summary>
+    public const string ResultDumpSelector = ".engine-call-entry .object-dump";
+
+    /// <summary>A collapsed node's toggle in an open result dump.</summary>
+    public const string CollapsedDumpToggleSelector = ".object-dump .dump-toggle[aria-expanded=\"false\"]";
+
+    /// <summary>The scrolling list of engine calls.</summary>
+    public const string EngineCallListSelector = ".engine-calls-list";
+
+    /// <summary>A finished hand's result chip, one per seat.</summary>
+    public const string HandResultChipSelector = ".hand-result";
+
+    /// <summary>Every card on the table: hole cards and the board.</summary>
+    public const string TableCardSelector = ".poker-table .playing-card";
+
+    /// <summary>The cards on the Hand History tab: Import, Replay Controls once a hand is picked, Export, and About the PHH format.</summary>
+    public static readonly string[] HandHistoryCardSelectors =
+        [".hand-history-import-card", ".replay-controls-card", ".hand-history-export-card", ".phh-format-card"];
+
+    /// <summary>
+    /// The New Game button on the game page's settings summary. It is the only way into the
+    /// settings form now that the demo has no setup screen.
+    /// </summary>
+    public const string NewGameButtonSelector = ".new-game-btn";
+
+    /// <summary>The tabs on the horizontal tab bar under the header.</summary>
+    public const string TabSelector = ".demo-tab-bar .demo-tab";
+
+    /// <summary>The panes behind the tabs; all are in the DOM, one is displayed.</summary>
+    public const string TabPaneSelector = ".demo-tab-pane";
+
+    /// <summary>The pane currently displayed.</summary>
+    public const string ActiveTabPaneSelector = ".demo-tab-pane-active";
+
+    /// <summary>The tab shown when the game page opens, and after every new game.</summary>
+    public const string GameTableTab = "game-table";
+
+    public const string DatabaseTab = "database";
+
+    public const string EngineCallsTab = "engine-calls";
+
+    public const string HandHistoryTab = "hand-history";
+
+    /// <summary>Every tab key, in the order the bar shows them.</summary>
+    public static readonly string[] TabKeys = [GameTableTab, DatabaseTab, EngineCallsTab, HandHistoryTab];
+
+    private const int BootTimeoutMilliseconds = 120_000;
+
+    /// <summary>
+    /// One action produces several re-renders, because several components subscribe to
+    /// DemoGameSession.StateChanged. This is how long we let them finish.
+    /// </summary>
+    private const int SettleMilliseconds = 1_000;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+    private readonly IBrowserContext _context;
+    private readonly IPage _page;
+    private readonly string _baseUrl;
+    private readonly List<string> _consoleErrors = [];
+
+    public DemoPage(IBrowserContext context, IPage page, string baseUrl)
+    {
+        _context = context;
+        _page = page;
+        _baseUrl = baseUrl;
+
+        _page.Console += OnConsoleMessage;
+        _page.PageError += OnPageError;
+    }
+
+    /// <summary>Console errors and unhandled exceptions seen since the tab was opened.</summary>
+    public IReadOnlyList<string> ConsoleErrors => _consoleErrors;
+
+    /// <summary>Loads the demo and waits for the hand it deals on arrival.</summary>
+    /// <remarks>
+    /// There is nothing to click on the way in any more: the page deals a default game as it loads,
+    /// so the boot signal is the first action button on the bar — the only signal that means a hand
+    /// is on the clock rather than merely rendered.
+    /// <para>
+    /// Unless asked to keep it, the storage notification is then closed with its X, the way a
+    /// visitor would, so that its overlay cannot answer a hit-test meant for the page under it.
+    /// </para>
+    /// </remarks>
+    public async Task OpenAsync(bool keepNotification = false)
+    {
+        await _page.GotoAsync(_baseUrl);
+        await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+
+        if (!keepNotification)
+        {
+            await DismissNotificationsAsync();
+        }
+    }
+
+    /// <summary>Closes every open AntDesign notification with its close button.</summary>
+    public async Task DismissNotificationsAsync()
+    {
+        ILocator closeButtons = _page.Locator(".ant-notification-notice-close");
+        while (await closeButtons.CountAsync() > 0)
+        {
+            await closeButtons.First.ClickAsync();
+            await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        }
+    }
+
+    /// <summary>Takes the first available game action and waits for the re-renders it causes.</summary>
+    public async Task TakeGameActionAsync()
+    {
+        bool taken = await TryTakeGameActionAsync();
+        if (!taken)
+        {
+            throw new InvalidOperationException("The action panel offered no action to take.");
+        }
+    }
+
+    /// <summary>
+    /// Takes the first available game action on the action bar, or reports that the bar offers
+    /// none — which is how the hand ends: a finished hand's bar shows Next Hand instead.
+    /// </summary>
+    /// <remarks>
+    /// The action bar is on the Game Table tab and the call log on its own, hidden one. The log is
+    /// mounted while hidden, so the new entry is waited for as attached rather than as visible —
+    /// switching to its tab would hide the very bar the next action is taken from.
+    /// </remarks>
+    public async Task<bool> TryTakeGameActionAsync()
+    {
+        ILocator buttons = _page.Locator(ActionBarButtonSelector);
+        if (await buttons.CountAsync() == 0)
+        {
+            return false;
+        }
+
+        await SelectTabAsync(GameTableTab);
+
+        ILocator entries = _page.Locator(EngineCallEntrySelector);
+        int before = await entries.CountAsync();
+
+        await buttons.First.ClickAsync();
+
+        await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        return true;
+    }
+
+    /// <summary>
+    /// Clicks one tab on the bar, unless it is already the selected one, and waits for the
+    /// re-render.
+    /// </summary>
+    public async Task SelectTabAsync(string tabKey)
+    {
+        ILocator tab = _page.Locator($"{TabSelector}[data-tab=\"{tabKey}\"]");
+        if (await tab.GetAttributeAsync("aria-selected") == "true")
+        {
+            return;
+        }
+
+        await tab.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// The <c>data-tab</c> key of every tab pane that currently has a visible box.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> ReadVisibleTabPanesAsync()
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => JSON.stringify(
+                Array.from(document.querySelectorAll(selector))
+                    .filter(pane => {
+                        const rect = pane.getBoundingClientRect();
+                        return rect.width > 0 && rect.height > 0;
+                    })
+                    .map(pane => pane.dataset.tab))
+            """,
+            TabPaneSelector);
+
+        return JsonSerializer.Deserialize<string[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The tab pane probe returned nothing.");
+    }
+
+    /// <summary>Scrolls the action panel into view, the way a visitor reaching for a button would.</summary>
+    public async Task ScrollActionPanelIntoViewAsync()
+    {
+        await _page.Locator(".action-panel").ScrollIntoViewIfNeededAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Reads the computed overflow, scroll offsets and sizes of one element, or of the document
+    /// scroller when the selector is <see cref="DocumentScrollerSelector"/>.
+    /// </summary>
+    public async Task<ScrollMetrics> ReadScrollMetricsAsync(string selector)
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => {
+                const element = selector === '' ? document.scrollingElement : document.querySelector(selector);
+                if (element === null) {
+                    return JSON.stringify({ found: false });
+                }
+
+                return JSON.stringify({
+                    found: true,
+                    overflow: window.getComputedStyle(element).overflow,
+                    scrollLeft: element.scrollLeft,
+                    scrollTop: element.scrollTop,
+                    scrollWidth: element.scrollWidth,
+                    clientWidth: element.clientWidth,
+                    scrollHeight: element.scrollHeight,
+                    clientHeight: element.clientHeight,
+                });
+            }
+            """,
+            selector);
+
+        ScrollMetrics metrics = JsonSerializer.Deserialize<ScrollMetrics>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The scroll probe returned nothing.");
+
+        return metrics with { Selector = selector };
+    }
+
+    /// <summary>Reads the rendered height of one element.</summary>
+    public async Task<double> ReadElementHeightAsync(string selector)
+    {
+        double? height = await _page.EvaluateAsync<double?>(
+            """
+            (selector) => {
+                const element = document.querySelector(selector);
+                return element === null ? null : element.getBoundingClientRect().height;
+            }
+            """,
+            selector);
+
+        return height ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>Reads the viewport-relative bottom edge of one element.</summary>
+    public async Task<double> ReadElementBottomAsync(string selector)
+    {
+        double? bottom = await _page.EvaluateAsync<double?>(
+            """
+            (selector) => {
+                const element = document.querySelector(selector);
+                return element === null ? null : element.getBoundingClientRect().bottom;
+            }
+            """,
+            selector);
+
+        return bottom ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>
+    /// Reads the horizontal box of every element matching one of the given selectors, in document
+    /// order per selector. An element with no box (a hidden pane's child) is left out.
+    /// </summary>
+    public async Task<IReadOnlyList<ElementBox>> ReadElementBoxesAsync(params string[] selectors)
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selectors) => JSON.stringify(selectors.flatMap(selector =>
+                Array.from(document.querySelectorAll(selector))
+                    .map(element => element.getBoundingClientRect())
+                    .filter(rect => rect.width > 0 && rect.height > 0)
+                    .map(rect => ({ selector: selector, left: rect.left, right: rect.right, width: rect.width }))))
+            """,
+            selectors);
+
+        return JsonSerializer.Deserialize<ElementBox[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The element box probe returned nothing.");
+    }
+
+    /// <summary>Counts the elements matching one selector.</summary>
+    public Task<int> CountAsync(string selector)
+    {
+        return _page.Locator(selector).CountAsync();
+    }
+
+    /// <summary>Reads the trimmed text of the first element matching one selector.</summary>
+    public async Task<string> ReadTextAsync(string selector)
+    {
+        string text = await _page.Locator(selector).First.InnerTextAsync();
+        return text.Trim();
+    }
+
+    /// <summary>
+    /// Clicks one of the raise slider's marks by its caption, the way a visitor would, then waits
+    /// for the re-render.
+    /// </summary>
+    public async Task PickRaiseMarkAsync(string label)
+    {
+        ILocator mark = _page.Locator(RaiseMarkSelector).Filter(new LocatorFilterOptions { HasTextString = label });
+        await mark.First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>The exact amount one of the raise slider's marks stands for, from its caption's tooltip.</summary>
+    public async Task<string> ReadRaiseMarkAmountAsync(string label)
+    {
+        ILocator mark = _page.Locator(RaiseMarkSelector).Filter(new LocatorFilterOptions { HasTextString = label });
+        return await mark.First.GetAttributeAsync("title")
+            ?? throw new InvalidOperationException($"The {label} mark carries no amount.");
+    }
+
+    /// <summary>
+    /// Clicks one of the ½ Pot / Pot buttons beside the raise amount box. A preset reads
+    /// "Pot · 7", so it is picked by the label before the amount: a plain substring match on "Pot"
+    /// would find "½ Pot · 5" first.
+    /// </summary>
+    public async Task PickRaisePresetAsync(string label)
+    {
+        ILocator preset = _page.Locator(RaisePresetSelector).Filter(new LocatorFilterOptions
+        {
+            HasTextRegex = new Regex(@"^\s*" + Regex.Escape(label) + " ·"),
+        });
+        await preset.First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Replaces what the raise amount box holds by typing, the way a visitor would.</summary>
+    public async Task TypeRaiseAmountAsync(string text)
+    {
+        ILocator input = _page.Locator(RaiseInputSelector).First;
+        await input.FillAsync(string.Empty);
+        await input.PressSequentiallyAsync(text);
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>What the raise amount box holds now.</summary>
+    public Task<string> ReadRaiseAmountAsync()
+    {
+        return _page.Locator(RaiseInputSelector).First.InputValueAsync();
+    }
+
+    /// <summary>Whether the first element matching <paramref name="selector"/> is disabled.</summary>
+    public Task<bool> IsDisabledAsync(string selector)
+    {
+        return _page.Locator(selector).First.IsDisabledAsync();
+    }
+
+    /// <summary>Clicks the header's theme switch.</summary>
+    public async Task ToggleThemeAsync()
+    {
+        await _page.Locator(ThemeSwitchSelector).First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// The theme on <c>&lt;html data-theme&gt;</c>, and the AntDesign stylesheet the page loads —
+    /// the two things the switch changes.
+    /// </summary>
+    public async Task<(string Theme, string AntDesignStylesheet)> ReadThemeAsync()
+    {
+        string[] values = await _page.EvaluateAsync<string[]>(
+            @"() => [
+                document.documentElement.getAttribute('data-theme') ?? '',
+                document.querySelector(""link[href*='_content/AntDesign/css/ant-design-blazor']"")?.getAttribute('href') ?? ''
+            ]");
+        return (values[0], values[1]);
+    }
+
+    /// <summary>Reloads the page and waits for the action bar again.</summary>
+    public async Task ReloadAsync()
+    {
+        await _page.ReloadAsync();
+        await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Opens the New Game modal from the header and waits for its form.</summary>
+    public async Task OpenNewGameModalAsync()
+    {
+        await _page.Locator(NewGameButtonSelector).First.ClickAsync();
+        await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Every pair of a text field and a piece of text inside <paramref name="containerSelector"/>
+    /// whose boxes intersect, one line each; empty when nothing overlaps. Text is any element with
+    /// a text node of its own, so the probe needs no class names and reads any markup. An
+    /// AntDesign Select counts as one field, and the text inside it is its own.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> ReadFieldTextOverlapsAsync(string containerSelector)
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (containerSelector) => {
+                const container = document.querySelector(containerSelector);
+                if (container === null) {
+                    return JSON.stringify(['no element matched ' + containerSelector]);
+                }
+
+                const visible = (rect) => rect.width > 0 && rect.height > 0;
+                const describe = (element) => element.tagName.toLowerCase()
+                    + ' "' + (element.value || element.textContent || '').trim().slice(0, 20) + '"';
+                const fields = Array.from(container.querySelectorAll('input, .ant-select'))
+                    .filter(element => element.classList.contains('ant-select') || element.closest('.ant-select') === null)
+                    .map(element => ({ element, rect: element.getBoundingClientRect() }))
+                    .filter(field => visible(field.rect));
+                const texts = Array.from(container.querySelectorAll('*'))
+                    .filter(element => element.closest('.ant-select') === null && element.closest('button') === null)
+                    .filter(element => Array.from(element.childNodes)
+                        .some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0))
+                    .map(element => ({ element, rect: element.getBoundingClientRect() }))
+                    .filter(text => visible(text.rect));
+
+                const overlaps = [];
+                for (const field of fields) {
+                    for (const text of texts) {
+                        const width = Math.min(field.rect.right, text.rect.right) - Math.max(field.rect.left, text.rect.left);
+                        const height = Math.min(field.rect.bottom, text.rect.bottom) - Math.max(field.rect.top, text.rect.top);
+                        if (width > 0.5 && height > 0.5) {
+                            overlaps.push(describe(field.element) + ' overlaps ' + describe(text.element)
+                                + ' by ' + width.toFixed(1) + 'x' + height.toFixed(1) + 'px');
+                        }
+                    }
+                }
+
+                return JSON.stringify(overlaps);
+            }
+            """,
+            containerSelector);
+
+        return JsonSerializer.Deserialize<string[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The overlap probe returned nothing.");
+    }
+
+    /// <summary>Moves the pointer onto the first element matching one selector and waits for its transition.</summary>
+    public async Task HoverAsync(string selector)
+    {
+        await _page.Locator(selector).First.HoverAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Clicks the first element matching one selector and waits for the re-render.</summary>
+    public async Task ClickAsync(string selector)
+    {
+        await _page.Locator(selector).First.ClickAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Reads the top edge of every table card, in document order, with whether it is marked as
+    /// part of the highlighted combination. The edge includes the card's transform, so a lifted
+    /// card reads higher than it is laid out.
+    /// </summary>
+    public async Task<IReadOnlyList<CardTop>> ReadTableCardTopsAsync()
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => JSON.stringify(Array.from(document.querySelectorAll(selector)).map(card => ({
+                highlighted: card.hasAttribute('data-highlighted'),
+                top: card.getBoundingClientRect().top,
+            })))
+            """,
+            TableCardSelector);
+
+        return JsonSerializer.Deserialize<CardTop[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The card probe returned nothing.");
+    }
+
+    /// <summary>Reads the viewport-relative top edge of one element.</summary>
+    public async Task<double> ReadElementTopAsync(string selector)
+    {
+        double? top = await _page.EvaluateAsync<double?>(
+            """
+            (selector) => {
+                const element = document.querySelector(selector);
+                return element === null ? null : element.getBoundingClientRect().top;
+            }
+            """,
+            selector);
+
+        return top ?? throw new InvalidOperationException($"No element matched {selector}.");
+    }
+
+    /// <summary>
+    /// Scrolls one element to its bottom, the way a visitor reading down the page does, and
+    /// waits for the re-renders that follow.
+    /// </summary>
+    public async Task ScrollToBottomAsync(string selector)
+    {
+        await _page.EvaluateAsync(
+            """
+            (selector) => {
+                const element = selector === '' ? document.scrollingElement : document.querySelector(selector);
+                if (element !== null) {
+                    element.scrollTop = element.scrollHeight;
+                }
+            }
+            """,
+            selector);
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Hit-tests the centre of every element matching one of the given selectors.</summary>
+    public Task<IReadOnlyList<HitProbe>> ProbeHitTargetsAsync(params string[] selectors)
+    {
+        return ProbeAsync(selectors, textPrefix: null);
+    }
+
+    /// <summary>Hit-tests the centre of every button whose label starts with the given text.</summary>
+    public Task<IReadOnlyList<HitProbe>> ProbeButtonByLabelAsync(string textPrefix)
+    {
+        return ProbeAsync(["button"], textPrefix);
+    }
+
+    /// <summary>Hit-tests the New Game button on the game page's settings summary.</summary>
+    public Task<IReadOnlyList<HitProbe>> ProbeNewGameButtonAsync()
+    {
+        return ProbeHitTargetsAsync(NewGameButtonSelector);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _page.Console -= OnConsoleMessage;
+        _page.PageError -= OnPageError;
+        await _context.CloseAsync();
+    }
+
+    private async Task<IReadOnlyList<HitProbe>> ProbeAsync(string[] selectors, string? textPrefix)
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (request) => {
+                const describe = (element) => {
+                    if (element === null) {
+                        return 'nothing';
+                    }
+
+                    const classes = typeof element.className === 'string' && element.className.trim().length > 0
+                        ? '.' + element.className.trim().split(/\s+/).join('.')
+                        : '';
+                    return element.tagName.toLowerCase() + classes;
+                };
+
+                const probes = [];
+                for (const selector of request.selectors) {
+                    for (const element of document.querySelectorAll(selector)) {
+                        const label = (element.innerText || '').trim();
+                        if (request.textPrefix !== null && !label.startsWith(request.textPrefix)) {
+                            continue;
+                        }
+
+                        const rect = element.getBoundingClientRect();
+                        const style = window.getComputedStyle(element);
+                        const rendered = rect.width > 0 && rect.height > 0
+                            && style.display !== 'none' && style.visibility !== 'hidden';
+                        const centreX = rect.left + rect.width / 2;
+                        const centreY = rect.top + rect.height / 2;
+                        const inViewport = centreX >= 0 && centreY >= 0
+                            && centreX < window.innerWidth && centreY < window.innerHeight;
+                        const hit = rendered && inViewport ? document.elementFromPoint(centreX, centreY) : null;
+
+                        probes.push({
+                            selector: selector,
+                            label: label,
+                            rendered: rendered,
+                            inViewport: inViewport,
+                            left: rect.left,
+                            top: rect.top,
+                            width: rect.width,
+                            height: rect.height,
+                            centreX: centreX,
+                            centreY: centreY,
+                            isOwnHitTarget: hit !== null && (hit === element || element.contains(hit)),
+                            hitDescription: describe(hit),
+                        });
+                    }
+                }
+
+                return JSON.stringify(probes);
+            }
+            """,
+            new { selectors, textPrefix });
+
+        return JsonSerializer.Deserialize<HitProbe[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The hit-test probe returned nothing.");
+    }
+
+    private void OnConsoleMessage(object? sender, IConsoleMessage message)
+    {
+        if (string.Equals(message.Type, "error", StringComparison.Ordinal))
+        {
+            _consoleErrors.Add($"console.error: {message.Text}");
+        }
+    }
+
+    private void OnPageError(object? sender, string error)
+    {
+        _consoleErrors.Add($"page error: {error}");
+    }
+}

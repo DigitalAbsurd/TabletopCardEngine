@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-10-06
-- **Issue:** [#359](https://github.com/miekhra/OpenHoldemEngine/issues/359), milestone
+- **Issue:** [#359](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/359), milestone
   `v1.0 · README & community docs`
 
 ## Context
@@ -21,7 +21,7 @@ Three options were on the table:
   repositories, builds a version per tag, and serves `stable` (the latest tag) next to `latest`
   (`main`). The README keeps the pitch, the limits, the quick start and links; it does not grow
   into a manual.
-- GitHub Pages with Jekyll. Pages would share the root of `https://miekhra.github.io/OpenHoldemEngine/`
+- GitHub Pages with Jekyll. Pages would share the root of `https://digitalabsurd.github.io/TabletopCardEngine/`
   with the Blazor demo, which is deployed only for stable tags. Documentation there would compete
   for the root and would have no version for pre-releases or `main`.
 - Sphinx or DocFX. The content is Markdown that already exists, and neither tool adds anything
@@ -30,7 +30,7 @@ Three options were on the table:
 
 ### 2. Not GitHub Pages
 
-The Blazor demo occupies the root of `https://miekhra.github.io/OpenHoldemEngine/` and is deployed
+The Blazor demo occupies the root of `https://digitalabsurd.github.io/TabletopCardEngine/` and is deployed
 only for stable tags (`deploy-demo.yml`, called by `release.yml`). Documentation there would
 compete for the root and would have no version for pre-releases or `main`.
 
@@ -58,7 +58,7 @@ that refers to them links their GitHub URL.
 
 ### 6. Until the repository is public, links into the site point at GitHub
 
-- **Links point at `docs/` on GitHub** (`https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/...`),
+- **Links point at `docs/` on GitHub** (`https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/...`),
   from the README and from the package READMEs alike. The milestone `v1.0 · NuGet packages & public launch`
   connects Read the Docs and switches those links.
 

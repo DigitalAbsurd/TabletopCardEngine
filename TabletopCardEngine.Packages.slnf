@@ -1,0 +1,14 @@
+{
+  "solution": {
+    "path": "TabletopCardEngine.sln",
+    "projects": [
+      "src\\TabletopCardEngine\\TabletopCardEngine.csproj",
+      "src\\TabletopCardEngine.OpenTelemetry\\TabletopCardEngine.OpenTelemetry.csproj",
+      "src\\TabletopCardEngine.AspNetCore\\TabletopCardEngine.AspNetCore.csproj",
+      "src\\TabletopCardEngine.Sqlite\\TabletopCardEngine.Sqlite.csproj",
+      "src\\TabletopCardEngine.InMemory\\TabletopCardEngine.InMemory.csproj",
+      "src\\TabletopCardEngine.PostgreSql\\TabletopCardEngine.PostgreSql.csproj",
+      "src\\TabletopCardEngine.SqlServer\\TabletopCardEngine.SqlServer.csproj"
+    ]
+  }
+}

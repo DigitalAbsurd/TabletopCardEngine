@@ -11,16 +11,16 @@ ARG VERSION
 WORKDIR /src
 COPY global.json Directory.Build.props .editorconfig ./
 COPY src/ src/
-RUN dotnet restore src/OpenHoldemEngine.Server/OpenHoldemEngine.Server.csproj
-RUN dotnet publish src/OpenHoldemEngine.Server/OpenHoldemEngine.Server.csproj -c Release --no-restore -p:MinVerVersionOverride=$VERSION -o /app
+RUN dotnet restore src/TabletopCardEngine.Server/TabletopCardEngine.Server.csproj
+RUN dotnet publish src/TabletopCardEngine.Server/TabletopCardEngine.Server.csproj -c Release --no-restore -p:MinVerVersionOverride=$VERSION -o /app
 
 # final: the provider-neutral runtime image every target below starts from. It sets no provider and
 # no connection string, runs as the non-root user `app`, and migrates the database on start-up.
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 ARG VERSION
-LABEL org.opencontainers.image.source="https://github.com/miekhra/OpenHoldemEngine" \
+LABEL org.opencontainers.image.source="https://github.com/DigitalAbsurd/TabletopCardEngine" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.title="OpenHoldemEngine" \
+      org.opencontainers.image.title="TabletopCardEngine" \
       org.opencontainers.image.version="$VERSION"
 WORKDIR /app
 COPY --from=builder /app .
@@ -28,7 +28,7 @@ ENV ASPNETCORE_HTTP_PORTS=8080 \
     HoldemEngine__MigrateDatabaseOnStartup=true
 EXPOSE 8080
 USER $APP_UID
-ENTRYPOINT ["dotnet", "OpenHoldemEngine.Server.dll"]
+ENTRYPOINT ["dotnet", "TabletopCardEngine.Server.dll"]
 
 # postgres: PostgreSQL. No default connection string, so a missing one fails fast at start-up.
 FROM final AS postgres

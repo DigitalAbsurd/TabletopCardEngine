@@ -59,7 +59,7 @@ Neither state is recoverable at runtime: the engine refuses every call until the
 
 ## Upgrading the package
 
-When you upgrade the `OpenHoldemEngine` package to a new version:
+When you upgrade the `TabletopCardEngine` package to a new version:
 
 1. **Back up the database.** A migration failure or a backward-incompatibility (rare but possible) could lose data.
 2. **Deploy the new package.**

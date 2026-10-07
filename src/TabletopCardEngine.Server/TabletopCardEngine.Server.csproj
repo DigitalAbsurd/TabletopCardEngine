@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- Generated only so that IDE0005 (unnecessary using) runs at build time; a host needs no API docs. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TabletopCardEngine.AspNetCore\TabletopCardEngine.AspNetCore.csproj" />
+    <ProjectReference Include="..\TabletopCardEngine.PostgreSql\TabletopCardEngine.PostgreSql.csproj" />
+    <ProjectReference Include="..\TabletopCardEngine.Sqlite\TabletopCardEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\TabletopCardEngine.SqlServer\TabletopCardEngine.SqlServer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets the tests use the internal top-level Program as WebApplicationFactory<Program>. -->
+    <InternalsVisibleTo Include="TabletopCardEngine.Server.Tests" />
+  </ItemGroup>
+
+</Project>

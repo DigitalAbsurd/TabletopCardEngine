@@ -2,12 +2,12 @@
 
 ## What this document is
 
-This document describes how releases are cut and versioned in this repository. It covers the branching model (GitHub Flow on `main`), how release branches are created and maintained for patch releases, how versions and tags are assigned, and the steps to cut a release. Read [docs/versioning.md](versioning.md) for the versioning policy and breaking change rules, and [`docs/task-run.md`](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/task-run.md) for how a single change reaches `main`.
+This document describes how releases are cut and versioned in this repository. It covers the branching model (GitHub Flow on `main`), how release branches are created and maintained for patch releases, how versions and tags are assigned, and the steps to cut a release. Read [docs/versioning.md](versioning.md) for the versioning policy and breaking change rules, and [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md) for how a single change reaches `main`.
 
 ## Branching: GitHub Flow on `main`
 
 - `main` is the only long-lived branch and is always releasable. No develop branch and no long-lived feature branches.
-- Every change is a short-lived branch created from `main`, named as described in [`docs/task-run.md`](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/task-run.md#git-and-pull-request-protocol) (Git and pull request protocol section).
+- Every change is a short-lived branch created from `main`, named as described in [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#git-and-pull-request-protocol) (Git and pull request protocol section).
 - Changes are merged back to `main` by squash through a pull request. The pull request title becomes the commit message on `main`.
 
 ## Release branches
@@ -23,7 +23,7 @@ This document describes how releases are cut and versioned in this repository. I
 - Tags are annotated and start with `v`: `v1.0.0-preview.1`, `v1.0.0-rc.1`, `v1.0.0`.
 - A tag is never moved or reused. A bad release gets a new tag.
 - The ladder for 1.0 is `preview.N`, then `rc.N`, then the stable `1.0.0`.
-- A tag on a commit is what gives every package and image that version through MinVer, as documented in [`docs/task-run.md`](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/task-run.md#engine-facts) (fact 30).
+- A tag on a commit is what gives every package and image that version through MinVer, as documented in [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts) (fact 30).
 
 ## Cutting a release
 
@@ -35,7 +35,7 @@ This document describes how releases are cut and versioned in this repository. I
 ## The release workflow
 
 - A pushed `v*` tag runs `.github/workflows/release.yml`: `build` (the gates, the browser gate and the package version check), `providers` (PostgreSQL and SQL Server), `docker` (the three images, built and not pushed), then `release`, which waits for all three. For a stable tag only, `deploy-demo` follows `release`, so the demo goes live once the release exists.
-- `release` packs the seven projects of `OpenHoldemEngine.Packages.slnf`, requires the count to equal the solution filter's and every file name to end in the tag's version, and writes the notes with `git-cliff --latest`. It then creates the GitHub Release with the notes and the `.nupkg` files. Images and symbol packages are not attached.
+- `release` packs the seven projects of `TabletopCardEngine.Packages.slnf`, requires the count to equal the solution filter's and every file name to end in the tag's version, and writes the notes with `git-cliff --latest`. It then creates the GitHub Release with the notes and the `.nupkg` files. Images and symbol packages are not attached.
 - A tag that contains `-` (`v1.0.0-preview.1`, `v1.0.0-rc.1`) makes a pre-release.
 - A failed run leaves no release. The fix is a new tag, never a moved one.
 

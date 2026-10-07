@@ -61,7 +61,7 @@ representative at an online or offline event.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the project maintainers responsible for enforcement by submitting a report
 reported privately to the project maintainers through GitHub's private reporting form,
-https://github.com/miekhra/OpenHoldemEngine/security/advisories/new, with "Code of Conduct" in the title.
+https://github.com/DigitalAbsurd/TabletopCardEngine/security/advisories/new, with "Code of Conduct" in the title.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

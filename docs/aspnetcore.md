@@ -2,7 +2,7 @@
 
 ## What this document is
 
-The user guide of `OpenHoldemEngine.AspNetCore`, the package that wires the engine into an ASP.NET
+The user guide of `TabletopCardEngine.AspNetCore`, the package that wires the engine into an ASP.NET
 Core host and exposes it over HTTP. The decisions behind it, the name, the dependency rule, the HTTP
 contract and the security stance, are recorded in
 [ADR-0004](adr/0004-aspnetcore-integration-package.md).
@@ -33,7 +33,7 @@ Its `appsettings.json` points `ConnectionStrings:Holdem` at `holdem.db` and sets
    answers `201` with `ETag: "1"` and a `Location` header.
 4. Stop the server and delete `samples/AspNetCoreSample/holdem.db` (git ignores it).
 
-`SampleEndToEndTests` in `tests/OpenHoldemEngine.AspNetCore.Tests` runs the same sample through
+`SampleEndToEndTests` in `tests/TabletopCardEngine.AspNetCore.Tests` runs the same sample through
 `WebApplicationFactory<Program>` on a temporary database file: a game from creation to finish, a stale
 `If-Match` answered with 412 `Conflict`, and the health check in both the migrated and the unmigrated
 state. The sample's `Program` is `internal` and reaches the tests through `InternalsVisibleTo`.
@@ -77,7 +77,7 @@ builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 app.MapHealthChecks("/health");
 ```
 
-`AddHoldemEngineCheck(name = "openholdemengine", failureStatus = null, tags = null)` registers a check
+`AddHoldemEngineCheck(name = "tabletopcardengine", failureStatus = null, tags = null)` registers a check
 that calls `IHoldemSchemaManager.GetSchemaStatusAsync` on every probe. It reads `__OheSchema`, a
 single-row query, and caches nothing. It never migrates the database: a health probe must not change
 it, and migrating on start-up is a separate feature (below).
@@ -144,12 +144,12 @@ To wire the engine's traces and metrics, add the instrumentation in one line:
 ```csharp
 services
     .AddOpenTelemetry()
-    .AddOpenHoldemEngineInstrumentation()
+    .AddTabletopCardEngineInstrumentation()
     .WithTracing(tracing => tracing.AddConsoleExporter())
     .WithMetrics(metrics => metrics.AddConsoleExporter());
 ```
 
-The engine publishes logs through `ILogger<HoldemEngine>`. Add the `OpenHoldemEngine` category to
+The engine publishes logs through `ILogger<HoldemEngine>`. Add the `TabletopCardEngine` category to
 your logger configuration. Full details and alternative wiring options are in
 [docs/observability.md](observability.md).
 
@@ -403,7 +403,7 @@ app.MapOpenApi();
 app.MapHoldemEngineApi();
 ```
 
-The generated document will include the engine's endpoints under the tag `OpenHoldemEngine`.
+The generated document will include the engine's endpoints under the tag `TabletopCardEngine`.
 
 **With Swashbuckle:**
 

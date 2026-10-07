@@ -1,10 +1,10 @@
-# Contributing to OpenHoldem Engine
+# Contributing to Tabletop Card Engine
 
 Thank you for your interest in contributing! This document explains how to contribute and ensure your work is ready to merge.
 
 ## Before you start
 
-**Open an issue first** for anything beyond a small fix. Use the [issue forms](https://github.com/miekhra/OpenHoldemEngine/issues/new/choose) to start.
+**Open an issue first** for anything beyond a small fix. Use the [issue forms](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/new/choose) to start.
 
 **Security reports** go through [SECURITY.md](SECURITY.md), never a public issue.
 
@@ -24,9 +24,9 @@ No workflow runs on a pull request — the checks run locally and their results 
 
 ```
 dotnet build
-dotnet format OpenHoldemEngine.sln --verify-no-changes
+dotnet format TabletopCardEngine.sln --verify-no-changes
 dotnet test
-dotnet pack OpenHoldemEngine.Packages.slnf -c Release
+dotnet pack TabletopCardEngine.Packages.slnf -c Release
 ```
 
 All four must pass before you commit or merge. For the complete details and optional tests for specific kinds of changes, see [docs/task-run.md#gates](docs/task-run.md#gates).
@@ -36,8 +36,8 @@ All four must pass before you commit or merge. For the complete details and opti
 **`dotnet test --filter` is silently ignored here** (MSTest.Sdk 3.6.1 / Microsoft.Testing.Platform). Pass the filter to the test application instead:
 
 ```
-dotnet run --project tests/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
-dotnet run --project tests/OpenHoldemEngine.Tests -- --list-tests
+dotnet run --project tests/TabletopCardEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
+dotnet run --project tests/TabletopCardEngine.Tests -- --list-tests
 ```
 
 ### Browser layout gate
@@ -45,13 +45,13 @@ dotnet run --project tests/OpenHoldemEngine.Tests -- --list-tests
 Run the browser layout gate locally before you open the pull request:
 
 ```
-OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
+OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 ```
 
 The first run needs the browser installed (build the solution first):
 
 ```
-pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
+pwsh tests/TabletopCardEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
 Quote the summary line of that run (total, passed, failed, skipped) in the pull request body.
@@ -61,16 +61,16 @@ Quote the summary line of that run (total, passed, failed, skipped) in the pull 
 A task that touches specific areas needs additional tests:
 
 - **Provider matrix** (PostgreSQL and SQL Server in Docker):
-  - Changes to `src/OpenHoldemEngine/Data/`, relational provider packages, persistence tests, the server, or `scripts/add-migration.ps1`
+  - Changes to `src/TabletopCardEngine/Data/`, relational provider packages, persistence tests, the server, or `scripts/add-migration.ps1`
   - ```
-    OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
-    OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
+    OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+    OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
     ```
 
 - **Container image tests** (builds the Dockerfile targets):
   - Changes to `Dockerfile`, `.dockerignore`, the server, `Directory.Build.props` or `.editorconfig`
   - ```
-    OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+    OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
     ```
 
 - **Documentation site** (requires Docker):
@@ -87,7 +87,7 @@ For complete details, see [docs/task-run.md#gates](docs/task-run.md#gates).
 `.editorconfig` is the source of truth and is enforced at build time. To fix formatting issues:
 
 ```
-dotnet format OpenHoldemEngine.sln
+dotnet format TabletopCardEngine.sln
 ```
 
 - **English only**: code, comments, commits and pull requests must be in English

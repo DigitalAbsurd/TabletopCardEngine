@@ -3,7 +3,7 @@
     Rebuilds the vendored heads-up PHH test fixture from the upstream phh-dataset repository.
 
 .DESCRIPTION
-    Produces tests/OpenHoldemEngine.Tests/Resources/phh/handhq-headsup.phhs.gz — the heads-up hands
+    Produces tests/TabletopCardEngine.Tests/Resources/phh/handhq-headsup.phhs.gz — the heads-up hands
     of the first few `data/handhq` files, packed into a single gzipped .phhs file (TOML array of
     tables with numeric headers, the same layout pack-phh-fixture.ps1 writes).
 
@@ -42,7 +42,7 @@ param(
     # How many upstream files to read. Five gives roughly 2 350 heads-up hands.
     [int] $FileCount = 5,
 
-    [string] $OutputPath = (Join-Path $PSScriptRoot '../tests/OpenHoldemEngine.Tests/Resources/phh/handhq-headsup.phhs.gz')
+    [string] $OutputPath = (Join-Path $PSScriptRoot '../tests/TabletopCardEngine.Tests/Resources/phh/handhq-headsup.phhs.gz')
 )
 
 $ErrorActionPreference = 'Stop'

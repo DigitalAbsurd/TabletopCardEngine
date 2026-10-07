@@ -1,7 +1,7 @@
-site_name: OpenHoldemEngine
+site_name: TabletopCardEngine
 site_description: A .NET class library modelling Texas Hold'em cash games
-repo_url: https://github.com/miekhra/OpenHoldemEngine
-repo_name: miekhra/OpenHoldemEngine
+repo_url: https://github.com/DigitalAbsurd/TabletopCardEngine
+repo_name: DigitalAbsurd/TabletopCardEngine
 edit_uri: edit/main/docs/
 copyright: Copyright 2025-2026 Mikhail Khrapunov. Licensed under Apache-2.0.
 site_url: !ENV [READTHEDOCS_CANONICAL_URL, '']
@@ -75,3 +75,4 @@ nav:
           - adr/0004-aspnetcore-integration-package.md
           - adr/0005-container-host-and-images.md
           - adr/0006-documentation-site.md
+          - adr/0007-rename-to-tabletopcardengine.md

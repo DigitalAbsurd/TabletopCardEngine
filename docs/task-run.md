@@ -21,9 +21,9 @@ and green again before anything is merged.
 
 ```
 dotnet build
-dotnet format OpenHoldemEngine.sln --verify-no-changes
+dotnet format TabletopCardEngine.sln --verify-no-changes
 dotnet test
-dotnet pack OpenHoldemEngine.Packages.slnf -c Release
+dotnet pack TabletopCardEngine.Packages.slnf -c Release
 ```
 
 The last one is the public API gate: it fails on a break against the committed baseline (fact 25).
@@ -32,7 +32,7 @@ Style is enforced at build time, so a formatting or naming violation **fails `do
 Do not hand-tune whitespace to chase a diagnostic — run the formatter and re-read the diff:
 
 ```
-dotnet format OpenHoldemEngine.sln
+dotnet format TabletopCardEngine.sln
 ```
 
 **`dotnet test --filter` is silently ignored here** (MSTest.Sdk 3.6.1 / Microsoft.Testing.Platform).
@@ -40,8 +40,8 @@ It exits 0 having run everything, and tells you nothing. Pass the filter to the 
 instead:
 
 ```
-dotnet run --project tests/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
-dotnet run --project tests/OpenHoldemEngine.Tests -- --list-tests
+dotnet run --project tests/TabletopCardEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
+dotnet run --project tests/TabletopCardEngine.Tests -- --list-tests
 ```
 
 Test-only environment variables:
@@ -51,7 +51,7 @@ Test-only environment variables:
 | `OHE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. The file is deleted and migrated fresh on each `Setup`. |
 | `OHE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
 | `OHE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
-| `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `tests/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it. |
+| `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `tests/TabletopCardEngine.Demo.BrowserTests`, which is skipped without it. |
 | `OHE_TEST_CONTAINERS=1` | Runs the `PostgreSql` and `SqlServer` rows of the provider matrix in Docker through Testcontainers (fact 28). Needs Docker; without it those rows are inconclusive. |
 
 The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
@@ -60,13 +60,13 @@ demo it is required. For any other task it is still the preferred way: a local r
 that matters most.
 
 ```
-OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests
+OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 ```
 
 The first local run needs the browser (build the solution first, so the script exists):
 
 ```
-pwsh tests/OpenHoldemEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
+pwsh tests/TabletopCardEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install chromium
 ```
 
 Quote the summary line of that run (total, passed, failed, skipped) in the pull request body. The
@@ -75,29 +75,29 @@ reported as skipped and the run is green having checked nothing; that is not a r
 run only when it cannot be done here (the browser will not install, say), and say so in the pull
 request. The release workflow runs the gate once more on a release tag.
 
-**Provider tests.** A task that touches `src/OpenHoldemEngine/Data/`, a relational provider package
-(`OpenHoldemEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `tests/OpenHoldemEngine.Tests/Persistence/`,
-`src/OpenHoldemEngine.Server/`, `tests/OpenHoldemEngine.Server.Tests/`,
+**Provider tests.** A task that touches `src/TabletopCardEngine/Data/`, a relational provider package
+(`TabletopCardEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `tests/TabletopCardEngine.Tests/Persistence/`,
+`src/TabletopCardEngine.Server/`, `tests/TabletopCardEngine.Server.Tests/`,
 `scripts/add-migration.ps1` or `.github/workflows/release.yml` should run the provider matrix locally on
 PostgreSQL and SQL Server when Docker is available, and quote the summary line. A task that touches the
 server or its tests runs the second command as well:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
 Without Docker, say so in the pull request. Nothing else runs the matrix before the release workflow does on a release tag, so a provider defect then surfaces only at release time.
 
 **Container image tests.** A task that touches `Dockerfile`, `.dockerignore`,
-`src/OpenHoldemEngine.Server/`, `tests/OpenHoldemEngine.Server.Tests/`, `Directory.Build.props` or
+`src/TabletopCardEngine.Server/`, `tests/TabletopCardEngine.Server.Tests/`, `Directory.Build.props` or
 `.editorconfig` runs the command below locally and quotes the summary line. It builds the `sqlite`,
 `postgres` and `mssql` targets of the `Dockerfile` and drives each image over HTTP next to a database
 container of its own (`ContainerImageTests`). It needs Docker, and the first run builds the images,
 which takes a few minutes:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/OpenHoldemEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
 ```
 
 **Documentation site.** A task that touches `docs/`, `mkdocs.yml` or `.readthedocs.yaml` runs both commands below from the repository root and quotes their output; both need Docker, and without Docker the pull request says so:
@@ -118,7 +118,7 @@ Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyCon
 ```
 
 An empty result means the ports are free. A run is not finished while a listener is still up.
-The container host, `src/OpenHoldemEngine.Server`, listens on port 5298 under `dotnet run`, so a
+The container host, `src/TabletopCardEngine.Server`, listens on port 5298 under `dotnet run`, so a
 step that starts it checks that port the same way: `-LocalPort 5298`.
 
 ## What "done" means
@@ -258,8 +258,8 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   Transitive packages get no row. Adding or bumping a package means running `pwsh ./scripts/audit-licenses.ps1` and
   pasting its tables over the inventory. A vendored asset has no nuspec, so it needs its row in the
   notices by hand. The PostgreSQL License and SNI runtime are documented in ADR-0003.
-- **The schema comes from per-provider migrations.** Each `OpenHoldemEngine.<Provider>` package
-  (so far `OpenHoldemEngine.Sqlite`) carries `Migrations/` generated from
+- **The schema comes from per-provider migrations.** Each `TabletopCardEngine.<Provider>` package
+  (so far `TabletopCardEngine.Sqlite`) carries `Migrations/` generated from
   `HoldemDbContext.OnModelCreating`, applied by `IHoldemSchemaManager.MigrateAsync`. An entity
   shape change needs the model configuration updated by hand **and** a migration for every
   provider, under the rules in [docs/persistence.md](persistence.md);
@@ -287,19 +287,19 @@ discards it, and `.phh` export is the durable artefact.
 ## Layout of the tree
 
 ```
-src/OpenHoldemEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
-src/OpenHoldemEngine.OpenTelemetry/     # AddOpenHoldemEngineInstrumentation(); references OpenTelemetry.Api and OpenTelemetry.Api.ProviderBuilderExtensions only
-src/OpenHoldemEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
-src/OpenHoldemEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
-src/OpenHoldemEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations
-src/OpenHoldemEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
-src/OpenHoldemEngine.AspNetCore/        # the ASP.NET Core integration (ADR-0004); shared framework and the core only
-tests/OpenHoldemEngine.AspNetCore.Tests/  # its tests, including the dependency guard
+src/TabletopCardEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
+src/TabletopCardEngine.OpenTelemetry/     # AddTabletopCardEngineInstrumentation(); references OpenTelemetry.Api and OpenTelemetry.Api.ProviderBuilderExtensions only
+src/TabletopCardEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
+src/TabletopCardEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
+src/TabletopCardEngine.SqlServer/         # UseHoldemSqlServer(); SQL Server migrations
+src/TabletopCardEngine.InMemory/          # UseHoldemInMemory(); no migrations, for testing and demos
+src/TabletopCardEngine.AspNetCore/        # the ASP.NET Core integration (ADR-0004); shared framework and the core only
+tests/TabletopCardEngine.AspNetCore.Tests/  # its tests, including the dependency guard
 samples/AspNetCoreSample/               # a runnable host of the ASP.NET Core package; no PackageReference, not packable
-src/OpenHoldemEngine.Server/            # the container host: REST API, health, ENV config; not packable
-tests/OpenHoldemEngine.Server.Tests/      # its tests
-tests/OpenHoldemEngine.Tests/             # engine tests, including the PHH replay corpora
-src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
+src/TabletopCardEngine.Server/            # the container host: REST API, health, ENV config; not packable
+tests/TabletopCardEngine.Server.Tests/      # its tests
+tests/TabletopCardEngine.Tests/             # engine tests, including the PHH replay corpora
+src/TabletopCardEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 ├── Engine/                             # engine hosting: DI, SQLite, the InternalsVisibleTo bridge
 ├── Services/                           # DemoGameSession, EngineCallJournal, SqliteBrowser
 ├── Phh/                                # ported reader plus the new writer
@@ -309,8 +309,8 @@ src/OpenHoldemEngine.Demo/              # Blazor WebAssembly standalone, net10.0
 │   └── EngineCalls/                    # the call log with syntax highlighting
 ├── Pages/
 └── wwwroot/                            # prism.js and prism.css are vendored, not from a CDN
-tests/OpenHoldemEngine.Demo.Tests/        # bUnit component render tests plus service tests
-tests/OpenHoldemEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
+tests/TabletopCardEngine.Demo.Tests/        # bUnit component render tests plus service tests
+tests/TabletopCardEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
 docker/                                # compose examples for the PostgreSQL and SQL Server images
 docs/index.md                           # site home
 docs/requirements.txt                   # Python dependencies for MkDocs
@@ -334,7 +334,7 @@ scripts/                                # license audit, PHH fixture packing, pu
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 mkdocs.yml                              # site configuration for MkDocs Material
 .readthedocs.yaml                       # Read the Docs build configuration
-OpenHoldemEngine.Packages.slnf          # solution filter for packable projects only
+TabletopCardEngine.Packages.slnf          # solution filter for packable projects only
 cliff.toml                              # git-cliff configuration: how commits become changelog entries
 CHANGELOG.md                            # generated by git-cliff, never edited by hand
 .github/workflows/                      # release.yml (v* tags only) and deploy-demo.yml (called by it for stable releases)
@@ -422,7 +422,7 @@ renumber.
     plain `int`. And a `Select`'s options must go in its `SelectOptions` fragment, not in
     `ChildContent`, which `Select` never renders — the symptom is a dropdown showing `No Data`.
 21. **The gates cannot see the browser.** `dotnet build`,
-    `dotnet format OpenHoldemEngine.sln --verify-no-changes` and `dotnet test` are the only checks the
+    `dotnet format TabletopCardEngine.sln --verify-no-changes` and `dotnet test` are the only checks the
     task runner has, and each sees less than the last layer of defect needs:
     <br>— bUnit renders markup but computes **no geometry and no styles**. Element size, stacking
     order, hit-testing, scroll position and resolved custom properties are all invisible to
@@ -430,7 +430,7 @@ renumber.
     dragged the page off its own left edge, and a grid that squeezed its rows until the side panels
     painted over the table all shipped with every gate green and an empty console.
     <br>— CSS is not analysed at all, so a stylesheet can parse, ship and do nothing.
-    <br>The honest gate for a layout defect is a real browser: `tests/OpenHoldemEngine.Demo.BrowserTests`
+    <br>The honest gate for a layout defect is a real browser: `tests/TabletopCardEngine.Demo.BrowserTests`
     (Playwright + MSTest, behind `OHE_TEST_BROWSER_GATE`, wired into `release.yml`) covers horizontal
     overflow, hit-testing of the action controls, the scroll container and console errors. It covers
     nothing else, so a Definition of done outside its reach must name a measurement — a console probe
@@ -476,8 +476,8 @@ renumber.
     internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
     connection serialises everything, and over one named InMemory store.
 25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** Every
-    packable project (the seven in `OpenHoldemEngine.Packages.slnf`) sets `EnablePackageValidation` with `PackageValidationBaselinePath`
-    pointing at their own baseline, so `dotnet pack OpenHoldemEngine.Packages.slnf -c Release` fails
+    packable project (the seven in `TabletopCardEngine.Packages.slnf`) sets `EnablePackageValidation` with `PackageValidationBaselinePath`
+    pointing at their own baseline, so `dotnet pack TabletopCardEngine.Packages.slnf -c Release` fails
     with `CP0001` (type removed), `CP0002` (member removed) and the other ApiCompat rules on a break;
     `dotnet build` does not check it. The baselines are frozen and pinned by `ApiBaselineFreezeTests` (no break in 1.x, additions allowed):
     an additive change regenerates the inventory only (`pwsh ./scripts/list-public-api.ps1 -Update`), and a `CP`
@@ -494,12 +494,12 @@ renumber.
     <br>— **Traces** (Activity and tags) are defined in `Diagnostics/HoldemEngineActivity.cs` as static const strings; the source name is `HoldemEngineTelemetry.ActivitySourceName`.
     <br>— **Metrics** (instruments) are created in `Diagnostics/HoldemEngineMetrics.cs` by name and unit; the meter name is `HoldemEngineTelemetry.MeterName`.
     <br>Card values (hole cards and the board) reach the log only at Trace level with `EnableSensitiveCardLogging`, and never appear in span tags or metric tags. All emission is deterministic and guarded by activity/logger state checks (`IsAllDataRequested`, `IsEnabled(LogLevel.Trace)`) so disabled signals pay no cost.
-    <br>The `ActivitySource` and the fallback `Meter` (when no `IMeterFactory` is available) are process-wide singletons, so a test that wants to isolate its spans and metrics must filter spans by `openholdemengine.game.id` and collect metrics through its own container's `IMeterFactory`.
+    <br>The `ActivitySource` and the fallback `Meter` (when no `IMeterFactory` is available) are process-wide singletons, so a test that wants to isolate its spans and metrics must filter spans by `tabletopcardengine.game.id` and collect metrics through its own container's `IMeterFactory`.
     <br>Renaming or removing an event, tag, or instrument, or changing an EventId or unit, is a breaking change, the same as a CP diagnostic on `dotnet pack`. Adding is not. The contract is enforced by `ObservabilityDocsTests`: every log method, tag name, and instrument is checked to appear in `docs/observability.md`.
 27. **`IHoldemSchemaManager` is the public way to create and inspect the schema.** It supports exactly
     four providers, by `Database.ProviderName`, and rejects any other with
     `HoldemSchemaException(UnsupportedProvider)`. On a relational provider, `MigrateAsync` needs the
-    migrations of the provider's `OpenHoldemEngine.*` package and fails with `MigrationsNotFound` under
+    migrations of the provider's `TabletopCardEngine.*` package and fails with `MigrationsNotFound` under
     plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`. The database's version
     is the single row of `__OheSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
@@ -523,10 +523,10 @@ renumber.
 
 The PHH tooling (`PhhReader`, `PhhActionParser`, `PhhCards`, `PhhHandDeck`, `PhhAction`, `PhhHand`) is
 `internal` inside the *test* project, and the agreed constraint is `InternalsVisibleTo` only, so the
-demo carries its own port under `OpenHoldemEngine.Demo.Phh`. This is duplicated source, accepted
+demo carries its own port under `TabletopCardEngine.Demo.Phh`. This is duplicated source, accepted
 knowingly: the rejected alternative, a `<Compile Include>` pointing into the test project, drags a
 foreign namespace into the demo assembly (breaking `IDE0130`, an error here) and couples the shipped
-demo to a test project. If it becomes a maintenance problem, extract a shared `OpenHoldemEngine.Phh`
+demo to a test project. If it becomes a maintenance problem, extract a shared `TabletopCardEngine.Phh`
 project that both consumers reference.
 
 ## End-to-end verification
@@ -540,7 +540,7 @@ table's height budget is tightest. And the dev server has to be stopped afterwar
 
 1. `dotnet build` and `dotnet test` from the repository root — the analyzer relaxations for the demo
    must not have loosened anything for the library or the tests.
-2. `OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests` passes. Then revert one
+2. `OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests` passes. Then revert one
    layout fix in a working tree and confirm the gate goes red — a gate that has never been seen to fail
    has not been shown to work — and put it back.
 3. Open the demo with the console open and touch nothing: no exception, no `does not have a property

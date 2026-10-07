@@ -14,7 +14,7 @@ The engine publishes logs, traces and metrics. Wire them up with OpenTelemetry:
 ```csharp
 services
     .AddOpenTelemetry()
-    .AddOpenHoldemEngineInstrumentation()
+    .AddTabletopCardEngineInstrumentation()
     .WithTracing(tracing => tracing.AddConsoleExporter())
     .WithMetrics(metrics => metrics.AddConsoleExporter());
 ```
@@ -24,16 +24,16 @@ services
 ```csharp
 services
     .AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddOpenHoldemEngineInstrumentation())
-    .WithMetrics(metrics => metrics.AddOpenHoldemEngineInstrumentation());
+    .WithTracing(tracing => tracing.AddTabletopCardEngineInstrumentation())
+    .WithMetrics(metrics => metrics.AddTabletopCardEngineInstrumentation());
 ```
 
 **Without the package:**
 
-For logs, add the `OpenHoldemEngine` category to the host's logger configuration:
+For logs, add the `TabletopCardEngine` category to the host's logger configuration:
 
 ```csharp
-services.AddLogging(logging => logging.AddFilter("OpenHoldemEngine", LogLevel.Information));
+services.AddLogging(logging => logging.AddFilter("TabletopCardEngine", LogLevel.Information));
 ```
 
 For traces, add the activity source:
@@ -88,9 +88,9 @@ GameId:{GameId} HandNo:{HandNo}
 
 The engine opens one `Activity` (a span in OpenTelemetry terminology) per call to `HoldemEngine.ApplyHoldemActionAsync`. On the first call of each `HoldemEngine` instance, a schema check runs before the span and the metrics: if the database is newer or needs migration, `HoldemSchemaException` is thrown before any signal is emitted.
 
-**Source name:** `"OpenHoldemEngine"`
+**Source name:** `"TabletopCardEngine"`
 
-**Span name:** `"OpenHoldemEngine.ApplyHoldemAction"`
+**Span name:** `"TabletopCardEngine.ApplyHoldemAction"`
 
 **Span kind:** `Internal`
 
@@ -98,13 +98,13 @@ The engine opens one `Activity` (a span in OpenTelemetry terminology) per call t
 
 | Tag Name | Type | Values | When Set |
 |---|---|---|---|
-| `openholdemengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, or `Unknown` | Always (at start) |
-| `openholdemengine.game.id` | string | The game ID as a GUID string | Always (at start) |
-| `openholdemengine.player_action.type` | string | `Fold`, `Check`, `Call`, `Raise`, `Bet`, `AllIn` | Only for `Play` actions |
-| `openholdemengine.hand.no` | integer | The current hand's number | Set at return if hand number > 0 |
-| `openholdemengine.street` | string | `PreFlop`, `Flop`, `Turn`, `River`, `Showdown`, `Finished` | Set at return if a hand is loaded |
-| `openholdemengine.outcome` | string | `Success`, `Failure`, or `Exception` | Set at return |
-| `openholdemengine.error.code` | string | The error code name (e.g., `InvalidSeat`, `Conflict`) | Set at return if outcome is `Failure` |
+| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, or `Unknown` | Always (at start) |
+| `tabletopcardengine.game.id` | string | The game ID as a GUID string | Always (at start) |
+| `tabletopcardengine.player_action.type` | string | `Fold`, `Check`, `Call`, `Raise`, `Bet`, `AllIn` | Only for `Play` actions |
+| `tabletopcardengine.hand.no` | integer | The current hand's number | Set at return if hand number > 0 |
+| `tabletopcardengine.street` | string | `PreFlop`, `Flop`, `Turn`, `River`, `Showdown`, `Finished` | Set at return if a hand is loaded |
+| `tabletopcardengine.outcome` | string | `Success`, `Failure`, or `Exception` | Set at return |
+| `tabletopcardengine.error.code` | string | The error code name (e.g., `InvalidSeat`, `Conflict`) | Set at return if outcome is `Failure` |
 
 **Status:** The span status is set according to the outcome:
 
@@ -122,10 +122,10 @@ The engine records four instruments. All metrics use tags to partition data; no 
 
 | Instrument Name | Type | Unit | Tags | What is Recorded |
 |---|---|---|---|---|
-| `openholdemengine.actions` | Counter (long) | `{action}` | `openholdemengine.action.type`, `openholdemengine.outcome` | Count of actions applied, one per call with the outcome (Success, Failure, Exception) recorded |
-| `openholdemengine.hands` | Counter (long) | `{hand}` | (none) | Count of hands started |
-| `openholdemengine.validation_failures` | Counter (long) | `{failure}` | `openholdemengine.action.type`, `openholdemengine.error.code` | Count of validation failures, one per error including conflicts |
-| `openholdemengine.action.duration` | Histogram (double) | `s` | `openholdemengine.action.type`, `openholdemengine.outcome` | Duration of each action in seconds from start to end, exceptions included |
+| `tabletopcardengine.actions` | Counter (long) | `{action}` | `tabletopcardengine.action.type`, `tabletopcardengine.outcome` | Count of actions applied, one per call with the outcome (Success, Failure, Exception) recorded |
+| `tabletopcardengine.hands` | Counter (long) | `{hand}` | (none) | Count of hands started |
+| `tabletopcardengine.validation_failures` | Counter (long) | `{failure}` | `tabletopcardengine.action.type`, `tabletopcardengine.error.code` | Count of validation failures, one per error including conflicts |
+| `tabletopcardengine.action.duration` | Histogram (double) | `s` | `tabletopcardengine.action.type`, `tabletopcardengine.outcome` | Duration of each action in seconds from start to end, exceptions included |
 
 ## Stability
 
@@ -155,12 +155,12 @@ services.AddHoldemEngine(dbOptions, configure: builder =>
     builder.WithSettings(settings => settings.EnableSensitiveCardLogging = true));
 ```
 
-The setting is ignored unless the `OpenHoldemEngine` category is enabled at Trace level:
+The setting is ignored unless the `TabletopCardEngine` category is enabled at Trace level:
 
 ```csharp
 services.AddLogging(logging => logging
     .SetMinimumLevel(LogLevel.Trace)
-    .AddFilter("OpenHoldemEngine", LogLevel.Trace)
+    .AddFilter("TabletopCardEngine", LogLevel.Trace)
     .AddConsole());
 ```
 
@@ -207,7 +207,7 @@ The library throws 17 exceptions across 10 files. Each is one of three classes: 
 
 ### Exception handling
 
-The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around `SaveChangesAsync` in `HoldemEngine.ApplyHoldemActionAsync`, and it turns the exception into `HoldemErrorCode.Conflict` (see [`docs/task-run.md`](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/task-run.md#engine-facts), fact 24). Every other exception reaches the caller unhandled.
+The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around `SaveChangesAsync` in `HoldemEngine.ApplyHoldemActionAsync`, and it turns the exception into `HoldemErrorCode.Conflict` (see [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts), fact 24). Every other exception reaches the caller unhandled.
 
 ### How exceptions will surface
 

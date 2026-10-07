@@ -1,6 +1,6 @@
 # Key concepts
 
-OpenHoldemEngine models Texas Hold'em cash games with a simple command-and-query architecture: every action goes through a single method, the database is the source of truth, and concurrency is managed through optimistic versioning. This page introduces the key ideas you will need to use the engine.
+TabletopCardEngine models Texas Hold'em cash games with a simple command-and-query architecture: every action goes through a single method, the database is the source of truth, and concurrency is managed through optimistic versioning. This page introduces the key ideas you will need to use the engine.
 
 ## One method, one result
 

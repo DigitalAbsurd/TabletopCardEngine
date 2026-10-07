@@ -1,12 +1,12 @@
-# Single source of truth for OpenHoldemEngine code style.
+# Single source of truth for TabletopCardEngine code style.
 #
 # Rules are checked at build time: Directory.Build.props enables
 # EnforceCodeStyleInBuild (IDExxxx rules), NetAnalyzers (CAxxxx) and
 # TreatWarningsAsErrors, so anything marked below as `warning`
 # stops `dotnet build`.
 #
-# Auto-fix:            dotnet format OpenHoldemEngine.sln
-# Verify without fix:  dotnet format OpenHoldemEngine.sln --verify-no-changes
+# Auto-fix:            dotnet format TabletopCardEngine.sln
+# Verify without fix:  dotnet format TabletopCardEngine.sln --verify-no-changes
 
 root = true
 
@@ -377,7 +377,7 @@ generated_code = true
 
 # EF Core migrations and model snapshots of the provider packages. They are dotnet ef scaffolder
 # output, regenerated rather than edited, so the style and quality analyzers do not apply to them.
-[src/OpenHoldemEngine.*/Migrations/*.cs]
+[src/TabletopCardEngine.*/Migrations/*.cs]
 generated_code = true
 # IDE0005 is the one style rule that still reports in generated code, and the scaffolder always
 # writes `using System;` whether or not the migration needs it.
@@ -410,7 +410,7 @@ dotnet_diagnostic.CA1707.severity = none
 # These suppressions are limited to the demo project and .razor files only; the engine
 # and test projects maintain their full documentation and naming rules.
 
-[src/OpenHoldemEngine.Demo/**.cs]
+[src/TabletopCardEngine.Demo/**.cs]
 
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.IDE0130.severity = none

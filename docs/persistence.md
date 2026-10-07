@@ -8,16 +8,16 @@ The engine's storage contract: which databases are supported, how the schema is 
 
 | Database | Package | Registration call | Migrations |
 |---|---|---|---|
-| SQLite | `OpenHoldemEngine.Sqlite` | `UseHoldemSqlite(...)`, [setup](#sqlite) | yes |
-| PostgreSQL | `OpenHoldemEngine.PostgreSql` | `UseHoldemPostgreSql(...)` | yes |
-| SQL Server | `OpenHoldemEngine.SqlServer` | `UseHoldemSqlServer(...)` | yes |
-| EF Core InMemory | `OpenHoldemEngine.InMemory` | `UseHoldemInMemory(databaseName)` | no, created on `MigrateAsync` |
+| SQLite | `TabletopCardEngine.Sqlite` | `UseHoldemSqlite(...)`, [setup](#sqlite) | yes |
+| PostgreSQL | `TabletopCardEngine.PostgreSql` | `UseHoldemPostgreSql(...)` | yes |
+| SQL Server | `TabletopCardEngine.SqlServer` | `UseHoldemSqlServer(...)` | yes |
+| EF Core InMemory | `TabletopCardEngine.InMemory` | `UseHoldemInMemory(databaseName)` | no, created on `MigrateAsync` |
 
-Any other EF Core provider is rejected by `IHoldemSchemaManager` with `HoldemSchemaException(UnsupportedProvider)`. The core `OpenHoldemEngine` package references no database provider, so a SQLite consumer never restores `Npgsql` or `Microsoft.Data.SqlClient`.
+Any other EF Core provider is rejected by `IHoldemSchemaManager` with `HoldemSchemaException(UnsupportedProvider)`. The core `TabletopCardEngine` package references no database provider, so a SQLite consumer never restores `Npgsql` or `Microsoft.Data.SqlClient`.
 
 ### SQLite
 
-Reference `OpenHoldemEngine.Sqlite`, then register and migrate:
+Reference `TabletopCardEngine.Sqlite`, then register and migrate:
 
 ```csharp
 services.AddHoldemEngine(o => o.UseHoldemSqlite("Data Source=holdem.db"));
@@ -126,7 +126,7 @@ Migrations are written per the following rules:
    }
    ```
 
-5. **Every migration after `InitialCreate` ships with an upgrade fixture on seeded data.** Implement `IUpgradeFixture` in `tests/OpenHoldemEngine.Tests/Persistence/Upgrades/`, with `MigrationName` set to the migration's name. `SeedAsync` writes rows with raw SQL valid at the previous migration, per provider: neither the engine nor `HoldemDbContext` speaks the previous schema. `AssertAsync` then checks the rows through a fully migrated engine. `ProviderSchemaTests.Upgrade_EveryMigrationKeepsItsSeededData` runs each fixture on every relational database, and the guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` fails, naming the migration and the provider, when a migration has no fixture or more than one. The upgrade tests run on SQLite in every `dotnet test`, and on PostgreSQL and SQL Server in Docker under `OHE_TEST_CONTAINERS=1`: locally when Docker is available, and always in CI's `providers` job, on `main` and on every pull request that touches `Data/`, a provider package or the migrations' tests.
+5. **Every migration after `InitialCreate` ships with an upgrade fixture on seeded data.** Implement `IUpgradeFixture` in `tests/TabletopCardEngine.Tests/Persistence/Upgrades/`, with `MigrationName` set to the migration's name. `SeedAsync` writes rows with raw SQL valid at the previous migration, per provider: neither the engine nor `HoldemDbContext` speaks the previous schema. `AssertAsync` then checks the rows through a fully migrated engine. `ProviderSchemaTests.Upgrade_EveryMigrationKeepsItsSeededData` runs each fixture on every relational database, and the guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` fails, naming the migration and the provider, when a migration has no fixture or more than one. The upgrade tests run on SQLite in every `dotnet test`, and on PostgreSQL and SQL Server in Docker under `OHE_TEST_CONTAINERS=1`: locally when Docker is available, and always in CI's `providers` job, on `main` and on every pull request that touches `Data/`, a provider package or the migrations' tests.
 
 6. **Generated migration and snapshot files are `internal` and are not edited**, except for the hand-written parts rules 3 and 4 require.
 
@@ -134,7 +134,7 @@ Migrations are written per the following rules:
 
 ## The InMemory provider
 
-Reference `OpenHoldemEngine.InMemory`, then register and migrate:
+Reference `TabletopCardEngine.InMemory`, then register and migrate:
 
 ```csharp
 services.AddHoldemEngine(o => o.UseHoldemInMemory("my-game-db"));
