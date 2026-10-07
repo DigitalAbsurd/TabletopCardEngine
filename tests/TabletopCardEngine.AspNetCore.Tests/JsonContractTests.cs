@@ -144,7 +144,7 @@ public sealed class JsonContractTests
 
         // Use the hosted overload that registers converters
         services.AddHoldemEngine(
-            config.GetSection("HoldemEngine"),
+            config.GetSection("TabletopCardEngine"),
             dbOptions => dbOptions.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
 
         var sp = services.BuildServiceProvider();
@@ -165,9 +165,9 @@ public sealed class JsonContractTests
     private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemEngineOptionsBuilder>? configure)
     {
         var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "HoldemEngine:" + p.Key, p => p.Value));
+        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:" + p.Key, p => p.Value));
         builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("HoldemEngine"),
+            builder.Configuration.GetSection("TabletopCardEngine"),
             db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")),
             configure);
         return builder.Build();

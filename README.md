@@ -111,8 +111,8 @@ The `TabletopCardEngine.AspNetCore` package binds the engine's options from conf
 
 ```csharp
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
 
 app.MapHoldemEngineApi();
 ```

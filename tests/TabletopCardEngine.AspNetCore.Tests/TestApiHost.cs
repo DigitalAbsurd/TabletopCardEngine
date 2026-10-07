@@ -30,9 +30,9 @@ internal sealed class TestApiHost : IAsyncDisposable
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["HoldemEngine:GamePlayersMaxCount"] = "6" });
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["TabletopCardEngine:GamePlayersMaxCount"] = "6" });
         builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("HoldemEngine"),
+            builder.Configuration.GetSection("TabletopCardEngine"),
             db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
         configure?.Invoke(builder);
 

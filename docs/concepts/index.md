@@ -107,7 +107,7 @@ By default, every hand is shuffled at random, excluding every card already dealt
 
 ```csharp
 services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
+    builder.Configuration.GetSection("TabletopCardEngine"),
     db => db.UseHoldemSqlite(connectionString),
     options => options.WithCardShuffler(myShuffler));
 ```
