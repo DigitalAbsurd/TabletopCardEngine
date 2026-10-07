@@ -8,7 +8,7 @@ using TabletopCardEngine.Server;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
+    builder.Configuration.GetSection("TabletopCardEngine"),
     HoldemServerDatabase.Configure(builder.Configuration));
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 builder.Services.AddOpenApi();

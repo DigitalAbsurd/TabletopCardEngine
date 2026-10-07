@@ -25,18 +25,18 @@ LABEL org.opencontainers.image.source="https://github.com/DigitalAbsurd/Tabletop
 WORKDIR /app
 COPY --from=builder /app .
 ENV ASPNETCORE_HTTP_PORTS=8080 \
-    HoldemEngine__MigrateDatabaseOnStartup=true
+    TabletopCardEngine__MigrateDatabaseOnStartup=true
 EXPOSE 8080
 USER $APP_UID
 ENTRYPOINT ["dotnet", "TabletopCardEngine.Server.dll"]
 
 # postgres: PostgreSQL. No default connection string, so a missing one fails fast at start-up.
 FROM final AS postgres
-ENV HoldemServer__Provider=PostgreSql
+ENV TabletopCardEngineServer__Provider=PostgreSql
 
 # mssql: SQL Server. No default connection string, so a missing one fails fast at start-up.
 FROM final AS mssql
-ENV HoldemServer__Provider=SqlServer
+ENV TabletopCardEngineServer__Provider=SqlServer
 
 # sqlite: a self-contained image with the database file in the /data volume, owned by `app`
 # because /app is not writable by it. Being the last stage, it is what a plain `docker build` gives.
@@ -44,6 +44,6 @@ FROM final AS sqlite
 USER root
 RUN mkdir -p /data && chown $APP_UID:$APP_UID /data
 USER $APP_UID
-ENV HoldemServer__Provider=Sqlite \
-    ConnectionStrings__Holdem="Data Source=/data/holdem.db"
+ENV TabletopCardEngineServer__Provider=Sqlite \
+    ConnectionStrings__TabletopCardEngine="Data Source=/data/holdem.db"
 VOLUME /data

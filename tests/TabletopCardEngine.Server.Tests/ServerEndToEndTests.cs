@@ -23,9 +23,9 @@ public sealed class ServerEndToEndTests
             {
                 // Not Development, so appsettings.Development.json cannot hide a missing setting.
                 builder.UseEnvironment("Production");
-                builder.UseSetting("HoldemServer:Provider", providerName);
-                builder.UseSetting("ConnectionStrings:Holdem", connectionString);
-                builder.UseSetting("HoldemEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
+                builder.UseSetting("TabletopCardEngineServer:Provider", providerName);
+                builder.UseSetting("ConnectionStrings:TabletopCardEngine", connectionString);
+                builder.UseSetting("TabletopCardEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
             });
             using var client = factory.CreateClient();
             await test(client);

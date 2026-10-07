@@ -135,9 +135,9 @@ The container host reads these settings from the environment:
 
 | Setting | Meaning |
 |---|---|
-| `ConnectionStrings__Holdem` | The connection string of the database, required. |
-| `HoldemServer__Provider` | The database provider: `Sqlite`, `PostgreSql` or `SqlServer`, required. |
-| `HoldemEngine__*` | The engine's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
+| `ConnectionStrings__TabletopCardEngine` | The connection string of the database, required. |
+| `TabletopCardEngineServer__Provider` | The database provider: `Sqlite`, `PostgreSql` or `SqlServer`, required. |
+| `TabletopCardEngine__*` | The engine's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
 
 The details are in [Configuration](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/docker.md#configuration).
 

@@ -17,8 +17,8 @@ public sealed class HoldemServerDatabaseTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "HoldemServer:Provider", providerName },
-                { "ConnectionStrings:Holdem", providerName == "postgresql" ? "Host=x;Database=y" : "Server=x;Database=y" },
+                { "TabletopCardEngineServer:Provider", providerName },
+                { "ConnectionStrings:TabletopCardEngine", providerName == "postgresql" ? "Host=x;Database=y" : "Server=x;Database=y" },
             })
             .Build();
 
@@ -40,14 +40,14 @@ public sealed class HoldemServerDatabaseTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "HoldemServer:Provider", providerValue },
-                { "ConnectionStrings:Holdem", "Data Source=:memory:" },
+                { "TabletopCardEngineServer:Provider", providerValue },
+                { "ConnectionStrings:TabletopCardEngine", "Data Source=:memory:" },
             })
             .Build();
 
         var action = () => TabletopCardEngine.Server.HoldemServerDatabase.Configure(config);
         var exception = action.Should().Throw<InvalidOperationException>().Which;
-        exception.Message.Should().Contain("HoldemServer__Provider");
+        exception.Message.Should().Contain("TabletopCardEngineServer__Provider");
     }
 
     [TestMethod]
@@ -56,12 +56,12 @@ public sealed class HoldemServerDatabaseTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "HoldemServer:Provider", "Sqlite" },
+                { "TabletopCardEngineServer:Provider", "Sqlite" },
             })
             .Build();
 
         var action = () => TabletopCardEngine.Server.HoldemServerDatabase.Configure(config);
         var exception = action.Should().Throw<InvalidOperationException>().Which;
-        exception.Message.Should().Contain("ConnectionStrings__Holdem");
+        exception.Message.Should().Contain("ConnectionStrings__TabletopCardEngine");
     }
 }
