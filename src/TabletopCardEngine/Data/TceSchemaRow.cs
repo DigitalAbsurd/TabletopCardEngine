@@ -6,7 +6,7 @@
 /// is bumped. A newer database is <see cref="HoldemSchemaState.NewerThanEngine"/>; an older or
 /// missing one is <see cref="HoldemSchemaState.MigrationRequired"/>.
 /// </summary>
-internal sealed class OheSchemaRow
+internal sealed class TceSchemaRow
 {
     /// <summary>Single-row table, always Id = 1.</summary>
     internal int Id { get; set; }

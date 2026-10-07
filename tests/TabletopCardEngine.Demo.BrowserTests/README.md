@@ -91,10 +91,10 @@ and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no 
 pwsh tests/TabletopCardEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
 # the gate itself
-OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
+TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 ```
 
-On Windows PowerShell, `$env:OHE_TEST_BROWSER_GATE = "1"` sets the variable.
+On Windows PowerShell, `$env:TCE_TEST_BROWSER_GATE = "1"` sets the variable.
 
 A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
 `wasm-tools` workload is required) and about three minutes for the thirty-four browser checks, plus the
@@ -104,13 +104,13 @@ Environment variables:
 
 | Variable | Effect |
 |---|---|
-| `OHE_TEST_BROWSER_GATE` | `1` or `true` runs the gate. Anything else skips it. |
-| `OHE_TEST_BROWSER_GATE_PUBLISH_DIR` | Publish into this directory and reuse it when it already holds a `wwwroot/index.html`. Speeds up iteration on the tests themselves; **stale artefacts make the gate lie**, so delete it after changing the demo. |
+| `TCE_TEST_BROWSER_GATE` | `1` or `true` runs the gate. Anything else skips it. |
+| `TCE_TEST_BROWSER_GATE_PUBLISH_DIR` | Publish into this directory and reuse it when it already holds a `wwwroot/index.html`. Speeds up iteration on the tests themselves; **stale artefacts make the gate lie**, so delete it after changing the demo. |
 
 To run one check:
 
 ```bash
-OHE_TEST_BROWSER_GATE=1 dotnet run --project tests/TabletopCardEngine.Demo.BrowserTests -- --filter "FullyQualifiedName~HasNoHorizontalOverflow"
+TCE_TEST_BROWSER_GATE=1 dotnet run --project tests/TabletopCardEngine.Demo.BrowserTests -- --filter "FullyQualifiedName~HasNoHorizontalOverflow"
 ```
 
 CI runs the gate as its own step in [ci.yml](../../.github/workflows/ci.yml), after the ordinary

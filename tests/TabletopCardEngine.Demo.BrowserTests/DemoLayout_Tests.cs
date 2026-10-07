@@ -18,7 +18,7 @@ namespace TabletopCardEngine.Demo.BrowserTests;
 /// of them.
 /// </para>
 /// <para>
-/// Off by default. Set <c>OHE_TEST_BROWSER_GATE=1</c> to run it; see the project README.
+/// Off by default. Set <c>TCE_TEST_BROWSER_GATE=1</c> to run it; see the project README.
 /// </para>
 /// </remarks>
 [TestClass]
@@ -731,7 +731,7 @@ public sealed class DemoLayout_Tests
         if (!DemoSite.IsEnabled)
         {
             Assert.Inconclusive(
-                "The browser gate is off. Set OHE_TEST_BROWSER_GATE=1 to publish the demo, "
+                "The browser gate is off. Set TCE_TEST_BROWSER_GATE=1 to publish the demo, "
                 + "serve it locally and drive it in headless Chromium.");
         }
 

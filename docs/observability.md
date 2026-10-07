@@ -177,7 +177,7 @@ When enabled, the engine logs these events:
 
 A host that mistakenly enables the setting but leaves the logger at Information or above will see no card events and pay no performance cost — the events are not written.
 
-**Important:** The host's own EF `EnableSensitiveDataLogging()` prints card values in the `Microsoft.EntityFrameworkCore.Database.Command` category at Information level. That output is outside the engine's control. The test harness's `OHE_TEST_SQL_DEBUG` environment variable enables EF's sensitive data logging and therefore prints card values to the debug output.
+**Important:** The host's own EF `EnableSensitiveDataLogging()` prints card values in the `Microsoft.EntityFrameworkCore.Database.Command` category at Information level. That output is outside the engine's control. The test harness's `TCE_TEST_SQL_DEBUG` environment variable enables EF's sensitive data logging and therefore prints card values to the debug output.
 
 ## Current diagnostics (inventory before the milestone)
 

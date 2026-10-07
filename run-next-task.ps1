@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Picks the next ready issue(s) and hands each one to an AI code assistant to implement,
     build/format/test, commit, push, open a PR and merge it - fully unattended, no human
@@ -491,7 +491,7 @@ function Resolve-ModelId($Issue, $Settings) {
 function Write-TaskFile($Issue) {
     # The vetted snapshot, outside the repository so it can never be committed. The agent
     # reads this instead of the live issue, which its author may have edited since.
-    $path = Join-Path -Path ([IO.Path]::GetTempPath()) -ChildPath "ohe-issue-$($Issue.number)-$([guid]::NewGuid().ToString('N')).md"
+    $path = Join-Path -Path ([IO.Path]::GetTempPath()) -ChildPath "tce-issue-$($Issue.number)-$([guid]::NewGuid().ToString('N')).md"
     $text = "# Issue #$($Issue.number): $($Issue.title)`n`n$($Issue.body)`n"
     [IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))
     return $path
@@ -522,7 +522,7 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 3. Branch off the current main, naming the branch "<type>/$BranchPrefix$IssueNumber-<short-slug>", where <type> is feature, fix or doc according to the task, as docs/task-run.md defines them.
 4. Implement the task strictly as the issue states it: Scope, Files, Definition of done, Notes for the implementer and Context for an AI assistant are acceptance criteria, not suggestions. Do not widen the scope: if you find something else broken nearby, file a separate issue rather than a second commit.
 5. Run from the repository root: dotnet build, dotnet format TabletopCardEngine.sln --verify-no-changes, dotnet test, dotnet pack TabletopCardEngine.Packages.slnf -c Release - all four must finish without errors. This is a precondition for every step below; do not move on if any of them failed.
-6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it runs the gate that matters most. Skip it only if it cannot run here, and then say so in the pull request. Quote the summary line of that run (total, passed, failed, skipped), whose tests must have passed rather than been skipped. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
+6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it runs the gate that matters most. Skip it only if it cannot run here, and then say so in the pull request. Quote the summary line of that run (total, passed, failed, skipped), whose tests must have passed rather than been skipped. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
 7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
 8. Commit with a meaningful message in English, as a Conventional Commit (see docs/task-run.md, Git and pull request protocol, step 2), and push the branch.
 9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The title is a Conventional Commit, <type>(<scope>)?: <summary>, because the squash merge turns it into the commit on main that CHANGELOG.md is generated from. The body must contain "Closes #$IssueNumber".

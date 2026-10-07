@@ -23,6 +23,6 @@ await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
 var engine = provider.GetRequiredService<HoldemEngine>();
 ```
 
-All tables live in the `ohe` schema. It is recommended to dedicate a database or at least a login to the engine.
+All tables live in the `tce` schema. It is recommended to dedicate a database or at least a login to the engine.
 
 **Documentation:** [Database providers](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/providers.md) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)

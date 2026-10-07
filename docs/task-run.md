@@ -48,11 +48,11 @@ Test-only environment variables:
 
 | Variable | Effect |
 |---|---|
-| `OHE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. The file is deleted and migrated fresh on each `Setup`. |
-| `OHE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
-| `OHE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
-| `OHE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `tests/TabletopCardEngine.Demo.BrowserTests`, which is skipped without it. |
-| `OHE_TEST_CONTAINERS=1` | Runs the `PostgreSql` and `SqlServer` rows of the provider matrix in Docker through Testcontainers (fact 28). Needs Docker; without it those rows are inconclusive. |
+| `TCE_TEST_SQLITE_DB3_FILE_NAME` | Write the SQLite database to a file instead of `:memory:`, so the schema and rows survive the run. The file is deleted and migrated fresh on each `Setup`. |
+| `TCE_TEST_SQL_DEBUG=true` | Log EF SQL with sensitive data to the debug output. DEBUG builds only. |
+| `TCE_TEST_PHH_HAND_LIMIT` | Hands of the PHH corpus `PhhPluribusReplay_Test` replays. Default 500; `0` replays all 10 000, about four minutes. A capped run samples evenly, so it still reaches every table. |
+| `TCE_TEST_BROWSER_GATE=1` | Enables the Playwright layout gate in `tests/TabletopCardEngine.Demo.BrowserTests`, which is skipped without it. |
+| `TCE_TEST_CONTAINERS=1` | Runs the `PostgreSql` and `SqlServer` rows of the provider matrix in Docker through Testcontainers (fact 28). Needs Docker; without it those rows are inconclusive. |
 
 The browser gate is the only check in this repository that can see geometry (see fact 21). Run it
 locally for **every** task, before you open the pull request. For a task that touches layout or the
@@ -60,7 +60,7 @@ demo it is required. For any other task it is still the preferred way: a local r
 that matters most.
 
 ```
-OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
+TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 ```
 
 The first local run needs the browser (build the solution first, so the script exists):
@@ -70,7 +70,7 @@ pwsh tests/TabletopCardEngine.Demo.BrowserTests/bin/Debug/net10.0/playwright.ps1
 ```
 
 Quote the summary line of that run (total, passed, failed, skipped) in the pull request body. The
-tests must have passed rather than been skipped — without `OHE_TEST_BROWSER_GATE=1` they are
+tests must have passed rather than been skipped — without `TCE_TEST_BROWSER_GATE=1` they are
 reported as skipped and the run is green having checked nothing; that is not a run. Skip the local
 run only when it cannot be done here (the browser will not install, say), and say so in the pull
 request. The release workflow runs the gate once more on a release tag.
@@ -83,8 +83,8 @@ PostgreSQL and SQL Server when Docker is available, and quote the summary line. 
 server or its tests runs the second command as well:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
+TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
+TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
 Without Docker, say so in the pull request. Nothing else runs the matrix before the release workflow does on a release tag, so a provider defect then surfaces only at release time.
@@ -97,7 +97,7 @@ container of its own (`ContainerImageTests`). It needs Docker, and the first run
 which takes a few minutes:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
 ```
 
 **Documentation site.** A task that touches `docs/`, `mkdocs.yml` or `.readthedocs.yaml` runs both commands below from the repository root and quotes their output; both need Docker, and without Docker the pull request says so:
@@ -310,7 +310,7 @@ src/TabletopCardEngine.Demo/              # Blazor WebAssembly standalone, net10
 ├── Pages/
 └── wwwroot/                            # prism.js and prism.css are vendored, not from a CDN
 tests/TabletopCardEngine.Demo.Tests/        # bUnit component render tests plus service tests
-tests/TabletopCardEngine.Demo.BrowserTests/ # Playwright layout gate, behind OHE_TEST_BROWSER_GATE
+tests/TabletopCardEngine.Demo.BrowserTests/ # Playwright layout gate, behind TCE_TEST_BROWSER_GATE
 docker/                                # compose examples for the PostgreSQL and SQL Server images
 docs/index.md                           # site home
 docs/requirements.txt                   # Python dependencies for MkDocs
@@ -431,7 +431,7 @@ renumber.
     painted over the table all shipped with every gate green and an empty console.
     <br>— CSS is not analysed at all, so a stylesheet can parse, ship and do nothing.
     <br>The honest gate for a layout defect is a real browser: `tests/TabletopCardEngine.Demo.BrowserTests`
-    (Playwright + MSTest, behind `OHE_TEST_BROWSER_GATE`, wired into `release.yml`) covers horizontal
+    (Playwright + MSTest, behind `TCE_TEST_BROWSER_GATE`, wired into `release.yml`) covers horizontal
     overflow, hit-testing of the action controls, the scroll container and console errors. It covers
     nothing else, so a Definition of done outside its reach must name a measurement — a console probe
     with the before-value quoted — never an impression.
@@ -501,10 +501,10 @@ renumber.
     `HoldemSchemaException(UnsupportedProvider)`. On a relational provider, `MigrateAsync` needs the
     migrations of the provider's `TabletopCardEngine.*` package and fails with `MigrationsNotFound` under
     plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`. The database's version
-    is the single row of `__OheSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
+    is the single row of `__TceSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
-    <br>Each `HoldemEngine` checks `__OheSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
-28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`ohe_<guid>`), and only under `OHE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
+    <br>Each `HoldemEngine` checks `__TceSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
+28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`tce_<guid>`), and only under `TCE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
 29. **An action is legal only when `HandData.Evaluations` offers it, and a Raise only inside its window.**
     Anything else is rejected with `IllegalAction = 13` and nothing is saved. The engine never corrects an
     action into a fold (`BettingRules.CorrectAction` throws on an illegal one, which would be a defect);
@@ -540,7 +540,7 @@ table's height budget is tightest. And the dev server has to be stopped afterwar
 
 1. `dotnet build` and `dotnet test` from the repository root — the analyzer relaxations for the demo
    must not have loosened anything for the library or the tests.
-2. `OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests` passes. Then revert one
+2. `TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests` passes. Then revert one
    layout fix in a working tree and confirm the gate goes red — a gate that has never been seen to fail
    has not been shown to work — and put it back.
 3. Open the demo with the console open and touch nothing: no exception, no `does not have a property

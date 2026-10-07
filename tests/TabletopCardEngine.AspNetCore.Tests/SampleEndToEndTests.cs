@@ -41,7 +41,7 @@ public sealed class SampleEndToEndTests
     /// <summary>Runs <paramref name="test"/> against a sample host whose database is a fresh temporary file, deleted afterwards.</summary>
     private static async Task RunAsync(bool migrateOnStartup, Func<HttpClient, Task> test)
     {
-        var dbFile = Path.Combine(Path.GetTempPath(), $"ohe-sample-{Guid.NewGuid():N}.db");
+        var dbFile = Path.Combine(Path.GetTempPath(), $"tce-sample-{Guid.NewGuid():N}.db");
         try
         {
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>

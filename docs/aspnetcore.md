@@ -1,4 +1,4 @@
-﻿# The ASP.NET Core package
+# The ASP.NET Core package
 
 ## What this document is
 
@@ -78,7 +78,7 @@ app.MapHealthChecks("/health");
 ```
 
 `AddHoldemEngineCheck(name = "tabletopcardengine", failureStatus = null, tags = null)` registers a check
-that calls `IHoldemSchemaManager.GetSchemaStatusAsync` on every probe. It reads `__OheSchema`, a
+that calls `IHoldemSchemaManager.GetSchemaStatusAsync` on every probe. It reads `__TceSchema`, a
 single-row query, and caches nothing. It never migrates the database: a health probe must not change
 it, and migrating on start-up is a separate feature (below).
 

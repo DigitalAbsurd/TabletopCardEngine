@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -12,11 +12,11 @@ namespace TabletopCardEngine.SqlServer.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "ohe");
+                name: "tce");
 
             migrationBuilder.CreateTable(
-                name: "__OheSchema",
-                schema: "ohe",
+                name: "__TceSchema",
+                schema: "tce",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
@@ -25,12 +25,12 @@ namespace TabletopCardEngine.SqlServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK___OheSchema", x => x.Id);
+                    table.PrimaryKey("PK___TceSchema", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Game",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -49,7 +49,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "BuyIn",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -63,7 +63,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_BuyIn_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Game",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -71,7 +71,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Hand",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -84,7 +84,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_Hand_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Game",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -92,7 +92,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Player",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -107,7 +107,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_Player_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Game",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -115,7 +115,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandAction",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -137,13 +137,13 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandAction_Game_GameId",
                         column: x => x.GameId,
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Game",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_HandAction_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -151,7 +151,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandDeckCard",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -165,7 +165,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandDeckCard_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -173,7 +173,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandHoleCard",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -188,7 +188,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandHoleCard_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -196,7 +196,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandPlayerEndState",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -214,7 +214,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandPlayerEndState_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
@@ -222,7 +222,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             migrationBuilder.CreateTable(
                 name: "HandPlayerStartState",
-                schema: "ohe",
+                schema: "tce",
                 columns: table => new
                 {
                     GameId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -236,15 +236,15 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     table.ForeignKey(
                         name: "FK_HandPlayerStartState_Hand_GameId_HandNo",
                         columns: x => new { x.GameId, x.HandNo },
-                        principalSchema: "ohe",
+                        principalSchema: "tce",
                         principalTable: "Hand",
                         principalColumns: new[] { "GameId", "No" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
-                schema: "ohe",
-                table: "__OheSchema",
+                schema: "tce",
+                table: "__TceSchema",
                 columns: new[] { "Id", "EngineVersion", "SchemaVersion" },
                 values: new object[] { 1, "1.0.0", 1 });
         }
@@ -253,44 +253,44 @@ namespace TabletopCardEngine.SqlServer.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "__OheSchema",
-                schema: "ohe");
+                name: "__TceSchema",
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "BuyIn",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "HandAction",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "HandDeckCard",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "HandHoleCard",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "HandPlayerEndState",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "HandPlayerStartState",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "Player",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "Hand",
-                schema: "ohe");
+                schema: "tce");
 
             migrationBuilder.DropTable(
                 name: "Game",
-                schema: "ohe");
+                schema: "tce");
         }
     }
 }

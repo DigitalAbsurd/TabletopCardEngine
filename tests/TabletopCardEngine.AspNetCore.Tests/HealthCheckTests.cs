@@ -92,7 +92,7 @@ public sealed class HealthCheckTests
         await MigrateAsync(provider);
         using (var command = connection.CreateCommand())
         {
-            command.CommandText = "UPDATE \"__OheSchema\" SET \"SchemaVersion\" = 999";
+            command.CommandText = "UPDATE \"__TceSchema\" SET \"SchemaVersion\" = 999";
             await command.ExecuteNonQueryAsync();
         }
 

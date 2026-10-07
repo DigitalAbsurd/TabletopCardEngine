@@ -10,7 +10,7 @@ using TabletopCardEngine.SqlServer;
 namespace TabletopCardEngine.Tests;
 
 /// <summary>
-/// The <c>TabletopCardEngine.SqlServer</c> package: its migrations create the schema in the <c>ohe</c>
+/// The <c>TabletopCardEngine.SqlServer</c> package: its migrations create the schema in the <c>tce</c>
 /// schema through <see cref="IHoldemSchemaManager.MigrateAsync"/>, agree with the model, keep their
 /// history in the engine's own table in that schema, and bring no other database driver along. The
 /// model does not leak into SQLite or PostgreSQL after a SQL Server context is built in the same test.
@@ -28,14 +28,14 @@ public sealed class SqlServerPackageTests
     ];
 
     [TestMethod]
-    public async Task SqlServer_ModelUsesTheOheSchema()
+    public async Task SqlServer_ModelUsesTheTceSchema()
     {
         var options = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemSqlServer("Server=.;Database=unused;Trusted_Connection=True;TrustServerCertificate=True")
             .Options;
 
         await using var context = new HoldemDbContext(options);
-        context.Model.GetDefaultSchema().Should().Be("ohe");
+        context.Model.GetDefaultSchema().Should().Be("tce");
 
         var gameEntity = context.Model.FindEntityType(typeof(Game))!;
         gameEntity.FindProperty("InitialSmallBlind")!.GetColumnType().Should().Be("decimal(18,2)");
@@ -86,7 +86,7 @@ public sealed class SqlServerPackageTests
             .Options;
 
         using var sqlServerContext = new HoldemDbContext(sqlServerOptions);
-        sqlServerContext.Model.GetDefaultSchema().Should().Be("ohe");
+        sqlServerContext.Model.GetDefaultSchema().Should().Be("tce");
 
         var sqliteOptions = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemSqlite(":memory:")
@@ -97,21 +97,21 @@ public sealed class SqlServerPackageTests
     }
 
     [TestMethod]
-    public void PostgreSql_ModelKeepsTheOheSchemaAfterSqlServer()
+    public void PostgreSql_ModelKeepsTheTceSchemaAfterSqlServer()
     {
         var sqlServerOptions = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemSqlServer("Server=.;Database=unused;Trusted_Connection=True;TrustServerCertificate=True")
             .Options;
 
         using var sqlServerContext = new HoldemDbContext(sqlServerOptions);
-        sqlServerContext.Model.GetDefaultSchema().Should().Be("ohe");
+        sqlServerContext.Model.GetDefaultSchema().Should().Be("tce");
 
         var postgresOptions = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemPostgreSql("Host=localhost;Database=unused")
             .Options;
 
         using var postgresContext = new HoldemDbContext(postgresOptions);
-        postgresContext.Model.GetDefaultSchema().Should().Be("ohe");
+        postgresContext.Model.GetDefaultSchema().Should().Be("tce");
     }
 
     [TestMethod]

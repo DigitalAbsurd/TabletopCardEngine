@@ -9,7 +9,7 @@ using TabletopCardEngine.Sqlite;
 namespace TabletopCardEngine.Tests;
 
 /// <summary>
-/// The <c>TabletopCardEngine.PostgreSql</c> package: its migrations create the schema in the <c>ohe</c>
+/// The <c>TabletopCardEngine.PostgreSql</c> package: its migrations create the schema in the <c>tce</c>
 /// schema through <see cref="IHoldemSchemaManager.MigrateAsync"/>, agree with the model, keep their
 /// history in the engine's own table in that schema, and bring no other database driver along. The
 /// model does not leak into SQLite after a PostgreSQL context is built in the same test.
@@ -28,14 +28,14 @@ public sealed class PostgreSqlPackageTests
     ];
 
     [TestMethod]
-    public async Task PostgreSql_ModelUsesTheOheSchema()
+    public async Task PostgreSql_ModelUsesTheTceSchema()
     {
         var options = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemPostgreSql("Host=localhost;Database=unused")
             .Options;
 
         await using var context = new HoldemDbContext(options);
-        context.Model.GetDefaultSchema().Should().Be("ohe");
+        context.Model.GetDefaultSchema().Should().Be("tce");
 
         var gameEntity = context.Model.FindEntityType(typeof(Game))!;
         gameEntity.FindProperty("InitialSmallBlind")!.GetColumnType().Should().Be("numeric(18,2)");
@@ -70,7 +70,7 @@ public sealed class PostgreSqlPackageTests
             .Options;
 
         using var postgresContext = new HoldemDbContext(postgresOptions);
-        postgresContext.Model.GetDefaultSchema().Should().Be("ohe");
+        postgresContext.Model.GetDefaultSchema().Should().Be("tce");
 
         // Now use SQLite and confirm its model is unaffected.
         var sqliteOptions = new DbContextOptionsBuilder<HoldemDbContext>()

@@ -156,11 +156,11 @@ It also checks that the `postgres` and `mssql` images without a connection strin
 code and a log naming `ConnectionStrings__Holdem`, and that a `sqlite` container keeps a game in its
 `/data` volume across a stop and a start.
 
-The gate needs Docker and runs only with `OHE_TEST_CONTAINERS=1`. Without it every test reports
+The gate needs Docker and runs only with `TCE_TEST_CONTAINERS=1`. Without it every test reports
 inconclusive. From the repository root:
 
 ```
-OHE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
+TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ContainerImage"
 ```
 
 The first run builds the images, which takes a few minutes. The test images are tagged

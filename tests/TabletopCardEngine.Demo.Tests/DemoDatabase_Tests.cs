@@ -56,7 +56,7 @@ public sealed class DemoDatabase_Tests
         database.ClearAllData();
 
         // Assert
-        string[] versionTables = ["__OheMigrationsHistory", "__OheSchema"];
+        string[] versionTables = ["__TceMigrationsHistory", "__TceSchema"];
         foreach (var tableName in browser.GetTableNames())
         {
             if (versionTables.Contains(tableName))

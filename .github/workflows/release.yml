@@ -43,7 +43,7 @@ jobs:
 
       - name: Run tests
         env:
-          OHE_TEST_PHH_HAND_LIMIT: 100
+          TCE_TEST_PHH_HAND_LIMIT: 100
         run: dotnet test
 
       - name: Check the public API against the baseline
@@ -76,7 +76,7 @@ jobs:
 
       - name: Run browser layout gate
         env:
-          OHE_TEST_BROWSER_GATE: "1"
+          TCE_TEST_BROWSER_GATE: "1"
         run: dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 
   # PostgreSQL and SQL Server in Docker through Testcontainers (docs/task-run.md, fact 28). Kept out of
@@ -97,7 +97,7 @@ jobs:
 
       - name: Run provider tests on PostgreSQL and SQL Server
         env:
-          OHE_TEST_CONTAINERS: "1"
+          TCE_TEST_CONTAINERS: "1"
         run: dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
 
   # The three images of the Dockerfile, built with the release version. They are not pushed:
@@ -201,11 +201,11 @@ jobs:
   # once the repository is public. It will use NuGet Trusted Publishing (OIDC, no long-lived API key):
   # the NuGet/login action exchanges the job's id-token for a short-lived key, then
   # `dotnet nuget push artifacts/*.nupkg --source https://api.nuget.org/v3/index.json` runs on the
-  # packages the release job built. To enable it: set OHE_PUBLISH to 'enabled', add the steps, and
+  # packages the release job built. To enable it: set TCE_PUBLISH to 'enabled', add the steps, and
   # register this workflow as a trusted publisher on nuget.org. The repository variable is not set.
   publish-nuget:
     needs: [release]
-    if: ${{ vars.OHE_PUBLISH == 'enabled' }}
+    if: ${{ vars.TCE_PUBLISH == 'enabled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -220,7 +220,7 @@ jobs:
   # The repository variable is not set.
   publish-docker:
     needs: [release, docker]
-    if: ${{ vars.OHE_PUBLISH == 'enabled' }}
+    if: ${{ vars.TCE_PUBLISH == 'enabled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -100,7 +100,7 @@ public sealed class SqlitePackageTests
             .SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type = 'table'")
             .ToListAsync();
 
-        tables.Should().Contain("__OheMigrationsHistory");
+        tables.Should().Contain("__TceMigrationsHistory");
         tables.Should().NotContain("__EFMigrationsHistory");
     }
 

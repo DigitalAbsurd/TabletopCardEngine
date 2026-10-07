@@ -74,7 +74,7 @@ public sealed class ConcurrencyTests
     public async Task TwoWriters_SecondGetsConflict()
     {
         // Two writers over one SQLite *file*: a shared :memory: connection would serialise them and prove nothing.
-        var fileName = Path.Combine(Path.GetTempPath(), $"ohe-concurrency-{Guid.NewGuid():N}.db3");
+        var fileName = Path.Combine(Path.GetTempPath(), $"tce-concurrency-{Guid.NewGuid():N}.db3");
         try
         {
             SqliteConnection.ClearAllPools();

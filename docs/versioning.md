@@ -42,7 +42,7 @@ New features never require a major version: "v2" means "breaking", not "bigger".
 
 ## The database schema and the package version
 
-`HoldemSchema.Version` is an integer of its own, bumped by one in the same commit as every migration. It is not derived from the package version. `HoldemSchema.EngineVersion` is the release (without a pre-release suffix) that introduces that schema version: `"1.0.0"` for both `1.0.0-preview.1` and the final `1.0.0`, and it is included in the database row `__OheSchema` so older versions can be identified.
+`HoldemSchema.Version` is an integer of its own, bumped by one in the same commit as every migration. It is not derived from the package version. `HoldemSchema.EngineVersion` is the release (without a pre-release suffix) that introduces that schema version: `"1.0.0"` for both `1.0.0-preview.1` and the final `1.0.0`, and it is included in the database row `__TceSchema` so older versions can be identified.
 
 **A migration requires at least a minor release; it is never a patch.** There is no downgrade: once a database is migrated, an older engine refuses it with `HoldemSchemaException(DatabaseIsNewer)`. A patch release could not run on a database migrated by a later patch of the same minor, and that would leave a user stuck. A migration that `MigrateAsync` applies on its own and that does not lose any data is a minor release. Anything else — a migration that loses data, one that needs manual steps, or one that changes observable rule behaviour — is major (see [What is a breaking change (major)](#what-is-a-breaking-change-major) above).
 

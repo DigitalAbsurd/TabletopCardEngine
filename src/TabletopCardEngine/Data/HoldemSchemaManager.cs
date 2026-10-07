@@ -65,7 +65,7 @@ internal sealed class HoldemSchemaManager(IDbContextFactory<HoldemDbContext> con
                 status: null);
         }
 
-        var schemaRow = await context.Set<OheSchemaRow>().AsNoTracking().FirstOrDefaultAsync(r => r.Id == 1, cancellationToken);
+        var schemaRow = await context.Set<TceSchemaRow>().AsNoTracking().FirstOrDefaultAsync(r => r.Id == 1, cancellationToken);
 
         if (schemaRow is null)
         {
@@ -127,7 +127,7 @@ internal sealed class HoldemSchemaManager(IDbContextFactory<HoldemDbContext> con
             return Status(state, providerName, pending, databaseSchemaVersion: null, databaseEngineVersion: null);
         }
 
-        var schemaRow = await context.Set<OheSchemaRow>().AsNoTracking().FirstOrDefaultAsync(r => r.Id == 1, cancellationToken);
+        var schemaRow = await context.Set<TceSchemaRow>().AsNoTracking().FirstOrDefaultAsync(r => r.Id == 1, cancellationToken);
         if (schemaRow != null)
         {
             databaseSchemaVersion = schemaRow.SchemaVersion;

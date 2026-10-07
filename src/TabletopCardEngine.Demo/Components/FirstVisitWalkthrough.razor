@@ -1,4 +1,4 @@
-﻿@using AntDesign
+@using AntDesign
 @using TabletopCardEngine.Demo.Services
 @implements IAsyncDisposable
 @inject BrowserStorage Storage
@@ -128,7 +128,7 @@
 @code {
     private bool _visible = false;
     private int _currentStep = 1;
-    private const string WalkthroughDismissedKey = "ohe-demo-walkthrough-dismissed";
+    private const string WalkthroughDismissedKey = "tce-demo-walkthrough-dismissed";
 
     /// <summary>One step per tab: Game Table, Database Inspector, Engine Calls, Hand History.</summary>
     private const int StepCount = 4;

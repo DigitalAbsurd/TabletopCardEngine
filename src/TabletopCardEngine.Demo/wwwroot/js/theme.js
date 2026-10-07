@@ -12,7 +12,7 @@
 (function () {
     "use strict";
 
-    var storageKey = "ohe-demo-theme";
+    var storageKey = "tce-demo-theme";
     var lightHref = "_content/AntDesign/css/ant-design-blazor.css";
     var darkHref = "_content/AntDesign/css/ant-design-blazor.dark.css";
     var media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;

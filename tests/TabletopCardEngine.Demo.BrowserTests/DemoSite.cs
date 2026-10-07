@@ -25,10 +25,10 @@ namespace TabletopCardEngine.Demo.BrowserTests;
 internal sealed class DemoSite : IAsyncDisposable
 {
     /// <summary>Set to 1 or true to run the browser gate; see <see cref="IsEnabled"/>.</summary>
-    private const string EnabledVariable = "OHE_TEST_BROWSER_GATE";
+    private const string EnabledVariable = "TCE_TEST_BROWSER_GATE";
 
     /// <summary>Publish into this directory and reuse it, instead of a throwaway one.</summary>
-    private const string PublishDirectoryVariable = "OHE_TEST_BROWSER_GATE_PUBLISH_DIR";
+    private const string PublishDirectoryVariable = "TCE_TEST_BROWSER_GATE_PUBLISH_DIR";
 
     private readonly WebApplication _host;
     private readonly IPlaywright _playwright;
@@ -73,7 +73,7 @@ internal sealed class DemoSite : IAsyncDisposable
     {
         string? configuredPublishDirectory = Environment.GetEnvironmentVariable(PublishDirectoryVariable);
         string publishDirectory = string.IsNullOrWhiteSpace(configuredPublishDirectory)
-            ? Path.Combine(Path.GetTempPath(), "ohe-demo-browser-gate", Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture))
+            ? Path.Combine(Path.GetTempPath(), "tce-demo-browser-gate", Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture))
             : configuredPublishDirectory;
 
         string wwwroot = Path.Combine(publishDirectory, "wwwroot");
@@ -103,7 +103,7 @@ internal sealed class DemoSite : IAsyncDisposable
 
         // The walkthrough modal opens on a first visit and covers the page; a returning visitor
         // is the state worth measuring, and this flag is exactly what BrowserStorage reads.
-        await context.AddInitScriptAsync("window.localStorage.setItem('ohe-demo-walkthrough-dismissed', 'true');");
+        await context.AddInitScriptAsync("window.localStorage.setItem('tce-demo-walkthrough-dismissed', 'true');");
 
         IPage page = await context.NewPageAsync();
         return new DemoPage(context, page, BaseUrl);

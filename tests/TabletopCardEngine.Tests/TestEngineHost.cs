@@ -24,10 +24,10 @@ internal static class TestEngineHost
     /// <c>--filter</c> that selects a single test.
     /// </para>
     /// </summary>
-    internal const string Db3FileNameVariable = "OHE_TEST_SQLITE_DB3_FILE_NAME";
+    internal const string Db3FileNameVariable = "TCE_TEST_SQLITE_DB3_FILE_NAME";
 
     /// <summary>Logs EF SQL with sensitive data to the debug output (DEBUG builds only).</summary>
-    internal const string SqlDebugVariable = "OHE_TEST_SQL_DEBUG";
+    internal const string SqlDebugVariable = "TCE_TEST_SQL_DEBUG";
 
     internal static DisposableTestData Setup(out HoldemEngine holdemEngine,
         out IDbContextFactory<HoldemDbContext> contextFactory,

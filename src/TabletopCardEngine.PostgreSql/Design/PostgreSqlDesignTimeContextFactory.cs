@@ -12,5 +12,5 @@ namespace TabletopCardEngine.PostgreSql.Design;
 internal sealed class PostgreSqlDesignTimeContextFactory : IDesignTimeDbContextFactory<HoldemDbContext>
 {
     public HoldemDbContext CreateDbContext(string[] args)
-        => new(new DbContextOptionsBuilder<HoldemDbContext>().UseHoldemPostgreSql("Host=localhost;Database=ohe_design").Options);
+        => new(new DbContextOptionsBuilder<HoldemDbContext>().UseHoldemPostgreSql("Host=localhost;Database=tce_design").Options);
 }
