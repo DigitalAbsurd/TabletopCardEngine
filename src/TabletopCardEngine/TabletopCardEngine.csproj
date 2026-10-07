@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <Description>No-Limit Texas Hold'em cash-game engine for .NET: betting rules, blinds, side pots and showdown, persisted through Entity Framework Core and driven by a single async command method. Add a provider package (Sqlite, PostgreSql, SqlServer or InMemory) for the database.</Description>
     <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <Description>PostgreSQL provider for TabletopCardEngine, with the engine's schema migrations for Npgsql.</Description>
     <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
