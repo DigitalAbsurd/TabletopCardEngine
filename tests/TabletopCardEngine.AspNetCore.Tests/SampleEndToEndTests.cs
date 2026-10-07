@@ -46,8 +46,8 @@ public sealed class SampleEndToEndTests
         {
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
-                builder.UseSetting("ConnectionStrings:Holdem", $"Data Source={dbFile}");
-                builder.UseSetting("HoldemEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
+                builder.UseSetting("ConnectionStrings:TabletopCardEngine", $"Data Source={dbFile}");
+                builder.UseSetting("TabletopCardEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
             });
             using var client = factory.CreateClient();
             await test(client);

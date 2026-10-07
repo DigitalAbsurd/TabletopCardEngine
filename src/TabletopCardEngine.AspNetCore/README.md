@@ -14,8 +14,8 @@ using TabletopCardEngine.Sqlite;
 
 var builder = WebApplicationBuilder.CreateBuilder(args);
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!)
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)
 );
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 

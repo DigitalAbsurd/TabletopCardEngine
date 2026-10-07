@@ -14,16 +14,16 @@ file and no package reference beyond this repository's projects. Read it first, 
 
 ```csharp
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 
 app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = WriteHealthJsonAsync });
 app.MapHoldemEngineApi();
 ```
 
-Its `appsettings.json` points `ConnectionStrings:Holdem` at `holdem.db` and sets
-`HoldemEngine:MigrateDatabaseOnStartup` to `true`, so the first start creates the schema.
+Its `appsettings.json` points `ConnectionStrings:TabletopCardEngine` at `holdem.db` and sets
+`TabletopCardEngine:MigrateDatabaseOnStartup` to `true`, so the first start creates the schema.
 
 1. Run it: `dotnet run --project samples/AspNetCoreSample --urls http://localhost:5299`.
 2. `curl -s http://localhost:5299/health` reports the schema state, `"state":"UpToDate"`.
@@ -42,13 +42,13 @@ state. The sample's `Program` is `internal` and reaches the tests through `Inter
 
 ```csharp
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
 ```
 
 ```json
-{ "ConnectionStrings": { "Holdem": "Data Source=holdem.db" },
-  "HoldemEngine": { "GamePlayersMaxCount": 6 } }
+{ "ConnectionStrings": { "TabletopCardEngine": "Data Source=holdem.db" },
+  "TabletopCardEngine": { "GamePlayersMaxCount": 6 } }
 ```
 
 The database stays in code: the package references no provider (ADR-0004), so the host passes the
@@ -110,12 +110,12 @@ The default response writer of `MapHealthChecks` prints only the status (`Health
 
 ```csharp
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
 ```
 
 ```json
-{ "HoldemEngine": { "MigrateDatabaseOnStartup": true } }
+{ "TabletopCardEngine": { "MigrateDatabaseOnStartup": true } }
 ```
 
 When `MigrateDatabaseOnStartup` is set to `true` in the configuration, the engine registers a hosted

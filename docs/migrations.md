@@ -17,12 +17,12 @@ In an ASP.NET Core host, use the `MigrateDatabaseOnStartup` option instead:
 
 ```csharp
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
 ```
 
 ```json
-{ "HoldemEngine": { "MigrateDatabaseOnStartup": true } }
+{ "TabletopCardEngine": { "MigrateDatabaseOnStartup": true } }
 ```
 
 The host registers a hosted service that runs the migration during application start-up, before the server starts listening. See [ASP.NET Core integration](aspnetcore.md#migrating-on-start-up) for details, configuration options and failure handling.

@@ -15,9 +15,9 @@ public sealed class ConfigurationTests
     private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemEngineOptionsBuilder>? configure = null)
     {
         var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "HoldemEngine:" + p.Key, p => p.Value));
+        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:" + p.Key, p => p.Value));
         builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("HoldemEngine"),
+            builder.Configuration.GetSection("TabletopCardEngine"),
             db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")),
             configure);
         return builder.Build();

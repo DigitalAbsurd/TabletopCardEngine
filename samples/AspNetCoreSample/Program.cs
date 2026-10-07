@@ -8,8 +8,8 @@ using TabletopCardEngine.Sqlite;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("HoldemEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
+    builder.Configuration.GetSection("TabletopCardEngine"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 
 // Traces and metrics need the TabletopCardEngine.OpenTelemetry package, which this sample does not
