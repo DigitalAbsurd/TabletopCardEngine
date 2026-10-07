@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- WebAssembly native SQLite build -->
+    <WasmBuildNative>true</WasmBuildNative>
+    <!--
+      SQLitePCLRaw's e_sqlite3 exposes varargs native functions (sqlite3_config,
+      sqlite3_db_config). The wasm native linker flags every P/Invoke against them,
+      but this app never calls those overloads, so the warning is noise.
+    -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);WASM0001</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AntDesign" Version="0.17.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.12" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.12" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+    <PackageReference Include="Tomlyn" Version="0.19.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Publishing copies the dependencies into the site, so their notices ship with it. -->
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="wwwroot\THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../TabletopCardEngine/TabletopCardEngine.csproj" />
+    <ProjectReference Include="../TabletopCardEngine.Sqlite/TabletopCardEngine.Sqlite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      EF finds the migrations by reflection over [Migration]-attributed types that nothing references
+      statically, so the trimmer would drop them and MigrateAsync would throw MigrationsNotFound at start-up.
+    -->
+    <TrimmerRootAssembly Include="TabletopCardEngine.Sqlite" />
+  </ItemGroup>
+
+</Project>

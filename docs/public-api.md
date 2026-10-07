@@ -1,17 +1,17 @@
 # Public API
 
-This is the reviewable inventory of what `OpenHoldemEngine.dll` exposes. Everything else in the
+This is the reviewable inventory of what `TabletopCardEngine.dll` exposes. Everything else in the
 assembly (`Data/`, `Engine/`, `Mappers/`, `HoldemActionHandlers/`) is `internal`; the tests and the
 demo reach it through `InternalsVisibleTo`, which package validation ignores.
 
 ## How the baseline is enforced
 
 The library project sets `EnablePackageValidation` and points `PackageValidationBaselinePath` at
-[`eng/api-baseline/OpenHoldemEngine.1.0.0-baseline.nupkg`](https://github.com/miekhra/OpenHoldemEngine/tree/main/eng/api-baseline), a package built
+[`eng/api-baseline/TabletopCardEngine.1.0.0-baseline.nupkg`](https://github.com/DigitalAbsurd/TabletopCardEngine/tree/main/eng/api-baseline), a package built
 from the tree and committed. The gate is the plain command, with no extra properties:
 
 ```
-dotnet pack src/OpenHoldemEngine -c Release
+dotnet pack src/TabletopCardEngine -c Release
 ```
 
 It compares the freshly built assembly with the one inside the baseline package and fails with an
@@ -36,7 +36,7 @@ not additions, so:
 - An additive change needs **no** re-pack of any baseline. Regenerate the inventory below and nothing else:
 
   ```
-  dotnet pack src/OpenHoldemEngine -c Release
+  dotnet pack src/TabletopCardEngine -c Release
   pwsh ./scripts/list-public-api.ps1 -Update
   ```
 
@@ -52,7 +52,7 @@ not additions, so:
   `PackageValidationBaselineVersion` (#313), which retires `ApiBaselineFreezeTests` together with
   `eng/api-baseline/`.
 
-Every baseline in [`eng/api-baseline/`](https://github.com/miekhra/OpenHoldemEngine/tree/main/eng/api-baseline) holds one `lib/net10.0` asset, because the packages target
+Every baseline in [`eng/api-baseline/`](https://github.com/DigitalAbsurd/TabletopCardEngine/tree/main/eng/api-baseline) holds one `lib/net10.0` asset, because the packages target
 `net10.0` only. Package validation compares assets per target framework, so moving the packages to
 another framework makes `dotnet pack` fail with `PKV006` ("Target framework net10.0 is no longer
 supported in the latest version") before it compares a single member. That is the one case where
@@ -68,10 +68,10 @@ For the first release after the stable 1.0.0 is published on nuget.org, follow t
    baseline is the last stable version on nuget.org, raised after each stable minor.
 
 2. Add `EnablePackageValidation` and `PackageValidationBaselineVersion` to
-   `OpenHoldemEngine.OpenTelemetry` and remove its "never shipped" comment.
+   `TabletopCardEngine.OpenTelemetry` and remove its "never shipped" comment.
 
 3. Delete `eng/api-baseline/` and the re-pack instructions that point at it: this section, fact 25 in
-   [`task-run.md`](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/task-run.md#engine-facts), and the [`scripts/list-public-api.ps1`](https://github.com/miekhra/OpenHoldemEngine/blob/main/scripts/list-public-api.ps1) help if it mentions the folder.
+   [`task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts), and the [`scripts/list-public-api.ps1`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/scripts/list-public-api.ps1) help if it mentions the folder.
 
 4. A surface change then needs no re-pack. A break against the published version fails `dotnet pack`
    with the same `CP` diagnostics, and it is a major version (see `versioning.md`).
@@ -87,11 +87,11 @@ consumer's `switch` over them needs a default arm.
 
 ## The provider packages
 
-`OpenHoldemEngine.Sqlite`, `OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer` and
-`OpenHoldemEngine.InMemory` each have their own baseline,
-`eng/api-baseline/OpenHoldemEngine.<Provider>.1.0.0-baseline.nupkg` in
-[`eng/api-baseline/`](https://github.com/miekhra/OpenHoldemEngine/tree/main/eng/api-baseline), enforced the same way by
-`dotnet pack src/OpenHoldemEngine.<Provider> -c Release`. Each provider's public surface is one
+`TabletopCardEngine.Sqlite`, `TabletopCardEngine.PostgreSql`, `TabletopCardEngine.SqlServer` and
+`TabletopCardEngine.InMemory` each have their own baseline,
+`eng/api-baseline/TabletopCardEngine.<Provider>.1.0.0-baseline.nupkg` in
+[`eng/api-baseline/`](https://github.com/DigitalAbsurd/TabletopCardEngine/tree/main/eng/api-baseline), enforced the same way by
+`dotnet pack src/TabletopCardEngine.<Provider> -c Release`. Each provider's public surface is one
 class of `UseHoldem*` overloads (`HoldemSqliteDbContextOptionsBuilderExtensions`,
 `HoldemPostgreSqlDbContextOptionsBuilderExtensions`, `HoldemSqlServerDbContextOptionsBuilderExtensions`,
 `HoldemInMemoryDbContextOptionsBuilderExtensions`); migrations and design-time factories are
@@ -99,44 +99,44 @@ class of `UseHoldem*` overloads (`HoldemSqliteDbContextOptionsBuilderExtensions`
 first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
-dotnet pack src/OpenHoldemEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
-dotnet pack src/OpenHoldemEngine.PostgreSql -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
-dotnet pack src/OpenHoldemEngine.SqlServer -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
-dotnet pack src/OpenHoldemEngine.InMemory -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.PostgreSql -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.SqlServer -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.InMemory -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 ## The ASP.NET Core package
 
-`OpenHoldemEngine.AspNetCore` has its own baseline,
-[`eng/api-baseline/OpenHoldemEngine.AspNetCore.1.0.0-baseline.nupkg`](https://github.com/miekhra/OpenHoldemEngine/tree/main/eng/api-baseline),
-enforced the same way by `dotnet pack src/OpenHoldemEngine.AspNetCore -c Release`. Its public surface so far is
+`TabletopCardEngine.AspNetCore` has its own baseline,
+[`eng/api-baseline/TabletopCardEngine.AspNetCore.1.0.0-baseline.nupkg`](https://github.com/DigitalAbsurd/TabletopCardEngine/tree/main/eng/api-baseline),
+enforced the same way by `dotnet pack src/TabletopCardEngine.AspNetCore -c Release`. Its public surface so far is
 `HoldemEngineHostingServiceCollectionExtensions`, `HoldemEngineHealthChecksBuilderExtensions`,
 `HoldemEngineHostOptions` and `HoldemEngineEndpointRouteBuilderExtensions` (later additions do not re-pack the baseline). The baseline is packed without validation, because there is nothing to compare
 the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
-dotnet pack src/OpenHoldemEngine.AspNetCore -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.AspNetCore -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 ## The OpenTelemetry package
 
-`OpenHoldemEngine.OpenTelemetry` has its own baseline,
-[`eng/api-baseline/OpenHoldemEngine.OpenTelemetry.1.0.0-baseline.nupkg`](https://github.com/miekhra/OpenHoldemEngine/tree/main/eng/api-baseline),
-enforced the same way by `dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Release`. Its public surface is
-`OpenHoldemEngineInstrumentationExtensions` with the `AddOpenHoldemEngineInstrumentation()` overloads for
+`TabletopCardEngine.OpenTelemetry` has its own baseline,
+[`eng/api-baseline/TabletopCardEngine.OpenTelemetry.1.0.0-baseline.nupkg`](https://github.com/DigitalAbsurd/TabletopCardEngine/tree/main/eng/api-baseline),
+enforced the same way by `dotnet pack src/TabletopCardEngine.OpenTelemetry -c Release`. Its public surface is
+`TabletopCardEngineInstrumentationExtensions` with the `AddTabletopCardEngineInstrumentation()` overloads for
 `TracerProviderBuilder`, `MeterProviderBuilder` and `IOpenTelemetryBuilder`; see ADR-0002 for the architecture.
 The baseline is packed without validation, because there is nothing to compare
 the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
-dotnet pack src/OpenHoldemEngine.OpenTelemetry -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.OpenTelemetry -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 The inventory below covers the core package only.
 
 ## Inventory
 
-Generated by [`scripts/list-public-api.ps1`](https://github.com/miekhra/OpenHoldemEngine/blob/main/scripts/list-public-api.ps1) from the built
+Generated by [`scripts/list-public-api.ps1`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/scripts/list-public-api.ps1) from the built
 assembly and its XML documentation; do not edit it by hand. Each line is the member's signature and
 the first sentence of its doc comment (a positional record property uses the record's `<param>`).
 Compiler-generated record members (`Equals`, `GetHashCode`, `ToString`, `PrintMembers`,
@@ -145,7 +145,7 @@ declaration, and package validation checks them all the same.
 
 <!-- BEGIN GENERATED by scripts/list-public-api.ps1 -->
 
-### `OpenHoldemEngine`
+### `TabletopCardEngine`
 
 #### `BettingStructure` (enum)
 
@@ -355,7 +355,7 @@ A betting round.
 - `Showdown = 6` — Betting is over and the remaining hands are compared.
 - `Finished = 7` — The hand is settled and the pot has been paid out.
 
-### `OpenHoldemEngine.Dto`
+### `TabletopCardEngine.Dto`
 
 #### `GameData` (record)
 
@@ -512,7 +512,7 @@ One seat as it stands in the current hand.
 - `bool IsFolded { get; }` — Whether the seat has folded out of the hand.
 - `bool IsAllIn { get; }` — Whether the seat has committed its whole stack.
 
-### `OpenHoldemEngine.Options`
+### `TabletopCardEngine.Options`
 
 #### `HoldemEngineOptionsBuilder` (sealed class)
 

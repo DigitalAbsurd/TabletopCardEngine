@@ -10,13 +10,13 @@
 
   <!-- No PackageReference on purpose: nothing audits the notices for samples/ (see docs/task-run.md). -->
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OpenHoldemEngine.AspNetCore\OpenHoldemEngine.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\src\OpenHoldemEngine.Sqlite\OpenHoldemEngine.Sqlite.csproj" />
+    <ProjectReference Include="..\..\src\TabletopCardEngine.AspNetCore\TabletopCardEngine.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\TabletopCardEngine.Sqlite\TabletopCardEngine.Sqlite.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Lets the tests use the internal top-level Program as WebApplicationFactory<Program>. -->
-    <InternalsVisibleTo Include="OpenHoldemEngine.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="TabletopCardEngine.AspNetCore.Tests" />
   </ItemGroup>
 
 </Project>

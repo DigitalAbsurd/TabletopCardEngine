@@ -13,7 +13,7 @@ The latest minor release of the current major version is supported. An older min
 
 **Never report a vulnerability in a public issue, discussion or pull request.** Report it privately through GitHub's private vulnerability reporting form:
 
-https://github.com/miekhra/OpenHoldemEngine/security/advisories/new
+https://github.com/DigitalAbsurd/TabletopCardEngine/security/advisories/new
 
 When you report, include:
 

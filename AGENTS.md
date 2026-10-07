@@ -26,26 +26,26 @@ re-pack one ([docs/public-api.md#the-baseline-is-frozen](docs/public-api.md#the-
 [docs/public-api.md](docs/public-api.md) for the inventory and the rule.
 
 ```bash
-dotnet pack OpenHoldemEngine.Packages.slnf -c Release
+dotnet pack TabletopCardEngine.Packages.slnf -c Release
 ```
 
 Style is enforced at build time, so `dotnet build` fails on a violation. To fix what is
 auto-fixable instead of reading the diagnostics one by one:
 
 ```bash
-dotnet format OpenHoldemEngine.sln
+dotnet format TabletopCardEngine.sln
 ```
 
 ```bash
-dotnet format OpenHoldemEngine.sln --verify-no-changes
+dotnet format TabletopCardEngine.sln --verify-no-changes
 ```
 
 Docker images are built locally from the `Dockerfile` at the repository root. Three targets are supported:
 
 ```bash
-docker build --target sqlite -t openholdemengine:sqlite .
-docker build --target postgres -t openholdemengine:postgres .
-docker build --target mssql -t openholdemengine:mssql .
+docker build --target sqlite -t tabletopcardengine:sqlite .
+docker build --target postgres -t tabletopcardengine:postgres .
+docker build --target mssql -t tabletopcardengine:mssql .
 ```
 
 See [docs/docker.md](docs/docker.md) for how to run the images and how to use compose files for PostgreSQL and SQL Server.
@@ -53,31 +53,31 @@ See [docs/docker.md](docs/docker.md) for how to run the images and how to use co
 Run a single test — **`dotnet test --filter` is silently ignored here** (MSTest.Sdk 3.6.1 / Microsoft.Testing.Platform); the filter must be passed to the test app itself:
 
 ```bash
-dotnet run --project tests/OpenHoldemEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
+dotnet run --project tests/TabletopCardEngine.Tests -- --filter "FullyQualifiedName~HoldemAction_StartGame"
 ```
 
 ```bash
-dotnet run --project tests/OpenHoldemEngine.Tests -- --list-tests
+dotnet run --project tests/TabletopCardEngine.Tests -- --list-tests
 ```
 
 The ASP.NET Core package's tests are a separate assembly and run the same way:
 
 ```bash
-dotnet run --project tests/OpenHoldemEngine.AspNetCore.Tests -- --filter "FullyQualifiedName~Package_DependsOnly"
+dotnet run --project tests/TabletopCardEngine.AspNetCore.Tests -- --filter "FullyQualifiedName~Package_DependsOnly"
 ```
 
 The container host's tests are a third assembly:
 
 ```bash
-dotnet run --project tests/OpenHoldemEngine.Server.Tests -- --filter "FullyQualifiedName~ServerEndToEnd"
+dotnet run --project tests/TabletopCardEngine.Server.Tests -- --filter "FullyQualifiedName~ServerEndToEnd"
 ```
 
-Test-only environment variables (read in `TestEngineHost`, `PhhFixture` and `Persistence/TestDatabase`, and `OHE_TEST_BROWSER_GATE` in `tests/OpenHoldemEngine.Demo.BrowserTests`):
+Test-only environment variables (read in `TestEngineHost`, `PhhFixture` and `Persistence/TestDatabase`, and `OHE_TEST_BROWSER_GATE` in `tests/TabletopCardEngine.Demo.BrowserTests`):
 
 - `OHE_TEST_SQLITE_DB3_FILE_NAME` — write the SQLite DB to a file instead of `:memory:`, so the schema/rows can be inspected after a run.
 - `OHE_TEST_SQL_DEBUG=true` — log EF SQL with sensitive data to the debug output (DEBUG builds only).
 - `OHE_TEST_PHH_HAND_LIMIT` — how many hands of the PHH corpus `PhhPluribusReplay_Test` replays (default 500; `0` replays all 10 000, about four minutes). A capped run takes an evenly spaced sample, not the first N hands, so it still reaches every table in the corpus.
-- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `tests/OpenHoldemEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test tests/OpenHoldemEngine.Demo.BrowserTests`); the rules are in [docs/task-run.md](docs/task-run.md#gates).
+- `OHE_TEST_BROWSER_GATE=1` — enables the Playwright layout gate in `tests/TabletopCardEngine.Demo.BrowserTests`, which is skipped without it (`OHE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests`); the rules are in [docs/task-run.md](docs/task-run.md#gates).
 - `OHE_TEST_CONTAINERS=1` — runs the `PostgreSql` and `SqlServer` rows of the provider matrix (and of the server's `ServerEndToEnd` tests), in one Testcontainers container per kind for the whole run, with a database of its own per test. It also builds the `sqlite`, `postgres` and `mssql` images from the `Dockerfile` and runs each one next to a database container of its own (`ContainerImageTests` in the server's tests). **Needs Docker.** Without it those rows report inconclusive, so a plain `dotnet test` stays green on a machine without Docker. The release workflow's `providers` job sets it; the rules are in [docs/task-run.md](docs/task-run.md#gates).
 
 ## What this is
@@ -98,7 +98,7 @@ antes and tournaments are planned as later minor releases ([docs/roadmap.md](doc
 
 ### Command → handler → aggregate → projection
 
-`ApplyHoldemActionAsync` ([HoldemEngine.cs](src/OpenHoldemEngine/HoldemEngine.cs)) is the whole public flow, and every call repeats it:
+`ApplyHoldemActionAsync` ([HoldemEngine.cs](src/TabletopCardEngine/HoldemEngine.cs)) is the whole public flow, and every call repeats it:
 
 1. `IHoldemActionHandler.CreateHandlerForAction` — a `switch` on the `HoldemAction` record type picks the handler. New action types must be added both to `Dto/HoldemActions.cs` and to that switch.
 2. `LoadGameWithCurrentHandAsync` reloads the `Game` aggregate **plus only the latest `Hand`** and its collections. If the game does not exist it returns a placeholder `new Game { Id = Guid.Empty }` already attached to the context — that placeholder is how `CreateGameActionHandler` distinguishes "new" from "already exists" (`game.Id != default`), and how `HoldemEngine.ApplyCoreAsync` rejects an unknown game with `GameNotFound` for every other action, once and before the `ExpectedVersion` check, so nothing is saved. The lifecycle is `CreateGame` → `StartGame` → (`StartHand` | player actions)* → `FinishGame`; `GetGame` is allowed in every state, and once `Game.IsFinished` is set every other action fails with `GameFinished`. The default arm of `CreateHandlerForAction` returns a handler that fails with `InvalidAction` rather than throwing.
@@ -156,8 +156,8 @@ The engine publishes logs, traces, and metrics as part of its public contract. L
 - **Pot splits round to the cent.** `PotDistribution` rounds each winner's share to two decimal places and gives whatever is left over to the last winner, rather than dividing the pot exactly — an unrounded `pot / winnerCount` repeats forever in decimal for most winner counts and can need most of `decimal`'s ~28-29 significant digits, which then forces silent rounding (differently for different seats, since they rarely have the same number of stack digits) the next time that share is added to a stack. Rounding up front keeps every downstream amount small enough that this never happens.
 - **Engine options belong to the container.** Each `AddHoldemEngine` call creates its own `HoldemEngineOptions`, has the builder write into it, and registers it as a singleton instance in that `IServiceCollection`. The handlers never read options at all: `IHoldemActionHandler.CreateHandlerForAction(action, options)` hands the `ICardShuffler?` to `StartGameActionHandler`, `StartHandActionHandler` and `PlayActionHandler` through their constructors. Two engines built from two containers can deal differently side by side, and that is what the demo does for replay (see `DemoReplayEngine`). Both test assemblies run with `[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]`, so a test that shares state with another is a defect to fix, not a reason to serialise the assembly.
 - **Every direct dependency is in `THIRD-PARTY-NOTICES.md`.** The notices' package inventory lists only the packages a project references directly (non-`autoReferenced` entries of `project.frameworks.*.dependencies`); transitive ones get no row. `ThirdPartyNoticesTests` reads each project's `obj/project.assets.json` and fails in four cases. A direct package has no row. A row names a package nothing references directly. A row's license differs from the nuspec's. Any resolved package, *transitive ones included*, has a license outside the permissive allowlist (MIT, Apache-2.0, BSD-2/3, and the legacy Microsoft .NET Library License), with one standing exception: the SNI runtime, documented in [ADR-0003](docs/adr/0003-database-provider-licences.md). Adding or bumping a package means re-running `pwsh ./scripts/audit-licenses.ps1` and pasting its tables in; a new vendored asset (a JS library under `wwwroot/lib`, a data file) needs a row in the notices by hand. Anything outside the allowlist needs a legal review, not a wider allowlist; the PostgreSQL entry is also recorded in ADR-0003.
-- **The schema comes from per-provider migrations.** Each supported database has an `OpenHoldemEngine.<Provider>` package (so far `OpenHoldemEngine.Sqlite`) whose `Migrations/` are generated from `HoldemDbContext.OnModelCreating` (composite keys throughout) and applied by `IHoldemSchemaManager.MigrateAsync`; the `__OheSchema` row is model seed data, so each migration inserts it. An entity shape change needs the model configuration updated by hand *and* a migration for every provider — the rules are in [docs/persistence.md](docs/persistence.md), and `SqlitePackageTests.Sqlite_MigratedSchema_HasNoPendingModelChanges` fails when the model and the snapshot disagree.
-- **Visibility**: all `Data/`, `Engine/`, and `Mappers/` types, handlers, and converters are `internal`; the public surface is `HoldemEngine`, `ServiceCollectionExtensions`, `Dto/`, `Card` + the enums (all in the root `OpenHoldemEngine` namespace, so `Data/` holds internal entities only), `ICardShuffler`, the schema entry point (`IHoldemSchemaManager`, `HoldemSchemaStatus`, `HoldemSchemaState`, `HoldemSchemaFailure`, `HoldemSchemaException`), and `Options/`. The separate `OpenHoldemEngine.OpenTelemetry` package adds exactly one public type, `OpenHoldemEngineInstrumentationExtensions` (the `AddOpenHoldemEngineInstrumentation()` overloads for `TracerProviderBuilder`, `MeterProviderBuilder`, and `IOpenTelemetryBuilder`, see [ADR-0002](docs/adr/0002-opentelemetry-instrumentation-package.md)); it references `OpenTelemetry.Api` and `OpenTelemetry.Api.ProviderBuilderExtensions` only, and the core references no OpenTelemetry package at all. The `OpenHoldemEngine.AspNetCore` package references the shared framework (`Microsoft.AspNetCore.App`) and the core only, with no `PackageReference` ([ADR-0004](docs/adr/0004-aspnetcore-integration-package.md), guarded by `AspNetCorePackageTests`); it reaches internals through the core's `InternalsVisibleTo` and has its own API baseline. `OpenHoldemEngine.Server` is an executable, the container host, and is not packed: it has no public API and no API baseline. The persistence packages `OpenHoldemEngine.Sqlite`, `OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`, and `OpenHoldemEngine.InMemory` each add exactly one public type (`HoldemSqliteDbContextOptionsBuilderExtensions`, `HoldemPostgreSqlDbContextOptionsBuilderExtensions`, `HoldemSqlServerDbContextOptionsBuilderExtensions`, and `HoldemInMemoryDbContextOptionsBuilderExtensions` respectively, with overloads where applicable), and each has its own API baseline; their migrations (where applicable) and design-time factories are `internal`, and they reach the internal `HoldemDbContext` through the core's `InternalsVisibleTo` for each package name. The core references no database provider. Tests reach internals via `InternalsVisibleTo`.
+- **The schema comes from per-provider migrations.** Each supported database has an `TabletopCardEngine.<Provider>` package (so far `TabletopCardEngine.Sqlite`) whose `Migrations/` are generated from `HoldemDbContext.OnModelCreating` (composite keys throughout) and applied by `IHoldemSchemaManager.MigrateAsync`; the `__OheSchema` row is model seed data, so each migration inserts it. An entity shape change needs the model configuration updated by hand *and* a migration for every provider — the rules are in [docs/persistence.md](docs/persistence.md), and `SqlitePackageTests.Sqlite_MigratedSchema_HasNoPendingModelChanges` fails when the model and the snapshot disagree.
+- **Visibility**: all `Data/`, `Engine/`, and `Mappers/` types, handlers, and converters are `internal`; the public surface is `HoldemEngine`, `ServiceCollectionExtensions`, `Dto/`, `Card` + the enums (all in the root `TabletopCardEngine` namespace, so `Data/` holds internal entities only), `ICardShuffler`, the schema entry point (`IHoldemSchemaManager`, `HoldemSchemaStatus`, `HoldemSchemaState`, `HoldemSchemaFailure`, `HoldemSchemaException`), and `Options/`. The separate `TabletopCardEngine.OpenTelemetry` package adds exactly one public type, `TabletopCardEngineInstrumentationExtensions` (the `AddTabletopCardEngineInstrumentation()` overloads for `TracerProviderBuilder`, `MeterProviderBuilder`, and `IOpenTelemetryBuilder`, see [ADR-0002](docs/adr/0002-opentelemetry-instrumentation-package.md)); it references `OpenTelemetry.Api` and `OpenTelemetry.Api.ProviderBuilderExtensions` only, and the core references no OpenTelemetry package at all. The `TabletopCardEngine.AspNetCore` package references the shared framework (`Microsoft.AspNetCore.App`) and the core only, with no `PackageReference` ([ADR-0004](docs/adr/0004-aspnetcore-integration-package.md), guarded by `AspNetCorePackageTests`); it reaches internals through the core's `InternalsVisibleTo` and has its own API baseline. `TabletopCardEngine.Server` is an executable, the container host, and is not packed: it has no public API and no API baseline. The persistence packages `TabletopCardEngine.Sqlite`, `TabletopCardEngine.PostgreSql`, `TabletopCardEngine.SqlServer`, and `TabletopCardEngine.InMemory` each add exactly one public type (`HoldemSqliteDbContextOptionsBuilderExtensions`, `HoldemPostgreSqlDbContextOptionsBuilderExtensions`, `HoldemSqlServerDbContextOptionsBuilderExtensions`, and `HoldemInMemoryDbContextOptionsBuilderExtensions` respectively, with overloads where applicable), and each has its own API baseline; their migrations (where applicable) and design-time factories are `internal`, and they reach the internal `HoldemDbContext` through the core's `InternalsVisibleTo` for each package name. The core references no database provider. Tests reach internals via `InternalsVisibleTo`.
 - Validation messages are resource strings in `Resources/PackResource.resx`, keyed `HoldemValidation_*`.
 
 ## Code style
@@ -211,7 +211,7 @@ Shared harness: `TestEngineHost.Setup` spins up a real DI container over SQLite 
 
 The provider matrix lives in `Persistence/`. `TestDatabase.Configure(TestDatabaseKind, out lifetime)` gives each test its own isolated database of one kind: `Sqlite` (a kept-alive `:memory:` connection), `InMemory` (a `Guid`-named store), or `PostgreSql` / `SqlServer`, which run in Docker under `OHE_TEST_CONTAINERS=1` and report inconclusive without it. `TestEngineHost.Setup` takes an optional last `database` parameter and defaults to SQLite. On SQLite and InMemory alike run the smoke subset (`MultiHandSession_KeepsTheLedgerBalanced`, and `ExpectedVersion_Stale_ReturnsConflict` / `GetGame_Twice_KeepsTheVersion` in `ConcurrencyTests`), the race twins `TwoWriters_SecondGetsConflict` (SQLite file) and `TwoWriters_SecondGetsConflict_InMemory`, and `ProviderSchemaTests` (model check, re-migrate keeps the data). The upgrade test and its guard `Upgrade_EveryMigrationAfterTheFirstHasAFixture` cover the relational packages: every migration after `InitialCreate` needs one `IUpgradeFixture` under `Persistence/Upgrades/` (rule 5 in [docs/persistence.md](docs/persistence.md)). `TestDatabaseKind` is `public` because an `internal` enum cannot be a `[DataRow]` parameter of a public test method (CS0051).
 
-[PhhReplayTests.cs](tests/OpenHoldemEngine.Tests/PhhReplayTests.cs) is the integration workhorse. It replays recorded hand histories from an open dataset — the Pluribus subset of the [PHH dataset](https://github.com/uoftcprg/phh-dataset), MIT, vendored as an embedded gzipped `.phhs` under `Resources/phh/` (see its [README](tests/OpenHoldemEngine.Tests/Resources/phh/README.md) for provenance and `scripts/pack-phh-fixture.ps1` to regenerate). 10 000 six-handed no-limit hands at 50/100, every hole card recorded and `finishing_stacks` as the oracle.
+[PhhReplayTests.cs](tests/TabletopCardEngine.Tests/PhhReplayTests.cs) is the integration workhorse. It replays recorded hand histories from an open dataset — the Pluribus subset of the [PHH dataset](https://github.com/uoftcprg/phh-dataset), MIT, vendored as an embedded gzipped `.phhs` under `Resources/phh/` (see its [README](tests/TabletopCardEngine.Tests/Resources/phh/README.md) for provenance and `scripts/pack-phh-fixture.ps1` to regenerate). 10 000 six-handed no-limit hands at 50/100, every hole card recorded and `finishing_stacks` as the oracle.
 
 - `Phh/` holds the reader (`PhhReader` over Tomlyn, `PhhActionParser` for the action grammar, `PhhCards`), the per-hand deck (`PhhHandDeck`) and the driver (`PhhReplayRunner`).
 - Each hand is replayed as its **own game** — the corpus resets stacks every hand and stacks cannot be topped up mid-game. Seat mapping is straight out of the PHH spec: `pI` → `SeatNo = I`, `InitialDealerSeatNo = PlayerCount`, so `p1` is the small blind and the last player is on the button. The first hand is dealt by `StartGame`, which sorts `JoinSeats` by `SeatNo` itself, so the order the runner passes them in does not matter.
@@ -222,8 +222,8 @@ The provider matrix lives in `Persistence/`. `TestDatabase.Configure(TestDatabas
 A second corpus, `handhq-headsup.phhs.gz`, covers heads-up: 2 351 real \$0.25/\$0.50 PokerStars hands, 2 145 of them replayable. It is a **structural** oracle only — handhq records no `finishing_stacks` and rakes its pots, so `AssertHandResult` compares stacks only when a hand has them, and `IsSupported` no longer requires them. `PhhHeadsUpCorpus_ParsesAndIsMostlySupported` pins the supported count instead of asserting nothing is filtered. Heads-up seating in PHH is the one place the spec's two rules collide: the *last* player posts the small blind, not `p1` (see `PhhReplayRunner.BlindSeatsFor` and the fixture README).
 - `PhhReplayRunner` throws away and rebuilds its database every 250 hands. Every hand is its own game, so rows only pile up, and an unbounded run slows down badly as the in-memory database grows.
 
-[MultiHandSessionTests.cs](tests/OpenHoldemEngine.Tests/MultiHandSessionTests.cs) covers what per-hand replay cannot: one 200-hand game with stacks carrying over, a seeded action policy, and invariants as the oracle (chip conservation, button rotation, blind placement, no negative stacks, `Sum(Net) == 0`). It runs twice, `[DataRow(6)]` and `[DataRow(2)]`, so the heads-up positions get the same 200 hands.
+[MultiHandSessionTests.cs](tests/TabletopCardEngine.Tests/MultiHandSessionTests.cs) covers what per-hand replay cannot: one 200-hand game with stacks carrying over, a seeded action policy, and invariants as the oracle (chip conservation, button rotation, blind placement, no negative stacks, `Sum(Net) == 0`). It runs twice, `[DataRow(6)]` and `[DataRow(2)]`, so the heads-up positions get the same 200 hands.
 
-[HeadsUpTests.cs](tests/OpenHoldemEngine.Tests/HeadsUpTests.cs) spells the heads-up rules out one at a time on a scripted deck: who posts, who is on the clock street by street, the big blind's option, button alternation, and the two short-stack cases where a blind post is capped at the stack.
+[HeadsUpTests.cs](tests/TabletopCardEngine.Tests/HeadsUpTests.cs) spells the heads-up rules out one at a time on a scripted deck: who posts, who is on the clock street by street, the big blind's option, button alternation, and the two short-stack cases where a blind post is capped at the stack.
 
 Object comparisons use `actual.ShouldAsJToken().BeEquivalentToAsJToken(expected)` (FluentAssertions.Json, `ObjectAssertionsExtensions`) so records compare structurally with enums as strings. Keep actual-then-expected order. Note that FluentAssertions is pinned at 6.1.0, so the newer spellings (`AllSatisfy`, `BeGreaterThanOrEqualTo`) do not exist.

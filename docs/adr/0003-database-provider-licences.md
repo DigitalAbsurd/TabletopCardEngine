@@ -8,7 +8,7 @@ date: 2026-09-30
 ## Context
 
 The v1.0 milestone ships three database provider packages for .NET EF Core:
-`OpenHoldemEngine.PostgreSql`, `OpenHoldemEngine.SqlServer`, and `OpenHoldemEngine.Sqlite`.
+`TabletopCardEngine.PostgreSql`, `TabletopCardEngine.SqlServer`, and `TabletopCardEngine.Sqlite`.
 The engine's own packages reference them, and they in turn reference upstream packages whose
 licences were checked at planning time against each package's nuspec on NuGet.org.
 
@@ -17,7 +17,7 @@ Two of these transitive packages declare licences outside the established permis
 
 | Package (version at planning time) | Reached through | Licence |
 |---|---|---|
-| `Npgsql` 9.0.3, `Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.4 | `OpenHoldemEngine.PostgreSql`, directly | PostgreSQL |
+| `Npgsql` 9.0.3, `Npgsql.EntityFrameworkCore.PostgreSQL` 9.0.4 | `TabletopCardEngine.PostgreSql`, directly | PostgreSQL |
 | `Microsoft.Data.SqlClient.SNI.runtime` 5.1.x | `Microsoft.EntityFrameworkCore.SqlServer` 9.0.x → `Microsoft.Data.SqlClient` 5.1.x (its `net6.0` group), transitively | `file:LICENSE.txt` (Microsoft proprietary, object code distributable) |
 
 All other packages in the providers' closures carry MIT, Apache-2.0, or BSD-2/3-Clause licences.

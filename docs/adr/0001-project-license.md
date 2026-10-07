@@ -2,12 +2,12 @@
 
 - **Status:** Accepted
 - **Date:** 2026-09-29
-- **Issue:** [#130](https://github.com/miekhra/OpenHoldemEngine/issues/130), milestone
+- **Issue:** [#130](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/130), milestone
   `v1.0 · Legal & dependency audit`
 
 ## Context
 
-OpenHoldemEngine has been under the MIT License since its first commit. Before the repository goes
+TabletopCardEngine has been under the MIT License since its first commit. Before the repository goes
 public and the library goes to nuget.org, the license should be a deliberate choice rather than a
 template default. The milestone names four candidates: MIT, Apache-2.0, LGPL, or AGPL dual-licensed
 with a commercial license.
@@ -20,7 +20,7 @@ The choice has two requirements:
    its author.
 
 The dependencies do not narrow the choice. The audit behind
-[THIRD-PARTY-NOTICES.md](https://github.com/miekhra/OpenHoldemEngine/blob/main/THIRD-PARTY-NOTICES.md) resolved every package the projects use,
+[THIRD-PARTY-NOTICES.md](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/THIRD-PARTY-NOTICES.md) resolved every package the projects use,
 transitive ones included. Each is MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, public domain
 (SQLite) or the legacy Microsoft .NET Library License, and the vendored PHH corpus is MIT. None of
 these is copyleft, so none of them limits what the project's own code may be licensed under. All of
@@ -52,7 +52,7 @@ may be closed source. In addition:
 - **Section 3, patent grant.** Every contributor grants a patent license for their contribution.
   The grant terminates for anyone who sues over the work's patents.
 - **Section 6, trademarks.** The license grants no right to the project's name, so a fork cannot
-  present itself as OpenHoldemEngine.
+  present itself as TabletopCardEngine.
 
 Meets both requirements.
 
@@ -79,7 +79,7 @@ Fails requirement 1.
 ## Decision
 
 The project is licensed under the **Apache License, Version 2.0**. The attribution the author
-requires lives in [NOTICE](https://github.com/miekhra/OpenHoldemEngine/blob/main/NOTICE) at the repository root. `LICENSE` carries the verbatim
+requires lives in [NOTICE](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/NOTICE) at the repository root. `LICENSE` carries the verbatim
 license text, and the README's License section says both.
 
 The relicensing from MIT is possible without anyone else's consent: every commit so far is by the

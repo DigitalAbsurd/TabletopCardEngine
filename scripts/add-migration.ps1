@@ -29,9 +29,9 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 
 # Providers that ship migrations. Add one row per new provider package, with a comment pointing here.
 $providers = @(
-    @{ Project = 'src/OpenHoldemEngine.Sqlite' }
-    @{ Project = 'src/OpenHoldemEngine.PostgreSql' }
-    @{ Project = 'src/OpenHoldemEngine.SqlServer' }
+    @{ Project = 'src/TabletopCardEngine.Sqlite' }
+    @{ Project = 'src/TabletopCardEngine.PostgreSql' }
+    @{ Project = 'src/TabletopCardEngine.SqlServer' }
 )
 
 # Ensure dotnet-ef is available.
@@ -71,5 +71,5 @@ foreach ($provider in $providers) {
 
 Write-Host ""
 Write-Host "Reminder: if this migration changes the database schema version, bump HoldemSchema.Version"
-Write-Host "in src/OpenHoldemEngine/Data/HoldemSchema.cs and EngineVersion in Directory.Build.props as"
+Write-Host "in src/TabletopCardEngine/Data/HoldemSchema.cs and EngineVersion in Directory.Build.props as"
 Write-Host "required by docs/persistence.md"

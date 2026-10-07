@@ -1,0 +1,301 @@
+﻿@using AntDesign
+@using TabletopCardEngine.Demo.Phh
+@using TabletopCardEngine.Demo.Services
+
+<Card Title="Hand History Import" Class="hand-history-import-card">
+    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+        @if (!_hasImported)
+        {
+            <!-- File Upload Area -->
+            <div class="upload-area"
+                 style="border: 2px dashed var(--demo-outline);
+                        background: transparent;
+                        border-radius: 4px;
+                        padding: 32px;
+                        text-align: center;">
+                <InputFile OnChange="@HandleFileSelect" multiple accept=".phh,.phhs" />
+                <div style="margin: 16px 0;">
+                    <p style="margin: 0; font-size: 16px; font-weight: 500;">Click to select hand history files</p>
+                    <p style="margin: 8px 0 0 0; color: var(--demo-muted-text);">Accepts .phh and .phhs files</p>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            @if (_isLoading)
+            {
+                <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+                    <div style="text-align: center;">
+                        <Spin Size="@AntSizeLDSType.Large" />
+                        <p style="margin-top: 16px; color: var(--demo-muted-text);">Parsing hand histories...</p>
+                        @if (!string.IsNullOrEmpty(_progressMessage))
+                        {
+                            <p style="color: #999;">@_progressMessage</p>
+                        }
+                    </div>
+                </Space>
+            }
+
+            <!-- Error Messages -->
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <Alert
+                    Message="Error"
+                    Description="@_errorMessage"
+                    Type="@AlertType.Error"
+                    Closable="true"
+                    OnClose="@ClearError"
+                    ShowIcon="true" />
+            }
+        }
+        else
+        {
+            <!-- Imported Hands List -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0;">
+                    Hands Loaded: @_parsedHands.Count
+                    @if (_supportedCount > 0)
+                    {
+                        <span style="color: #52c41a; margin-left: 8px;">
+                            (@_supportedCount supported)
+                        </span>
+                    }
+                </h3>
+                <Button Type="@ButtonType.Default" OnClick="@ResetImport">Load Different File</Button>
+            </div>
+
+            @if (_parsedHands.Count == 0)
+            {
+                <div style="text-align: center; padding: 40px; color: #999;">
+                    <p>No hands to display</p>
+                </div>
+            }
+            else
+            {
+                <div class="hands-table-container">
+                    <table class="hands-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--demo-outline);">
+                                <th style="width: 60px; padding: 8px; text-align: left;">#</th>
+                                <th style="width: 200px; padding: 8px; text-align: left;">Source</th>
+                                <th style="width: 100px; padding: 8px; text-align: center;">Players</th>
+                                <th style="width: 100px; padding: 8px; text-align: center;">Blinds</th>
+                                <th style="width: 100px; padding: 8px; text-align: center;">Actions</th>
+                                <th style="width: 180px; padding: 8px; text-align: left;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var hand in GetPagedHands())
+                            {
+                                <tr style="cursor: pointer; border-bottom: 1px solid var(--ant-border-color); @(hand == _selectedHand ? "background-color: rgba(24, 144, 255, 0.1);" : "")"
+                                    @onclick="@(async () => await SelectHand(hand))">
+                                    <td style="padding: 8px;">@hand.Index</td>
+                                    <td style="padding: 8px;">@hand.Source</td>
+                                    <td style="padding: 8px; text-align: center;">@hand.PlayerCount</td>
+                                    <td style="padding: 8px; text-align: center;">@AmountFormat.Format(hand.SmallBlind)/@AmountFormat.Format(hand.BigBlind)</td>
+                                    <td style="padding: 8px; text-align: center;">@hand.Hand.Actions.Length</td>
+                                    <td style="padding: 8px;">
+                                        @if (hand.IsSupported)
+                                        {
+                                            <Tag Color="green">Supported</Tag>
+                                        }
+                                        else
+                                        {
+                                            <Popover Title="Not Supported" Content="@hand.SupportReason">
+                                                <Tag Color="red">Not Supported</Tag>
+                                            </Popover>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (_totalPages > 1)
+                {
+                    <div style="text-align: center; margin-top: 16px;">
+                        <Pagination Current="@_currentPage"
+                                    Total="@_parsedHands.Count"
+                                    PageSize="@_pageSize"
+                                    OnChange="@OnPageChange" />
+                    </div>
+                }
+            }
+
+            @if (_selectedHand is not null)
+            {
+                <Alert
+                    Message="Selected"
+                    Description="@($"Hand #{_selectedHand.Index} from {_selectedHand.Source} selected for replay")"
+                    Type="@AlertType.Info"
+                    ShowIcon="true"
+                    Style="margin-top: 16px;" />
+            }
+        }
+    </Space>
+</Card>
+
+@code {
+    private List<HandHistoryItem> _parsedHands = new();
+    private HandHistoryItem? _selectedHand;
+    private bool _hasImported = false;
+    private bool _isLoading = false;
+    private string _errorMessage = string.Empty;
+    private string _progressMessage = string.Empty;
+    private int _supportedCount = 0;
+    private const int _pageSize = 10;
+    private int _currentPage = 1;
+    private int _totalPages = 1;
+
+    [Parameter]
+    public EventCallback<HandHistoryItem> OnHandSelected { get; set; }
+
+    private async Task HandleFileSelect(InputFileChangeEventArgs e)
+    {
+        _errorMessage = string.Empty;
+        _isLoading = true;
+        _progressMessage = string.Empty;
+
+        try
+        {
+            await ProcessFiles(e.GetMultipleFiles());
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error processing file: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+
+    private async Task ProcessFiles(IReadOnlyList<IBrowserFile> files)
+    {
+        if (files.Count == 0)
+        {
+            _errorMessage = "No files selected";
+            return;
+        }
+
+        _parsedHands.Clear();
+        _selectedHand = null;
+        _supportedCount = 0;
+        _currentPage = 1;
+
+        foreach (var file in files)
+        {
+            if (!file.Name.EndsWith(".phh", StringComparison.OrdinalIgnoreCase) &&
+                !file.Name.EndsWith(".phhs", StringComparison.OrdinalIgnoreCase))
+            {
+                _errorMessage = $"Invalid file type: {file.Name}. Only .phh and .phhs files are supported.";
+                return;
+            }
+
+            try
+            {
+                _progressMessage = $"Reading {file.Name}...";
+                await InvokeAsync(StateHasChanged);
+
+                // Read file content asynchronously
+                using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+                using var reader = new StreamReader(stream);
+                var content = await reader.ReadToEndAsync();
+
+                _progressMessage = "Parsing hand histories...";
+                await InvokeAsync(StateHasChanged);
+
+                // Parse off the render thread
+                var hands = await Task.Run(() => PhhReader.ReadAll(content));
+
+                _progressMessage = "Processing hands...";
+                await InvokeAsync(StateHasChanged);
+
+                // Process each hand
+                var index = 1;
+                foreach (var hand in hands)
+                {
+                    var isSupported = PhhSupport.IsSupported(hand, out var reason);
+                    var item = new HandHistoryItem
+                    {
+                        Index = index,
+                        Hand = hand,
+                        Source = hand.Source,
+                        PlayerCount = hand.Players.Length,
+                        SmallBlind = hand.SmallBlind,
+                        BigBlind = hand.BigBlind,
+                        IsSupported = isSupported,
+                        SupportReason = reason
+                    };
+
+                    _parsedHands.Add(item);
+                    if (isSupported)
+                    {
+                        _supportedCount++;
+                    }
+
+                    index++;
+                }
+
+                _totalPages = (_parsedHands.Count + _pageSize - 1) / _pageSize;
+                _hasImported = true;
+                _progressMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _errorMessage = $"Error parsing {file.Name}: {ex.Message}";
+                return;
+            }
+        }
+    }
+
+    private void ResetImport()
+    {
+        _parsedHands.Clear();
+        _selectedHand = null;
+        _hasImported = false;
+        _errorMessage = string.Empty;
+        _progressMessage = string.Empty;
+        _supportedCount = 0;
+        _currentPage = 1;
+    }
+
+    private void ClearError()
+    {
+        _errorMessage = string.Empty;
+    }
+
+    private List<HandHistoryItem> GetPagedHands()
+    {
+        var skip = (_currentPage - 1) * _pageSize;
+        return _parsedHands.Skip(skip).Take(_pageSize).ToList();
+    }
+
+    private void OnPageChange(PaginationEventArgs args)
+    {
+        _currentPage = args.Page;
+    }
+
+    private async Task SelectHand(HandHistoryItem hand)
+    {
+        _selectedHand = hand;
+        await OnHandSelected.InvokeAsync(_selectedHand);
+    }
+
+    /// <summary>
+    /// Represents a parsed hand with its support status and metadata for display.
+    /// </summary>
+    public class HandHistoryItem
+    {
+        public int Index { get; set; }
+        public PhhHand Hand { get; set; } = null!;
+        public string Source { get; set; } = string.Empty;
+        public int PlayerCount { get; set; }
+        public decimal SmallBlind { get; set; }
+        public decimal BigBlind { get; set; }
+        public bool IsSupported { get; set; }
+        public string SupportReason { get; set; } = string.Empty;
+    }
+}

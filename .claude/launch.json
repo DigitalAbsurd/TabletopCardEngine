@@ -4,7 +4,7 @@
     {
       "name": "demo",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "src/OpenHoldemEngine.Demo"],
+      "runtimeArgs": ["run", "--project", "src/TabletopCardEngine.Demo"],
       "port": 5170
     }
   ]

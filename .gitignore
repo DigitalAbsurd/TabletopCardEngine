@@ -412,8 +412,8 @@ agent.*.json
 # The AspNetCoreSample database
 samples/AspNetCoreSample/*.db*
 
-# The OpenHoldemEngine.Server database
-src/OpenHoldemEngine.Server/*.db*
+# The TabletopCardEngine.Server database
+src/TabletopCardEngine.Server/*.db*
 
 # MkDocs generated site
 site/

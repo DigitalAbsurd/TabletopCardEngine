@@ -1,6 +1,6 @@
 ﻿<#
 .SYNOPSIS
-    Lists the public surface of OpenHoldemEngine.dll as Markdown, for docs/public-api.md.
+    Lists the public surface of TabletopCardEngine.dll as Markdown, for docs/public-api.md.
 
 .DESCRIPTION
     Loads the built library into an isolated AssemblyLoadContext, resolving its package
@@ -14,7 +14,7 @@
     surface, and package validation still checks it, but it follows from the record declaration
     and would only bury the members a reviewer cares about.
 
-    Build the library first; `dotnet pack src/OpenHoldemEngine -c Release` does. Without -Update
+    Build the library first; `dotnet pack src/TabletopCardEngine -c Release` does. Without -Update
     the inventory is printed. With -Update it replaces the text between the two GENERATED markers
     in docs/public-api.md.
 
@@ -30,12 +30,12 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$projectDir = Join-Path $repoRoot 'src/OpenHoldemEngine'
+$projectDir = Join-Path $repoRoot 'src/TabletopCardEngine'
 if (-not $AssemblyPath) {
-    $AssemblyPath = Join-Path $projectDir 'bin/Release/net10.0/OpenHoldemEngine.dll'
+    $AssemblyPath = Join-Path $projectDir 'bin/Release/net10.0/TabletopCardEngine.dll'
 }
 if (-not (Test-Path $AssemblyPath)) {
-    throw "$AssemblyPath not found. Run 'dotnet pack src/OpenHoldemEngine -c Release' first."
+    throw "$AssemblyPath not found. Run 'dotnet pack src/TabletopCardEngine -c Release' first."
 }
 $AssemblyPath = (Resolve-Path $AssemblyPath).Path
 $xmlPath = [IO.Path]::ChangeExtension($AssemblyPath, '.xml')

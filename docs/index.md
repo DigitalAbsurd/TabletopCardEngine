@@ -1,6 +1,6 @@
-# Welcome to OpenHoldemEngine
+# Welcome to TabletopCardEngine
 
-OpenHoldemEngine is a .NET 10 class library modelling Texas Hold'em cash games. There is no executable — consumers register it via `services.AddHoldemEngine()` and drive everything through one method: `ApplyHoldemActionAsync(action, cancellationToken)`. The core concept is simple: **there is no in-memory game object — the database is the state**.
+TabletopCardEngine is a .NET 10 class library modelling Texas Hold'em cash games. There is no executable — consumers register it via `services.AddHoldemEngine()` and drive everything through one method: `ApplyHoldemActionAsync(action, cancellationToken)`. The core concept is simple: **there is no in-memory game object — the database is the state**.
 
 ## What's included
 
@@ -10,7 +10,7 @@ The [roadmap](roadmap.md) covers other structures, more seats, antes and tournam
 
 ## Try the interactive demo
 
-[**OpenHoldemEngine Blazor WebAssembly Demo**](https://miekhra.github.io/OpenHoldemEngine/)
+[**TabletopCardEngine Blazor WebAssembly Demo**](https://digitalabsurd.github.io/TabletopCardEngine/)
 
 An interactive walkthrough that shows how the engine works:
 

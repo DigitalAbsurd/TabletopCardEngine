@@ -1,0 +1,147 @@
+﻿@inherits LayoutComponentBase
+@using AntDesign
+@using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Demo.Components
+@using TabletopCardEngine.Demo.Components.Table
+@implements IDisposable
+@inject WalkthroughState WalkthroughState
+@inject NewGameState NewGameState
+@inject DemoGameSession Session
+@inject DemoTheme Theme
+
+@* The plain <div> is what makes MainLayout.razor.css work at all. A scoped stylesheet compiles
+   ::deep X to [b-hash] X, and Blazor only puts the scope attribute on elements written as markup
+   in this file — never on the AntDesign components below. Without an element of our own wrapping
+   them, .layout-full-height, .layout-header, .layout-header-content, .layout-body and
+   .layout-content match nothing, and the document scrolls instead of main.layout-content
+   (issue #72). Do not remove it. *@
+<div class="layout-root">
+    <Layout Class="layout-full-height">
+        <Header Class="layout-header">
+            <div class="layout-header-content">
+                <div class="layout-title-group">
+                    <h1 class="layout-title">
+                        <a href="/" title="TabletopCardEngine Demo">TabletopCardEngine Demo</a>
+                    </h1>
+                    @* The build's commit, so a report about the demo can say which one it is. *@
+                    @if (BuildInfo.ShortSha is string shortSha)
+                    {
+                        <Tooltip Title="@($"Built from commit {BuildInfo.CommitSha}")">
+                            <Text Code="true" Class="layout-commit-sha">@shortSha</Text>
+                        </Tooltip>
+                    }
+                </div>
+                @* The running session's settings are in the header rather than on the table, so the
+                   table's height goes to the seats, the board and the action bar. *@
+                <GameSummary GameData="@Session.CurrentGame" OnNewGame="RequestNewGame" />
+                <div class="layout-header-actions">
+                    <Switch
+                        Checked="@_isDark"
+                        CheckedChanged="@OnThemeChangedAsync"
+                        CheckedChildren="Dark"
+                        UnCheckedChildren="Light"
+                        Class="layout-theme-switch" />
+                    <Tooltip Title="Show the walkthrough">
+                        <Button Type="@ButtonType.Text" Shape="@ButtonShape.Circle" AriaLabel="Show the walkthrough" OnClick="ShowWalkthrough" Class="layout-walkthrough-button">
+                            <Icon Type="question" Theme="outline" />
+                        </Button>
+                    </Tooltip>
+                    <a href="https://github.com/DigitalAbsurd/TabletopCardEngine" target="_blank" rel="noopener noreferrer" class="layout-github-link">
+                        GitHub Repository
+                    </a>
+                </div>
+            </div>
+        </Header>
+        <Layout Class="layout-body">
+            <Content Class="layout-content">
+                <ErrorBoundary @ref="_bodyErrorBoundary">
+                    <ChildContent>
+                        @Body
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        <ErrorCardContent ExceptionMessage="@ex.Message" OnRetryClick="@(async () => await OnBodyErrorRetryAsync())" />
+                    </ErrorContent>
+                </ErrorBoundary>
+            </Content>
+        </Layout>
+    </Layout>
+</div>
+
+<AntContainer />
+
+@code {
+    private ErrorBoundary? _bodyErrorBoundary;
+
+    /// <summary>Where the theme switch stands; read from the page once it has rendered.</summary>
+    private bool _isDark;
+
+    protected override void OnInitialized()
+    {
+        Session.StateChanged += OnSessionStateChanged;
+    }
+
+    /// <summary>
+    /// theme.js has already put a theme on the page — the visitor's pick, or the OS setting — so the
+    /// switch starts from that rather than from a default of its own.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var isDark = await Theme.IsDarkAsync();
+        if (isDark != _isDark)
+        {
+            _isDark = isDark;
+            StateHasChanged();
+        }
+    }
+
+    /// <summary>
+    /// AntDesign's Switch also raises CheckedChanged when <see cref="_isDark"/> is pushed into it
+    /// from <see cref="OnAfterRenderAsync"/>. Only a real toggle is the visitor's pick; storing the
+    /// echo would stop the page from following the OS setting before the visitor ever chose.
+    /// </summary>
+    private async Task OnThemeChangedAsync(bool isDark)
+    {
+        if (isDark == _isDark)
+        {
+            return;
+        }
+
+        _isDark = isDark;
+        await Theme.SetDarkAsync(isDark);
+    }
+
+    /// <summary>
+    /// The session can raise this from outside the renderer's dispatcher, so the re-render is
+    /// marshalled onto it rather than requested directly.
+    /// </summary>
+    private void OnSessionStateChanged(object? sender, EventArgs e)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RequestNewGame()
+    {
+        await NewGameState.RequestShowAsync();
+    }
+
+    private async Task ShowWalkthrough()
+    {
+        await WalkthroughState.RequestShowAsync();
+    }
+
+    private async Task OnBodyErrorRetryAsync()
+    {
+        _bodyErrorBoundary?.Recover();
+        await Task.CompletedTask;
+    }
+
+    void IDisposable.Dispose()
+    {
+        Session.StateChanged -= OnSessionStateChanged;
+    }
+}

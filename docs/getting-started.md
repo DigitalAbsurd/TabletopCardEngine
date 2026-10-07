@@ -9,7 +9,7 @@ Install the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.
 ```bash
 dotnet new console -n HoldemQuickStart
 cd HoldemQuickStart
-dotnet add package OpenHoldemEngine.Sqlite --prerelease
+dotnet add package TabletopCardEngine.Sqlite --prerelease
 ```
 
 The SQLite package brings the core package with it.
@@ -18,9 +18,9 @@ The SQLite package brings the core package with it.
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
-using OpenHoldemEngine;
-using OpenHoldemEngine.Dto;
-using OpenHoldemEngine.Sqlite;
+using TabletopCardEngine;
+using TabletopCardEngine.Dto;
+using TabletopCardEngine.Sqlite;
 
 var services = new ServiceCollection();
 services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
@@ -105,5 +105,5 @@ Bob: 2d ah, Full house, +2
 
 - **[Key concepts](concepts/index.md)** — blinds, seats, streets, board, hand evaluation, and ledger
 - **[Database providers](providers.md)** — SQLite, PostgreSQL, SQL Server and in-memory storage
-- **[ASP.NET Core](aspnetcore.md)** — build a REST API with the OpenHoldemEngine.AspNetCore package
+- **[ASP.NET Core](aspnetcore.md)** — build a REST API with the TabletopCardEngine.AspNetCore package
 - **[Container images](docker.md)** — run the API in Docker

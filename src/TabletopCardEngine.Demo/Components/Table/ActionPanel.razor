@@ -1,0 +1,196 @@
+﻿@using AntDesign
+@using TabletopCardEngine
+@using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Dto
+
+@* The action bar along the bottom of the table: the buttons on the left, the raise sizing in the
+   middle, and on the right the name of the player whose turn it is. Button colours are in app.css,
+   because an AntDesign Button's element never carries this component's scope attribute (fact 22). *@
+<div class="action-panel action-bar">
+    <div class="action-bar-controls">
+        @if (IsHandFinished)
+        {
+            @* New Game is in the page header, so the finished bar offers only what continues the
+               session. *@
+            <div class="action-bar-buttons">
+                <Button
+                    Type="primary"
+                    Size="large"
+                    OnClick="@OnNextHandAsync"
+                    Loading="_isSubmitting"
+                    Class="action-bar-btn next-hand-btn">
+                    Next Hand
+                </Button>
+            </div>
+        }
+        else if (HasActions)
+        {
+            <div class="action-bar-buttons">
+                @if (HasAction(PlayerActionType.Fold))
+                {
+                    <Button
+                        Type="primary"
+                        Danger="true"
+                        Size="large"
+                        OnClick="@OnFoldAsync"
+                        Loading="_isSubmitting"
+                        Class="action-btn fold-btn">
+                        Fold
+                    </Button>
+                }
+
+                @if (HasAction(PlayerActionType.Check))
+                {
+                    <Button
+                        Type="primary"
+                        Size="large"
+                        OnClick="@OnCheckAsync"
+                        Loading="_isSubmitting"
+                        Class="action-btn check-btn">
+                        Check
+                    </Button>
+                }
+
+                @if (HasAction(PlayerActionType.Call))
+                {
+                    <Button
+                        Type="primary"
+                        Size="large"
+                        OnClick="@OnCallAsync"
+                        Loading="_isSubmitting"
+                        Class="action-btn call-btn">
+                        @GetCallLabel()
+                    </Button>
+                }
+
+                @if (HasAction(PlayerActionType.Raise))
+                {
+                    @if (IsAllInOnly())
+                    {
+                        <Button
+                            Type="primary"
+                            Size="large"
+                            OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
+                            Loading="_isSubmitting"
+                            Class="action-btn allin-btn">
+                            All-in @AmountFormat.Format(GetAllInAmount())
+                        </Button>
+                    }
+                    else
+                    {
+                        <Button
+                            Type="primary"
+                            Size="large"
+                            OnClick="@(async () => await OnRaiseAsync(_raiseAmount))"
+                            Loading="_isSubmitting"
+                            Disabled="@(!_raiseInput.IsValid)"
+                            Class="action-btn raise-btn">
+                            Raise to @AmountFormat.Format(_raiseAmount)
+                        </Button>
+                    }
+                }
+            </div>
+
+            @if (HasAction(PlayerActionType.Raise) && !IsAllInOnly())
+            {
+                @* One row: the slider with its Min / All-in marks, the −/+ steps of one small blind,
+                   the amount box, and ½ Pot over Pot. Marks, steps and presets only size the raise;
+                   Raise is what submits it. A preset shows its amount, and its tooltip the pot-limit
+                   sum behind it, because "Pot · 7" next to a pot of 3 is otherwise a riddle. *@
+                <div class="raise-controls">
+                    <div class="raise-slider-row">
+                        <Button
+                            Size="small"
+                            Shape="circle"
+                            OnClick="@(() => StepRaiseAmount(-1))"
+                            Class="raise-step-btn raise-decrease-btn">
+                            −
+                        </Button>
+                        <Slider TValue="double"
+                            Class="raise-slider"
+                            Min="0"
+                            Max="@((double)RaiseSizing.SliderMax(_marks))"
+                            Step="0.1"
+                            Value="@RaiseSizing.ToPosition(_marks, _raiseAmount)"
+                            ValueChanged="@OnRaiseSliderChanged"
+                            TipFormatter="@FormatSliderTip"
+                            Marks="@Marks" />
+                        <Button
+                            Size="small"
+                            Shape="circle"
+                            OnClick="@(() => StepRaiseAmount(1))"
+                            Class="raise-step-btn raise-increase-btn">
+                            +
+                        </Button>
+                        @* AntDesign's Input has no error status in 0.17 and does not put Class on its
+                           <input>, so the box is styled through a span of ours (app.css), and the
+                           reason an amount is illegal is the tooltip's. *@
+                        <Tooltip Title="@(_raiseInput.Error ?? string.Empty)" Disabled="@_raiseInput.IsValid">
+                            <span class="@(_raiseInput.IsValid ? "raise-input" : "raise-input raise-input-invalid")">
+                                <Input TValue="string"
+                                    Size="large"
+                                    Value="@_raiseText"
+                                    OnInput="@OnRaiseInput"
+                                    OnPressEnter="@OnRaisePressEnterAsync"
+                                    aria-label="Raise to"
+                                    aria-invalid="@(_raiseInput.IsValid ? "false" : "true")"
+                                    inputmode="decimal" />
+                            </span>
+                        </Tooltip>
+                        @if (!_raiseInput.IsValid)
+                        {
+                            <Button
+                                Size="small"
+                                Shape="circle"
+                                Icon="thunderbolt"
+                                AriaLabel="@($"Correct the amount to {AmountFormat.Format(CorrectedAmount)}")"
+                                OnClick="@CorrectRaiseAmount"
+                                Class="raise-fix-btn" />
+                        }
+                        @if (_presets.Count > 0)
+                        {
+                            <div class="raise-presets">
+                                @foreach (var preset in _presets)
+                                {
+                                    <Tooltip Title="@(preset.Formula ?? string.Empty)">
+                                        <Button
+                                            Size="small"
+                                            Shape="round"
+                                            AriaLabel="@($"{preset.Label}: raise to {AmountFormat.Format(preset.Amount)}. {preset.Formula}")"
+                                            OnClick="@(() => SetRaiseAmount(preset.Amount))"
+                                            Class="raise-preset-btn">
+                                            @($"{preset.Label} · {AmountFormat.Format(preset.Amount)}")
+                                        </Button>
+                                    </Tooltip>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="no-actions">No actions available</div>
+        }
+    </div>
+
+    <div class="action-bar-info" aria-live="polite">@InfoText</div>
+</div>
+
+@code {
+    // Component logic is in ActionPanel.razor.cs; only the mark captions are here, because a
+    // RenderFragment is Razor markup.
+
+    /// <summary>
+    /// The slider's marks, with each caption a button of its own. A press on a caption is kept from
+    /// the slider, which would otherwise move to the step under the pointer — a few pixels off the
+    /// mark — and report that after the click has set the mark's exact amount.
+    /// </summary>
+    private SliderMark[] Marks => _marks
+        .Select(mark => new SliderMark(
+            RaiseSizing.ToPosition(_marks, mark.Amount),
+            @<span class="raise-mark" role="button" title="@AmountFormat.Format(mark.Amount)" aria-label="@($"{mark.Label}: raise to {AmountFormat.Format(mark.Amount)}")" @onmousedown:stopPropagation="true" @onclick="@(() => SetRaiseAmount(mark.Amount))">@mark.Label</span>,
+            string.Empty))
+        .ToArray();
+}

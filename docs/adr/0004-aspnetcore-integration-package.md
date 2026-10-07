@@ -1,8 +1,8 @@
-# ADR-0004: Ship the ASP.NET Core integration as one package, OpenHoldemEngine.AspNetCore
+# ADR-0004: Ship the ASP.NET Core integration as one package, TabletopCardEngine.AspNetCore
 
 - **Status:** Accepted
 - **Date:** 2026-10-02
-- **Issue:** [#262](https://github.com/miekhra/OpenHoldemEngine/issues/262), milestone
+- **Issue:** [#262](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/262), milestone
   `v1.0 · ASP.NET Core integration package`
 
 ## Context
@@ -19,8 +19,8 @@ so that each of them does not reopen them.
 
 Three options were on the table:
 
-- **`OpenHoldemEngine.AspNetCore`, one package — chosen.**
-- `OpenHoldemEngine.Extensions.Hosting`, one package.
+- **`TabletopCardEngine.AspNetCore`, one package — chosen.**
+- `TabletopCardEngine.Extensions.Hosting`, one package.
 - Two packages: a hosting package for the configuration, health check and migration, and a web
   package for the REST part.
 
@@ -33,7 +33,7 @@ The reasons for the first:
   `Microsoft.Extensions.Diagnostics.HealthChecks` is a NuGet package, not part of a shared
   framework, which breaks the milestone's rule: no NuGet dependency beyond the engine and the shared
   framework.
-- The NuGet milestone already names `OpenHoldemEngine.AspNetCore`.
+- The NuGet milestone already names `TabletopCardEngine.AspNetCore`.
 
 The cost: one more package to version, baseline and list in the notices, and a worker host that
 wants only the configuration gets all of ASP.NET Core.
@@ -48,8 +48,8 @@ restored `project.assets.json` and fails on a direct package, on a framework ref
 
 ### 3. Observability
 
-The one-line OpenTelemetry wiring lives in `OpenHoldemEngine.OpenTelemetry`, as
-`IOpenTelemetryBuilder.AddOpenHoldemEngineInstrumentation()`, through
+The one-line OpenTelemetry wiring lives in `TabletopCardEngine.OpenTelemetry`, as
+`IOpenTelemetryBuilder.AddTabletopCardEngineInstrumentation()`, through
 `OpenTelemetry.Api.ProviderBuilderExtensions` (Apache-2.0). It does not live in this package, so
 this package never references OpenTelemetry. That gives the OpenTelemetry package a second package
 reference, which amends [ADR-0002](0002-opentelemetry-instrumentation-package.md)'s

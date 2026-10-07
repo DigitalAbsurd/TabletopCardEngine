@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "TabletopCardEngine.Server": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5298",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

@@ -2,25 +2,25 @@
 
 - **Status:** Accepted
 - **Date:** 2026-09-30
-- **Issue:** [#186](https://github.com/miekhra/OpenHoldemEngine/issues/186), milestone
+- **Issue:** [#186](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/186), milestone
   `v1.0 · Logging & observability (OpenTelemetry)`
 
 ## Context
 
-The engine publishes one `ActivitySource` and one `Meter`, both named `"OpenHoldemEngine"` and
+The engine publishes one `ActivitySource` and one `Meter`, both named `"TabletopCardEngine"` and
 exposed as `HoldemEngineTelemetry.ActivitySourceName` and `HoldemEngineTelemetry.MeterName`. It also
 logs through `ILogger`. A host that runs the OpenTelemetry SDK turns the traces and metrics on by
 subscribing to those names. The idiomatic one-liner for that is an extension method,
-`AddOpenHoldemEngineInstrumentation()`, on `TracerProviderBuilder` and `MeterProviderBuilder`.
+`AddTabletopCardEngineInstrumentation()`, on `TracerProviderBuilder` and `MeterProviderBuilder`.
 
 Those builder types live in `OpenTelemetry.Api`. The milestone keeps the core library free of any
 OpenTelemetry package: it may depend only on `System.Diagnostics` and the `Microsoft.Extensions`
-abstractions. So the extension cannot live in `OpenHoldemEngine`, and the question is where it lives,
+abstractions. So the extension cannot live in `TabletopCardEngine`, and the question is where it lives,
 if anywhere.
 
 ## Options considered
 
-### A separate package, `OpenHoldemEngine.OpenTelemetry` — chosen
+### A separate package, `TabletopCardEngine.OpenTelemetry` — chosen
 
 A small project that references the library and `OpenTelemetry.Api`, and nothing else. It holds one
 public class with the two extension methods.
@@ -35,7 +35,7 @@ public class with the two extension methods.
 
 ### The ASP.NET Core package
 
-Put the extension into `OpenHoldemEngine.AspNetCore`. There is one package fewer, but a host that is
+Put the extension into `TabletopCardEngine.AspNetCore`. There is one package fewer, but a host that is
 not a web application would have to take ASP.NET Core to get a two-line method. The extension would
 also wait for that package's milestone.
 
@@ -48,16 +48,16 @@ the two calls and has to find out that both are needed.
 
 ## Decision
 
-Ship the extension in a separate package, **`OpenHoldemEngine.OpenTelemetry`**, in namespace
-`OpenHoldemEngine.OpenTelemetry`. It references `OpenTelemetry.Api` only, never the SDK or an
+Ship the extension in a separate package, **`TabletopCardEngine.OpenTelemetry`**, in namespace
+`TabletopCardEngine.OpenTelemetry`. It references `OpenTelemetry.Api` only, never the SDK or an
 exporter: everything the extension needs is in the API, and the host brings the SDK. Logging gets no
-extension, because a host already enables the `OpenHoldemEngine` categories in its logging
+extension, because a host already enables the `TabletopCardEngine` categories in its logging
 configuration and adds the SDK's `AddOpenTelemetry()` logging provider if it wants OTLP logs.
 
 ## Consequences
 
-- **A third package joins the shipped set.** The NuGet milestone names `OpenHoldemEngine` and
-  `OpenHoldemEngine.AspNetCore`; this record adds `OpenHoldemEngine.OpenTelemetry` to it. It needs
+- **A third package joins the shipped set.** The NuGet milestone names `TabletopCardEngine` and
+  `TabletopCardEngine.AspNetCore`; this record adds `TabletopCardEngine.OpenTelemetry` to it. It needs
   the same package metadata, README and license as the others.
 - **One more project to version.** Its version has to move with the library's, since it compiles
   against the library's public constants. The Versioning milestone owns how.

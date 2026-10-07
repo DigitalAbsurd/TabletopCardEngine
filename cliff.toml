@@ -45,7 +45,7 @@ sort_commits = "oldest"
 commit_preprocessors = [
     # Squash merges carry the pull request description after the subject: keep the subject only.
     { pattern = '(?s)\n.*$', replace = "" },
-    { pattern = '\(#([0-9]+)\)\s*$', replace = "([#${1}](https://github.com/miekhra/OpenHoldemEngine/pull/${1}))" },
+    { pattern = '\(#([0-9]+)\)\s*$', replace = "([#${1}](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/${1}))" },
 ]
 # The prose verbs below exist for the history that predates mandatory Conventional Commits.
 commit_parsers = [

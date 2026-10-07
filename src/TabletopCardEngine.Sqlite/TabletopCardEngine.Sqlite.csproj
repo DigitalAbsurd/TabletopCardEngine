@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Public API baseline">
+    <!--
+      The same gate as the core library, over this package's own baseline: dotnet pack fails on a
+      removed or changed public member (CP0001, CP0002, ...). Changing the surface means re-packing
+      the baseline in the same pull request: see docs/public-api.md.
+    -->
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageValidationBaselinePath>$(MSBuildThisFileDirectory)../../eng/api-baseline/TabletopCardEngine.Sqlite.1.0.0-baseline.nupkg</PackageValidationBaselinePath>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The provider the migrations are generated for; the core package references no provider. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.12" />
+    <!--
+      Lifts the native SQLite that EF Core SQLite 10.0.1 pulls in (SQLitePCLRaw 2.1.10) past
+      GHSA-2m69-gcr7-jv3q (CVE-2025-6965), which NuGet audit reports as NU1903. Same 2.1 line, so
+      Microsoft.Data.Sqlite binds to it unchanged; it can go once the EF Core version brings 2.1.12+.
+    -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.13" />
+    <!-- What dotnet ef needs to scaffold the migrations. Development only: it never flows to consumers. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TabletopCardEngine\TabletopCardEngine.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

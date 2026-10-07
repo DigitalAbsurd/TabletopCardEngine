@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using OpenHoldemEngine;
-using OpenHoldemEngine.AspNetCore;
-using OpenHoldemEngine.Sqlite;
 using System.Text.Json;
+using TabletopCardEngine;
+using TabletopCardEngine.AspNetCore;
+using TabletopCardEngine.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +12,11 @@ builder.Services.AddHoldemEngine(
     db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("Holdem")!));
 builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 
-// Traces and metrics need the OpenHoldemEngine.OpenTelemetry package, which this sample does not
+// Traces and metrics need the TabletopCardEngine.OpenTelemetry package, which this sample does not
 // reference (a sample has no PackageReference). In your own host, add it like this:
 //
 // builder.Services.AddOpenTelemetry()
-//     .AddOpenHoldemEngineInstrumentation()
+//     .AddTabletopCardEngineInstrumentation()
 //     .WithTracing(tracing => tracing.AddConsoleExporter())
 //     .WithMetrics(metrics => metrics.AddConsoleExporter());
 

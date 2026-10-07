@@ -1,8 +1,8 @@
-# OpenHoldemEngine roadmap
+# TabletopCardEngine roadmap
 
 ## What this document is
 
-The features planned after v1.0, their order, and what the v1.0 API already does for them. Implementation is tracked in the [`v1.x · Features` milestone](https://github.com/miekhra/OpenHoldemEngine/milestone/14). Planning history lives in GitHub, not here.
+The features planned after v1.0, their order, and what the v1.0 API already does for them. Implementation is tracked in the [`v1.x · Features` milestone](https://github.com/DigitalAbsurd/TabletopCardEngine/milestone/14). Planning history lives in GitHub, not here.
 
 ## Versioning of the roadmap
 
@@ -44,7 +44,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## 9 to 10 seats
 
-[#338](https://github.com/miekhra/OpenHoldemEngine/issues/338)
+[#338](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/338)
 
 **Already in v1.0:**
 
@@ -56,7 +56,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 - Lift the cap in `HoldemEngineOptionsBuilder.WithSettings` (throws above 6)
 - `HoldemEngineSettings.GamePlayersMaxCount` docs
-- `[Range(2, 6)]` in `OpenHoldemEngine.AspNetCore/HoldemEngineHostOptions.cs`
+- `[Range(2, 6)]` in `TabletopCardEngine.AspNetCore/HoldemEngineHostOptions.cs`
 - The demo's `DemoGameDefaults.MaxPlayers`
 - The 2–6 dropdown in `GameSetup.razor`
 - The demo's PHH replay then accepts 7+ player hands
@@ -68,7 +68,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## Hand history export (PHH)
 
-[#339](https://github.com/miekhra/OpenHoldemEngine/issues/339)
+[#339](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/339)
 
 **Already in v1.0:**
 
@@ -87,7 +87,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## Rebuy, buy-in and kick-off
 
-[#340](https://github.com/miekhra/OpenHoldemEngine/issues/340)
+[#340](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/340)
 
 **Already in v1.0:**
 
@@ -109,7 +109,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## Pot-Limit and Fixed-Limit
 
-[#341](https://github.com/miekhra/OpenHoldemEngine/issues/341)
+[#341](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/341)
 
 **Already in v1.0:**
 
@@ -132,7 +132,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 ## Tournaments: antes and blind levels, then SNG, then MTT
 
-[#342](https://github.com/miekhra/OpenHoldemEngine/issues/342)
+[#342](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/342)
 
 **Already in v1.0:**
 

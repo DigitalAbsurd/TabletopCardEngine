@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **v1 scope:** No-Limit Hold'em cash games, 2 to 6 seats, no antes, no rake. Features outside v1 are tracked in [docs/roadmap.md](https://github.com/miekhra/OpenHoldemEngine/blob/main/docs/roadmap.md) for later releases.
+        **v1 scope:** No-Limit Hold'em cash games, 2 to 6 seats, no antes, no rake. Features outside v1 are tracked in [docs/roadmap.md](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/roadmap.md) for later releases.
   - type: textarea
     id: problem
     attributes:

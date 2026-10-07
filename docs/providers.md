@@ -6,16 +6,16 @@ The engine supports four database providers through EF Core, each in its own pac
 
 | Provider | Package | Registration call | Connection string example | Migrations |
 |---|---|---|---|---|
-| SQLite | `OpenHoldemEngine.Sqlite` | `UseHoldemSqlite(string)` or `UseHoldemSqlite(DbConnection)` | `Data Source=holdem.db` | yes |
-| PostgreSQL | `OpenHoldemEngine.PostgreSql` | `UseHoldemPostgreSql(string)` or `UseHoldemPostgreSql(DbDataSource)` | `Host=localhost;Port=5432;Database=holdem;Username=user;Password=pass` | yes |
-| SQL Server | `OpenHoldemEngine.SqlServer` | `UseHoldemSqlServer(string)` or `UseHoldemSqlServer(DbConnection)` | `Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True` | yes |
-| EF Core InMemory | `OpenHoldemEngine.InMemory` | `UseHoldemInMemory(string databaseName)` | N/A (database name only) | created on `MigrateAsync` |
+| SQLite | `TabletopCardEngine.Sqlite` | `UseHoldemSqlite(string)` or `UseHoldemSqlite(DbConnection)` | `Data Source=holdem.db` | yes |
+| PostgreSQL | `TabletopCardEngine.PostgreSql` | `UseHoldemPostgreSql(string)` or `UseHoldemPostgreSql(DbDataSource)` | `Host=localhost;Port=5432;Database=holdem;Username=user;Password=pass` | yes |
+| SQL Server | `TabletopCardEngine.SqlServer` | `UseHoldemSqlServer(string)` or `UseHoldemSqlServer(DbConnection)` | `Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True` | yes |
+| EF Core InMemory | `TabletopCardEngine.InMemory` | `UseHoldemInMemory(string databaseName)` | N/A (database name only) | created on `MigrateAsync` |
 
-Any other EF Core provider is rejected by `IHoldemSchemaManager` with `HoldemSchemaException(UnsupportedProvider)`. The core `OpenHoldemEngine` package references no database provider, so a consumer of any one provider never restores packages from the others.
+Any other EF Core provider is rejected by `IHoldemSchemaManager` with `HoldemSchemaException(UnsupportedProvider)`. The core `TabletopCardEngine` package references no database provider, so a consumer of any one provider never restores packages from the others.
 
 ## SQLite
 
-SQLite is suitable for development, prototypes, and small deployments. Use `OpenHoldemEngine.Sqlite` and call either overload:
+SQLite is suitable for development, prototypes, and small deployments. Use `TabletopCardEngine.Sqlite` and call either overload:
 
 ```csharp
 // File-based database
@@ -42,7 +42,7 @@ services.AddHoldemEngine(o => o.UseHoldemSqlite(connection));
 
 ## PostgreSQL
 
-PostgreSQL is suitable for production deployments. Use `OpenHoldemEngine.PostgreSql` and call either overload:
+PostgreSQL is suitable for production deployments. Use `TabletopCardEngine.PostgreSql` and call either overload:
 
 ```csharp
 // Connection string (single connection, no pooling)
@@ -55,7 +55,7 @@ services.AddHoldemEngine(o => o.UseHoldemPostgreSql(dataSource));
 
 ### What bites with PostgreSQL
 
-**Namespace.** Add `using OpenHoldemEngine.PostgreSql;` to your code.
+**Namespace.** Add `using TabletopCardEngine.PostgreSql;` to your code.
 
 **Schema.** All tables live in the schema `ohe`, and the migration history table is `ohe.__OheMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
 
@@ -63,7 +63,7 @@ services.AddHoldemEngine(o => o.UseHoldemPostgreSql(dataSource));
 
 ## SQL Server
 
-SQL Server is suitable for production deployments. Use `OpenHoldemEngine.SqlServer` and call either overload:
+SQL Server is suitable for production deployments. Use `TabletopCardEngine.SqlServer` and call either overload:
 
 ```csharp
 // Connection string (single connection, no pooling)
@@ -76,7 +76,7 @@ services.AddHoldemEngine(o => o.UseHoldemSqlServer(connection));
 
 ### What bites with SQL Server
 
-**Namespace.** Add `using OpenHoldemEngine.SqlServer;` to your code.
+**Namespace.** Add `using TabletopCardEngine.SqlServer;` to your code.
 
 **Schema.** All tables live in the schema `ohe`, and the migration history table is `ohe.__OheMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
 
@@ -86,7 +86,7 @@ services.AddHoldemEngine(o => o.UseHoldemSqlServer(connection));
 
 ## EF Core InMemory
 
-InMemory is suitable for prototyping, testing, and isolated unit testing, **not for production**. Use `OpenHoldemEngine.InMemory`:
+InMemory is suitable for prototyping, testing, and isolated unit testing, **not for production**. Use `TabletopCardEngine.InMemory`:
 
 ```csharp
 services.AddHoldemEngine(o => o.UseHoldemInMemory("my-store"));
