@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <Description>Entity Framework Core in-memory provider for TabletopCardEngine, for tests and prototypes rather than production.</Description>
     <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>

@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <Description>ASP.NET Core integration for TabletopCardEngine: registers the engine in a host and exposes it over HTTP with schema health checks and a REST API.</Description>
     <!-- Public API documentation is mandatory: CS1591 -> error via TreatWarningsAsErrors. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
