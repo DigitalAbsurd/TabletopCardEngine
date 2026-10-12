@@ -9,10 +9,10 @@ Install the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.
 ```bash
 dotnet new console -n HoldemQuickStart
 cd HoldemQuickStart
-dotnet add package TabletopCardEngine.Sqlite --prerelease
+dotnet add package TabletopCardEngine.InMemory --prerelease
 ```
 
-The SQLite package brings the core package with it.
+The InMemory package brings the core package with it.
 
 ## Program.cs
 
@@ -20,10 +20,10 @@ The SQLite package brings the core package with it.
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
 using TabletopCardEngine.Dto;
-using TabletopCardEngine.Sqlite;
+using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();
-services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
+services.AddHoldemEngine(db => db.UseHoldemInMemory("holdem"));
 using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the schema once, at start-up.
@@ -87,9 +87,9 @@ Bob: 2d ah, Full house, +2
 
 ## What just happened
 
-**Registration and the provider package.** The service collection creates the dependency injection container, `AddHoldemEngine` wires up the core library, and `UseHoldemSqlite` configures SQLite as the database. The SQLite package brings the core with it, so only one `dotnet add package` is needed.
+**Registration and the provider package.** The service collection creates the dependency injection container, `AddHoldemEngine` wires up the core library, and `UseHoldemInMemory` keeps the database in the process's memory, under the store name `holdem`. The InMemory package brings the core with it and has no native dependencies, so only one `dotnet add package` is needed and it runs on any platform .NET runs on. It suits trying the engine out, tests and demos; for data that must outlive the process, switch to the SQLite, PostgreSQL or SQL Server package (see [Database providers](providers.md)).
 
-**The schema.** `IHoldemSchemaManager.MigrateAsync()` creates or upgrades the database schema once, at start-up. The `holdem.db` file holds the schema and the game data. If you run the program again, it reuses the same database.
+**The schema.** `IHoldemSchemaManager.MigrateAsync()` creates or upgrades the database schema once, at start-up. On InMemory it simply creates the store; on a relational provider it applies the package's migrations. The in-memory store lives only as long as the process, so every run starts from an empty database.
 
 **Creating a game.** `HoldemAction.CreateGame` creates a new game with the blinds and player count. In this example, a heads-up game with 1/2 blinds. The `GameData` returned holds the game ID and other details.
 

@@ -38,19 +38,19 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10
 ```bash
 dotnet new console -n HoldemQuickStart
 cd HoldemQuickStart
-dotnet add package TabletopCardEngine.Sqlite --prerelease
+dotnet add package TabletopCardEngine.InMemory --prerelease
 ```
 
-The SQLite package brings the core package with it. Replace the generated `Program.cs` with:
+The InMemory package brings the core package with it. Replace the generated `Program.cs` with:
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
 using TabletopCardEngine.Dto;
-using TabletopCardEngine.Sqlite;
+using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();
-services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
+services.AddHoldemEngine(db => db.UseHoldemInMemory("holdem"));
 using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the schema once, at start-up.
