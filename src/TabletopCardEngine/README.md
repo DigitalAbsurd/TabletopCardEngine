@@ -21,7 +21,8 @@ Here's a minimal example that creates a game, starts a hand, and plays it to the
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Sqlite;
 
 var services = new ServiceCollection();

@@ -40,14 +40,14 @@ For traces, add the activity source:
 
 ```csharp
 services.AddOpenTelemetry().WithTracing(tracing => 
-    tracing.AddSource(HoldemEngineTelemetry.ActivitySourceName));
+    tracing.AddSource(TabletopCardEngineTelemetry.ActivitySourceName));
 ```
 
 For metrics, add the meter:
 
 ```csharp
 services.AddOpenTelemetry().WithMetrics(metrics => 
-    metrics.AddMeter(HoldemEngineTelemetry.MeterName));
+    metrics.AddMeter(TabletopCardEngineTelemetry.MeterName));
 ```
 
 **Logs:** The engine logs through `ILogger<HoldemEngine>`. When no `ILoggerFactory` is registered in the container, the engine logs nothing (it does not create its own factory).
@@ -134,7 +134,7 @@ These diagnostics names form the engine's public contract.
 - Event ID numbers, log method names, and EventId values from `HoldemEngineLog` are fixed and stable.
 - Span names, tag names, and tag value meanings from `HoldemEngineActivity` are fixed and stable.
 - Instrument names, units, tag names, and tag value meanings are fixed and stable.
-- The activity source name (`HoldemEngineTelemetry.ActivitySourceName`) and meter name (`HoldemEngineTelemetry.MeterName`) are fixed and stable.
+- The activity source name (`TabletopCardEngineTelemetry.ActivitySourceName`) and meter name (`TabletopCardEngineTelemetry.MeterName`) are fixed and stable.
 
 **Breaking changes:** Renaming or removing a log event, a span tag, or an instrument, or changing an EventId number, a tag's meaning, or a unit is a breaking change equivalent to a CP diagnostic on `dotnet pack`. Removing a tag value or adding to unbounded cardinality is also a breaking change.
 

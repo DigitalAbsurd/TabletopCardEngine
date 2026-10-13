@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using TabletopCardEngine.Demo.Services;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Components.Table;
 

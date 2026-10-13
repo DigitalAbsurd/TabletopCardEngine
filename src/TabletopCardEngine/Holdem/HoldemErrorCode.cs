@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// Machine-readable reason an action was rejected. The numeric values are part of the contract:

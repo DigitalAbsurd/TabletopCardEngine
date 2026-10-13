@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// The outcome of one engine call: a value on success, or the errors that rejected the action.

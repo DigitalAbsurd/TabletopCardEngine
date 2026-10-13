@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// What <see cref="IHoldemSchemaManager.GetSchemaStatusAsync"/> found. Two statuses read from the

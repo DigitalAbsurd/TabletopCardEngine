@@ -11,6 +11,7 @@ Register the engine with SQLite and create or migrate the schema at startup:
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Sqlite;
 
 var services = new ServiceCollection();

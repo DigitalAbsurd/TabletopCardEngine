@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// What the hand's ledger records for one action. It is <see cref="PlayerActionType"/> plus the two

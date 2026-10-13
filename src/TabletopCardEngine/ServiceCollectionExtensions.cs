@@ -5,7 +5,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Diagnostics.Metrics;
 using TabletopCardEngine.Data;
 using TabletopCardEngine.Diagnostics;
-using TabletopCardEngine.Options;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Options;
 
 namespace TabletopCardEngine;
 

@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using System.Text;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Services;
 
@@ -55,7 +55,8 @@ public sealed class EngineCallSnippetWriter
         // Using directives
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
         sb.AppendLine("using TabletopCardEngine;");
-        sb.AppendLine("using TabletopCardEngine.Dto;");
+        sb.AppendLine("using TabletopCardEngine.Holdem;");
+        sb.AppendLine("using TabletopCardEngine.Holdem.Dto;");
         sb.AppendLine("using TabletopCardEngine.Sqlite;");
         sb.AppendLine();
 

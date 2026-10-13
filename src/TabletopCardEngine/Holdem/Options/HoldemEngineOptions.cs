@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TabletopCardEngine.Data;
 
-namespace TabletopCardEngine.Options;
+namespace TabletopCardEngine.Holdem.Options;
 
 /// <summary>
 /// The engine's resolved configuration. Every <c>AddHoldemEngine</c> call creates its own instance

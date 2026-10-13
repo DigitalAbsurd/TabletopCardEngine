@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine.Options;
+﻿namespace TabletopCardEngine.Holdem.Options;
 
 /// <summary>
 /// Configures the engine from <c>ServiceCollectionExtensions.AddHoldemEngine</c>.

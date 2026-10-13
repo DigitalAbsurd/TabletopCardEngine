@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Data;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Data;
 
 /// <summary>
 /// Records the schema version and engine version that created this database. The engine writes one

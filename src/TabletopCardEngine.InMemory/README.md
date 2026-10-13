@@ -11,6 +11,7 @@ Register the engine with an in-memory store. The string is a unique name for the
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();

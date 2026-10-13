@@ -3,13 +3,13 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using TabletopCardEngine.Data;
 using TabletopCardEngine.Diagnostics;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Options;
 using TabletopCardEngine.HoldemActionHandlers;
 using TabletopCardEngine.Mappers;
-using TabletopCardEngine.Options;
 using TabletopCardEngine.Resources;
 
-namespace TabletopCardEngine;
+namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// The single entry point for game commands: every game action goes through <see cref="ApplyHoldemActionAsync"/>.

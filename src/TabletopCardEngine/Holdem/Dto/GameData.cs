@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine.Dto;
+﻿namespace TabletopCardEngine.Holdem.Dto;
 
 /// <summary>A single action a seat has taken, as recorded in the hand's ledger.</summary>
 /// <param name="Street">The street the action was taken on.</param>

@@ -3,7 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using TabletopCardEngine.Diagnostics;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Tests;
 
@@ -130,11 +131,11 @@ public sealed class TracingTests
 
         using var listener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == HoldemEngineTelemetry.ActivitySourceName || source.Name == "Microsoft.EntityFrameworkCore",
+            ShouldListenTo = source => source.Name == TabletopCardEngineTelemetry.ActivitySourceName || source.Name == "Microsoft.EntityFrameworkCore",
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
-                if (activity.Source.Name == HoldemEngineTelemetry.ActivitySourceName)
+                if (activity.Source.Name == TabletopCardEngineTelemetry.ActivitySourceName)
                 {
                     engineSpanOperationName = activity.OperationName;
                 }
@@ -184,7 +185,7 @@ public sealed class TracingTests
         var activities = new List<Activity>();
         using var listener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == HoldemEngineTelemetry.ActivitySourceName,
+            ShouldListenTo = source => source.Name == TabletopCardEngineTelemetry.ActivitySourceName,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
@@ -285,7 +286,7 @@ public sealed class TracingTests
 
         var listener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == HoldemEngineTelemetry.ActivitySourceName,
+            ShouldListenTo = source => source.Name == TabletopCardEngineTelemetry.ActivitySourceName,
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {

@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Engine;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Engine;
 
 /// <summary>
 /// Runs the betting rules over a <see cref="HandTable"/>: starting a hand and applying one player

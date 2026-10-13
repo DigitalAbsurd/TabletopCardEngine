@@ -11,6 +11,7 @@ Register the engine with SQL Server. Note the `TrustServerCertificate=True` flag
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.SqlServer;
 
 var services = new ServiceCollection();

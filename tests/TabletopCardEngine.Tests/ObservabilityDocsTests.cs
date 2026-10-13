@@ -9,7 +9,7 @@ namespace TabletopCardEngine.Tests;
 
 /// <summary>
 /// Keeps <c>docs/observability.md</c> in step with the diagnostics code. Every log event,
-/// span tag, and metric instrument defined in <c>Diagnostics/</c> and <c>HoldemEngineTelemetry</c>
+/// span tag, and metric instrument defined in <c>Diagnostics/</c> and <c>TabletopCardEngineTelemetry</c>
 /// must be documented. Event IDs and names are part of the public contract.
 /// </summary>
 [TestClass]
@@ -128,7 +128,7 @@ public sealed partial class ObservabilityDocsTests
     public void ObservabilityDocs_ContainsActivitySourceName()
     {
         var doc = ReadObservabilityDoc();
-        doc.Should().Contain(HoldemEngineTelemetry.ActivitySourceName,
+        doc.Should().Contain(TabletopCardEngineTelemetry.ActivitySourceName,
             "ActivitySourceName must appear verbatim in docs/observability.md");
     }
 
@@ -136,7 +136,7 @@ public sealed partial class ObservabilityDocsTests
     public void ObservabilityDocs_ContainsMeterName()
     {
         var doc = ReadObservabilityDoc();
-        doc.Should().Contain(HoldemEngineTelemetry.MeterName,
+        doc.Should().Contain(TabletopCardEngineTelemetry.MeterName,
             "MeterName must appear verbatim in docs/observability.md");
     }
 
@@ -167,7 +167,7 @@ public sealed partial class ObservabilityDocsTests
         var listener = new MeterListener();
         listener.InstrumentPublished += (instrument, listener) =>
         {
-            if (instrument.Meter.Name == HoldemEngineTelemetry.MeterName)
+            if (instrument.Meter.Name == TabletopCardEngineTelemetry.MeterName)
             {
                 listener.EnableMeasurementEvents(instrument);
                 instruments.Add((instrument.Name, instrument.Unit));

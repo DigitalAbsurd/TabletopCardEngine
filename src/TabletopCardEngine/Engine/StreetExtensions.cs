@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Engine;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Engine;
 
 /// <summary>
 /// <see cref="Street"/>'s values encode the number of community cards on the board (<c>Flop = 3</c>,

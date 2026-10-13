@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine.Dto;
+﻿namespace TabletopCardEngine.Holdem.Dto;
 
 /// <summary>
 /// The one command type the engine accepts. Which concrete record you pass decides which handler

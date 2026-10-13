@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using TabletopCardEngine.Demo.Services;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Tests;
 
@@ -169,7 +170,8 @@ public sealed class EngineCallSnippetWriter_Tests
         // Assert
         snippet.Should().Contain("using Microsoft.Extensions.DependencyInjection;");
         snippet.Should().Contain("using TabletopCardEngine;");
-        snippet.Should().Contain("using TabletopCardEngine.Dto;");
+        snippet.Should().Contain("using TabletopCardEngine.Holdem;");
+        snippet.Should().Contain("using TabletopCardEngine.Holdem.Dto;");
         snippet.Should().Contain("using TabletopCardEngine.Sqlite;");
         snippet.Should().NotContain("using TabletopCardEngine.Data;");
         snippet.Should().Contain("var services = new ServiceCollection();");

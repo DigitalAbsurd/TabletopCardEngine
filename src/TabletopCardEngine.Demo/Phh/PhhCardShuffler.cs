@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Demo.Phh;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Demo.Phh;
 
 /// <summary>
 /// Supplies pre-determined cards from a PHH hand history, implementing <see cref="ICardShuffler"/>

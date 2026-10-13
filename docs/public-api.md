@@ -147,12 +147,6 @@ declaration, and package validation checks them all the same.
 
 ### `TabletopCardEngine`
 
-#### `BettingStructure` (enum)
-
-How bets and raises are sized in a game.
-
-- `NoLimit = 1` — No-Limit: any bet or raise from the minimum up to the whole stack.
-
 #### `Card : IParsable<Card>` (record)
 
 One playing card.
@@ -190,6 +184,27 @@ A card's rank.
 - `Jack = 11` — Jack.
 - `Queen = 12` — Queen.
 - `King = 13` — King.
+
+#### `ServiceCollectionExtensions` (static class)
+
+Registers the engine and its database context with a dependency-injection container.
+
+- `static IServiceCollection AddHoldemEngine(IServiceCollection services, Action<DbContextOptionsBuilder> dbOptionsAction, Action<HoldemEngineOptionsBuilder>? configure = null)` — Registers `HoldemEngine` as a singleton over an EF Core context factory.
+
+#### `TabletopCardEngineTelemetry` (static class)
+
+The telemetry sources declared by the Holdem engine for OpenTelemetry hosts.
+
+- `const string ActivitySourceName` — The name of the `ActivitySource` the engine publishes to.
+- `const string MeterName` — The name of the `Meter` the engine publishes to.
+
+### `TabletopCardEngine.Holdem`
+
+#### `BettingStructure` (enum)
+
+How bets and raises are sized in a game.
+
+- `NoLimit = 1` — No-Limit: any bet or raise from the minimum up to the whole stack.
 
 #### `GameType` (enum)
 
@@ -230,13 +245,6 @@ The display category of a made hand, ascending in strength.
 The single entry point for game commands: every game action goes through `ApplyHoldemActionAsync`.
 
 - `Task<HoldemResult<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)` — Applies one action to a game and returns the game as it now stands.
-
-#### `HoldemEngineTelemetry` (static class)
-
-The telemetry sources declared by the Holdem engine for OpenTelemetry hosts.
-
-- `const string ActivitySourceName` — The name of the `ActivitySource` the engine publishes to.
-- `const string MeterName` — The name of the `Meter` the engine publishes to.
 
 #### `HoldemError` (sealed record)
 
@@ -338,12 +346,6 @@ What a caller may ask a seat to do.
 - `Bet = 8` — An opening wager on a street where nothing has been bet.
 - `AllIn = 9` — Puts the seat's whole stack in: a call when the stack does not exceed the amount to call, otherwise a raise to the full stack.
 
-#### `ServiceCollectionExtensions` (static class)
-
-Registers the engine and its database context with a dependency-injection container.
-
-- `static IServiceCollection AddHoldemEngine(IServiceCollection services, Action<DbContextOptionsBuilder> dbOptionsAction, Action<HoldemEngineOptionsBuilder>? configure = null)` — Registers `HoldemEngine` as a singleton over an EF Core context factory.
-
 #### `Street` (enum)
 
 A betting round.
@@ -355,7 +357,7 @@ A betting round.
 - `Showdown = 6` — Betting is over and the remaining hands are compared.
 - `Finished = 7` — The hand is settled and the pot has been paid out.
 
-### `TabletopCardEngine.Dto`
+### `TabletopCardEngine.Holdem.Dto`
 
 #### `GameData` (record)
 
@@ -512,7 +514,7 @@ One seat as it stands in the current hand.
 - `bool IsFolded { get; }` — Whether the seat has folded out of the hand.
 - `bool IsAllIn { get; }` — Whether the seat has committed its whole stack.
 
-### `TabletopCardEngine.Options`
+### `TabletopCardEngine.Holdem.Options`
 
 #### `HoldemEngineOptionsBuilder` (sealed class)
 

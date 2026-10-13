@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TabletopCardEngine.Demo.Engine;
 using TabletopCardEngine.Demo.Services;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.Demo;
 

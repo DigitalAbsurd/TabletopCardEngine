@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Engine;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Engine;
 
 /// <summary>
 /// One entry in a seat's betting record for the street in progress.

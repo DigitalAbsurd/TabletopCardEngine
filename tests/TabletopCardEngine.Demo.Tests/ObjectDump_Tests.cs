@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using TabletopCardEngine.Demo.Services;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Tests;
 
@@ -17,7 +18,7 @@ public sealed class ObjectDump_Tests
     [DataRow(42, "42", "Int32 (System)")]
     [DataRow(true, "true", "Boolean (System)")]
     [DataRow("abc", "\"abc\"", "String (System)")]
-    [DataRow(PlayerActionType.Raise, "Raise", "PlayerActionType (TabletopCardEngine)")]
+    [DataRow(PlayerActionType.Raise, "Raise", "PlayerActionType (TabletopCardEngine.Holdem)")]
     public void Create_Scalar_ShowsTheValueAndHasNoChildren(object value, string expectedValue, string expectedType)
     {
         // Act
@@ -45,7 +46,7 @@ public sealed class ObjectDump_Tests
         var node = ObjectDump.Create("hand", null, typeof(HandData));
 
         node.Value.Should().Be("null");
-        node.TypeName.Should().Be("HandData (TabletopCardEngine.Dto)");
+        node.TypeName.Should().Be("HandData (TabletopCardEngine.Holdem.Dto)");
         node.HasChildren.Should().BeFalse();
     }
 
@@ -96,7 +97,7 @@ public sealed class ObjectDump_Tests
     [TestMethod]
     public void FormatTypeName_GenericTypes_AreFriendly()
     {
-        ObjectDump.FormatTypeName(typeof(HoldemResult<GameData>)).Should().Be("HoldemResult<GameData> (TabletopCardEngine)");
+        ObjectDump.FormatTypeName(typeof(HoldemResult<GameData>)).Should().Be("HoldemResult<GameData> (TabletopCardEngine.Holdem)");
         ObjectDump.FormatTypeName(typeof(List<HoldemError>)).Should().Be("List<HoldemError> (System.Collections.Generic)");
         ObjectDump.FormatTypeName(typeof(decimal?)).Should().Be("Decimal? (System)");
     }
@@ -131,7 +132,7 @@ public sealed class ObjectDump_Tests
         var node = ObjectDump.Create("result", result, typeof(HoldemResult<GameData>));
 
         // Assert
-        node.TypeName.Should().Be("HoldemResult<GameData> (TabletopCardEngine)");
+        node.TypeName.Should().Be("HoldemResult<GameData> (TabletopCardEngine.Holdem)");
         node.Value.Should().StartWith("{ ");
         var seats = node.Children.Single(child => child.Name == "Value")
             .Children.Single(child => child.Name == "HandData")

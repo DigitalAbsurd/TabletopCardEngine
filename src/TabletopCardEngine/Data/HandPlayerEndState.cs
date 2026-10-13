@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Data;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Data;
 
 internal class HandPlayerEndState
 {

@@ -3,7 +3,7 @@
 /// <summary>
 /// The telemetry sources declared by the Holdem engine for OpenTelemetry hosts.
 /// </summary>
-public static class HoldemEngineTelemetry
+public static class TabletopCardEngineTelemetry
 {
     /// <summary>
     /// The name of the <see cref="System.Diagnostics.ActivitySource"/> the engine publishes to.

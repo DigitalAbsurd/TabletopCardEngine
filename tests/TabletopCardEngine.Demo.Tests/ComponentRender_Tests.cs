@@ -14,7 +14,8 @@ using TabletopCardEngine.Demo.Engine;
 using TabletopCardEngine.Demo.Layout;
 using TabletopCardEngine.Demo.Phh;
 using TabletopCardEngine.Demo.Services;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Sqlite;
 
 namespace TabletopCardEngine.Demo.Tests;
@@ -1230,7 +1231,7 @@ public sealed class ComponentRender_Tests
         var rows = dump.QuerySelectorAll("tbody tr");
         rows[0].QuerySelector(".dump-name-text")!.TextContent.Should().Be("result");
         rows[0].QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ ");
-        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("HoldemResult<GameData> (TabletopCardEngine)");
+        rows[0].QuerySelector(".dump-type")!.TextContent.Should().Be("HoldemResult<GameData> (TabletopCardEngine.Holdem)");
         var valueRow = rows.Single(row => row.QuerySelector(".dump-name-text")!.TextContent == "Value");
         valueRow.QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ GameId = ");
 

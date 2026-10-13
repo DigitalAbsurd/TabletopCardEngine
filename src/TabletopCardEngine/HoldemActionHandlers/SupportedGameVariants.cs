@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.HoldemActionHandlers;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.HoldemActionHandlers;
 
 /// <summary>
 /// The one table of supported <see cref="GameType"/> and <see cref="BettingStructure"/> combinations.

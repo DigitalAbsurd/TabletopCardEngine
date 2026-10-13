@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.AspNetCore.Http;
 

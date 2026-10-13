@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>How bets and raises are sized in a game.</summary>
 public enum BettingStructure : byte

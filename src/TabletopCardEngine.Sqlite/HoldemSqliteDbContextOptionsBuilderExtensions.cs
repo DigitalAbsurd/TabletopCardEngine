@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Data.Common;
 using TabletopCardEngine.Data;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.Sqlite;
 

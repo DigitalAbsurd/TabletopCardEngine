@@ -5,7 +5,8 @@ using OpenTelemetry.Trace;
 using System.Diagnostics;
 using System.Text.Json;
 using TabletopCardEngine.Diagnostics;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.OpenTelemetry;
 
 namespace TabletopCardEngine.Tests;

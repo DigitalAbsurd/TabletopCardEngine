@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using TabletopCardEngine.AspNetCore.Json;
-using TabletopCardEngine.Options;
+using TabletopCardEngine.Holdem.Options;
 
 namespace TabletopCardEngine.AspNetCore;
 

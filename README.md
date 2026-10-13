@@ -46,7 +46,8 @@ The InMemory package brings the core package with it. Replace the generated `Pro
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();

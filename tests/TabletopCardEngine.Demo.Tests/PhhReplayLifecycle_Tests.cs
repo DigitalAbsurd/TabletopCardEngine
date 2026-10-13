@@ -4,7 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Demo.Engine;
 using TabletopCardEngine.Demo.Phh;
 using TabletopCardEngine.Demo.Services;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Sqlite;
 
 namespace TabletopCardEngine.Demo.Tests;

@@ -6,9 +6,10 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using TabletopCardEngine.AspNetCore.Json;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Options;
 using TabletopCardEngine.InMemory;
-using TabletopCardEngine.Options;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
 

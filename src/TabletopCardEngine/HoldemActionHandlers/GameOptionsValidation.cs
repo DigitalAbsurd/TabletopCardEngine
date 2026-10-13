@@ -1,5 +1,6 @@
-﻿using TabletopCardEngine.Dto;
-using TabletopCardEngine.Options;
+﻿using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Options;
 using TabletopCardEngine.Resources;
 
 namespace TabletopCardEngine.HoldemActionHandlers;
