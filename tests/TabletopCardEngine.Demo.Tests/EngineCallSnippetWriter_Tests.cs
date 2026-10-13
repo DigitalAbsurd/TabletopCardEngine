@@ -173,7 +173,7 @@ public sealed class EngineCallSnippetWriter_Tests
         snippet.Should().Contain("using TabletopCardEngine.Holdem;");
         snippet.Should().Contain("using TabletopCardEngine.Holdem.Dto;");
         snippet.Should().Contain("using TabletopCardEngine.Sqlite;");
-        snippet.Should().NotContain("using TabletopCardEngine.Data;");
+        snippet.Should().NotContain("using TabletopCardEngine.Holdem.Data;");
         snippet.Should().Contain("var services = new ServiceCollection();");
         snippet.Should().Contain("services.AddTabletopCardEngine(tce => tce.AddHoldem(");
         snippet.Should().Contain("    configure: null));");

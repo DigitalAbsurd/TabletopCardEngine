@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
-using TabletopCardEngine.Data;
-using TabletopCardEngine.HoldemActionHandlers;
+using TabletopCardEngine.Holdem.ActionHandlers;
+using TabletopCardEngine.Holdem.Data;
 
 namespace TabletopCardEngine.Tests;
 

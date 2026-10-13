@@ -4,8 +4,8 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
 using System.Text.Json;
-using TabletopCardEngine.Diagnostics;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.OpenTelemetry;
 
@@ -51,9 +51,9 @@ public sealed class OpenTelemetryPackageTests
         meterProvider.ForceFlush();
 
         spans
-            .Where(activity => activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+            .Where(activity => activity.GetTagItem(HoldemActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
             .Select(activity => activity.DisplayName)
-            .Should().Equal(HoldemEngineActivity.Name, HoldemEngineActivity.Name);
+            .Should().Equal(HoldemActivity.Name, HoldemActivity.Name);
 
         metrics.Select(metric => metric.Name).Should().Contain(["tabletopcardengine.actions", "tabletopcardengine.action.duration"]);
     }
@@ -77,9 +77,9 @@ public sealed class OpenTelemetryPackageTests
         tracerProvider.Dispose();
 
         exported
-            .Where(activity => activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+            .Where(activity => activity.GetTagItem(HoldemActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
             .Select(activity => activity.DisplayName)
-            .Should().Equal(HoldemEngineActivity.Name, HoldemEngineActivity.Name);
+            .Should().Equal(HoldemActivity.Name, HoldemActivity.Name);
     }
 
     [TestMethod]

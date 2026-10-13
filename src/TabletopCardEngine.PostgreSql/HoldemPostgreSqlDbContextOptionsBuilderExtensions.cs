@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using System.Data.Common;
-using TabletopCardEngine.Data;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 
 namespace TabletopCardEngine.PostgreSql;
 

@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using TabletopCardEngine.Data;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Tests;

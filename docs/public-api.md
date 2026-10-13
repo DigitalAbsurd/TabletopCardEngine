@@ -1,7 +1,7 @@
 # Public API
 
 This is the reviewable inventory of what `TabletopCardEngine.dll` exposes. Everything else in the
-assembly (`Data/`, `Engine/`, `Mappers/`, `HoldemActionHandlers/`) is `internal`; the tests and the
+assembly (`Holdem/Data/`, `Holdem/Engine/`, `Holdem/Mappers/`, `Holdem/ActionHandlers/`) is `internal`; the tests and the
 demo reach it through `InternalsVisibleTo`, which package validation ignores.
 
 ## How the baseline is enforced

@@ -1,9 +1,9 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using TabletopCardEngine.Data;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.ActionHandlers;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Dto;
-using TabletopCardEngine.HoldemActionHandlers;
 
 namespace TabletopCardEngine.Tests;
 

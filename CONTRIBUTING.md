@@ -61,7 +61,7 @@ Quote the summary line of that run (total, passed, failed, skipped) in the pull 
 A task that touches specific areas needs additional tests:
 
 - **Provider matrix** (PostgreSQL and SQL Server in Docker):
-  - Changes to `src/TabletopCardEngine/Data/`, relational provider packages, persistence tests, the server, or `scripts/add-migration.ps1`
+  - Changes to `src/TabletopCardEngine/Holdem/Data/`, relational provider packages, persistence tests, the server, or `scripts/add-migration.ps1`
   - ```
     TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
     TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"

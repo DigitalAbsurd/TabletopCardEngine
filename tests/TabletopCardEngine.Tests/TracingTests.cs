@@ -2,8 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using TabletopCardEngine.Diagnostics;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Tests;
@@ -29,8 +29,8 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.ActionTypeTag).Should().Be("CreateGame");
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Success");
+        activity.GetTagItem(HoldemActivity.ActionTypeTag).Should().Be("CreateGame");
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Success");
     }
 
     [TestMethod]
@@ -45,8 +45,8 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.ActionTypeTag).Should().Be("GetGame");
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Success");
+        activity.GetTagItem(HoldemActivity.ActionTypeTag).Should().Be("GetGame");
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Success");
     }
 
     [TestMethod]
@@ -61,10 +61,10 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.ActionTypeTag).Should().Be("StartGame");
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Success");
-        activity.GetTagItem(HoldemEngineActivity.HandNumberTag).Should().Be(1);
-        activity.GetTagItem(HoldemEngineActivity.StreetTag).Should().Be(Street.PreFlop.ToString());
+        activity.GetTagItem(HoldemActivity.ActionTypeTag).Should().Be("StartGame");
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Success");
+        activity.GetTagItem(HoldemActivity.HandNumberTag).Should().Be(1);
+        activity.GetTagItem(HoldemActivity.StreetTag).Should().Be(Street.PreFlop.ToString());
     }
 
     [TestMethod]
@@ -80,11 +80,11 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.ActionTypeTag).Should().Be("Play");
-        activity.GetTagItem(HoldemEngineActivity.PlayerActionTypeTag).Should().Be(PlayerActionType.Fold.ToString());
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Success");
-        activity.GetTagItem(HoldemEngineActivity.HandNumberTag).Should().Be(1);
-        activity.GetTagItem(HoldemEngineActivity.StreetTag).Should().Be(Street.Finished.ToString());
+        activity.GetTagItem(HoldemActivity.ActionTypeTag).Should().Be("Play");
+        activity.GetTagItem(HoldemActivity.PlayerActionTypeTag).Should().Be(PlayerActionType.Fold.ToString());
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Success");
+        activity.GetTagItem(HoldemActivity.HandNumberTag).Should().Be(1);
+        activity.GetTagItem(HoldemActivity.StreetTag).Should().Be(Street.Finished.ToString());
     }
 
     [TestMethod]
@@ -99,9 +99,9 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeFalse();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.ActionTypeTag).Should().Be("StartHand");
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Failure");
-        activity.GetTagItem(HoldemEngineActivity.ErrorCodeTag).Should().Be(HoldemErrorCode.GameNotStarted.ToString());
+        activity.GetTagItem(HoldemActivity.ActionTypeTag).Should().Be("StartHand");
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Failure");
+        activity.GetTagItem(HoldemActivity.ErrorCodeTag).Should().Be(HoldemErrorCode.GameNotStarted.ToString());
         activity.Status.Should().Be(ActivityStatusCode.Unset);
     }
 
@@ -117,8 +117,8 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeFalse();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Failure");
-        activity.GetTagItem(HoldemEngineActivity.ErrorCodeTag).Should().Be(HoldemErrorCode.Conflict.ToString());
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Failure");
+        activity.GetTagItem(HoldemActivity.ErrorCodeTag).Should().Be(HoldemErrorCode.Conflict.ToString());
         activity.Status.Should().Be(ActivityStatusCode.Unset);
     }
 
@@ -189,7 +189,7 @@ public sealed class TracingTests
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
-                if (activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+                if (activity.GetTagItem(HoldemActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
                 {
                     activities.Add(activity);
                 }
@@ -209,7 +209,7 @@ public sealed class TracingTests
 
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
         activity.Status.Should().Be(ActivityStatusCode.Error);
-        activity.GetTagItem(HoldemEngineActivity.OutcomeTag).Should().Be("Exception");
+        activity.GetTagItem(HoldemActivity.OutcomeTag).Should().Be("Exception");
         activity.Events.Should().Contain(e => e.Name == "exception");
     }
 
@@ -248,7 +248,7 @@ public sealed class TracingTests
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
-        activity.GetTagItem(HoldemEngineActivity.HandNumberTag).Should().BeNull();
+        activity.GetTagItem(HoldemActivity.HandNumberTag).Should().BeNull();
     }
 
     [TestMethod]
@@ -263,7 +263,7 @@ public sealed class TracingTests
 
         var operationNames = activities.Select(a => a.OperationName).ToList();
         operationNames.Should().HaveCount(3);
-        operationNames.Should().AllBe(HoldemEngineActivity.Name);
+        operationNames.Should().AllBe(HoldemActivity.Name);
     }
 
     private sealed class DiagnosticObserver(Action<KeyValuePair<string, object?>> onNext) : IObserver<KeyValuePair<string, object?>>
@@ -290,7 +290,7 @@ public sealed class TracingTests
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
-                if (activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+                if (activity.GetTagItem(HoldemActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
                 {
                     activitiesList.Add(activity);
                 }
@@ -322,7 +322,7 @@ public sealed class TracingTests
     /// <summary>Return all activities for a specific game, filtered by game.id tag.</summary>
     private static List<Activity> ActivitiesFor(Guid gameId, IEnumerable<Activity> activities)
         => activities
-            .Where(activity => activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+            .Where(activity => activity.GetTagItem(HoldemActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
             .ToList();
 
     private static async Task ApplyAsync(IHoldemTable engine, HoldemAction action)

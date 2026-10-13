@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using TabletopCardEngine.Mappers;
+using TabletopCardEngine.Holdem.Mappers;
 
 namespace TabletopCardEngine.Tests;
 

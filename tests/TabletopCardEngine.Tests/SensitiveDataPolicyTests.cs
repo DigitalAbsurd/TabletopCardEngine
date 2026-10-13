@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using System.Reflection;
-using TabletopCardEngine.Diagnostics;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Tests;
@@ -25,7 +25,7 @@ public sealed class SensitiveDataPolicyTests
     [TestMethod]
     public void LoggerMessages_CarryCardsOnlyAtTrace()
     {
-        var cardEventMethods = typeof(HoldemEngineLog)
+        var cardEventMethods = typeof(HoldemLog)
             .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .Where(method => method.GetCustomAttribute<LoggerMessageAttribute>() is not null)
             .Where(method =>

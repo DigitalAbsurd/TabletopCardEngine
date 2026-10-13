@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
 using System.Reflection;
-using TabletopCardEngine.Diagnostics;
+using TabletopCardEngine.Holdem.Diagnostics;
 
 namespace TabletopCardEngine.Tests;
 
@@ -29,8 +29,8 @@ public sealed partial class ObservabilityDocsTests
         var logsEnd = doc.IndexOf("\n## ", logsStart + 1, StringComparison.Ordinal);
         var logsSection = logsEnd < 0 ? doc[logsStart..] : doc[logsStart..logsEnd];
 
-        // Get all LoggerMessage methods from HoldemEngineLog
-        var logMethods = typeof(HoldemEngineLog)
+        // Get all LoggerMessage methods from HoldemLog
+        var logMethods = typeof(HoldemLog)
             .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
             .Where(m => m.GetCustomAttribute<LoggerMessageAttribute>() is not null)
             .ToList();
@@ -71,8 +71,8 @@ public sealed partial class ObservabilityDocsTests
         var tracesEnd = doc.IndexOf("\n## ", tracesStart + 1, StringComparison.Ordinal);
         var tracesSection = tracesEnd < 0 ? doc[tracesStart..] : doc[tracesStart..tracesEnd];
 
-        // Get all tag name constants from HoldemEngineActivity
-        var tagConstants = typeof(HoldemEngineActivity)
+        // Get all tag name constants from HoldemActivity
+        var tagConstants = typeof(HoldemActivity)
             .GetFields(BindingFlags.Static | BindingFlags.NonPublic)
             .Where(f => f.Name.EndsWith("Tag", StringComparison.Ordinal) && f.FieldType == typeof(string))
             .Select(f => (string)f.GetValue(null)!)
@@ -144,7 +144,7 @@ public sealed partial class ObservabilityDocsTests
     public void ObservabilityDocs_ContainsSpanName()
     {
         var doc = ReadObservabilityDoc();
-        doc.Should().Contain(HoldemEngineActivity.Name,
+        doc.Should().Contain(HoldemActivity.Name,
             "Span name must appear verbatim in docs/observability.md");
     }
 
@@ -180,7 +180,7 @@ public sealed partial class ObservabilityDocsTests
         {
             // Create the engine which will create the meter and instruments
             var meterFactory = new TestMeterFactory();
-            var metrics = HoldemEngineMetrics.CreateOrGetFallback(meterFactory);
+            var metrics = HoldemMetrics.CreateOrGetFallback(meterFactory);
 
             // Force the listener to process published instruments by creating a recording
             Thread.Sleep(100);

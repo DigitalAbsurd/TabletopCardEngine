@@ -1,8 +1,8 @@
 ﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using TabletopCardEngine.Data;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Options;
 using TabletopCardEngine.Sqlite;
 using TabletopCardEngine.Tests.Persistence;

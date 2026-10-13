@@ -7,8 +7,8 @@ using OpenTelemetry;
 using OpenTelemetry.Trace;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using TabletopCardEngine.Diagnostics;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.OpenTelemetry;
 
@@ -142,7 +142,7 @@ public sealed class TelemetryLeakTests
         tracerProvider.Dispose();
 
         var spans = exported
-            .Where(activity => activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
+            .Where(activity => activity.GetTagItem(HoldemActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
             .ToList();
 
         // EF Core logs through the same factory; its categories are the host's configuration, not the engine's.
