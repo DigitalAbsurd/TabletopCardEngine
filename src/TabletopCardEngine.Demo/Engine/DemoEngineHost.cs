@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using TabletopCardEngine.Demo.Phh;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Sqlite;
 
 namespace TabletopCardEngine.Demo.Engine;
@@ -20,15 +21,15 @@ internal static class DemoEngineHost
     /// </summary>
     /// <param name="services">The service collection to register services with.</param>
     /// <returns>The SQLite connection, which must be kept alive for the duration of the app.</returns>
-    internal static SqliteConnection ConfigureHoldemEngine(IServiceCollection services)
+    internal static SqliteConnection ConfigureHoldem(IServiceCollection services)
     {
         var keepAliveConnection = new SqliteConnection("DataSource=:memory:");
         keepAliveConnection.Open();
 
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseHoldemSqlite(keepAliveConnection),
             configure: _ => { }
-        );
+        ));
 
         // One shuffler for the whole tab: the replay controller registers decks with the same
         // instance the replay engine reads them from.

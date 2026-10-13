@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Supplies pre-determined cards instead of a real shuffle, which is what makes replaying a
-/// recorded hand history possible. Register one with <c>HoldemEngineOptionsBuilder.WithCardShuffler</c>;
+/// recorded hand history possible. Register one with <c>HoldemOptionsBuilder.WithCardShuffler</c>;
 /// leave it unregistered and every deck is drawn at random, excluding the cards already in play.
 /// <para>
 /// Both methods are keyed by hand number, so a single implementation can serve a whole multi-hand

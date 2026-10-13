@@ -16,7 +16,7 @@ using TabletopCardEngine.SqlServer;
 
 var services = new ServiceCollection();
 var connectionString = "Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True";
-services.AddHoldemEngine(db => db.UseHoldemSqlServer(connectionString));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemSqlServer(connectionString)));
 using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the database schema

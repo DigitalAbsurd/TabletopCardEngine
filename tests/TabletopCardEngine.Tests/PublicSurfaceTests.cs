@@ -22,7 +22,7 @@ public sealed class PublicSurfaceTests
         typeof(IHoldemTable).IsInterface.Should().BeTrue("consumers must be able to substitute the table in their tests");
 
         var services = new ServiceCollection();
-        services.AddHoldemEngine(opts => opts.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(opts => opts.UseHoldemInMemory(Guid.NewGuid().ToString("N"))));
         using var provider = services.BuildServiceProvider();
 
         var table = provider.GetRequiredService<IHoldemTable>();
@@ -73,10 +73,10 @@ public sealed class PublicSurfaceTests
     }
 
     [TestMethod]
-    public void HoldemEngineOptions_IsNotPublic()
+    public void HoldemOptions_IsNotPublic()
     {
-        typeof(HoldemEngineOptions).IsPublic.Should().BeFalse(
-            "HoldemEngineOptions is an implementation detail and must not be part of the public API");
+        typeof(HoldemOptions).IsPublic.Should().BeFalse(
+            "HoldemOptions is an implementation detail and must not be part of the public API");
     }
 
     [TestMethod]

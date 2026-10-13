@@ -16,13 +16,13 @@ namespace TabletopCardEngine.Holdem;
 /// </summary>
 internal sealed class HoldemTable : IHoldemTable
 {
-    private readonly HoldemEngineOptions _options;
+    private readonly HoldemOptions _options;
     private readonly ILogger<HoldemTable> _logger;
     private readonly HoldemEngineMetrics _metrics;
     private readonly HoldemSchemaManager _schemaManager;
     private volatile bool _schemaChecked;
 
-    internal HoldemTable(HoldemEngineOptions options, ILogger<HoldemTable> logger, HoldemEngineMetrics metrics, HoldemSchemaManager schemaManager)
+    internal HoldemTable(HoldemOptions options, ILogger<HoldemTable> logger, HoldemEngineMetrics metrics, HoldemSchemaManager schemaManager)
     {
         _options = options;
         _logger = logger;

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using TabletopCardEngine.AspNetCore.Json;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Options;
 
 namespace TabletopCardEngine.AspNetCore;
@@ -12,7 +13,7 @@ namespace TabletopCardEngine.AspNetCore;
 public static class HoldemEngineHostingServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the engine like <see cref="ServiceCollectionExtensions.AddHoldemEngine(IServiceCollection, Action{DbContextOptionsBuilder}, Action{HoldemEngineOptionsBuilder}?)"/>,
+    /// Registers the engine like <c>services.AddTabletopCardEngine(tce =&gt; tce.AddHoldem(dbOptionsAction, configure))</c>,
     /// and takes its settings from a configuration section bound to <see cref="HoldemEngineHostOptions"/>.
     /// <para>
     /// The database stays in code: the package references no provider, so the host passes
@@ -36,7 +37,7 @@ public static class HoldemEngineHostingServiceCollectionExtensions
     public static IServiceCollection AddHoldemEngine(this IServiceCollection services,
         IConfiguration configuration,
         Action<DbContextOptionsBuilder> dbOptionsAction,
-        Action<HoldemEngineOptionsBuilder>? configure = null)
+        Action<HoldemOptionsBuilder>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -47,7 +48,7 @@ public static class HoldemEngineHostingServiceCollectionExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        ServiceCollectionExtensions.AddHoldemEngine(services, dbOptionsAction, configure);
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(dbOptionsAction, configure));
 
         services.ConfigureHttpJsonOptions(o => HoldemJson.AddConverters(o.SerializerOptions.Converters));
 
@@ -55,12 +56,12 @@ public static class HoldemEngineHostingServiceCollectionExtensions
 
         // Keep the instance the core's configure already wrote into (the card shuffler), and apply
         // the bound settings to it when the engine's options are first resolved.
-        var descriptor = services.Single(d => d.ServiceType == typeof(HoldemEngineOptions));
-        var instance = (HoldemEngineOptions)descriptor.ImplementationInstance!;
+        var descriptor = services.Single(d => d.ServiceType == typeof(HoldemOptions));
+        var instance = (HoldemOptions)descriptor.ImplementationInstance!;
         services.Replace(ServiceDescriptor.Singleton(sp =>
         {
             var bound = sp.GetRequiredService<IOptions<HoldemEngineHostOptions>>().Value;
-            new HoldemEngineOptionsBuilder(instance).WithSettings(s =>
+            new HoldemOptionsBuilder(instance).WithSettings(s =>
             {
                 s.GamePlayersMinCount = bound.GamePlayersMinCount;
                 s.GamePlayersMaxCount = bound.GamePlayersMaxCount;

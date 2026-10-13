@@ -33,7 +33,7 @@ internal static class TestEngineHost
     internal static DisposableTestData Setup(out IHoldemTable holdemEngine,
         out IDbContextFactory<HoldemDbContext> contextFactory,
         ICardShuffler? shuffler = null,
-        Action<HoldemEngineSettings>? configureSettings = null,
+        Action<HoldemSettings>? configureSettings = null,
         Action<HoldemDbContext>? seedAction = null,
         Action<IServiceCollection>? configureServices = null,
         TestDatabaseKind database = TestDatabaseKind.Sqlite)
@@ -57,7 +57,7 @@ internal static class TestEngineHost
         }
 
         IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts =>
             {
 #if DEBUG
@@ -92,7 +92,7 @@ internal static class TestEngineHost
                     opts.WithCardShuffler(shuffler);
                 }
             }
-            );
+            ));
         configureServices?.Invoke(services);
         var serviceProvider = services.BuildServiceProvider();
         keepAliveConnection?.Open();

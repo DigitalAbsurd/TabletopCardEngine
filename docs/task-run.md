@@ -383,7 +383,7 @@ renumber.
     `Check`, `Call`, `Raise`, `Bet`, `AllIn`): the action the caller *requested*, plus the two blinds.
 13. **`HandAction` is the ledger.** `Amount` is a seat's cumulative wager for the street, `AddAmount`
     the increment, `Size` the requested size. Composite primary key `(GameId, HandNo, No, SeatNo)`.
-14. *Retired by #137:* each `AddHoldemEngine` call registers its own `HoldemEngineOptions` in its
+14. *Retired by #137:* each `AddHoldem` call registers its own `HoldemOptions` in its
     container, so the demo hosts a play engine and a `DemoReplayEngine` side by side over one connection.
 15. **`ICardShuffler.GetDeckCardsAsync` is called again before every street change**, so an
     implementation must be idempotent within a hand.
@@ -455,7 +455,7 @@ renumber.
     `Play` returns `InvalidAction = 4` when `Size` has more than two decimal places. Amounts
     (`InitialSmallBlind`, `BuyInAmount`, `Size`) have at most two decimal places, and a player's `Name` is
     1 to 64 characters (`AmountRules`).
-    `HoldemEngineOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
+    `HoldemOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
     with a minimum below 2, a maximum above 6 or a minimum above the maximum: a configuration error, not a
     game result. `GameOptionData` has no positional constructor; build it with an object initializer.
 24. **`Game.Version` is the concurrency token, and `Conflict = 11` reports a lost race.** `CreateGame`

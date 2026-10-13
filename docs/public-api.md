@@ -185,11 +185,17 @@ A card's rank.
 - `Queen = 12` — Queen.
 - `King = 13` — King.
 
-#### `ServiceCollectionExtensions` (static class)
+#### `TabletopCardEngineBuilder` (sealed class)
 
-Registers the engine and its database context with a dependency-injection container.
+The engine's registration, handed to the delegate of `AddTabletopCardEngine`.
 
-- `static IServiceCollection AddHoldemEngine(IServiceCollection services, Action<DbContextOptionsBuilder> dbOptionsAction, Action<HoldemEngineOptionsBuilder>? configure = null)` — Registers `IHoldemTable` as a singleton over an EF Core context factory.
+- `IServiceCollection Services { get; }` — The container the games are registered into.
+
+#### `TabletopCardEngineServiceCollectionExtensions` (static class)
+
+Registers the engine with a dependency-injection container.
+
+- `static IServiceCollection AddTabletopCardEngine(IServiceCollection services, Action<TabletopCardEngineBuilder> configure)` — Registers the engine, naming the engine first and each game second: `services.AddTabletopCardEngine(tce => tce.AddHoldem(...))`.
 
 #### `TabletopCardEngineTelemetry` (static class)
 
@@ -239,6 +245,12 @@ The display category of a made hand, ascending in strength.
 - `FullHouse = 7` — Three of a kind plus a pair.
 - `FourOfAKind = 8` — Four of a kind.
 - `StraightFlush = 9` — Five suited cards in sequence.
+
+#### `HoldemBuilderExtensions` (static class)
+
+Adds Texas Hold'em to the engine's registration.
+
+- `static TabletopCardEngineBuilder AddHoldem(TabletopCardEngineBuilder builder, Action<DbContextOptionsBuilder> dbOptionsAction, Action<HoldemOptionsBuilder>? configure = null)` — Registers `IHoldemTable` as a singleton over an EF Core context factory.
 
 #### `HoldemError` (sealed record)
 
@@ -516,18 +528,18 @@ One seat as it stands in the current hand.
 
 ### `TabletopCardEngine.Holdem.Options`
 
-#### `HoldemEngineOptionsBuilder` (sealed class)
+#### `HoldemOptionsBuilder` (sealed class)
 
-Configures the engine from `ServiceCollectionExtensions.AddHoldemEngine`.
+Configures the engine from `HoldemBuilderExtensions.AddHoldem`.
 
-- `HoldemEngineOptionsBuilder WithSettings(Action<HoldemEngineSettings> configureSettings)` — Adjusts the validation limits applied to every game.
-- `HoldemEngineOptionsBuilder WithCardShuffler(ICardShuffler cardShuffler)` — Replaces the random shuffle with pre-determined cards, which is what makes replaying a recorded hand history possible.
+- `HoldemOptionsBuilder WithSettings(Action<HoldemSettings> configureSettings)` — Adjusts the validation limits applied to every game.
+- `HoldemOptionsBuilder WithCardShuffler(ICardShuffler cardShuffler)` — Replaces the random shuffle with pre-determined cards, which is what makes replaying a recorded hand history possible.
 
-#### `HoldemEngineSettings` (sealed class)
+#### `HoldemSettings` (sealed class)
 
 Validation limits applied to every game the engine runs.
 
-- `HoldemEngineSettings()` — The implicit parameterless constructor, for object initializers.
+- `HoldemSettings()` — The implicit parameterless constructor, for object initializers.
 - `int GamePlayersMinCount { get; set; }` — Fewest seats a hand may be dealt to.
 - `int GamePlayersMaxCount { get; set; }` — Most seats a hand may be dealt to.
 - `bool EnableSensitiveCardLogging { get; set; }` — When `true`, the engine logs every seat's hole cards and the board at Trace level.

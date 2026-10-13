@@ -26,7 +26,7 @@ using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Sqlite;
 
 var services = new ServiceCollection();
-services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemSqlite("Data Source=holdem.db")));
 using var provider = services.BuildServiceProvider();
 
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();

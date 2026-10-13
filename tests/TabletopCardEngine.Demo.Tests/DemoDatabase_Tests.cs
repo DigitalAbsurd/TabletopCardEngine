@@ -18,9 +18,9 @@ public sealed class DemoDatabase_Tests
     private static ServiceProvider BuildServices(SqliteConnection connection)
     {
         var services = new ServiceCollection();
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
-            configure: _ => { });
+            configure: _ => { }));
         services.AddSingleton(connection);
         services.AddScoped<SqliteBrowser>();
         services.AddScoped<DemoDatabase>();

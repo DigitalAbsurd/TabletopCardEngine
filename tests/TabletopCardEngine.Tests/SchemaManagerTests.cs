@@ -152,10 +152,10 @@ public sealed class SchemaManagerTests
     {
         var keepAliveConnection = new SqliteConnection("DataSource=:memory:");
         IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseSqlite(keepAliveConnection),
             configure: _ => { }
-        );
+        ));
         var serviceProvider = services.BuildServiceProvider();
         keepAliveConnection.Open();
         using var dbContext = serviceProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>().CreateDbContext();

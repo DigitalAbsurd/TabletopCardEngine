@@ -6,7 +6,7 @@ using TabletopCardEngine.Resources;
 
 namespace TabletopCardEngine.HoldemActionHandlers;
 
-internal sealed class CreateGameActionHandler(HoldemEngineSettings settings) : HoldemActionHandler<HoldemActionCreateGame>
+internal sealed class CreateGameActionHandler(HoldemSettings settings) : HoldemActionHandler<HoldemActionCreateGame>
 {
     internal override Task<HoldemError?> ImplementHandleAsync(HoldemActionCreateGame startGameActionData, Game game, CancellationToken cancellationToken)
     {

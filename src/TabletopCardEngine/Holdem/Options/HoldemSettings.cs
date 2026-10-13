@@ -1,7 +1,7 @@
 ﻿namespace TabletopCardEngine.Holdem.Options;
 
 /// <summary>Validation limits applied to every game the engine runs.</summary>
-public sealed class HoldemEngineSettings
+public sealed class HoldemSettings
 {
     /// <summary>Fewest seats a hand may be dealt to. Within 2 to 6 in this release; <c>WithSettings</c> throws outside that range.</summary>
     public int GamePlayersMinCount { get; set; } = 2;

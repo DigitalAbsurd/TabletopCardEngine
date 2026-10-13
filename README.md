@@ -51,7 +51,7 @@ using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();
-services.AddHoldemEngine(db => db.UseHoldemInMemory("holdem"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemInMemory("holdem")));
 using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the schema once, at start-up.

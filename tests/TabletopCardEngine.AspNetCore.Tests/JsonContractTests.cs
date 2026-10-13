@@ -163,7 +163,7 @@ public sealed class JsonContractTests
         marker.Should().NotBeNull("HoldemEngineApiMarker should be registered");
     }
 
-    private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemEngineOptionsBuilder>? configure)
+    private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemOptionsBuilder>? configure)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:" + p.Key, p => p.Value));
