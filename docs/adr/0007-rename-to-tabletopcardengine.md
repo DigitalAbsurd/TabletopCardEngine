@@ -1,6 +1,6 @@
 # ADR-0007: Rename to TabletopCardEngine
 
-- **Status:** Accepted
+- **Status:** Accepted; §3 and the "no other" clause of §4 superseded by [ADR-0008](0008-harmonize-the-public-api.md)
 - **Date:** 2026-10-06
 - **Issue:** [#389](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/389), milestone
   `v1.0 · Rename to TabletopCardEngine`

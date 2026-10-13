@@ -76,3 +76,4 @@ nav:
           - adr/0005-container-host-and-images.md
           - adr/0006-documentation-site.md
           - adr/0007-rename-to-tabletopcardengine.md
+          - adr/0008-harmonize-the-public-api.md
