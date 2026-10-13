@@ -29,6 +29,18 @@ The host registers a hosted service that runs the migration during application s
 
 The container images (SQLite, PostgreSQL, and SQL Server targets) do this by default.
 
+## Where the tables are
+
+Hold'em keeps its tables apart from the host's and from another game's:
+
+| Provider | Tables | Migration history |
+|---|---|---|
+| PostgreSQL, SQL Server | in the schema `tce_holdem` | `tce_holdem.__TceMigrationsHistory` |
+| SQLite | named with the prefix `tce_holdem_` | `tce_holdem___TceMigrationsHistory` |
+| InMemory | no schema, no prefix | none |
+
+Each provider package ships its migrations under `Migrations/Holdem/`. See [Persistence](persistence.md#where-the-engines-tables-live) for the details.
+
 ## Checking the schema without changing it
 
 Call `GetSchemaStatusAsync` to inspect the schema's state without making any changes:

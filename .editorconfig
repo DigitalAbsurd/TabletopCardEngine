@@ -377,7 +377,7 @@ generated_code = true
 
 # EF Core migrations and model snapshots of the provider packages. They are dotnet ef scaffolder
 # output, regenerated rather than edited, so the style and quality analyzers do not apply to them.
-[src/TabletopCardEngine.*/Migrations/*.cs]
+[src/TabletopCardEngine.*/Migrations/**.cs]
 generated_code = true
 # IDE0005 is the one style rule that still reports in generated code, and the scaffolder always
 # writes `using System;` whether or not the migration needs it.

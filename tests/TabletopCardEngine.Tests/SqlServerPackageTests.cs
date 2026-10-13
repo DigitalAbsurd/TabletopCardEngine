@@ -11,7 +11,7 @@ using TabletopCardEngine.SqlServer;
 namespace TabletopCardEngine.Tests;
 
 /// <summary>
-/// The <c>TabletopCardEngine.SqlServer</c> package: its migrations create the schema in the <c>tce</c>
+/// The <c>TabletopCardEngine.SqlServer</c> package: its migrations create the schema in the <c>tce_holdem</c>
 /// schema through <see cref="IHoldemSchemaManager.MigrateAsync"/>, agree with the model, keep their
 /// history in the engine's own table in that schema, and bring no other database driver along. The
 /// model does not leak into SQLite or PostgreSQL after a SQL Server context is built in the same test.
@@ -36,7 +36,7 @@ public sealed class SqlServerPackageTests
             .Options;
 
         await using var context = new HoldemDbContext(options);
-        context.Model.GetDefaultSchema().Should().Be("tce");
+        context.Model.GetDefaultSchema().Should().Be(HoldemSchema.DatabaseSchema);
 
         var gameEntity = context.Model.FindEntityType(typeof(Game))!;
         gameEntity.FindProperty("InitialSmallBlind")!.GetColumnType().Should().Be("decimal(18,2)");
@@ -66,7 +66,7 @@ public sealed class SqlServerPackageTests
     {
         var migrationAssembly = typeof(HoldemSqlServerDbContextOptionsBuilderExtensions).Assembly;
         var migrationTypes = migrationAssembly.GetTypes()
-            .Where(t => t.Namespace == "TabletopCardEngine.SqlServer.Migrations" && typeof(Migration).IsAssignableFrom(t))
+            .Where(t => t.Namespace == "TabletopCardEngine.SqlServer.Migrations.Holdem" && typeof(Migration).IsAssignableFrom(t))
             .ToList();
 
         migrationTypes.Should().NotBeEmpty("migrations must be generated for the SQL Server provider");
@@ -87,7 +87,7 @@ public sealed class SqlServerPackageTests
             .Options;
 
         using var sqlServerContext = new HoldemDbContext(sqlServerOptions);
-        sqlServerContext.Model.GetDefaultSchema().Should().Be("tce");
+        sqlServerContext.Model.GetDefaultSchema().Should().Be(HoldemSchema.DatabaseSchema);
 
         var sqliteOptions = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemSqlite(":memory:")
@@ -105,14 +105,14 @@ public sealed class SqlServerPackageTests
             .Options;
 
         using var sqlServerContext = new HoldemDbContext(sqlServerOptions);
-        sqlServerContext.Model.GetDefaultSchema().Should().Be("tce");
+        sqlServerContext.Model.GetDefaultSchema().Should().Be(HoldemSchema.DatabaseSchema);
 
         var postgresOptions = new DbContextOptionsBuilder<HoldemDbContext>()
             .UseHoldemPostgreSql("Host=localhost;Database=unused")
             .Options;
 
         using var postgresContext = new HoldemDbContext(postgresOptions);
-        postgresContext.Model.GetDefaultSchema().Should().Be("tce");
+        postgresContext.Model.GetDefaultSchema().Should().Be(HoldemSchema.DatabaseSchema);
     }
 
     [TestMethod]

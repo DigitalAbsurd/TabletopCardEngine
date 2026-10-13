@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Demo.Services;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Sqlite;
 
 namespace TabletopCardEngine.Demo.Tests;
@@ -39,9 +40,9 @@ public sealed class SqliteBrowser_Tests
 
         // Assert
         tableNames.Should().NotBeEmpty();
-        tableNames.Should().Contain("Game");
-        tableNames.Should().Contain("Hand");
-        tableNames.Should().Contain("HandAction");
+        tableNames.Should().Contain(HoldemSchema.SqliteTablePrefix + "Game");
+        tableNames.Should().Contain(HoldemSchema.SqliteTablePrefix + "Hand");
+        tableNames.Should().Contain(HoldemSchema.SqliteTablePrefix + "HandAction");
 
         connection.Dispose();
     }

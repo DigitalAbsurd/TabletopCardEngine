@@ -259,8 +259,10 @@ These fail the build, or fail review, for reasons that are not obvious from the 
   pasting its tables over the inventory. A vendored asset has no nuspec, so it needs its row in the
   notices by hand. The PostgreSQL License and SNI runtime are documented in ADR-0003.
 - **The schema comes from per-provider migrations.** Each `TabletopCardEngine.<Provider>` package
-  (so far `TabletopCardEngine.Sqlite`) carries `Migrations/` generated from
-  `HoldemDbContext.OnModelCreating`, applied by `IHoldemSchemaManager.MigrateAsync`. An entity
+  (so far `TabletopCardEngine.Sqlite`) carries `Migrations/Holdem/` generated from
+  `HoldemDbContext.OnModelCreating` by `scripts/add-migration.ps1`, applied by
+  `IHoldemSchemaManager.MigrateAsync`. Hold'em's tables are in the schema `tce_holdem` on PostgreSQL
+  and SQL Server, and named `tce_holdem_*` on SQLite, which has no schemas. An entity
   shape change needs the model configuration updated by hand **and** a migration for every
   provider, under the rules in [docs/persistence.md](persistence.md);
   `Sqlite_MigratedSchema_HasNoPendingModelChanges` fails when the model and the snapshot disagree.
@@ -501,7 +503,7 @@ renumber.
     `HoldemSchemaException(UnsupportedProvider)`. On a relational provider, `MigrateAsync` needs the
     migrations of the provider's `TabletopCardEngine.*` package and fails with `MigrationsNotFound` under
     plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`. The database's version
-    is the single row of `__TceSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
+    is the single row of `__TceSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`; the table is `tce_holdem.__TceSchema` on PostgreSQL and SQL Server and `tce_holdem___TceSchema` on SQLite.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
     <br>Each `IHoldemTable` checks `__TceSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
 28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`tce_<guid>`), and only under `TCE_TEST_CONTAINERS=1`; the `providers` job is their gate.**

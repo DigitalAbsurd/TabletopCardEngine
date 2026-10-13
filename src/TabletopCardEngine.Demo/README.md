@@ -149,7 +149,7 @@ Cold-start latency is dominated by:
 - Creates and opens a kept-alive `SqliteConnection` with `DataSource=:memory:`
 - Registers it with dependency injection as both the EF Core provider (`UseHoldemSqlite(connection)`) and a singleton for direct access
 - Does not create the schema: `Program.Main` builds the host, awaits `IHoldemSchemaManager.MigrateAsync()` once for both engines, then runs it. `TabletopCardEngine.Sqlite` is a trimmer root in the project file, because EF finds its migrations by reflection and a trimmed publish would otherwise arrive with none
-- The inspector therefore also lists `__TceMigrationsHistory` and `__TceSchema`, which "New Game" does not clear
+- The inspector lists the engine's tables under their SQLite names, `tce_holdem_Game`, `tce_holdem_Hand` and so on, and therefore also `tce_holdem___TceMigrationsHistory`, `tce_holdem___TceSchema` and EF's `__EFMigrationsLock`, which "New Game" does not clear
 - Registers a second engine, `DemoReplayEngine`, in a container of its own with the `PhhCardShuffler` installed, over the same connection. `DemoGameSession` switches to it for a replay and back to the play engine afterwards, since engine options belong to the container and are never reconfigured in place
 
 The kept-alive connection is critical: without it, each new `DbContext` instance would see an empty in-memory SQLite database (each connection has its own in-memory database).

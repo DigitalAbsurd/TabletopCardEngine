@@ -30,6 +30,8 @@ services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite(conne
 
 ### What bites with SQLite
 
+**Table names.** SQLite has no schemas, so every Hold'em table name starts with `tce_holdem_` instead: `tce_holdem_Game`, `tce_holdem_Hand`, and so on. The migration history table is `tce_holdem___TceMigrationsHistory`. EF Core adds its own migration lock table, `__EFMigrationsLock`.
+
 **In-memory databases require an open connection.** A plain `UseSqlite(":memory:")` call alone is not enough: EF Core's SQLite provider looks for migrations in the core assembly, which has none, and `MigrateAsync` fails with `HoldemSchemaFailure.MigrationsNotFound`. Instead, pass a `DbConnection` you hold open:
 
 ```csharp
@@ -57,7 +59,7 @@ services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemPostgreSql(d
 
 **Namespace.** Add `using TabletopCardEngine.PostgreSql;` to your code.
 
-**Schema.** All tables live in the schema `tce`, and the migration history table is `tce.__TceMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
+**Schema.** All Hold'em tables live in the schema `tce_holdem`, and the migration history table is `tce_holdem.__TceMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
 
 **Licences.** The Npgsql package carries the PostgreSQL License. See [ADR-0003](adr/0003-database-provider-licences.md) for the licence terms and the decision to accept it.
 
@@ -78,7 +80,7 @@ services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlServer(co
 
 **Namespace.** Add `using TabletopCardEngine.SqlServer;` to your code.
 
-**Schema.** All tables live in the schema `tce`, and the migration history table is `tce.__TceMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
+**Schema.** All Hold'em tables live in the schema `tce_holdem`, and the migration history table is `tce_holdem.__TceMigrationsHistory`. It is recommended to dedicate a database or at least a login to the engine.
 
 **Self-signed certificates require `TrustServerCertificate=True`.** The `Microsoft.Data.SqlClient` library encrypts connections by default. Most container SQL Server images use self-signed certificates, which fail validation without `TrustServerCertificate=True` in the connection string. If your SQL Server uses a proper certificate, you can omit this flag. Never disable SSL altogether; the flag only skips certificate validation.
 

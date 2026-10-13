@@ -167,7 +167,7 @@ public sealed class ProviderSchemaTests
             .ToListAsync();
 
         tables.Where(table => table.Schema == HoldemSchema.DatabaseSchema).Select(table => table.Name)
-            .Should().Contain(["Game", "__TceSchema", HoldemSchema.MigrationsHistoryTable]);
+            .Should().Contain(["Game", HoldemSchema.SchemaTable, HoldemSchema.MigrationsHistoryTable]);
 
         // The database is this test's own, so anything in the default schema could only be the engine's.
         tables.Where(table => table.Schema == defaultSchema).Should().BeEmpty();
