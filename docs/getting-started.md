@@ -29,36 +29,36 @@ using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the schema once, at start-up.
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-var engine = provider.GetRequiredService<IHoldemTable>();
+var table = provider.GetRequiredService<IHoldemTable>();
 
 // A heads-up game: blinds 1/2, two players with 100 each.
-var created = await engine.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
+var created = await table.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
 {
     MaxPlayersCount = 2,
     InitialSmallBlind = 1,
 }));
-var gameId = created.Value.GameId;
+var gameId = created.Value!.GameId;
 
 // StartGame seats the players, deals hand 1 and posts the blinds.
-var game = (await engine.ApplyAsync(HoldemAction.StartGame(gameId,
+var game = (await table.ApplyAsync(HoldemAction.StartGame(gameId,
 [
     new PlayerJoinData("Alice", 1, 100),
     new PlayerJoinData("Bob", 2, 100),
-]))).Value;
+]))).Value!;
 
 // Play the hand to the end: check when allowed, otherwise call.
 while (game.HandData!.NextPlayerSeatNo != 0)
 {
     var canCheck = game.HandData.Evaluations.Any(e => e.PlayerActionType == PlayerActionType.Check);
     var action = canCheck ? PlayerActionType.Check : PlayerActionType.Call;
-    var result = await engine.ApplyAsync(HoldemAction.Play(gameId, action));
+    var result = await table.ApplyAsync(HoldemAction.Play(gameId, action));
     if (!result.IsSuccess)
     {
         Console.WriteLine(result.Errors[0].Message);
         return 1;
     }
 
-    game = result.Value;
+    game = result.Value!;
 }
 
 Console.WriteLine($"Board: {string.Join(" ", game.HandData.CommunityCards)}");
