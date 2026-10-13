@@ -5,12 +5,18 @@ using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Holdem.Options;
 using TabletopCardEngine.InMemory;
+using TabletopCardEngine.OpenTelemetry;
+using TabletopCardEngine.PostgreSql;
+using TabletopCardEngine.Sqlite;
+using TabletopCardEngine.SqlServer;
 
 namespace TabletopCardEngine.Tests;
 
 /// <summary>
 /// Verifies that the public API surface complies with the 1.0 design: <see cref="IHoldemTable"/>
 /// is a public interface whose implementation is internal and resolvable only through dependency injection.
+/// The root namespace holds only game-agnostic types, each game lives in <c>TabletopCardEngine.&lt;Game&gt;</c>,
+/// and the retired engine-named API (ADR-0008) is kept out.
 /// </summary>
 [TestClass]
 public sealed class PublicSurfaceTests
@@ -112,5 +118,51 @@ public sealed class PublicSurfaceTests
 
             startResult.IsSuccess.Should().BeTrue("starting a hand should succeed");
         }
+    }
+
+    [TestMethod]
+    public void RootNamespace_HoldsOnlyTheGameAgnosticTypes()
+    {
+        var rootTypes = typeof(IHoldemTable).Assembly.GetExportedTypes()
+            .Where(type => type.Namespace == "TabletopCardEngine")
+            .Select(type => type.Name)
+            .ToList();
+
+        var expected = new[] { "Card", "CardSuit", "CardType", "TabletopCardEngineBuilder", "TabletopCardEngineServiceCollectionExtensions", "TabletopCardEngineTelemetry" };
+        rootTypes.Should().BeEquivalentTo(expected, "the root namespace holds only game-agnostic types; game-specific types live in TabletopCardEngine.<Game>");
+    }
+
+    [TestMethod]
+    public void PublicTypes_LiveInTheRootOrAGameNamespace()
+    {
+        var offenders = typeof(IHoldemTable).Assembly.GetExportedTypes()
+            .Where(type => type.Namespace != "TabletopCardEngine" && !type.Namespace!.StartsWith("TabletopCardEngine.Holdem", StringComparison.Ordinal))
+            .Select(type => type.FullName)
+            .ToList();
+
+        offenders.Should().BeEmpty("every exported type must be in the root TabletopCardEngine namespace or under TabletopCardEngine.Holdem");
+    }
+
+    [TestMethod]
+    public void PublicTypes_DoNotNameTheEngineAfterAGame()
+    {
+        var assemblies = new[]
+        {
+            typeof(IHoldemTable).Assembly,
+            typeof(TabletopCardEngineInstrumentationExtensions).Assembly,
+            typeof(HoldemSqliteDbContextOptionsBuilderExtensions).Assembly,
+            typeof(HoldemPostgreSqlDbContextOptionsBuilderExtensions).Assembly,
+            typeof(HoldemSqlServerDbContextOptionsBuilderExtensions).Assembly,
+            typeof(HoldemInMemoryDbContextOptionsBuilderExtensions).Assembly,
+        };
+
+        var retiredEngineName = "Holdem" + "Engine";
+        var offenders = assemblies
+            .SelectMany(assembly => assembly.GetExportedTypes())
+            .Where(type => type.Name.Contains(retiredEngineName, StringComparison.Ordinal))
+            .Select(type => type.FullName)
+            .ToList();
+
+        offenders.Should().BeEmpty("no exported type name in the core or provider packages must contain the retired engine-named API (ADR-0008)");
     }
 }
