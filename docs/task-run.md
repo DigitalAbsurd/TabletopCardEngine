@@ -104,10 +104,10 @@ TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests
 
 ```powershell
 docker run --rm -v "${PWD}:/docs" squidfunk/mkdocs-material:9.7.7 build --strict --site-dir /tmp/site
-git grep -nE "\]\([^)]*(task-run|tasks-planning)\.md" -- 'docs/*.md' 'docs/**/*.md' ':!docs/task-run.md' ':!docs/tasks-planning.md'
+git grep -nE "\]\([^):]*(task-run|tasks-planning)\.md" -- 'docs/*.md' 'docs/**/*.md' ':!docs/task-run.md' ':!docs/tasks-planning.md'
 ```
 
-The first must end with `Documentation built`, the second must print nothing. Say why the second exists (MkDocs logs a link to an excluded page at `INFO`, which `--strict` ignores), that from Git Bash the first needs `MSYS_NO_PATHCONV=1` and `$(pwd)`, and that the Material team's MkDocs 2.0 banner in the output is expected (ADR-0006).
+The first must end with `Documentation built`, the second must print nothing. Say why the second exists (MkDocs logs a link to an excluded page at `INFO`, which `--strict` ignores); absolute `https://` links to these pages are allowed and deliberately not matched. From Git Bash the first needs `MSYS_NO_PATHCONV=1` and `$(pwd)`, and the Material team's MkDocs 2.0 banner in the output is expected (ADR-0006).
 
 **Any step that starts the dev server must end by stopping it.** `Ctrl+C` in its terminal, then
 confirm nothing is left listening:

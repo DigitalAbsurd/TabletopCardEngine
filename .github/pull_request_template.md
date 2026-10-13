@@ -41,7 +41,7 @@ Before merging, confirm:
 - [ ] **Documentation build** (for docs/, mkdocs.yml, or .readthedocs.yaml):
   ```
   docker run --rm -v "${PWD}:/docs" squidfunk/mkdocs-material:9.7.7 build --strict --site-dir /tmp/site
-  git grep -nE "\]\([^)]*(task-run|tasks-planning)\.md" -- 'docs/*.md' 'docs/**/*.md' ':!docs/task-run.md' ':!docs/tasks-planning.md'
+  git grep -nE "\]\([^):]*(task-run|tasks-planning)\.md" -- 'docs/*.md' 'docs/**/*.md' ':!docs/task-run.md' ':!docs/tasks-planning.md'
   ```
 
 ### When this change affects the public API
