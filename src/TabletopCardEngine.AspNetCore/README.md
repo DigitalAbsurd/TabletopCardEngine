@@ -9,19 +9,20 @@ dotnet add package TabletopCardEngine.AspNetCore --prerelease
 Register the engine with a database provider, add a health check, and map the API:
 
 ```csharp
+using TabletopCardEngine;
 using TabletopCardEngine.AspNetCore;
 using TabletopCardEngine.Sqlite;
 
 var builder = WebApplicationBuilder.CreateBuilder(args);
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
     db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)
-);
-builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+));
+builder.Services.AddHealthChecks().AddHoldemCheck();
 
 var app = builder.Build();
 app.MapHealthChecks("/health");
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 await app.RunAsync();
 ```
 

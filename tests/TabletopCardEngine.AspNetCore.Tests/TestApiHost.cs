@@ -25,23 +25,23 @@ internal sealed class TestApiHost : IAsyncDisposable
     /// <summary>The engine of the host, for seeding games directly.</summary>
     public IHoldemTable Engine { get; }
 
-    /// <param name="map">Maps the endpoints; <c>app.MapHoldemEngineApi()</c> when omitted.</param>
+    /// <param name="map">Maps the endpoints; <c>app.MapHoldemApi()</c> when omitted.</param>
     /// <param name="configure">Adjusts the builder before the app is built.</param>
     public static async Task<TestApiHost> StartAsync(Action<WebApplication>? map = null, Action<WebApplicationBuilder>? configure = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["TabletopCardEngine:GamePlayersMaxCount"] = "6" });
-        builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("TabletopCardEngine"),
-            db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["TabletopCardEngine:Holdem:GamePlayersMaxCount"] = "6" });
+        builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+            builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+            db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N"))));
         configure?.Invoke(builder);
 
         var app = builder.Build();
         await app.Services.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
         if (map is null)
         {
-            app.MapHoldemEngineApi();
+            app.MapHoldemApi();
         }
         else
         {

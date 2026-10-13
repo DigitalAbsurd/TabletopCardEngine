@@ -13,17 +13,17 @@ contract and the security stance, are recorded in
 file and no package reference beyond this repository's projects. Read it first, then copy what you need.
 
 ```csharp
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
-builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)));
+builder.Services.AddHealthChecks().AddHoldemCheck();
 
 app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = WriteHealthJsonAsync });
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 ```
 
 Its `appsettings.json` points `ConnectionStrings:TabletopCardEngine` at `holdem.db` and sets
-`TabletopCardEngine:MigrateDatabaseOnStartup` to `true`, so the first start creates the schema.
+`TabletopCardEngine:Holdem:MigrateDatabaseOnStartup` to `true`, so the first start creates the schema.
 
 1. Run it: `dotnet run --project samples/AspNetCoreSample --urls http://localhost:5299`.
 2. `curl -s http://localhost:5299/health` reports the schema state, `"state":"UpToDate"`.
@@ -41,19 +41,24 @@ state. The sample's `Program` is `internal` and reaches the tests through `Inter
 ## Registration
 
 ```csharp
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)));
 ```
 
 ```json
 { "ConnectionStrings": { "TabletopCardEngine": "Data Source=holdem.db" },
-  "TabletopCardEngine": { "GamePlayersMaxCount": 6 } }
+  "TabletopCardEngine": { "Holdem": { "GamePlayersMaxCount": 6 } } }
 ```
 
 The database stays in code: the package references no provider (ADR-0004), so the host passes the
-`dbOptionsAction` that calls `UseHoldem*`. The section is bound to `HoldemEngineHostOptions` with the
+`dbOptionsAction` that calls `UseHoldem*`. The section is bound to `HoldemHostOptions` with the
 Options pattern, validated with data annotations, and checked when the host starts.
+
+The settings live in the per-game section `TabletopCardEngine:Holdem`, so a second game gets a section of
+its own beside it. The package binds whatever section the host passes in and names none itself. The
+connection string `ConnectionStrings:TabletopCardEngine` is not per game: all games share one database
+(ADR-0008).
 
 | Key | Type | Default | Rule |
 |---|---|---|---|
@@ -72,12 +77,12 @@ throwing `ArgumentOutOfRangeException` from service registration.
 ## Health check
 
 ```csharp
-builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+builder.Services.AddHealthChecks().AddHoldemCheck();
 
 app.MapHealthChecks("/health");
 ```
 
-`AddHoldemEngineCheck(name = "tabletopcardengine", failureStatus = null, tags = null)` registers a check
+`AddHoldemCheck(name = "tabletopcardengine-holdem", failureStatus = null, tags = null)` registers a check
 that calls `IHoldemSchemaManager.GetSchemaStatusAsync` on every probe. It reads `__TceSchema`, a
 single-row query, and caches nothing. It never migrates the database: a health probe must not change
 it, and migrating on start-up is a separate feature (below).
@@ -109,13 +114,13 @@ The default response writer of `MapHealthChecks` prints only the status (`Health
 ## Migrating on start-up
 
 ```csharp
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)));
 ```
 
 ```json
-{ "TabletopCardEngine": { "MigrateDatabaseOnStartup": true } }
+{ "TabletopCardEngine": { "Holdem": { "MigrateDatabaseOnStartup": true } } }
 ```
 
 When `MigrateDatabaseOnStartup` is set to `true` in the configuration, the engine registers a hosted
@@ -134,7 +139,7 @@ lock on every relational provider, so multiple instances starting concurrently w
 their migrations. No lock of our own is needed.
 
 **Start-up ordering.** The hosted service is always registered, but does nothing when the flag is off.
-It runs **before** any other hosted services you register after `AddHoldemEngine`, so the schema is
+It runs **before** any other hosted services you register after `AddHoldem`, so the schema is
 guaranteed to be up to date when other services start.
 
 ## Observability
@@ -156,14 +161,14 @@ your logger configuration. Full details and alternative wiring options are in
 ## REST API
 
 ```csharp
-app.MapHoldemEngineApi();                 // under /api/holdem
-app.MapHoldemEngineApi("/poker");         // under a prefix of the host's choice
+app.MapHoldemApi();                 // under /api/holdem
+app.MapHoldemApi("/poker");         // under a prefix of the host's choice
 ```
 
-`MapHoldemEngineApi(prefix = "/api/holdem")` maps the engine's REST API as a minimal API route group and
+`MapHoldemApi(prefix = "/api/holdem")` maps the engine's REST API as a minimal API route group and
 returns the `RouteGroupBuilder`, so the host can chain `RequireAuthorization()`, rate limiting and the
 like onto every route. Nothing is mapped unless the host calls it. It needs the registration of this
-package, `services.AddHoldemEngine(configuration, ...)`, and throws `InvalidOperationException` without
+package, `services.AddTabletopCardEngine(tce => tce.AddHoldem(configuration, ...))`, and throws `InvalidOperationException` without
 it. The package adds no middleware: the pipeline (`UseAuthorization`, exception handling) is the host's.
 
 Every route goes through one dispatcher: it reads `If-Match` (see [Concurrency](#concurrency)), calls the
@@ -400,10 +405,10 @@ Every endpoint is annotated with metadata for OpenAPI document generation: `With
 ```csharp
 builder.Services.AddOpenApi();
 app.MapOpenApi();
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 ```
 
-The generated document will include the engine's endpoints under the tag `TabletopCardEngine`.
+The generated document will include the engine's endpoints under the tag `Holdem`.
 
 **With Swashbuckle:**
 
@@ -411,13 +416,13 @@ The generated document will include the engine's endpoints under the tag `Tablet
 builder.Services.AddSwaggerGen();
 app.UseSwagger();
 app.UseSwaggerUI();
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 ```
 
 **Grouping the API in its own document.** Call `WithGroupName` on the returned route group to put the API in a separate document:
 
 ```csharp
-app.MapHoldemEngineApi().WithGroupName("holdem");
+app.MapHoldemApi().WithGroupName("holdem");
 ```
 
 Both `Microsoft.AspNetCore.OpenApi` and Swashbuckle will then generate a separate document for the engine endpoints.
@@ -426,4 +431,4 @@ Both `Microsoft.AspNetCore.OpenApi` and Swashbuckle will then generate a separat
 
 The API returns every seat's hole cards, as `GameData` does (ADR-0004). It is a trusted, game-master
 API: protect the group, for example with
-`app.MapHoldemEngineApi().RequireAuthorization("holdem-admin")`. Hiding cards per viewer is not in v1.
+`app.MapHoldemApi().RequireAuthorization("holdem-admin")`. Hiding cards per viewer is not in v1.

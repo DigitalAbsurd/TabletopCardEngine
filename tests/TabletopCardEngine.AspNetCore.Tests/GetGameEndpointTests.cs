@@ -97,7 +97,7 @@ public sealed class GetGameEndpointTests
     }
 
     [TestMethod]
-    public async Task MapHoldemEngineApi_NotCalled_MapsNothing()
+    public async Task MapHoldemApi_NotCalled_MapsNothing()
     {
         await using var host = await TestApiHost.StartAsync(map: _ => { });
         var gameId = await host.SeedHeadsUpGameAsync();
@@ -109,9 +109,9 @@ public sealed class GetGameEndpointTests
     }
 
     [TestMethod]
-    public async Task MapHoldemEngineApi_CustomPrefix()
+    public async Task MapHoldemApi_CustomPrefix()
     {
-        await using var host = await TestApiHost.StartAsync(map: app => app.MapHoldemEngineApi("/poker"));
+        await using var host = await TestApiHost.StartAsync(map: app => app.MapHoldemApi("/poker"));
         var gameId = await host.SeedHeadsUpGameAsync();
 
         var response = await host.Client.GetAsync($"/poker/games/{gameId}");
@@ -120,10 +120,10 @@ public sealed class GetGameEndpointTests
     }
 
     [TestMethod]
-    public async Task MapHoldemEngineApi_ReturnsTheGroup()
+    public async Task MapHoldemApi_ReturnsTheGroup()
     {
         await using var host = await TestApiHost.StartAsync(
-            map: app => app.MapHoldemEngineApi().RequireAuthorization(),
+            map: app => app.MapHoldemApi().RequireAuthorization(),
             configure: b => b.Services.AddAuthorization());
 
         var endpoints = RouteEndpoints(host).Where(e => e.RoutePattern.RawText!.Contains("games")).ToList();
@@ -136,14 +136,14 @@ public sealed class GetGameEndpointTests
     }
 
     [TestMethod]
-    public async Task MapHoldemEngineApi_WithoutThePackageRegistration_Throws()
+    public async Task MapHoldemApi_WithoutThePackageRegistration_Throws()
     {
         var builder = WebApplication.CreateBuilder();
         builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N"))));
         await using var app = builder.Build();
 
-        var map = () => app.MapHoldemEngineApi();
+        var map = () => app.MapHoldemApi();
 
-        map.Should().Throw<InvalidOperationException>().WithMessage("*AddHoldemEngine(configuration*");
+        map.Should().Throw<InvalidOperationException>().WithMessage("*AddHoldem(configuration*");
     }
 }

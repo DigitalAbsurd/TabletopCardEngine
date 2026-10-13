@@ -110,8 +110,8 @@ dotnet pack src/TabletopCardEngine.InMemory -c Release -p:MinVerVersionOverride=
 `TabletopCardEngine.AspNetCore` has its own baseline,
 [`eng/api-baseline/TabletopCardEngine.AspNetCore.1.0.0-baseline.nupkg`](https://github.com/DigitalAbsurd/TabletopCardEngine/tree/main/eng/api-baseline),
 enforced the same way by `dotnet pack src/TabletopCardEngine.AspNetCore -c Release`. Its public surface so far is
-`HoldemEngineHostingServiceCollectionExtensions`, `HoldemEngineHealthChecksBuilderExtensions`,
-`HoldemEngineHostOptions` and `HoldemEngineEndpointRouteBuilderExtensions` (later additions do not re-pack the baseline). The baseline is packed without validation, because there is nothing to compare
+`HoldemHostingBuilderExtensions`, `HoldemHealthChecksBuilderExtensions`,
+`HoldemHostOptions` and `HoldemEndpointRouteBuilderExtensions` (later additions do not re-pack the baseline). The baseline is packed without validation, because there is nothing to compare
 the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```

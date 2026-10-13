@@ -6,11 +6,11 @@ namespace TabletopCardEngine.AspNetCore;
 
 /// <summary>
 /// An optional hosted service that migrates the database schema on application start-up when
-/// <see cref="HoldemEngineHostOptions.MigrateDatabaseOnStartup"/> is <c>true</c>. It is always
+/// <see cref="HoldemHostOptions.MigrateDatabaseOnStartup"/> is <c>true</c>. It is always
 /// registered but does nothing when the flag is off.
 /// </summary>
 internal sealed class HoldemSchemaMigrationHostedService(
-    IOptions<HoldemEngineHostOptions> options,
+    IOptions<HoldemHostOptions> options,
     IHoldemSchemaManager schemaManager) : IHostedService
 {
     /// <inheritdoc />

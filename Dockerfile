@@ -25,7 +25,7 @@ LABEL org.opencontainers.image.source="https://github.com/DigitalAbsurd/Tabletop
 WORKDIR /app
 COPY --from=builder /app .
 ENV ASPNETCORE_HTTP_PORTS=8080 \
-    TabletopCardEngine__MigrateDatabaseOnStartup=true
+    TabletopCardEngine__Holdem__MigrateDatabaseOnStartup=true
 EXPOSE 8080
 USER $APP_UID
 ENTRYPOINT ["dotnet", "TabletopCardEngine.Server.dll"]

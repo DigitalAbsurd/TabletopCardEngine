@@ -1,5 +1,5 @@
 ﻿namespace TabletopCardEngine.AspNetCore;
 
-internal sealed class HoldemEngineApiMarker
+internal sealed class HoldemApiMarker
 {
 }

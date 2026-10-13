@@ -25,7 +25,7 @@ public sealed class ServerEndToEndTests
                 builder.UseEnvironment("Production");
                 builder.UseSetting("TabletopCardEngineServer:Provider", providerName);
                 builder.UseSetting("ConnectionStrings:TabletopCardEngine", connectionString);
-                builder.UseSetting("TabletopCardEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
+                builder.UseSetting("TabletopCardEngine:Holdem:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
             });
             using var client = factory.CreateClient();
             await test(client);
@@ -62,7 +62,7 @@ public sealed class ServerEndToEndTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await GameScenario.ReadJsonAsync(response);
         body.GetProperty("status").GetString().Should().Be("Healthy");
-        var data = body.GetProperty("entries").GetProperty("tabletopcardengine").GetProperty("data");
+        var data = body.GetProperty("entries").GetProperty("tabletopcardengine-holdem").GetProperty("data");
         data.GetProperty("state").GetString().Should().Be("UpToDate");
         data.GetProperty("providerName").GetString().Should().Be(expectedEfProvider);
     });
@@ -74,6 +74,6 @@ public sealed class ServerEndToEndTests
 
         response.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
         var body = await GameScenario.ReadJsonAsync(response);
-        body.GetProperty("entries").GetProperty("tabletopcardengine").GetProperty("data").GetProperty("state").GetString().Should().Be("MigrationRequired");
+        body.GetProperty("entries").GetProperty("tabletopcardengine-holdem").GetProperty("data").GetProperty("state").GetString().Should().Be("MigrationRequired");
     });
 }
