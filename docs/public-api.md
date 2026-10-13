@@ -99,10 +99,10 @@ class of `UseHoldem*` overloads (`HoldemSqliteDbContextOptionsBuilderExtensions`
 first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
-dotnet pack src/TabletopCardEngine.Sqlite -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
-dotnet pack src/TabletopCardEngine.PostgreSql -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
-dotnet pack src/TabletopCardEngine.SqlServer -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
-dotnet pack src/TabletopCardEngine.InMemory -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.Sqlite -c Release -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.PostgreSql -c Release -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.SqlServer -c Release -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.InMemory -c Release -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 ## The ASP.NET Core package
@@ -115,7 +115,7 @@ enforced the same way by `dotnet pack src/TabletopCardEngine.AspNetCore -c Relea
 the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
-dotnet pack src/TabletopCardEngine.AspNetCore -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.AspNetCore -c Release -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 ## The OpenTelemetry package
@@ -129,7 +129,7 @@ The baseline is packed without validation, because there is nothing to compare
 the first one with (history, not to be run again; see [The baseline is frozen](#the-baseline-is-frozen)):
 
 ```
-dotnet pack src/TabletopCardEngine.OpenTelemetry -c Release -p:Version=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
+dotnet pack src/TabletopCardEngine.OpenTelemetry -c Release -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false -o eng/api-baseline
 ```
 
 The inventory below covers the core package only.
