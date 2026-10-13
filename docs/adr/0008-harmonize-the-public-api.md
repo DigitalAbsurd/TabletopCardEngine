@@ -71,6 +71,15 @@ no schemas, so there every table is named `<schema>_<table>`: `tce_holdem_Game`,
 `tce_holdem___TceSchema`, `tce_holdem___TceMigrationsHistory`. The provider packages keep each game's
 migrations in a namespace of their own, `TabletopCardEngine.<Provider>.Migrations.Holdem`.
 
+On SQLite, EF Core 9 and later create one unprefixed table, `__EFMigrationsLock`, to serialise concurrent migrations.
+It is created by EF's internal migration infrastructure (`SqliteHistoryRepository.LockTableName`), not by `HoldemDbContext`'s
+model, and persists after migrations complete with no rows. This is correct by design: the lock is database-wide and shared
+by every EF context migrating the same file (so a second game's context, or a host's own context, serialises its migrations
+against Hold'em's). PostgreSQL and SQL Server do not create this table. Renaming it was considered: `LockTableName` is
+`protected virtual` on the EF internal type `Microsoft.EntityFrameworkCore.Sqlite.Migrations.Internal.SqliteHistoryRepository`,
+so an override is technically possible. The decision was to reject it because overriding an EF internal type is an `EF1001`
+error here, ties the package to EF internals across upgrades, and breaks cross-context serialisation — the whole point of the lock.
+
 ### 7. The ASP.NET Core package follows
 
 `HoldemEngineHostingServiceCollectionExtensions.AddHoldemEngine(IConfiguration, …)` becomes an
