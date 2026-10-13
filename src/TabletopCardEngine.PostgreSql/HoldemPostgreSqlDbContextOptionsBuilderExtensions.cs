@@ -18,7 +18,7 @@ public static class HoldemPostgreSqlDbContextOptionsBuilderExtensions
     /// Uses the PostgreSQL database at <paramref name="connectionString"/>, with the migrations of this
     /// package and the engine's own history table, <c>tce.__TceMigrationsHistory</c>.
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="connectionString">A PostgreSQL connection string, e.g. <c>Host=localhost;Database=holdem</c>.</param>
     /// <returns>The same builder, for chaining.</returns>
     public static DbContextOptionsBuilder UseHoldemPostgreSql(this DbContextOptionsBuilder builder, string connectionString)
@@ -35,7 +35,7 @@ public static class HoldemPostgreSqlDbContextOptionsBuilderExtensions
     /// engine's own history table in the <c>tce</c> schema. This is the recommended form for Npgsql,
     /// allowing for connection pooling and advanced configuration.
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="dataSource">A PostgreSQL data source the caller owns.</param>
     /// <returns>The same builder, for chaining.</returns>
     public static DbContextOptionsBuilder UseHoldemPostgreSql(this DbContextOptionsBuilder builder, DbDataSource dataSource)

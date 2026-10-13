@@ -8,7 +8,7 @@ namespace TabletopCardEngine.HoldemActionHandlers;
 /// <summary>Checks a new game's options against the v1 scope and the container's seat limits.</summary>
 internal static class GameOptionsValidation
 {
-    internal static HoldemError? Validate(GameOptionData options, HoldemEngineSettings settings)
+    internal static HoldemError? Validate(GameOptionData options, HoldemSettings settings)
     {
         if (!SupportedGameVariants.IsSupported(options.GameType, options.BettingStructure))
         {

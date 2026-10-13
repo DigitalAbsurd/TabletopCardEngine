@@ -175,7 +175,8 @@ public sealed class EngineCallSnippetWriter_Tests
         snippet.Should().Contain("using TabletopCardEngine.Sqlite;");
         snippet.Should().NotContain("using TabletopCardEngine.Data;");
         snippet.Should().Contain("var services = new ServiceCollection();");
-        snippet.Should().Contain("services.AddHoldemEngine(");
+        snippet.Should().Contain("services.AddTabletopCardEngine(tce => tce.AddHoldem(");
+        snippet.Should().Contain("    configure: null));");
         snippet.Should().Contain("opts => opts.UseHoldemSqlite(\"DataSource=:memory:\")");
         snippet.Should().NotContain("opts.UseSqlite");
         snippet.Should().Contain("await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();");

@@ -13,7 +13,7 @@ namespace TabletopCardEngine.AspNetCore.Tests;
 [TestClass]
 public sealed class ConfigurationTests
 {
-    private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemEngineOptionsBuilder>? configure = null)
+    private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemOptionsBuilder>? configure = null)
     {
         var builder = Host.CreateApplicationBuilder();
         builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:" + p.Key, p => p.Value));
@@ -95,7 +95,7 @@ public sealed class ConfigurationTests
     {
         using var host = BuildHost(new() { ["EnableSensitiveCardLogging"] = "true" });
         await StartAsync(host);
-        host.Services.GetRequiredService<HoldemEngineOptions>().Settings.EnableSensitiveCardLogging.Should().BeTrue();
+        host.Services.GetRequiredService<HoldemOptions>().Settings.EnableSensitiveCardLogging.Should().BeTrue();
         await host.StopAsync();
     }
 }

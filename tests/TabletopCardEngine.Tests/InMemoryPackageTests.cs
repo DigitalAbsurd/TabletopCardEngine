@@ -133,7 +133,7 @@ public sealed class InMemoryPackageTests
         internal static InMemoryHost Create(string databaseName)
         {
             var services = new ServiceCollection();
-            services.AddHoldemEngine(o => o.UseHoldemInMemory(databaseName));
+            services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemInMemory(databaseName)));
             return new InMemoryHost(services.BuildServiceProvider());
         }
 

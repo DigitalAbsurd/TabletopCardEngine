@@ -161,7 +161,7 @@ public sealed class ConcurrencyTests
     private static ServiceProvider BuildHost(Action<DbContextOptionsBuilder> configureDatabase)
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(dbOptionsAction: configureDatabase, configure: _ => { });
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(dbOptionsAction: configureDatabase, configure: _ => { }));
         return services.BuildServiceProvider();
     }
 

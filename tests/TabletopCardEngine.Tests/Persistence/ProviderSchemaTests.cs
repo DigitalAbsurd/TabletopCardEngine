@@ -229,7 +229,7 @@ public sealed class ProviderSchemaTests
     private static ServiceProvider BuildProvider(Action<DbContextOptionsBuilder> configure)
     {
         IServiceCollection services = new ServiceCollection();
-        services.AddHoldemEngine(dbOptionsAction: configure);
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(dbOptionsAction: configure));
         return services.BuildServiceProvider();
     }
 

@@ -63,10 +63,10 @@ public sealed class ComponentRender_Tests
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
 
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
             configure: _ => { }
-        );
+        ));
 
         // Register the connection for SqliteBrowser and other services
         services.AddSingleton(connection);

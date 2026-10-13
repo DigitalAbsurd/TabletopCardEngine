@@ -12,7 +12,7 @@ public static class HoldemInMemoryDbContextOptionsBuilderExtensions
     /// engines given the same name will share the same in-memory store; use a unique name for each
     /// isolated engine (one per test, one per tenant, etc.).
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="databaseName">A unique name for this in-memory store.</param>
     /// <returns>The same builder, for chaining.</returns>
     /// <remarks>

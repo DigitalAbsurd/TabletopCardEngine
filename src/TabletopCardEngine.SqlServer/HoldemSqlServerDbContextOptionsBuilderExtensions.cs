@@ -18,7 +18,7 @@ public static class HoldemSqlServerDbContextOptionsBuilderExtensions
     /// Uses the SQL Server database at <paramref name="connectionString"/>, with the migrations of this
     /// package and the engine's own history table, <c>tce.__TceMigrationsHistory</c>.
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="connectionString">A SQL Server connection string, e.g. <c>Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True</c>.</param>
     /// <returns>The same builder, for chaining.</returns>
     public static DbContextOptionsBuilder UseHoldemSqlServer(this DbContextOptionsBuilder builder, string connectionString)
@@ -34,7 +34,7 @@ public static class HoldemSqlServerDbContextOptionsBuilderExtensions
     /// Uses an already created SQL Server connection, with the migrations of this package and the
     /// engine's own history table in the <c>tce</c> schema.
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="connection">A SQL Server connection the caller owns.</param>
     /// <returns>The same builder, for chaining.</returns>
     public static DbContextOptionsBuilder UseHoldemSqlServer(this DbContextOptionsBuilder builder, DbConnection connection)

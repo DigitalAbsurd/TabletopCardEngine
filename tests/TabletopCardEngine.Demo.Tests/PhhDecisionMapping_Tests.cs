@@ -18,10 +18,10 @@ public sealed class PhhDecisionMapping_Tests
         connection.Open();
 
         var services = new ServiceCollection();
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
             configure: _ => { }
-        );
+        ));
 
         var serviceProvider = services.BuildServiceProvider();
         serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();

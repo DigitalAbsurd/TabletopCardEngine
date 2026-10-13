@@ -18,7 +18,7 @@ public static class HoldemSqliteDbContextOptionsBuilderExtensions
     /// Uses the SQLite database at <paramref name="connectionString"/>, with the migrations of this
     /// package and the engine's own history table, <c>__TceMigrationsHistory</c>.
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="connectionString">A SQLite connection string, e.g. <c>Data Source=holdem.db</c>.</param>
     /// <returns>The same builder, for chaining.</returns>
     public static DbContextOptionsBuilder UseHoldemSqlite(this DbContextOptionsBuilder builder, string connectionString)
@@ -35,7 +35,7 @@ public static class HoldemSqliteDbContextOptionsBuilderExtensions
     /// engine's own history table. This is the overload for an in-memory database, which lives only
     /// as long as its connection stays open, so the caller keeps it open and disposes of it.
     /// </summary>
-    /// <param name="builder">The options passed to <c>AddHoldemEngine</c>.</param>
+    /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="connection">A SQLite connection the caller owns.</param>
     /// <returns>The same builder, for chaining.</returns>
     public static DbContextOptionsBuilder UseHoldemSqlite(this DbContextOptionsBuilder builder, DbConnection connection)

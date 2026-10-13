@@ -18,7 +18,7 @@ internal sealed class Program
         builder.Services.AddAntDesign();
 
         // Configure the engine with SQLite for WebAssembly
-        DemoEngineHost.ConfigureHoldemEngine(builder.Services);
+        DemoEngineHost.ConfigureHoldem(builder.Services);
 
         // Register demo services
         builder.Services.AddScoped<BrowserStorage>();

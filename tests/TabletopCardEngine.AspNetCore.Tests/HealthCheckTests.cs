@@ -18,7 +18,7 @@ public sealed class HealthCheckTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddHoldemEngine(dbOptionsAction);
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(dbOptionsAction));
         services.AddHealthChecks().AddHoldemEngineCheck(failureStatus: failureStatus);
         return services.BuildServiceProvider();
     }

@@ -13,7 +13,7 @@ namespace TabletopCardEngine.Holdem;
 /// </para>
 /// <para>
 /// The table is obtained from the dependency-injection container registered by
-/// <c>AddHoldemEngine</c>: <c>services.GetRequiredService&lt;IHoldemTable&gt;()</c>. It is an interface so that a
+/// <c>AddHoldem</c>: <c>services.GetRequiredService&lt;IHoldemTable&gt;()</c>. It is an interface so that a
 /// consumer's tests can substitute it.
 /// </para>
 /// </summary>

@@ -15,8 +15,8 @@ public sealed class ApiBaselineFreezeTests
 {
     private static readonly IReadOnlyDictionary<string, string> _frozenHashes = new Dictionary<string, string>
     {
-        ["TabletopCardEngine.1.0.0-baseline.nupkg"] = "a9309aeffa023ec74ec56434aaae6d725d7332dcc26f75ddc0927b577289a507",
-        ["TabletopCardEngine.AspNetCore.1.0.0-baseline.nupkg"] = "c509510336921f54647845e3074f8d3f6d86584bab77cdc20f079b70d8373029",
+        ["TabletopCardEngine.1.0.0-baseline.nupkg"] = "e990b29d7ad5ab3828a1f70e1a7454d7c321cd2344684a731c8f620c2d72b323",
+        ["TabletopCardEngine.AspNetCore.1.0.0-baseline.nupkg"] = "b50279ab4e030d19946a2816abc704462a1f5e6d881335a711177afa8d72a9ba",
         ["TabletopCardEngine.InMemory.1.0.0-baseline.nupkg"] = "cb4b8cc667c10637eee05a28c137136ff1292913f046de7cae626623d232bc90",
         ["TabletopCardEngine.OpenTelemetry.1.0.0-baseline.nupkg"] = "72964a142b93d85da0c588f7ef283c722615fbf995bafc76a4753e390cbfe216",
         ["TabletopCardEngine.PostgreSql.1.0.0-baseline.nupkg"] = "4aebc5eb9aed068a0069ec4e53c02acd1b253ed4943b08a8beed411227454a55",

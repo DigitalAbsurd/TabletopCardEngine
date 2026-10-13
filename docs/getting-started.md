@@ -24,7 +24,7 @@ using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();
-services.AddHoldemEngine(db => db.UseHoldemInMemory("holdem"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemInMemory("holdem")));
 using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the schema once, at start-up.
@@ -88,7 +88,7 @@ Bob: 2d ah, Full house, +2
 
 ## What just happened
 
-**Registration and the provider package.** The service collection creates the dependency injection container, `AddHoldemEngine` wires up the core library, and `UseHoldemInMemory` keeps the database in the process's memory, under the store name `holdem`. The InMemory package brings the core with it and has no native dependencies, so only one `dotnet add package` is needed and it runs on any platform .NET runs on. It suits trying the engine out, tests and demos; for data that must outlive the process, switch to the SQLite, PostgreSQL or SQL Server package (see [Database providers](providers.md)).
+**Registration and the provider package.** The service collection creates the dependency injection container, `AddTabletopCardEngine` registers the engine and its `AddHoldem` call wires up the Hold'em game, and `UseHoldemInMemory` keeps the database in the process's memory, under the store name `holdem`. The InMemory package brings the core with it and has no native dependencies, so only one `dotnet add package` is needed and it runs on any platform .NET runs on. It suits trying the engine out, tests and demos; for data that must outlive the process, switch to the SQLite, PostgreSQL or SQL Server package (see [Database providers](providers.md)).
 
 **The schema.** `IHoldemSchemaManager.MigrateAsync()` creates or upgrades the database schema once, at start-up. On InMemory it simply creates the store; on a relational provider it applies the package's migrations. The in-memory store lives only as long as the process, so every run starts from an empty database.
 

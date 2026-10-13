@@ -5,20 +5,21 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Diagnostics.Metrics;
 using TabletopCardEngine.Data;
 using TabletopCardEngine.Diagnostics;
-using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Options;
 
-namespace TabletopCardEngine;
+namespace TabletopCardEngine.Holdem;
 
-/// <summary>Registers the engine and its database context with a dependency-injection container.</summary>
-public static class ServiceCollectionExtensions
+/// <summary>Adds Texas Hold'em to the engine's registration.</summary>
+public static class HoldemBuilderExtensions
 {
     /// <summary>
     /// Registers <see cref="IHoldemTable"/> as a singleton over an EF Core context factory.
     /// <para>
     /// Engine options belong to the container: each call creates its own
-    /// <see cref="HoldemEngineOptions"/> and registers it as a singleton instance, so engines built
+    /// <see cref="HoldemOptions"/> and registers it as a singleton instance, so engines built
     /// from different containers can be configured differently side by side in one process.
+    /// A container holds one Hold'em registration, so a second call on the same collection throws,
+    /// whether it is made through the same builder or through a second <c>AddTabletopCardEngine</c> call.
     /// </para>
     /// <para>
     /// The engine does not create its own tables. The schema is created with
@@ -26,22 +27,32 @@ public static class ServiceCollectionExtensions
     /// well, over the same database configuration.
     /// </para>
     /// </summary>
-    /// <param name="services">The container to register into.</param>
-    /// <param name="dbOptionsAction">Configures the database provider, e.g. <c>opts =&gt; opts.UseSqlite(...)</c>.</param>
+    /// <param name="builder">The engine's registration.</param>
+    /// <param name="dbOptionsAction">Configures the database provider, e.g. <c>db =&gt; db.UseHoldemSqlite(...)</c>.</param>
     /// <param name="configure">Configures engine settings and the optional <see cref="ICardShuffler"/>.</param>
-    /// <returns>The same collection, for chaining.</returns>
-    public static IServiceCollection AddHoldemEngine(this IServiceCollection services,
+    /// <returns>The same builder, for chaining.</returns>
+    /// <exception cref="InvalidOperationException">Hold'em is already registered in this collection.</exception>
+    public static TabletopCardEngineBuilder AddHoldem(this TabletopCardEngineBuilder builder,
         Action<DbContextOptionsBuilder> dbOptionsAction,
-        Action<HoldemEngineOptionsBuilder>? configure = null)
+        Action<HoldemOptionsBuilder>? configure = null)
     {
-        var options = new HoldemEngineOptions();
+        ArgumentNullException.ThrowIfNull(builder);
+
+        var services = builder.Services;
+        if (services.Any(d => d.ServiceType == typeof(HoldemOptions)))
+        {
+            throw new InvalidOperationException(
+                "Hold'em is already registered in this service collection; call AddHoldem once per container.");
+        }
+
+        var options = new HoldemOptions();
         services.AddDbContextFactory<HoldemDbContext>(opts =>
         {
             dbOptionsAction?.Invoke(opts);
             opts.UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
         });
 
-        configure?.Invoke(new HoldemEngineOptionsBuilder(options));
+        configure?.Invoke(new HoldemOptionsBuilder(options));
         services.AddSingleton(options);
         services.AddSingleton<HoldemSchemaManager>(sp =>
             new HoldemSchemaManager(sp.GetRequiredService<IDbContextFactory<HoldemDbContext>>()));
@@ -49,7 +60,7 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<HoldemSchemaManager>());
         services.AddSingleton<IHoldemTable>(servicesProvider =>
         {
-            var resolvedOptions = servicesProvider.GetRequiredService<HoldemEngineOptions>();
+            var resolvedOptions = servicesProvider.GetRequiredService<HoldemOptions>();
             resolvedOptions.DbContextFactory =
                 servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
             var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemTable>()
@@ -60,6 +71,6 @@ public static class ServiceCollectionExtensions
             return new HoldemTable(resolvedOptions, logger, metrics, schemaManager);
         });
 
-        return services;
+        return builder;
     }
 }

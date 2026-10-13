@@ -15,7 +15,7 @@ using TabletopCardEngine.Holdem;
 using TabletopCardEngine.InMemory;
 
 var services = new ServiceCollection();
-services.AddHoldemEngine(db => db.UseHoldemInMemory("tests"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemInMemory("tests")));
 using var provider = services.BuildServiceProvider();
 
 // Create the schema (stored only in memory)

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text.Json;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.InMemory;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
@@ -138,7 +139,7 @@ public sealed class GetGameEndpointTests
     public async Task MapHoldemEngineApi_WithoutThePackageRegistration_Throws()
     {
         var builder = WebApplication.CreateBuilder();
-        builder.Services.AddHoldemEngine(db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
+        builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N"))));
         await using var app = builder.Build();
 
         var map = () => app.MapHoldemEngineApi();

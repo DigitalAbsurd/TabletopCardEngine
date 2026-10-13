@@ -2,7 +2,7 @@
 
 /// <summary>
 /// The public way to create and inspect the engine's database schema, so that a host never has to
-/// reach the engine's internal database context to do it. <c>AddHoldemEngine</c> registers one per
+/// reach the engine's internal database context to do it. <c>AddHoldem</c> registers one per
 /// container, over the same database configuration as the engine itself.
 /// <para>
 /// Exactly four providers are supported, recognised by their EF Core provider name: SQLite,

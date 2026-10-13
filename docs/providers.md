@@ -19,12 +19,12 @@ SQLite is suitable for development, prototypes, and small deployments. Use `Tabl
 
 ```csharp
 // File-based database
-services.AddHoldemEngine(o => o.UseHoldemSqlite("Data Source=holdem.db"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite("Data Source=holdem.db")));
 
 // In-memory database (for tests or short-lived applications)
 var connection = new SqliteConnection("Data Source=:memory:");
 connection.Open();
-services.AddHoldemEngine(o => o.UseHoldemSqlite(connection));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite(connection)));
 // Keep connection open for the lifetime of the engine.
 ```
 
@@ -35,7 +35,7 @@ services.AddHoldemEngine(o => o.UseHoldemSqlite(connection));
 ```csharp
 var connection = new SqliteConnection("Data Source=:memory:");
 connection.Open();
-services.AddHoldemEngine(o => o.UseHoldemSqlite(connection));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite(connection)));
 // The application must keep this connection open for the engine's lifetime.
 // Closing it closes the database and discards all rows.
 ```
@@ -46,11 +46,11 @@ PostgreSQL is suitable for production deployments. Use `TabletopCardEngine.Postg
 
 ```csharp
 // Connection string (single connection, no pooling)
-services.AddHoldemEngine(o => o.UseHoldemPostgreSql("Host=localhost;Database=holdem;Username=user;Password=pass"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemPostgreSql("Host=localhost;Database=holdem;Username=user;Password=pass")));
 
 // Data source (recommended for production, allows connection pooling)
 var dataSource = new NpgsqlDataSourceBuilder("Host=localhost;Database=holdem;Username=user;Password=pass").Build();
-services.AddHoldemEngine(o => o.UseHoldemPostgreSql(dataSource));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemPostgreSql(dataSource)));
 ```
 
 ### What bites with PostgreSQL
@@ -67,11 +67,11 @@ SQL Server is suitable for production deployments. Use `TabletopCardEngine.SqlSe
 
 ```csharp
 // Connection string (single connection, no pooling)
-services.AddHoldemEngine(o => o.UseHoldemSqlServer("Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlServer("Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True")));
 
 // Connection (for advanced connection management)
 var connection = new SqlConnection("Server=.;Database=holdem;Trusted_Connection=True;TrustServerCertificate=True");
-services.AddHoldemEngine(o => o.UseHoldemSqlServer(connection));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlServer(connection)));
 ```
 
 ### What bites with SQL Server
@@ -89,7 +89,7 @@ services.AddHoldemEngine(o => o.UseHoldemSqlServer(connection));
 InMemory is suitable for prototyping, testing, and isolated unit testing, **not for production**. Use `TabletopCardEngine.InMemory`:
 
 ```csharp
-services.AddHoldemEngine(o => o.UseHoldemInMemory("my-store"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemInMemory("my-store")));
 ```
 
 The string is a unique name for this in-memory store. Two engines given the same name will share the same data; use a unique name for each isolated engine (one per test, one per tenant, etc.).

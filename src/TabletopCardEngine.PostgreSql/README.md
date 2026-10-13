@@ -16,7 +16,7 @@ using TabletopCardEngine.PostgreSql;
 
 var services = new ServiceCollection();
 var connectionString = "Host=localhost;Database=holdem;Username=user;Password=pass";
-services.AddHoldemEngine(db => db.UseHoldemPostgreSql(connectionString));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemPostgreSql(connectionString)));
 using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the database schema

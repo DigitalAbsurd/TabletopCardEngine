@@ -41,9 +41,9 @@ public sealed class DemoReplayEngine : IDisposable
         ArgumentNullException.ThrowIfNull(shuffler);
 
         var services = new ServiceCollection();
-        services.AddHoldemEngine(
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseHoldemSqlite(connection),
-            configure: opts => opts.WithCardShuffler(shuffler));
+            configure: opts => opts.WithCardShuffler(shuffler)));
 
         return new DemoReplayEngine(services.BuildServiceProvider());
     }

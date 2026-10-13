@@ -148,11 +148,11 @@ Hole cards and the deck are never logged at Information level or above, and neve
 
 ### The setting
 
-Enable sensitive card logging with `EnableSensitiveCardLogging = true` in `HoldemEngineSettings`. By default it is `false`.
+Enable sensitive card logging with `EnableSensitiveCardLogging = true` in `HoldemSettings`. By default it is `false`.
 
 ```csharp
-services.AddHoldemEngine(dbOptions, configure: builder =>
-    builder.WithSettings(settings => settings.EnableSensitiveCardLogging = true));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(dbOptions, configure: builder =>
+    builder.WithSettings(settings => settings.EnableSensitiveCardLogging = true)));
 ```
 
 The setting is ignored unless the `TabletopCardEngine` category is enabled at Trace level:

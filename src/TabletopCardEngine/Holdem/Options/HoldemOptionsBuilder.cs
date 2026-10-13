@@ -1,17 +1,17 @@
 ﻿namespace TabletopCardEngine.Holdem.Options;
 
 /// <summary>
-/// Configures the engine from <c>ServiceCollectionExtensions.AddHoldemEngine</c>.
+/// Configures the engine from <c>HoldemBuilderExtensions.AddHoldem</c>.
 /// <para>
-/// Each builder writes to the <see cref="HoldemEngineOptions"/> instance of the one container it
+/// Each builder writes to the <see cref="HoldemOptions"/> instance of the one container it
 /// was created for, so configuring one engine leaves every other engine in the process untouched.
 /// </para>
 /// </summary>
-public sealed class HoldemEngineOptionsBuilder
+public sealed class HoldemOptionsBuilder
 {
-    private readonly HoldemEngineOptions _options;
+    private readonly HoldemOptions _options;
 
-    internal HoldemEngineOptionsBuilder(HoldemEngineOptions options)
+    internal HoldemOptionsBuilder(HoldemOptions options)
     {
         _options = options;
     }
@@ -23,7 +23,7 @@ public sealed class HoldemEngineOptionsBuilder
     /// The settings end up with a minimum below 2, a maximum above 6 (the v1 scope, which a setting
     /// can only narrow), or a minimum above the maximum. That is a configuration error, not a game result.
     /// </exception>
-    public HoldemEngineOptionsBuilder WithSettings(Action<HoldemEngineSettings> configureSettings)
+    public HoldemOptionsBuilder WithSettings(Action<HoldemSettings> configureSettings)
     {
         configureSettings.Invoke(_options.Settings);
 
@@ -40,7 +40,7 @@ public sealed class HoldemEngineOptionsBuilder
     /// </summary>
     /// <param name="cardShuffler">The source of pre-determined cards.</param>
     /// <returns>The same builder, for chaining.</returns>
-    public HoldemEngineOptionsBuilder WithCardShuffler(ICardShuffler cardShuffler)
+    public HoldemOptionsBuilder WithCardShuffler(ICardShuffler cardShuffler)
     {
         _options.CardShuffler = cardShuffler;
         return this;

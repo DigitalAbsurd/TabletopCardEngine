@@ -62,9 +62,9 @@ public sealed class EngineCallSnippetWriter
 
         // Main entry
         sb.AppendLine("var services = new ServiceCollection();");
-        sb.AppendLine("services.AddHoldemEngine(");
+        sb.AppendLine("services.AddTabletopCardEngine(tce => tce.AddHoldem(");
         sb.AppendLine("    opts => opts.UseHoldemSqlite(\"DataSource=:memory:\"),");
-        sb.AppendLine("    configure: null);");
+        sb.AppendLine("    configure: null));");
         sb.AppendLine("var provider = services.BuildServiceProvider();");
         sb.AppendLine("await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();");
         sb.AppendLine("var engine = provider.GetRequiredService<IHoldemTable>();");

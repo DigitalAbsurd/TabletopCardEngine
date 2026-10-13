@@ -20,7 +20,7 @@ Any other EF Core provider is rejected by `IHoldemSchemaManager` with `HoldemSch
 Reference `TabletopCardEngine.Sqlite`, then register and migrate:
 
 ```csharp
-services.AddHoldemEngine(o => o.UseHoldemSqlite("Data Source=holdem.db"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite("Data Source=holdem.db")));
 await services.BuildServiceProvider().GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
 ```
 
@@ -31,7 +31,7 @@ For an in-memory database, pass an open `SqliteConnection("DataSource=:memory:")
 Register the engine with a database provider:
 
 ```csharp
-services.AddHoldemEngine(o => o.UseHoldemSqlite(connectionString))
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite(connectionString)))
 ```
 
 At application start-up, obtain the schema manager and call `MigrateAsync`:
@@ -137,7 +137,7 @@ Migrations are written per the following rules:
 Reference `TabletopCardEngine.InMemory`, then register and migrate:
 
 ```csharp
-services.AddHoldemEngine(o => o.UseHoldemInMemory("my-game-db"));
+services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemInMemory("my-game-db")));
 await services.BuildServiceProvider().GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
 ```
 

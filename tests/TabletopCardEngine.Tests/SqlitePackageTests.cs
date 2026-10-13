@@ -153,7 +153,7 @@ public sealed class SqlitePackageTests
             var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
             var services = new ServiceCollection();
-            services.AddHoldemEngine(o => o.UseHoldemSqlite(connection));
+            services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite(connection)));
             return new MigratedHost(connection, services.BuildServiceProvider());
         }
 

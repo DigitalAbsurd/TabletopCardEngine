@@ -9,7 +9,7 @@ internal interface IHoldemActionHandler
 {
     Task<HoldemError?> HandleAsync(HoldemAction holdemAction, Game game, CancellationToken cancellationToken);
 
-    static IHoldemActionHandler CreateHandlerForAction(HoldemAction holdemAction, HoldemEngineOptions options)
+    static IHoldemActionHandler CreateHandlerForAction(HoldemAction holdemAction, HoldemOptions options)
     => holdemAction switch
     {
         HoldemActionCreateGame => new CreateGameActionHandler(options.Settings),
