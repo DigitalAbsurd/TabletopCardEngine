@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Engine;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Engine;
 
 /// <summary>
 /// One occupied seat's rules-relevant state for the hand in progress. Collapses NPokerEngine's

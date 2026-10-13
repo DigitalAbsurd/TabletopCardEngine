@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine.Dto;
+﻿namespace TabletopCardEngine.Holdem.Dto;
 
 /// <summary>
 /// The fixed rules a game is created with; they never change once the game exists.
@@ -9,10 +9,10 @@
 /// </summary>
 public sealed record GameOptionData
 {
-    /// <summary>The poker variant. Only <see cref="TabletopCardEngine.GameType.Holdem"/> exists in v1.</summary>
+    /// <summary>The poker variant. Only <see cref="TabletopCardEngine.Holdem.GameType.Holdem"/> exists in v1.</summary>
     public GameType GameType { get; init; } = GameType.Holdem;
 
-    /// <summary>How bets are sized. Only <see cref="TabletopCardEngine.BettingStructure.NoLimit"/> exists in v1.</summary>
+    /// <summary>How bets are sized. Only <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> exists in v1.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 
     /// <summary>How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release.</summary>

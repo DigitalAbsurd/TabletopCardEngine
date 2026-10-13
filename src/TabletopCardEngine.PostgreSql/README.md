@@ -11,6 +11,7 @@ Register the engine with PostgreSQL:
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.PostgreSql;
 
 var services = new ServiceCollection();

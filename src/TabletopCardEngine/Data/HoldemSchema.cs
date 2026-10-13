@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Data;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Data;
 
 /// <summary>The schema this build of the engine expects, reported as <see cref="HoldemSchemaStatus.EngineSchemaVersion"/>.</summary>
 internal static class HoldemSchema

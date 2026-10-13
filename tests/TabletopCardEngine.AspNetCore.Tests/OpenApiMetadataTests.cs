@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
 

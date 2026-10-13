@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using TabletopCardEngine.Demo.Services;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Phh;
 

@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Tests;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Tests;
 
 /// <summary>
 /// Feeds pre-determined cards into the engine's cheat deck, which is what makes replaying a

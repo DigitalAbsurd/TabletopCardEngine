@@ -1,4 +1,4 @@
-﻿using TabletopCardEngine.Dto;
+﻿using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Services;
 

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace TabletopCardEngine;
+namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// A betting round.

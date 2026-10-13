@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.InMemory;
 
 namespace TabletopCardEngine.AspNetCore.Tests;

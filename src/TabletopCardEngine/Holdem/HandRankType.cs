@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// The display category of a made hand, ascending in strength. This is for showing the result only —

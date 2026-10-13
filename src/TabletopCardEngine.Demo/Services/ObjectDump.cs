@@ -88,7 +88,7 @@ public static class ObjectDump
         return type is null || (type == typeof(object) && declaredType != typeof(object)) ? declaredType : type;
     }
 
-    /// <summary>The type as RoslynPad shows it: <c>SeatData[] (TabletopCardEngine.Dto)</c>, <c>List&lt;IError&gt; (System.Collections.Generic)</c>.</summary>
+    /// <summary>The type as RoslynPad shows it: <c>SeatData[] (TabletopCardEngine.Holdem.Dto)</c>, <c>List&lt;IError&gt; (System.Collections.Generic)</c>.</summary>
     /// <param name="type">The type to name.</param>
     /// <returns>The friendly name, followed by the namespace in parentheses when there is one.</returns>
     public static string FormatTypeName(Type type)

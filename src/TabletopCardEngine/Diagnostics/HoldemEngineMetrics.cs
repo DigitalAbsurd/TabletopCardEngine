@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Reflection;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.Diagnostics;
 
@@ -9,7 +10,7 @@ internal sealed class HoldemEngineMetrics
 {
     /// <summary>The process-wide fallback meter, used when no IMeterFactory is available.</summary>
     private static readonly Meter _fallbackMeter = new(
-        HoldemEngineTelemetry.MeterName,
+        TabletopCardEngineTelemetry.MeterName,
         typeof(HoldemEngineMetrics).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 
     /// <summary>Counts the number of actions applied, one per call, including failures.</summary>
@@ -53,7 +54,7 @@ internal sealed class HoldemEngineMetrics
     {
         if (meterFactory is not null)
         {
-            var meter = meterFactory.Create(new MeterOptions(HoldemEngineTelemetry.MeterName)
+            var meter = meterFactory.Create(new MeterOptions(TabletopCardEngineTelemetry.MeterName)
             {
                 Version = typeof(HoldemEngineMetrics).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             });

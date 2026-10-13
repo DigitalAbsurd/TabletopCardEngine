@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Tests.Phh;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Tests.Phh;
 
 /// <summary>
 /// The cards a hand history dictates, arranged the way <see cref="ICardShuffler"/> wants them:

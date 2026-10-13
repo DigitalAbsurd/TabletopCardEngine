@@ -1,5 +1,6 @@
 ﻿using TabletopCardEngine.Demo.Engine;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Services;
 

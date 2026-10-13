@@ -8,7 +8,8 @@ using OpenTelemetry.Trace;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using TabletopCardEngine.Diagnostics;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.OpenTelemetry;
 
 namespace TabletopCardEngine.Tests;
@@ -185,7 +186,7 @@ public sealed class TelemetryLeakTests
         {
             InstrumentPublished = (instrument, _) =>
             {
-                if (instrument.Meter.Name == HoldemEngineTelemetry.MeterName && ReferenceEquals(instrument.Meter.Scope, meterFactory))
+                if (instrument.Meter.Name == TabletopCardEngineTelemetry.MeterName && ReferenceEquals(instrument.Meter.Scope, meterFactory))
                 {
                     instruments.Add(instrument);
                 }

@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// Machine-readable reason a <see cref="HoldemSchemaException"/> was thrown. The numeric values are

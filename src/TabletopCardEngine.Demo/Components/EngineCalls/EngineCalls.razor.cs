@@ -2,6 +2,7 @@
 using Microsoft.JSInterop;
 using System.Runtime.CompilerServices;
 using TabletopCardEngine.Demo.Services;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.Demo.Components.EngineCalls;
 
@@ -104,8 +105,8 @@ public sealed partial class EngineCalls : ComponentBase, IAsyncDisposable
         {
             var result = key.Entry.Result;
             dump = key.Kind == DumpKind.Result
-                ? ObjectDump.Create(DumpName(key.Kind), result, typeof(HoldemResult<TabletopCardEngine.Dto.GameData>))
-                : ObjectDump.Create(DumpName(key.Kind), result?.Value.HandData?.Evaluations, typeof(IReadOnlyList<TabletopCardEngine.Dto.PlayerActionEvaluationData>));
+                ? ObjectDump.Create(DumpName(key.Kind), result, typeof(HoldemResult<TabletopCardEngine.Holdem.Dto.GameData>))
+                : ObjectDump.Create(DumpName(key.Kind), result?.Value.HandData?.Evaluations, typeof(IReadOnlyList<TabletopCardEngine.Holdem.Dto.PlayerActionEvaluationData>));
             _dumps[key] = dump;
         }
 

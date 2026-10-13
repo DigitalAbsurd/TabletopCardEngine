@@ -2,6 +2,7 @@
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using System.Data.Common;
 using TabletopCardEngine.Data;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.PostgreSql;
 

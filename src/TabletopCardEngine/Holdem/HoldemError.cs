@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine;
+﻿namespace TabletopCardEngine.Holdem;
 
 /// <summary>
 /// One reason an action was rejected.

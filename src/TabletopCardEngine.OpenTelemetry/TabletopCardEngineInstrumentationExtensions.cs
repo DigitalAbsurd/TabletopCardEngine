@@ -1,13 +1,14 @@
 ﻿using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.OpenTelemetry;
 
 /// <summary>
 /// Turns the engine's traces and metrics on in an OpenTelemetry host by name, so the host does not
-/// have to know <see cref="HoldemEngineTelemetry.ActivitySourceName"/> and
-/// <see cref="HoldemEngineTelemetry.MeterName"/>. The engine's logs, traces and metrics are described
+/// have to know <see cref="TabletopCardEngineTelemetry.ActivitySourceName"/> and
+/// <see cref="TabletopCardEngineTelemetry.MeterName"/>. The engine's logs, traces and metrics are described
 /// in <c>docs/observability.md</c>.
 /// <para>
 /// Logging needs no extension here: the engine logs through <c>ILogger</c> under categories that
@@ -30,7 +31,7 @@ public static class TabletopCardEngineInstrumentationExtensions
     public static TracerProviderBuilder AddTabletopCardEngineInstrumentation(this TracerProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddSource(HoldemEngineTelemetry.ActivitySourceName);
+        return builder.AddSource(TabletopCardEngineTelemetry.ActivitySourceName);
     }
 
     /// <summary>
@@ -44,7 +45,7 @@ public static class TabletopCardEngineInstrumentationExtensions
     public static MeterProviderBuilder AddTabletopCardEngineInstrumentation(this MeterProviderBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.AddMeter(HoldemEngineTelemetry.MeterName);
+        return builder.AddMeter(TabletopCardEngineTelemetry.MeterName);
     }
 
     /// <summary>

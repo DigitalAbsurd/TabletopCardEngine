@@ -287,7 +287,7 @@ discards it, and `.phh` export is the durable artefact.
 ## Layout of the tree
 
 ```
-src/TabletopCardEngine/                   # the class library: Engine/, Data/, Dto/, Mappers/
+src/TabletopCardEngine/                   # the class library: Holdem/ (public Hold'em types, Dto/, Options/), Engine/, Data/, Mappers/
 src/TabletopCardEngine.OpenTelemetry/     # AddTabletopCardEngineInstrumentation(); references OpenTelemetry.Api and OpenTelemetry.Api.ProviderBuilderExtensions only
 src/TabletopCardEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
 src/TabletopCardEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
@@ -491,8 +491,8 @@ renumber.
     The three signals are emitted by `HoldemEngine.ApplyWithHookAsync` (the internal seam used by both
     `ApplyHoldemActionAsync` and tests):
     <br>— **Logs** are defined in `Diagnostics/HoldemEngineLog.cs` with `LoggerMessageAttribute` on partial methods; event IDs are stable and never reused.
-    <br>— **Traces** (Activity and tags) are defined in `Diagnostics/HoldemEngineActivity.cs` as static const strings; the source name is `HoldemEngineTelemetry.ActivitySourceName`.
-    <br>— **Metrics** (instruments) are created in `Diagnostics/HoldemEngineMetrics.cs` by name and unit; the meter name is `HoldemEngineTelemetry.MeterName`.
+    <br>— **Traces** (Activity and tags) are defined in `Diagnostics/HoldemEngineActivity.cs` as static const strings; the source name is `TabletopCardEngineTelemetry.ActivitySourceName`.
+    <br>— **Metrics** (instruments) are created in `Diagnostics/HoldemEngineMetrics.cs` by name and unit; the meter name is `TabletopCardEngineTelemetry.MeterName`.
     <br>Card values (hole cards and the board) reach the log only at Trace level with `EnableSensitiveCardLogging`, and never appear in span tags or metric tags. All emission is deterministic and guarded by activity/logger state checks (`IsAllDataRequested`, `IsEnabled(LogLevel.Trace)`) so disabled signals pay no cost.
     <br>The `ActivitySource` and the fallback `Meter` (when no `IMeterFactory` is available) are process-wide singletons, so a test that wants to isolate its spans and metrics must filter spans by `tabletopcardengine.game.id` and collect metrics through its own container's `IMeterFactory`.
     <br>Renaming or removing an event, tag, or instrument, or changing an EventId or unit, is a breaking change, the same as a CP diagnostic on `dotnet pack`. Adding is not. The contract is enforced by `ObservabilityDocsTests`: every log method, tag name, and instrument is checked to appear in `docs/observability.md`.

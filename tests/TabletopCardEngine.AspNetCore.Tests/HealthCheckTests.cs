@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.InMemory;
 using TabletopCardEngine.Sqlite;
 

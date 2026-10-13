@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using System.Text.Json;
 using TabletopCardEngine.Data;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.PostgreSql;
 using TabletopCardEngine.Sqlite;
 

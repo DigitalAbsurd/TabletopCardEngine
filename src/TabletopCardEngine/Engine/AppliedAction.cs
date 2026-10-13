@@ -1,4 +1,6 @@
-﻿namespace TabletopCardEngine.Engine;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Engine;
 
 /// <summary>What happened when one player action was applied to a <see cref="HandTable"/>.</summary>
 /// <param name="SeatNo">The seat that acted. Seats are 1-based.</param>

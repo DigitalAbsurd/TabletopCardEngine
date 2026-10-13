@@ -3,9 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using TabletopCardEngine.Dto;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Options;
 using TabletopCardEngine.InMemory;
-using TabletopCardEngine.Options;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
 

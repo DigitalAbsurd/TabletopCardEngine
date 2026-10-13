@@ -1,4 +1,4 @@
-﻿namespace TabletopCardEngine.Options;
+﻿namespace TabletopCardEngine.Holdem.Options;
 
 /// <summary>Validation limits applied to every game the engine runs.</summary>
 public sealed class HoldemEngineSettings

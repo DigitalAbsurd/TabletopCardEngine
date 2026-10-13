@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Sqlite;
 
 namespace TabletopCardEngine.AspNetCore.Tests;

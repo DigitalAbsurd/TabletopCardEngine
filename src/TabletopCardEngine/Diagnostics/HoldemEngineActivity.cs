@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.Diagnostics;
 
@@ -8,7 +9,7 @@ internal static class HoldemEngineActivity
 {
     /// <summary>The engine's ActivitySource, opened with the assembly's informational version.</summary>
     internal static readonly ActivitySource Source = new(
-        HoldemEngineTelemetry.ActivitySourceName,
+        TabletopCardEngineTelemetry.ActivitySourceName,
         typeof(HoldemEngineActivity).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 
     /// <summary>The span name for each <see cref="HoldemEngine.ApplyHoldemActionAsync"/> call.</summary>

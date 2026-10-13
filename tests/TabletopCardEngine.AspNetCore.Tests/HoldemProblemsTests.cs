@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 using TabletopCardEngine.AspNetCore.Http;
+using TabletopCardEngine.Holdem;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
 
