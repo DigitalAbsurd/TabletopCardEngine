@@ -161,3 +161,4 @@ Three steps:
 - #325: `HandData.Actions` with `Amount`
 - #326: public API freeze
 - #327: API baseline
+- Games register on `TabletopCardEngineBuilder`, each with its own namespace, `DbContext` and schema (ADR-0008). Omaha stays out of scope.

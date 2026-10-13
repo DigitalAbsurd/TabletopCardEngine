@@ -1,6 +1,6 @@
 # Welcome to TabletopCardEngine
 
-TabletopCardEngine is a .NET 10 class library modelling Texas Hold'em cash games. There is no executable — consumers register it via `services.AddTabletopCardEngine(tce => tce.AddHoldem(...))` and drive everything through one method: `IHoldemTable.ApplyAsync(action, cancellationToken)`. The core concept is simple: **there is no in-memory game object — the database is the state**.
+TabletopCardEngine is a .NET 10 class library for Texas Hold'em cash games. It includes Hold'em as its first game; you register Hold'em on the engine and play through `IHoldemTable.ApplyAsync`. Consumers register the engine via `services.AddTabletopCardEngine(tce => tce.AddHoldem(...))` and drive everything through one method. The core concept is simple: **there is no in-memory game object — the database is the state**.
 
 ## What's included
 

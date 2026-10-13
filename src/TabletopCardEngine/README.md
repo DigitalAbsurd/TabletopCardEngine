@@ -30,9 +30,9 @@ services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemSqlite("Da
 using var provider = services.BuildServiceProvider();
 
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-var engine = provider.GetRequiredService<IHoldemTable>();
+var table = provider.GetRequiredService<IHoldemTable>();
 
-var game = await engine.ApplyAsync(
+var game = await table.ApplyAsync(
     HoldemAction.CreateGame(new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 1 })
 );
 ```
