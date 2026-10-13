@@ -9,7 +9,7 @@ using TabletopCardEngine.Holdem.Dto;
 namespace TabletopCardEngine.AspNetCore;
 
 /// <summary>Maps the engine's opt-in REST API into an ASP.NET Core host.</summary>
-public static class HoldemEngineEndpointRouteBuilderExtensions
+public static class HoldemEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps the engine's REST API under <paramref name="prefix"/> and returns the group, so the host can chain
@@ -22,17 +22,17 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
     /// <param name="prefix">The path the routes are grouped under.</param>
     /// <returns>The route group holding every route of the API.</returns>
     /// <exception cref="InvalidOperationException">
-    /// The services were not registered with <c>AddHoldemEngine(configuration, ...)</c> of this package.
+    /// The services were not registered with <c>AddHoldem(configuration, ...)</c> of this package.
     /// </exception>
-    public static RouteGroupBuilder MapHoldemEngineApi(this IEndpointRouteBuilder endpoints, string prefix = "/api/holdem")
+    public static RouteGroupBuilder MapHoldemApi(this IEndpointRouteBuilder endpoints, string prefix = "/api/holdem")
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
 
-        if (endpoints.ServiceProvider.GetService<HoldemEngineApiMarker>() is null)
+        if (endpoints.ServiceProvider.GetService<HoldemApiMarker>() is null)
         {
             throw new InvalidOperationException(
-                "MapHoldemEngineApi requires services.AddHoldemEngine(configuration, ...) from TabletopCardEngine.AspNetCore, " +
+                "MapHoldemApi requires services.AddTabletopCardEngine(tce => tce.AddHoldem(configuration, ...)) from TabletopCardEngine.AspNetCore, " +
                 "which registers the engine and the JSON contract. Call it before building the application.");
         }
 
@@ -109,7 +109,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
         int[] problemStatuses)
     {
         return builder
-            .WithTags("TabletopCardEngine")
+            .WithTags("Holdem")
             .WithSummary(summary)
             .WithDescription(description)
             .Produces<GameData>(successStatus)

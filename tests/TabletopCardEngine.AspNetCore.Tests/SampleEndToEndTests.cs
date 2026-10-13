@@ -47,7 +47,7 @@ public sealed class SampleEndToEndTests
             await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
             {
                 builder.UseSetting("ConnectionStrings:TabletopCardEngine", $"Data Source={dbFile}");
-                builder.UseSetting("TabletopCardEngine:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
+                builder.UseSetting("TabletopCardEngine:Holdem:MigrateDatabaseOnStartup", migrateOnStartup ? "true" : "false");
             });
             using var client = factory.CreateClient();
             await test(client);
@@ -132,7 +132,7 @@ public sealed class SampleEndToEndTests
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await ReadJsonAsync(response);
         body.GetProperty("status").GetString().Should().Be("Healthy");
-        body.GetProperty("entries").GetProperty("tabletopcardengine").GetProperty("data").GetProperty("state").GetString().Should().Be("UpToDate");
+        body.GetProperty("entries").GetProperty("tabletopcardengine-holdem").GetProperty("data").GetProperty("state").GetString().Should().Be("UpToDate");
     });
 
     [TestMethod]
@@ -142,6 +142,6 @@ public sealed class SampleEndToEndTests
 
         response.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
         var body = await ReadJsonAsync(response);
-        body.GetProperty("entries").GetProperty("tabletopcardengine").GetProperty("data").GetProperty("state").GetString().Should().Be("MigrationRequired");
+        body.GetProperty("entries").GetProperty("tabletopcardengine-holdem").GetProperty("data").GetProperty("state").GetString().Should().Be("MigrationRequired");
     });
 }

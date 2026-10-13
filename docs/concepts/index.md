@@ -106,10 +106,10 @@ The demo includes a database inspector that shows you the exact rows the engine 
 By default, every hand is shuffled at random, excluding every card already dealt to a seat or on the board. To replay recorded hand histories, run tests with predetermined sequences, or script a tutorial, use an `ICardShuffler`:
 
 ```csharp
-services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
+services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
     db => db.UseHoldemSqlite(connectionString),
-    options => options.WithCardShuffler(myShuffler));
+    options => options.WithCardShuffler(myShuffler)));
 ```
 
 The shuffler is called twice per hand: once per seat for hole cards, and once for the board:

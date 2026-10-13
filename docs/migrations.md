@@ -16,13 +16,13 @@ This applies all pending migrations to the database. If the database does not ex
 In an ASP.NET Core host, use the `MigrateDatabaseOnStartup` option instead:
 
 ```csharp
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)));
 ```
 
 ```json
-{ "TabletopCardEngine": { "MigrateDatabaseOnStartup": true } }
+{ "TabletopCardEngine": { "Holdem": { "MigrateDatabaseOnStartup": true } } }
 ```
 
 The host registers a hosted service that runs the migration during application start-up, before the server starts listening. See [ASP.NET Core integration](aspnetcore.md#migrating-on-start-up) for details, configuration options and failure handling.
@@ -46,7 +46,7 @@ This returns a `HoldemSchemaStatus` with one of four `HoldemSchemaState` values:
 | `NewerThanEngine` | The schema was migrated by a newer version of the engine and cannot be downgraded. | No, upgrade the engine |
 | `NotVersioned` | The provider keeps no schema history (InMemory only). | Yes |
 
-The health check `AddHoldemEngineCheck()` reports the same state. See [ASP.NET Core integration](aspnetcore.md#health-check) for details.
+The health check `AddHoldemCheck()` reports the same state. See [ASP.NET Core integration](aspnetcore.md#health-check) for details.
 
 ## If you don't migrate before the first call
 

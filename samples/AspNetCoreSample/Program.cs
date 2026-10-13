@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
+using TabletopCardEngine;
 using TabletopCardEngine.AspNetCore;
 using TabletopCardEngine.Sqlite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
-builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)));
+builder.Services.AddHealthChecks().AddHoldemCheck();
 
 // Traces and metrics need the TabletopCardEngine.OpenTelemetry package, which this sample does not
 // reference (a sample has no PackageReference). In your own host, add it like this:
@@ -22,7 +23,7 @@ builder.Services.AddHealthChecks().AddHoldemEngineCheck();
 var app = builder.Build();
 
 app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = WriteHealthJsonAsync });
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 
 app.Run();
 

@@ -56,7 +56,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 - Lift the cap in `HoldemOptionsBuilder.WithSettings` (throws above 6)
 - `HoldemSettings.GamePlayersMaxCount` docs
-- `[Range(2, 6)]` in `TabletopCardEngine.AspNetCore/HoldemEngineHostOptions.cs`
+- `[Range(2, 6)]` in `TabletopCardEngine.AspNetCore/HoldemHostOptions.cs`
 - The demo's `DemoGameDefaults.MaxPlayers`
 - The 2–6 dropdown in `GameSetup.razor`
 - The demo's PHH replay then accepts 7+ player hands

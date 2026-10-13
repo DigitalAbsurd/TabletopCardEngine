@@ -1,21 +1,22 @@
 ﻿using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Text.Json;
+using TabletopCardEngine;
 using TabletopCardEngine.AspNetCore;
 using TabletopCardEngine.Server;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    HoldemServerDatabase.Configure(builder.Configuration));
-builder.Services.AddHealthChecks().AddHoldemEngineCheck();
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    HoldemServerDatabase.Configure(builder.Configuration)));
+builder.Services.AddHealthChecks().AddHoldemCheck();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
 app.MapHealthChecks("/health", new HealthCheckOptions { ResponseWriter = WriteHealthJsonAsync });
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 app.MapOpenApi();
 
 app.Run();

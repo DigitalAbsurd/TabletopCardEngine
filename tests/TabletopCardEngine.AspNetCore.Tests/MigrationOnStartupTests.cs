@@ -17,11 +17,11 @@ public sealed class MigrationOnStartupTests
         builder.Configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
-                ["TabletopCardEngine:MigrateDatabaseOnStartup"] = migrateDatabaseOnStartup.ToString()
+                ["TabletopCardEngine:Holdem:MigrateDatabaseOnStartup"] = migrateDatabaseOnStartup.ToString()
             });
-        builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("TabletopCardEngine"),
-            db => db.UseHoldemSqlite(connection));
+        builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+            builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+            db => db.UseHoldemSqlite(connection)));
         return builder.Build();
     }
 
@@ -74,11 +74,11 @@ public sealed class MigrationOnStartupTests
         builder.Configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
-                ["TabletopCardEngine:MigrateDatabaseOnStartup"] = "true"
+                ["TabletopCardEngine:Holdem:MigrateDatabaseOnStartup"] = "true"
             });
-        builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("TabletopCardEngine"),
-            db => db.UseHoldemSqlite(connection));
+        builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+            builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+            db => db.UseHoldemSqlite(connection)));
 
         HoldemSchemaState? probeState = null;
         builder.Services.AddHostedService<ProbeHostedService>(sp =>

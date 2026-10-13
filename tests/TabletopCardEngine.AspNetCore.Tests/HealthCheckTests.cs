@@ -12,14 +12,14 @@ namespace TabletopCardEngine.AspNetCore.Tests;
 [TestClass]
 public sealed class HealthCheckTests
 {
-    private const string CheckName = "tabletopcardengine";
+    private const string CheckName = "tabletopcardengine-holdem";
 
     private static ServiceProvider BuildProvider(Action<DbContextOptionsBuilder> dbOptionsAction, HealthStatus? failureStatus = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddTabletopCardEngine(tce => tce.AddHoldem(dbOptionsAction));
-        services.AddHealthChecks().AddHoldemEngineCheck(failureStatus: failureStatus);
+        services.AddHealthChecks().AddHoldemCheck(failureStatus: failureStatus);
         return services.BuildServiceProvider();
     }
 

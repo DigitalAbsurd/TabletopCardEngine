@@ -33,7 +33,7 @@ public sealed class OpenApiDocumentTests
                 builder.UseEnvironment("Production");
                 builder.UseSetting("TabletopCardEngineServer:Provider", "Sqlite");
                 builder.UseSetting("ConnectionStrings:TabletopCardEngine", connectionString);
-                builder.UseSetting("TabletopCardEngine:MigrateDatabaseOnStartup", "true");
+                builder.UseSetting("TabletopCardEngine:Holdem:MigrateDatabaseOnStartup", "true");
             });
             using var client = factory.CreateClient();
             await test(client);
@@ -116,7 +116,7 @@ public sealed class OpenApiDocumentTests
                 if (method.Value.TryGetProperty("tags", out var tags))
                 {
                     var tagList = tags.EnumerateArray().Select(t => t.GetString()).ToList();
-                    tagList.Should().Contain("TabletopCardEngine");
+                    tagList.Should().Contain("Holdem");
                 }
             }
         }

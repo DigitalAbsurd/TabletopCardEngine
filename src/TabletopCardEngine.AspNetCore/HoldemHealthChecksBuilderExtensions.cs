@@ -5,7 +5,7 @@ using TabletopCardEngine.Holdem;
 namespace TabletopCardEngine.AspNetCore;
 
 /// <summary>Adds the engine's database check to an ASP.NET Core health checks registration.</summary>
-public static class HoldemEngineHealthChecksBuilderExtensions
+public static class HoldemHealthChecksBuilderExtensions
 {
     /// <summary>
     /// Registers a check that reads <see cref="IHoldemSchemaManager.GetSchemaStatusAsync"/> on every
@@ -24,8 +24,8 @@ public static class HoldemEngineHealthChecksBuilderExtensions
     /// <param name="failureStatus">The status to report on failure; <c>null</c> means <see cref="HealthStatus.Unhealthy"/>.</param>
     /// <param name="tags">Tags a health endpoint can filter the check by.</param>
     /// <returns>The same builder, for chaining.</returns>
-    public static IHealthChecksBuilder AddHoldemEngineCheck(this IHealthChecksBuilder builder,
-        string name = "tabletopcardengine",
+    public static IHealthChecksBuilder AddHoldemCheck(this IHealthChecksBuilder builder,
+        string name = "tabletopcardengine-holdem",
         HealthStatus? failureStatus = null,
         IEnumerable<string>? tags = null)
     {

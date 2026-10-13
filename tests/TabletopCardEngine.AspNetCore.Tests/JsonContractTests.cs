@@ -138,15 +138,15 @@ public sealed class JsonContractTests
     }
 
     [TestMethod]
-    public void AddHoldemEngine_RegistersTheConverters()
+    public void AddHoldem_RegistersTheConverters()
     {
         var services = new ServiceCollection();
         var config = new ConfigurationBuilder().Build();
 
         // Use the hosted overload that registers converters
-        services.AddHoldemEngine(
-            config.GetSection("TabletopCardEngine"),
-            dbOptions => dbOptions.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(
+            config.GetSection("TabletopCardEngine:Holdem"),
+            dbOptions => dbOptions.UseHoldemInMemory(Guid.NewGuid().ToString("N"))));
 
         var sp = services.BuildServiceProvider();
 
@@ -159,18 +159,18 @@ public sealed class JsonContractTests
         hasEnumConverter.Should().BeTrue("JsonStringEnumConverter for enums should be registered");
 
         // Check that the marker is registered
-        var marker = sp.GetService<HoldemEngineApiMarker>();
-        marker.Should().NotBeNull("HoldemEngineApiMarker should be registered");
+        var marker = sp.GetService<HoldemApiMarker>();
+        marker.Should().NotBeNull("HoldemApiMarker should be registered");
     }
 
     private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemOptionsBuilder>? configure)
     {
         var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:" + p.Key, p => p.Value));
-        builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("TabletopCardEngine"),
+        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:Holdem:" + p.Key, p => p.Value));
+        builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+            builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
             db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")),
-            configure);
+            configure));
         return builder.Build();
     }
 

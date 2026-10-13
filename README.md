@@ -21,7 +21,7 @@ The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rou
 | [TabletopCardEngine.PostgreSql](https://www.nuget.org/packages/TabletopCardEngine.PostgreSql) | PostgreSQL storage and its migrations (`UseHoldemPostgreSql`). |
 | [TabletopCardEngine.SqlServer](https://www.nuget.org/packages/TabletopCardEngine.SqlServer) | SQL Server storage and its migrations (`UseHoldemSqlServer`). |
 | [TabletopCardEngine.InMemory](https://www.nuget.org/packages/TabletopCardEngine.InMemory) | EF Core in-memory storage (`UseHoldemInMemory`), for tests and demos. |
-| [TabletopCardEngine.AspNetCore](https://www.nuget.org/packages/TabletopCardEngine.AspNetCore) | ASP.NET Core integration: configuration binding, a schema health check and the REST API (`MapHoldemEngineApi`). |
+| [TabletopCardEngine.AspNetCore](https://www.nuget.org/packages/TabletopCardEngine.AspNetCore) | ASP.NET Core integration: configuration binding, a schema health check and the REST API (`MapHoldemApi`). |
 | [TabletopCardEngine.OpenTelemetry](https://www.nuget.org/packages/TabletopCardEngine.OpenTelemetry) | `AddTabletopCardEngineInstrumentation()` for OpenTelemetry traces and metrics. |
 
 ## Not for real-money gambling
@@ -118,11 +118,11 @@ Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evalua
 The `TabletopCardEngine.AspNetCore` package binds the engine's options from configuration and maps the REST API:
 
 ```csharp
-builder.Services.AddHoldemEngine(
-    builder.Configuration.GetSection("TabletopCardEngine"),
-    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!));
+builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+    builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
+    db => db.UseHoldemSqlite(builder.Configuration.GetConnectionString("TabletopCardEngine")!)));
 
-app.MapHoldemEngineApi();
+app.MapHoldemApi();
 ```
 
 See [ASP.NET Core](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/aspnetcore.md).
@@ -145,7 +145,7 @@ The container host reads these settings from the environment:
 |---|---|
 | `ConnectionStrings__TabletopCardEngine` | The connection string of the database, required. |
 | `TabletopCardEngineServer__Provider` | The database provider: `Sqlite`, `PostgreSql` or `SqlServer`, required. |
-| `TabletopCardEngine__*` | The engine's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
+| `TabletopCardEngine__Holdem__*` | Hold'em's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
 
 The details are in [Configuration](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/docker.md#configuration).
 

@@ -16,11 +16,11 @@ public sealed class ConfigurationTests
     private static IHost BuildHost(Dictionary<string, string?> settings, Action<HoldemOptionsBuilder>? configure = null)
     {
         var builder = Host.CreateApplicationBuilder();
-        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:" + p.Key, p => p.Value));
-        builder.Services.AddHoldemEngine(
-            builder.Configuration.GetSection("TabletopCardEngine"),
+        builder.Configuration.AddInMemoryCollection(settings.ToDictionary(p => "TabletopCardEngine:Holdem:" + p.Key, p => p.Value));
+        builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
+            builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
             db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N")),
-            configure);
+            configure));
         return builder.Build();
     }
 

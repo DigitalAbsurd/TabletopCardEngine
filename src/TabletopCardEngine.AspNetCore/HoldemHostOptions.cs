@@ -8,10 +8,10 @@ namespace TabletopCardEngine.AspNetCore;
 /// <para>
 /// The configuration section is the source of the engine's settings: it overwrites any
 /// <c>WithSettings</c> call made inside the <c>configure</c> callback of
-/// the <c>AddHoldemEngine</c> overload in <see cref="HoldemEngineHostingServiceCollectionExtensions"/>.
+/// the <c>AddHoldem(configuration, ...)</c> overload in <see cref="HoldemHostingBuilderExtensions"/>.
 /// </para>
 /// </summary>
-public sealed class HoldemEngineHostOptions : IValidatableObject
+public sealed class HoldemHostOptions : IValidatableObject
 {
     /// <summary>Fewest seats a game may have. This release allows 2 to 6; a setting can only narrow it.</summary>
     [Range(2, 6)]

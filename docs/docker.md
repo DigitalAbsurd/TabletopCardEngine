@@ -42,11 +42,11 @@ The container host is `src/TabletopCardEngine.Server`, an ASP.NET Core applicati
 overriding the one before it:
 
 1. `appsettings.json`, which carries logging and `AllowedHosts` only. It holds no connection string
-   and no `TabletopCardEngine` section, so nothing database-specific is baked into an image.
+   and no `TabletopCardEngine:Holdem` section, so nothing database-specific is baked into an image.
 2. `appsettings.Development.json`, read only when `ASPNETCORE_ENVIRONMENT` is `Development`. It
    points at a local SQLite file, `holdem.db`, and migrates it on start-up.
 3. Environment variables, where `__` stands for the `:` of a configuration key
-   (`TabletopCardEngine__MigrateDatabaseOnStartup` sets `TabletopCardEngine:MigrateDatabaseOnStartup`).
+   (`TabletopCardEngine__Holdem__MigrateDatabaseOnStartup` sets `TabletopCardEngine:Holdem:MigrateDatabaseOnStartup`).
 
 The settings it reads so far:
 
@@ -54,7 +54,7 @@ The settings it reads so far:
 |---|---|
 | `ConnectionStrings__TabletopCardEngine` | The connection string of the database, required. Examples per provider:<br/>— SQLite: `Data Source=/data/holdem.db`<br/>— PostgreSQL: `Host=db.example.com;Port=5432;Database=holdem;Username=user;Password=pass`<br/>— SQL Server: `Server=db.example.com,1433;Database=holdem;User Id=sa;Password=pass;TrustServerCertificate=True` (see notes below) |
 | `TabletopCardEngineServer__Provider` | The database provider: `Sqlite`, `PostgreSql`, or `SqlServer`, required. Case-insensitive. If missing or unknown, the host exits with an error naming the variable. Do not typo this; a silent default would hide a misconfigured image. |
-| `TabletopCardEngine__*` | The engine's host options, bound to `HoldemEngineHostOptions`: `GamePlayersMinCount`, `GamePlayersMaxCount`, `EnableSensitiveCardLogging` and `MigrateDatabaseOnStartup`. The keys, defaults and rules are in [docs/aspnetcore.md](aspnetcore.md). |
+| `TabletopCardEngine__Holdem__*` | Hold'em's host options, bound to `HoldemHostOptions`: `GamePlayersMinCount`, `GamePlayersMaxCount`, `EnableSensitiveCardLogging` and `MigrateDatabaseOnStartup`. The keys, defaults and rules are in [docs/aspnetcore.md](aspnetcore.md). |
 
 To run the host locally, in the `Development` environment on port 5298:
 
@@ -97,7 +97,7 @@ docker build --target mssql -t tabletopcardengine:mssql .
 `sqlite` is the last stage, so `docker build -t tabletopcardengine .` without `--target` builds it too.
 
 Every target sets `ASPNETCORE_HTTP_PORTS=8080` (the port it exposes) and
-`TabletopCardEngine__MigrateDatabaseOnStartup=true`, and runs as the non-root user `app` (`APP_UID=1654`).
+`TabletopCardEngine__Holdem__MigrateDatabaseOnStartup=true`, and runs as the non-root user `app` (`APP_UID=1654`).
 On top of that:
 
 | Target | `TabletopCardEngineServer__Provider` | `ConnectionStrings__TabletopCardEngine` |

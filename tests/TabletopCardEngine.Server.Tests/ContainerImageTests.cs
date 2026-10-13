@@ -150,7 +150,7 @@ public sealed class ContainerImageTests
         var response = await client.GetAsync("/health");
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var data = (await GameScenario.ReadJsonAsync(response)).GetProperty("entries").GetProperty("tabletopcardengine").GetProperty("data");
+        var data = (await GameScenario.ReadJsonAsync(response)).GetProperty("entries").GetProperty("tabletopcardengine-holdem").GetProperty("data");
         data.GetProperty("state").GetString().Should().Be("UpToDate");
         data.GetProperty("providerName").GetString().Should().Be(ExpectedProviderName(target));
     });
