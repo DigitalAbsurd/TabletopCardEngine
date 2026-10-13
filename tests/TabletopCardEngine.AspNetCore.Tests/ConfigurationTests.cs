@@ -32,7 +32,7 @@ public sealed class ConfigurationTests
 
     private static Task<HoldemResult<GameData>> CreateGameAsync(IHost host, int maxPlayers)
     {
-        return host.Services.GetRequiredService<HoldemEngine>().ApplyHoldemActionAsync(
+        return host.Services.GetRequiredService<IHoldemTable>().ApplyAsync(
             new HoldemActionCreateGame(Guid.NewGuid(), new GameOptionData { MaxPlayersCount = maxPlayers }),
             CancellationToken.None);
     }

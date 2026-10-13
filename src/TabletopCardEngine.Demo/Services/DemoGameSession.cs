@@ -5,7 +5,7 @@ using TabletopCardEngine.Holdem.Dto;
 namespace TabletopCardEngine.Demo.Services;
 
 /// <summary>
-/// Centralised session state for the demo: the only place that calls <see cref="HoldemEngine.ApplyHoldemActionAsync"/>.
+/// Centralised session state for the demo: the only place that calls <see cref="IHoldemTable.ApplyAsync"/>.
 /// Caches the last successful game data and provides typed access to the current hand.
 /// <para>
 /// It holds two engines over one database and calls whichever is active: the play engine deals at
@@ -15,7 +15,7 @@ namespace TabletopCardEngine.Demo.Services;
 /// </summary>
 public sealed class DemoGameSession
 {
-    private readonly HoldemEngine _playEngine;
+    private readonly IHoldemTable _playEngine;
     private readonly DemoReplayEngine? _replayEngine;
     private readonly EngineCallJournal _journal;
 
@@ -32,7 +32,7 @@ public sealed class DemoGameSession
     public HandData? CurrentHand => CurrentGame?.HandData is { No: > 0 } handData ? handData : null;
 
     /// <summary>Gets the engine the next call goes to: the play engine unless a replay is running.</summary>
-    public HoldemEngine ActiveEngine { get; private set; }
+    public IHoldemTable ActiveEngine { get; private set; }
 
     /// <summary>Gets whether calls currently go to the replay engine.</summary>
     public bool IsReplaying => _replayEngine != null && ReferenceEquals(ActiveEngine, _replayEngine.Engine);
@@ -53,7 +53,7 @@ public sealed class DemoGameSession
     /// <param name="replayEngine">
     /// The engine that deals a hand history's cards, or <c>null</c> for a session that never replays.
     /// </param>
-    public DemoGameSession(HoldemEngine engine, DemoReplayEngine? replayEngine = null)
+    public DemoGameSession(IHoldemTable engine, DemoReplayEngine? replayEngine = null)
     {
         _playEngine = engine ?? throw new ArgumentNullException(nameof(engine));
         _replayEngine = replayEngine;
@@ -175,7 +175,7 @@ public sealed class DemoGameSession
     {
         try
         {
-            var result = await ActiveEngine.ApplyHoldemActionAsync(action, cancellationToken);
+            var result = await ActiveEngine.ApplyAsync(action, cancellationToken);
 
             if (result.IsSuccess)
             {

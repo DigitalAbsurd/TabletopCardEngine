@@ -2,7 +2,7 @@
 @using Microsoft.Data.Sqlite
 @using TabletopCardEngine.Holdem
 @using TabletopCardEngine.Holdem.Dto
-@inject HoldemEngine holdemEngine
+@inject IHoldemTable holdemEngine
 @inject SqliteConnection sqliteConnection
 
 <PageTitle>Diagnostics</PageTitle>
@@ -55,7 +55,7 @@
             // Create a game
             gameId = Guid.NewGuid();
             var createGameAction = HoldemAction.CreateGame(new GameOptionData(), gameId);
-            var result = await holdemEngine.ApplyHoldemActionAsync(createGameAction, CancellationToken.None);
+            var result = await holdemEngine.ApplyAsync(createGameAction, CancellationToken.None);
 
             if (!result.IsSuccess)
             {

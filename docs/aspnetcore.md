@@ -149,7 +149,7 @@ services
     .WithMetrics(metrics => metrics.AddConsoleExporter());
 ```
 
-The engine publishes logs through `ILogger<HoldemEngine>`. Add the `TabletopCardEngine` category to
+The engine publishes logs through `ILogger<HoldemTable>`. Add the `TabletopCardEngine` category to
 your logger configuration. Full details and alternative wiring options are in
 [docs/observability.md](observability.md).
 

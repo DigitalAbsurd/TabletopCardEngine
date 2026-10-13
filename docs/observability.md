@@ -50,7 +50,7 @@ services.AddOpenTelemetry().WithMetrics(metrics =>
     metrics.AddMeter(TabletopCardEngineTelemetry.MeterName));
 ```
 
-**Logs:** The engine logs through `ILogger<HoldemEngine>`. When no `ILoggerFactory` is registered in the container, the engine logs nothing (it does not create its own factory).
+**Logs:** The engine logs through `ILogger<HoldemTable>`. When no `ILoggerFactory` is registered in the container, the engine logs nothing (it does not create its own factory).
 
 **Metrics:** The engine publishes metrics through an `IMeterFactory`. When one is present, it calls `IMeterFactory.Create()` to get a meter with the `MeterName`. When absent, it falls back to a process-wide `Meter` that persists for the application's lifetime.
 
@@ -86,7 +86,7 @@ GameId:{GameId} HandNo:{HandNo}
 
 ## Traces
 
-The engine opens one `Activity` (a span in OpenTelemetry terminology) per call to `HoldemEngine.ApplyHoldemActionAsync`. On the first call of each `HoldemEngine` instance, a schema check runs before the span and the metrics: if the database is newer or needs migration, `HoldemSchemaException` is thrown before any signal is emitted.
+The engine opens one `Activity` (a span in OpenTelemetry terminology) per call to `IHoldemTable.ApplyAsync`. On the first call of each `IHoldemTable` instance, a schema check runs before the span and the metrics: if the database is newer or needs migration, `HoldemSchemaException` is thrown before any signal is emitted.
 
 **Source name:** `"TabletopCardEngine"`
 
@@ -207,7 +207,7 @@ The library throws 17 exceptions across 10 files. Each is one of three classes: 
 
 ### Exception handling
 
-The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around `SaveChangesAsync` in `HoldemEngine.ApplyHoldemActionAsync`, and it turns the exception into `HoldemErrorCode.Conflict` (see [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts), fact 24). Every other exception reaches the caller unhandled.
+The library has one `catch`. It is `catch (DbUpdateConcurrencyException)` around `SaveChangesAsync` in `IHoldemTable.ApplyAsync`, and it turns the exception into `HoldemErrorCode.Conflict` (see [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts), fact 24). Every other exception reaches the caller unhandled.
 
 ### How exceptions will surface
 

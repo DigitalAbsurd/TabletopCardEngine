@@ -12,28 +12,17 @@ using TabletopCardEngine.Resources;
 namespace TabletopCardEngine.Holdem;
 
 /// <summary>
-/// The single entry point for game commands: every game action goes through <see cref="ApplyHoldemActionAsync"/>.
-/// There is no long-lived in-memory game: every call rehydrates the aggregate from the database, applies one action,
-/// and projects the result back out.
-/// <para>
-/// <b>Scope of this release:</b> No-Limit Texas Hold'em cash games at 2 to 6 seats, with no antes and no rake.
-/// Other betting structures, more seats, antes and tournaments are planned as later minor releases (see <c>docs/roadmap.md</c>),
-/// and <see cref="GameOptionData"/> is where they will plug in.
-/// </para>
-/// <para>
-/// Instances are obtained from the dependency-injection container registered by
-/// <c>AddHoldemEngine</c>: <c>services.GetRequiredService&lt;HoldemEngine&gt;()</c>.
-/// </para>
+/// The <see cref="IHoldemTable"/> the container registers: rehydrates the game, runs the handler, saves and projects.
 /// </summary>
-public sealed class HoldemEngine
+internal sealed class HoldemTable : IHoldemTable
 {
     private readonly HoldemEngineOptions _options;
-    private readonly ILogger<HoldemEngine> _logger;
+    private readonly ILogger<HoldemTable> _logger;
     private readonly HoldemEngineMetrics _metrics;
     private readonly HoldemSchemaManager _schemaManager;
     private volatile bool _schemaChecked;
 
-    internal HoldemEngine(HoldemEngineOptions options, ILogger<HoldemEngine> logger, HoldemEngineMetrics metrics, HoldemSchemaManager schemaManager)
+    internal HoldemTable(HoldemEngineOptions options, ILogger<HoldemTable> logger, HoldemEngineMetrics metrics, HoldemSchemaManager schemaManager)
     {
         _options = options;
         _logger = logger;
@@ -42,30 +31,9 @@ public sealed class HoldemEngine
         _schemaChecked = false;
     }
 
-    /// <summary>
-    /// Applies one action to a game and returns the game as it now stands.
-    /// <para>
-    /// A failed result short-circuits before the transaction is saved, so a validation failure
-    /// leaves nothing persisted.
-    /// </para>
-    /// <para>
-    /// <b>Concurrency:</b> <see cref="GameData.Version"/> counts the saves of a game, starting at <c>1</c>
-    /// on creation; every call that saves increments it, and reading the game does not. The call fails with
-    /// <see cref="HoldemErrorCode.Conflict"/> when <see cref="HoldemAction.ExpectedVersion"/> is set and no
-    /// longer matches, or when another writer saved the game between this call's load and its save. Nothing
-    /// is persisted on a conflict, and the engine never retries: the caller reloads with
-    /// <see cref="HoldemAction.GetGame(Guid)"/> and decides.
-    /// </para>
-    /// </summary>
-    /// <param name="holdemAction">
-    /// The action to apply. Its concrete record type decides which handler runs.
-    /// </param>
-    /// <param name="cancellationToken">Cancels the database work.</param>
-    /// <returns>
-    /// The projected game on success, or a failed result carrying the validation errors, each with a stable <see cref="HoldemErrorCode"/>.
-    /// </returns>
-    public Task<HoldemResult<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)
-        => ApplyWithHookAsync(holdemAction, null, cancellationToken);
+    /// <inheritdoc/>
+    public Task<HoldemResult<GameData>> ApplyAsync(HoldemAction action, CancellationToken cancellationToken = default)
+        => ApplyWithHookAsync(action, null, cancellationToken);
 
     /// <summary>The same call with a seam between handling the action and saving it, so a test can interleave two writers.</summary>
     internal async Task<HoldemResult<GameData>> ApplyWithHookAsync(HoldemAction holdemAction, Func<Task>? beforeSave, CancellationToken cancellationToken)

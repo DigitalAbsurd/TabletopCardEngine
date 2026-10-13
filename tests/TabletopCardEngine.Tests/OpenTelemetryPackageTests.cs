@@ -144,9 +144,9 @@ public sealed class OpenTelemetryPackageTests
             "Microsoft.Extensions.Logging.Abstractions");
     }
 
-    private static async Task ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
     }
 }

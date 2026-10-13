@@ -12,7 +12,7 @@ internal static class HoldemEngineActivity
         TabletopCardEngineTelemetry.ActivitySourceName,
         typeof(HoldemEngineActivity).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 
-    /// <summary>The span name for each <see cref="HoldemEngine.ApplyHoldemActionAsync"/> call.</summary>
+    /// <summary>The span name for each <see cref="IHoldemTable.ApplyAsync"/> call.</summary>
     internal const string Name = "TabletopCardEngine.ApplyHoldemAction";
 
     /// <summary>The action type: <c>CreateGame</c>, <c>GetGame</c>, <c>StartGame</c>, <c>StartHand</c>, <c>Play</c>, <c>FinishGame</c>, or <c>Unknown</c>.</summary>

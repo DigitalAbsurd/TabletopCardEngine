@@ -30,7 +30,7 @@ internal static class TestEngineHost
     /// <summary>Logs EF SQL with sensitive data to the debug output (DEBUG builds only).</summary>
     internal const string SqlDebugVariable = "TCE_TEST_SQL_DEBUG";
 
-    internal static DisposableTestData Setup(out HoldemEngine holdemEngine,
+    internal static DisposableTestData Setup(out IHoldemTable holdemEngine,
         out IDbContextFactory<HoldemDbContext> contextFactory,
         ICardShuffler? shuffler = null,
         Action<HoldemEngineSettings>? configureSettings = null,
@@ -102,7 +102,7 @@ internal static class TestEngineHost
         using var dbContext = contextFactory.CreateDbContext();
         seedAction?.Invoke(dbContext);
 
-        holdemEngine = serviceProvider.GetRequiredService<HoldemEngine>();
+        holdemEngine = serviceProvider.GetRequiredService<IHoldemTable>();
         return new DisposableTestData(serviceProvider, keepAliveConnection ?? databaseLifetime);
     }
 

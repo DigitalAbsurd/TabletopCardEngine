@@ -16,7 +16,7 @@ public interface ICardShuffler
     /// <param name="handNo">Hand number within the game, ascending from 1.</param>
     /// <param name="seatNo">The seat to deal to. Seats are 1-based.</param>
     /// <param name="cancellationToken">
-    /// The token the caller passed to <c>ApplyHoldemActionAsync</c>. It has no default, so an
+    /// The token the caller passed to <c>ApplyAsync</c>. It has no default, so an
     /// implementation that does I/O sees it and can honour it.
     /// </param>
     /// <returns>The cards, read once per call and not retained by the engine.</returns>
@@ -29,7 +29,7 @@ public interface ICardShuffler
     /// <param name="gameId">The game being dealt.</param>
     /// <param name="handNo">Hand number within the game, ascending from 1.</param>
     /// <param name="cancellationToken">
-    /// The token the caller passed to <c>ApplyHoldemActionAsync</c>. It has no default, so an
+    /// The token the caller passed to <c>ApplyAsync</c>. It has no default, so an
     /// implementation that does I/O sees it and can honour it.
     /// </param>
     /// <returns>The cards, read once per call and not retained by the engine.</returns>

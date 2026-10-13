@@ -24,10 +24,10 @@ public sealed class HoldemResultTests
     public async Task HoldemResult_CreateGameTwice_FailsWithGameAlreadyExists()
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out var contextFactory);
-        await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        var result = await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameAlreadyExists);
@@ -39,10 +39,10 @@ public sealed class HoldemResultTests
     public async Task HoldemResult_PlayerActionAfterHandEnded_FailsWithCurrentHandEnded()
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out var contextFactory);
-        await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
+        var result = await holdemEngine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.CurrentHandEnded);
@@ -53,12 +53,12 @@ public sealed class HoldemResultTests
     public async Task HoldemResult_StartHandWhileHandRunning_FailsWithPreviousHandNotEnded()
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out var contextFactory);
-        await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
-        var firstHand = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats));
+        await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        var firstHand = await holdemEngine.ApplyAsync(new HoldemActionStartGame(_gameId, _seats));
         firstHand.IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats });
+        var result = await holdemEngine.ApplyAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats });
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.PreviousHandNotEnded);
@@ -69,9 +69,9 @@ public sealed class HoldemResultTests
     public async Task HoldemResult_FailedResult_ValueThrowsInvalidOperation()
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out _);
-        await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        var result = await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
 
         var read = () => result.Value;
         read.Should().Throw<InvalidOperationException>();
@@ -82,7 +82,7 @@ public sealed class HoldemResultTests
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out _);
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        var result = await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
 
         result.IsSuccess.Should().BeTrue();
         result.IsFailed.Should().BeFalse();

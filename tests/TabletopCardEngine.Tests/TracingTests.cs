@@ -25,7 +25,7 @@ public sealed class TracingTests
         var gameId = Guid.NewGuid();
         using var host = Setup(gameId, out var engine, out var activities);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(gameId, _options));
+        var result = await engine.ApplyAsync(new HoldemActionCreateGame(gameId, _options));
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -41,7 +41,7 @@ public sealed class TracingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         activities.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionGetGame(gameId));
+        var result = await engine.ApplyAsync(new HoldemActionGetGame(gameId));
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -57,7 +57,7 @@ public sealed class TracingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         activities.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(gameId, _joinSeats));
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(gameId, _joinSeats));
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -76,7 +76,7 @@ public sealed class TracingTests
         await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
         activities.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
+        var result = await engine.ApplyAsync(new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -95,7 +95,7 @@ public sealed class TracingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         activities.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(gameId));
+        var result = await engine.ApplyAsync(new HoldemActionStartHand(gameId));
 
         result.IsSuccess.Should().BeFalse();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -113,7 +113,7 @@ public sealed class TracingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         activities.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(gameId, _joinSeats) { ExpectedVersion = 99 });
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(gameId, _joinSeats) { ExpectedVersion = 99 });
 
         result.IsSuccess.Should().BeFalse();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -204,7 +204,7 @@ public sealed class TracingTests
 
         var playAction = new HoldemActionPlay(gameId, PlayerActionType.Check, 0);
         var exception = await Assert.ThrowsExceptionAsync<InvalidOperationException>(
-            () => engine.ApplyHoldemActionAsync(playAction));
+            () => engine.ApplyAsync(playAction));
         exception.Message.Should().Be("Deck threw");
 
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -244,7 +244,7 @@ public sealed class TracingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         activities.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionGetGame(gameId));
+        var result = await engine.ApplyAsync(new HoldemActionGetGame(gameId));
 
         result.IsSuccess.Should().BeTrue();
         var activity = ActivitiesFor(gameId, activities).Should().ContainSingle().Subject;
@@ -279,7 +279,7 @@ public sealed class TracingTests
         }
     }
 
-    private static SetupResult Setup(Guid gameId, out HoldemEngine engine, out List<Activity> activities)
+    private static SetupResult Setup(Guid gameId, out IHoldemTable engine, out List<Activity> activities)
     {
         var activitiesList = new List<Activity>();
         activities = activitiesList;
@@ -325,9 +325,9 @@ public sealed class TracingTests
             .Where(activity => activity.GetTagItem(HoldemEngineActivity.GameIdTag)?.ToString() == gameId.ToString("D"))
             .ToList();
 
-    private static async Task ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
     }
 

@@ -16,7 +16,7 @@ public sealed class SchemaCheckTests
         var options = new GameOptionData { MaxPlayersCount = 2 };
         var action = HoldemAction.CreateGame(options);
 
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
 
         result.IsSuccess.Should().BeTrue();
     }
@@ -35,7 +35,7 @@ public sealed class SchemaCheckTests
         var action = HoldemAction.CreateGame(options);
 
         var exception = await Assert.ThrowsExceptionAsync<HoldemSchemaException>(
-            () => engine.ApplyHoldemActionAsync(action));
+            () => engine.ApplyAsync(action));
 
         exception.Failure.Should().Be(HoldemSchemaFailure.DatabaseIsNewer);
         exception.Status.Should().NotBeNull();
@@ -56,7 +56,7 @@ public sealed class SchemaCheckTests
         var action = HoldemAction.CreateGame(options);
 
         var exception = await Assert.ThrowsExceptionAsync<HoldemSchemaException>(
-            () => engine.ApplyHoldemActionAsync(action));
+            () => engine.ApplyAsync(action));
 
         exception.Failure.Should().Be(HoldemSchemaFailure.MigrationRequired);
     }
@@ -75,7 +75,7 @@ public sealed class SchemaCheckTests
         var action = HoldemAction.CreateGame(options);
 
         await Assert.ThrowsExceptionAsync<HoldemSchemaException>(
-            () => engine.ApplyHoldemActionAsync(action));
+            () => engine.ApplyAsync(action));
 
         // Fix the schema version
         await using var context = await contextFactory.CreateDbContextAsync();
@@ -83,7 +83,7 @@ public sealed class SchemaCheckTests
         schemaRow.SchemaVersion = HoldemSchema.Version;
         await context.SaveChangesAsync();
 
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue();
     }
 
@@ -102,7 +102,7 @@ public sealed class SchemaCheckTests
 
         // The schema check should throw before any action processing
         var exception = await Assert.ThrowsExceptionAsync<HoldemSchemaException>(
-            () => engine.ApplyHoldemActionAsync(action));
+            () => engine.ApplyAsync(action));
 
         exception.Failure.Should().Be(HoldemSchemaFailure.DatabaseIsNewer);
     }

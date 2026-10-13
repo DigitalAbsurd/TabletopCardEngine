@@ -14,7 +14,7 @@ namespace TabletopCardEngine;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="HoldemEngine"/> as a singleton over an EF Core context factory.
+    /// Registers <see cref="IHoldemTable"/> as a singleton over an EF Core context factory.
     /// <para>
     /// Engine options belong to the container: each call creates its own
     /// <see cref="HoldemEngineOptions"/> and registers it as a singleton instance, so engines built
@@ -47,17 +47,17 @@ public static class ServiceCollectionExtensions
             new HoldemSchemaManager(sp.GetRequiredService<IDbContextFactory<HoldemDbContext>>()));
         services.AddSingleton<IHoldemSchemaManager>(sp =>
             sp.GetRequiredService<HoldemSchemaManager>());
-        services.AddSingleton<HoldemEngine>(servicesProvider =>
+        services.AddSingleton<IHoldemTable>(servicesProvider =>
         {
             var resolvedOptions = servicesProvider.GetRequiredService<HoldemEngineOptions>();
             resolvedOptions.DbContextFactory =
                 servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
-            var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemEngine>()
-                ?? NullLogger<HoldemEngine>.Instance;
+            var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemTable>()
+                ?? NullLogger<HoldemTable>.Instance;
             var meterFactory = servicesProvider.GetService<IMeterFactory>();
             var metrics = HoldemEngineMetrics.CreateOrGetFallback(meterFactory);
             var schemaManager = servicesProvider.GetRequiredService<HoldemSchemaManager>();
-            return new HoldemEngine(resolvedOptions, logger, metrics, schemaManager);
+            return new HoldemTable(resolvedOptions, logger, metrics, schemaManager);
         });
 
         return services;

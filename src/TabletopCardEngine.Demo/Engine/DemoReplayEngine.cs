@@ -6,7 +6,7 @@ using TabletopCardEngine.Sqlite;
 namespace TabletopCardEngine.Demo.Engine;
 
 /// <summary>
-/// The engine that replays hand histories: a second <see cref="HoldemEngine"/>, built in a container
+/// The engine that replays hand histories: a second <see cref="IHoldemTable"/>, built in a container
 /// of its own with the <see cref="PhhCardShuffler"/> installed, over the same kept-alive connection
 /// as the play engine.
 /// <para>
@@ -22,11 +22,11 @@ public sealed class DemoReplayEngine : IDisposable
     private DemoReplayEngine(ServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        Engine = serviceProvider.GetRequiredService<HoldemEngine>();
+        Engine = serviceProvider.GetRequiredService<IHoldemTable>();
     }
 
     /// <summary>The engine that deals the cards registered with the shuffler.</summary>
-    public HoldemEngine Engine { get; }
+    public IHoldemTable Engine { get; }
 
     /// <summary>
     /// Builds the replay engine over an already open connection. The schema is not created here:

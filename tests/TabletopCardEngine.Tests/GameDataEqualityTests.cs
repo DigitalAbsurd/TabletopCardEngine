@@ -24,8 +24,8 @@ public sealed class GameDataEqualityTests
         using var host = TestEngineHost.Setup(out var engine, out _);
         await StartOnTheFlopAsync(engine);
 
-        var first = (await engine.ApplyHoldemActionAsync(new HoldemActionGetGame(_gameId))).Value;
-        var second = (await engine.ApplyHoldemActionAsync(new HoldemActionGetGame(_gameId))).Value;
+        var first = (await engine.ApplyAsync(new HoldemActionGetGame(_gameId))).Value;
+        var second = (await engine.ApplyAsync(new HoldemActionGetGame(_gameId))).Value;
 
         // Every collection the record holds has to be populated, or the test proves nothing about it.
         first.HandData!.Seats.Should().HaveCount(3);
@@ -45,7 +45,7 @@ public sealed class GameDataEqualityTests
         using var host = TestEngineHost.Setup(out var engine, out _);
         var before = await StartOnTheFlopAsync(engine);
 
-        var after = (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0))).Value;
+        var after = (await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0))).Value;
 
         (before == after).Should().BeFalse();
     }
@@ -78,13 +78,13 @@ public sealed class GameDataEqualityTests
         (seats[0].Hole as Card[]).Should().BeNull();
     }
 
-    private static async Task<GameData> StartOnTheFlopAsync(HoldemEngine engine)
+    private static async Task<GameData> StartOnTheFlopAsync(IHoldemTable engine)
     {
-        (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions))).IsSuccess.Should().BeTrue();
-        (await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
-        (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0))).IsSuccess.Should().BeTrue();
-        (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0))).IsSuccess.Should().BeTrue();
-        var flop = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0));
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions))).IsSuccess.Should().BeTrue();
+        (await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
+        (await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0))).IsSuccess.Should().BeTrue();
+        (await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0))).IsSuccess.Should().BeTrue();
+        var flop = await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0));
         flop.IsSuccess.Should().BeTrue();
         flop.Value.HandData!.Street.Should().Be(Street.Flop);
         return flop.Value;

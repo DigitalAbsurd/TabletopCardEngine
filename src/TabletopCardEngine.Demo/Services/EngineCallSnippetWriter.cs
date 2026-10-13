@@ -17,7 +17,7 @@ public sealed class EngineCallSnippetWriter
     public static string GenerateSnippet(EngineCallJournalEntry entry)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("var result = await engine.ApplyHoldemActionAsync(");
+        sb.AppendLine("var result = await engine.ApplyAsync(");
         sb.Append("    ");
         sb.AppendLine(GenerateActionConstruction(entry.Action, indent: 1));
         sb.Append(')');
@@ -67,7 +67,7 @@ public sealed class EngineCallSnippetWriter
         sb.AppendLine("    configure: null);");
         sb.AppendLine("var provider = services.BuildServiceProvider();");
         sb.AppendLine("await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();");
-        sb.AppendLine("var engine = provider.GetRequiredService<HoldemEngine>();");
+        sb.AppendLine("var engine = provider.GetRequiredService<IHoldemTable>();");
         sb.AppendLine();
 
         // All the calls from the journal

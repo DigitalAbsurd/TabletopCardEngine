@@ -17,7 +17,7 @@ internal sealed class Program
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
         builder.Services.AddAntDesign();
 
-        // Configure HoldemEngine with SQLite for WebAssembly
+        // Configure the engine with SQLite for WebAssembly
         DemoEngineHost.ConfigureHoldemEngine(builder.Services);
 
         // Register demo services

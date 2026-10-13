@@ -5,7 +5,7 @@ using TabletopCardEngine.Holdem.Dto;
 namespace TabletopCardEngine.Tests;
 
 [TestClass]
-public sealed class HoldemEngineTests
+public sealed class HoldemTableTests
 {
     [TestMethod]
     public async Task HoldemAction_StartGame()
@@ -101,12 +101,12 @@ public sealed class HoldemEngineTests
         using (TestEngineHost.Setup(out var holdemEngine, out _,
                 shuffler: new TestCardShuffler(getHoleFunc: (no, seatNo) => holeCards[seatNo], getDeckFunc: handNo => deckCards)))
         {
-            await holdemEngine.ApplyHoldemActionAsync(
+            await holdemEngine.ApplyAsync(
                 new HoldemActionCreateGame(
                     GameId: gameId,
                     Options: gameOptions));
 
-            actualGameData = (await holdemEngine.ApplyHoldemActionAsync(
+            actualGameData = (await holdemEngine.ApplyAsync(
                 new HoldemActionStartGame(GameId: gameId, JoinSeats: seatsData))).Value;
         }
 
@@ -123,12 +123,12 @@ public sealed class HoldemEngineTests
 
         using (TestEngineHost.Setup(out var holdemEngine, out _))
         {
-            await holdemEngine.ApplyHoldemActionAsync(
+            await holdemEngine.ApplyAsync(
                 new HoldemActionCreateGame(
                     GameId: gameId,
                     Options: gameOptions));
 
-            failResult = await holdemEngine.ApplyHoldemActionAsync(
+            failResult = await holdemEngine.ApplyAsync(
                 new HoldemActionCreateGame(
                     GameId: gameId,
                     Options: gameOptions));

@@ -18,18 +18,18 @@ public sealed class CardShufflerCancellationTests
         using var cts = new CancellationTokenSource();
         var token = cts.Token;
 
-        (await engine.ApplyHoldemActionAsync(
+        (await engine.ApplyAsync(
             new HoldemActionCreateGame(_gameId, new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 5, InitialDealerSeatNo = 1 }), token))
             .IsSuccess.Should().BeTrue();
-        (await engine.ApplyHoldemActionAsync(
+        (await engine.ApplyAsync(
             new HoldemActionStartGame(_gameId, [new("Alice", 1, 100), new("Bob", 2, 100)]), token))
             .IsSuccess.Should().BeTrue();
 
         shuffler.HoleTokens.Should().NotBeEmpty().And.OnlyContain(seen => seen == token);
         shuffler.DeckTokens.Should().BeEmpty();
 
-        (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0), token)).IsSuccess.Should().BeTrue();
-        var flop = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0), token);
+        (await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0), token)).IsSuccess.Should().BeTrue();
+        var flop = await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0), token);
         flop.IsSuccess.Should().BeTrue();
         flop.Value.HandData!.Street.Should().Be(Street.Flop);
 

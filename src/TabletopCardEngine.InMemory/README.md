@@ -20,7 +20,7 @@ using var provider = services.BuildServiceProvider();
 
 // Create the schema (stored only in memory)
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-var engine = provider.GetRequiredService<HoldemEngine>();
+var engine = provider.GetRequiredService<IHoldemTable>();
 ```
 
 Two engines given the same store name will share the same data. Use a unique name for each isolated engine—one per test, one per tenant, etc. The in-memory store does not persist across process restarts.

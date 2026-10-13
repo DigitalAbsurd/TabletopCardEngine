@@ -80,14 +80,14 @@ public sealed class ComponentRender_Tests
         services.AddScoped<PhhReplayController>();
     }
 
-    private static HoldemEngine CreateAndInitializeEngine(IServiceProvider serviceProvider)
+    private static IHoldemTable CreateAndInitializeEngine(IServiceProvider serviceProvider)
     {
         serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
 
-        return serviceProvider.GetRequiredService<HoldemEngine>();
+        return serviceProvider.GetRequiredService<IHoldemTable>();
     }
 
-    private static async Task<(DemoGameSession session, HoldemEngine engine)> CreateGameWithHandAsync(IServiceProvider serviceProvider)
+    private static async Task<(DemoGameSession session, IHoldemTable engine)> CreateGameWithHandAsync(IServiceProvider serviceProvider)
     {
         var engine = CreateAndInitializeEngine(serviceProvider);
         var session = serviceProvider.GetRequiredService<DemoGameSession>();
@@ -367,7 +367,7 @@ public sealed class ComponentRender_Tests
         // Assert - the new game deals at random, rather than replaying the imported hand's cards
         applied.Should().BeTrue();
         session.IsReplaying.Should().BeFalse();
-        session.ActiveEngine.Should().BeSameAs(ctx.Services.GetRequiredService<HoldemEngine>());
+        session.ActiveEngine.Should().BeSameAs(ctx.Services.GetRequiredService<IHoldemTable>());
     }
 
     [TestMethod]

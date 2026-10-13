@@ -31,7 +31,7 @@ public sealed class PhhReplayLifecycle_Tests
     /// Builds a session the way the demo does: a play engine and a replay engine over one kept-alive
     /// connection, the replay engine reading the returned shuffler.
     /// </summary>
-    private static (DemoGameSession Session, PhhCardShuffler Shuffler, HoldemEngine PlayEngine, DemoReplayEngine ReplayEngine) CreateTestSession()
+    private static (DemoGameSession Session, PhhCardShuffler Shuffler, IHoldemTable PlayEngine, DemoReplayEngine ReplayEngine) CreateTestSession()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
@@ -43,14 +43,14 @@ public sealed class PhhReplayLifecycle_Tests
         return (new DemoGameSession(playEngine, replayEngine), shuffler, playEngine, replayEngine);
     }
 
-    private static HoldemEngine CreateTestEngine()
+    private static IHoldemTable CreateTestEngine()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
         return CreateTestEngine(connection);
     }
 
-    private static HoldemEngine CreateTestEngine(SqliteConnection connection)
+    private static IHoldemTable CreateTestEngine(SqliteConnection connection)
     {
         var services = new ServiceCollection();
         services.AddHoldemEngine(
@@ -61,7 +61,7 @@ public sealed class PhhReplayLifecycle_Tests
         var serviceProvider = services.BuildServiceProvider();
         serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
 
-        return serviceProvider.GetRequiredService<HoldemEngine>();
+        return serviceProvider.GetRequiredService<IHoldemTable>();
     }
 
     [TestMethod]

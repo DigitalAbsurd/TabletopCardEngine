@@ -22,7 +22,7 @@ public static class TabletopCardEngineInstrumentationExtensions
     /// <summary>
     /// Subscribes the tracer provider to the engine's <c>ActivitySource</c>, which opens one
     /// <c>TabletopCardEngine.ApplyHoldemAction</c> span per call to
-    /// <see cref="HoldemEngine.ApplyHoldemActionAsync"/>. The engine's telemetry is described in
+    /// <see cref="IHoldemTable.ApplyAsync"/>. The engine's telemetry is described in
     /// <c>docs/observability.md</c>.
     /// </summary>
     /// <param name="builder">The tracer provider builder of the host.</param>

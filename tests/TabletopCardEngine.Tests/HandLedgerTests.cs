@@ -45,56 +45,56 @@ public sealed class HandLedgerTests
                 shuffler: new TestCardShuffler(getHoleFunc: (no, seatNo) => holeCards[seatNo], getDeckFunc: handNo => deckCards)))
         {
             // Create and start the game
-            await holdemEngine.ApplyHoldemActionAsync(
+            await holdemEngine.ApplyAsync(
                 new HoldemActionCreateGame(GameId: gameId, Options: gameOptions));
 
-            var gameData = await holdemEngine.ApplyHoldemActionAsync(
+            var gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionStartGame(GameId: gameId, JoinSeats: seatsData));
 
             AssertActionsIntegrity(gameData.Value);
 
             // First action: Player 6 calls the big blind
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Second action: Player 1 folds
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Third action: Player 2 raises to 15
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Raise, 15));
             AssertActionsIntegrity(gameData.Value);
 
             // Fourth action: Player 3 calls
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Fifth action: Player 4 folds
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Sixth action: Player 5 calls
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Seventh action: Player 6 calls
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Eighth action: Small blind checks
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Check, 0));
             AssertActionsIntegrity(gameData.Value);
 
             // Ninth action: Big blind checks
-            gameData = await holdemEngine.ApplyHoldemActionAsync(
+            gameData = await holdemEngine.ApplyAsync(
                 new HoldemActionPlay(gameId, PlayerActionType.Check, 0));
             AssertActionsIntegrity(gameData.Value);
         }

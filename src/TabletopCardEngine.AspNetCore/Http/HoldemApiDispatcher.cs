@@ -19,7 +19,7 @@ internal static class HoldemApiDispatcher
     /// <param name="action">The action to apply; its <c>ExpectedVersion</c> is taken from <c>If-Match</c>.</param>
     /// <param name="onSuccess">Builds the success response from the game the engine returns.</param>
     /// <param name="honourIfMatch">Whether <c>If-Match</c> is read at all; <see langword="false"/> for routes that have no version to compare.</param>
-    internal static async Task<IResult> SendAsync(HttpContext context, HoldemEngine engine, HoldemAction action,
+    internal static async Task<IResult> SendAsync(HttpContext context, IHoldemTable engine, HoldemAction action,
         Func<GameData, IResult> onSuccess, bool honourIfMatch = true)
     {
         var ifMatch = default(HoldemIfMatch);
@@ -36,7 +36,7 @@ internal static class HoldemApiDispatcher
             action = action with { ExpectedVersion = ifMatch.ExpectedVersion };
         }
 
-        var result = await engine.ApplyHoldemActionAsync(action, context.RequestAborted);
+        var result = await engine.ApplyAsync(action, context.RequestAborted);
         if (!result.IsSuccess)
         {
             return HoldemProblems.ToProblem(result.Errors, ifMatch.Present);

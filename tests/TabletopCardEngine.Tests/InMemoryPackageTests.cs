@@ -51,7 +51,7 @@ public sealed class InMemoryPackageTests
         var manager = host.GetRequiredService<IHoldemSchemaManager>();
         await manager.MigrateAsync();
 
-        var engine = host.GetRequiredService<HoldemEngine>();
+        var engine = host.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
@@ -68,10 +68,10 @@ public sealed class InMemoryPackageTests
     {
         var databaseName = Guid.NewGuid().ToString("N");
         using var host = InMemoryHost.Create(databaseName);
-        var engine = host.GetRequiredService<HoldemEngine>();
+        var engine = host.GetRequiredService<IHoldemTable>();
 
         var gameId = Guid.NewGuid();
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(gameId, _options));
+        var result = await engine.ApplyAsync(new HoldemActionCreateGame(gameId, _options));
 
         result.IsSuccess.Should().BeTrue("InMemory does not require MigrateAsync");
     }
@@ -84,11 +84,11 @@ public sealed class InMemoryPackageTests
         var manager = host.GetRequiredService<IHoldemSchemaManager>();
         await manager.MigrateAsync();
 
-        var engine = host.GetRequiredService<HoldemEngine>();
+        var engine = host.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
         var created = await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(gameId, _joinSeats)
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(gameId, _joinSeats)
         {
             ExpectedVersion = created.Version - 1,
         });
@@ -111,9 +111,9 @@ public sealed class InMemoryPackageTests
             .Should().BeEmpty();
     }
 
-    private static async Task<GameData> ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task<GameData> ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
         return result.Value;
     }

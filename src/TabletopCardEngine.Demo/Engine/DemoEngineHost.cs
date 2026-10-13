@@ -5,7 +5,7 @@ using TabletopCardEngine.Sqlite;
 namespace TabletopCardEngine.Demo.Engine;
 
 /// <summary>
-/// Configures the HoldemEngine for the Blazor WebAssembly demo.
+/// Configures the Hold'em engine for the Blazor WebAssembly demo.
 /// Establishes a kept-alive in-memory SQLite database that persists for the lifetime of the app,
 /// and two engines over it: the play engine, which deals at random, and the
 /// <see cref="DemoReplayEngine"/>, which deals what the <see cref="PhhCardShuffler"/> holds.
@@ -13,7 +13,7 @@ namespace TabletopCardEngine.Demo.Engine;
 internal static class DemoEngineHost
 {
     /// <summary>
-    /// Configures HoldemEngine services and database for the WebAssembly demo.
+    /// Configures the engine services and database for the WebAssembly demo.
     /// The database connection is held open for the lifetime of the application to preserve
     /// the in-memory SQLite schema and data between DbContext instances. The schema itself is not
     /// created here: <c>Program.Main</c> runs <c>IHoldemSchemaManager.MigrateAsync</c> once the host is built.
