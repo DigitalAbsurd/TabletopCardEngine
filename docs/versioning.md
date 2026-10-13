@@ -18,7 +18,7 @@ A major version increment (e.g., `1.0.0` → `2.0.0`) is required for any breaki
 
 - **The numeric value or meaning of a `HoldemErrorCode`** — the stable machine-readable codes in the `HoldemErrorCode` enum (`GameAlreadyExists`, `CurrentHandEnded`, etc.). Changing a code's value or its semantic meaning is a break.
 
-- **An event ID, a span tag's name or meaning, or an instrument's name or unit** — the logs, traces, and metrics defined in `Diagnostics/` and documented in [docs/observability.md](observability.md), with event IDs defined in `HoldemEngineLog.cs`, span tags in `HoldemEngineActivity.cs`, and instrument names and units in `HoldemEngineMetrics.cs`.
+- **An event ID, a span tag's name or meaning, or an instrument's name or unit** — the logs, traces, and metrics defined in `Holdem/Diagnostics/` and documented in [docs/observability.md](observability.md), with event IDs defined in `HoldemLog.cs`, span tags in `HoldemActivity.cs`, and instrument names and units in `HoldemMetrics.cs`.
 
 - **Rule behaviour a caller can observe** — a change such that the same sequence of `HoldemAction`s on the same deck produces different `GameData` (legal actions, positions, pot split, rounding, card order). A fix of a rule that was plainly wrong is a patch, but the CHANGELOG entry must clearly say what changed and why the prior behaviour was wrong.
 

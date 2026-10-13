@@ -75,7 +75,7 @@ reported as skipped and the run is green having checked nothing; that is not a r
 run only when it cannot be done here (the browser will not install, say), and say so in the pull
 request. The release workflow runs the gate once more on a release tag.
 
-**Provider tests.** A task that touches `src/TabletopCardEngine/Data/`, a relational provider package
+**Provider tests.** A task that touches `src/TabletopCardEngine/Holdem/Data/`, a relational provider package
 (`TabletopCardEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `tests/TabletopCardEngine.Tests/Persistence/`,
 `src/TabletopCardEngine.Server/`, `tests/TabletopCardEngine.Server.Tests/`,
 `scripts/add-migration.ps1` or `.github/workflows/release.yml` should run the provider matrix locally on
@@ -226,7 +226,7 @@ These fail the build, or fail review, for reasons that are not obvious from the 
 - **A broad `catch (Exception)` trips `CA1031`**, which is therefore a build error. Catch what the
   call can actually throw.
 - **`GenerateDocumentationFile` is on for the library, so `CS1591` is an error**: every public type
-  and member needs an XML doc comment. `Engine/` is the reference for tone — say why, not what the
+  and member needs an XML doc comment. `Holdem/Engine/` is the reference for tone — say why, not what the
   name already says. The test projects generate the file too (that is what makes `IDE0005` run at
   build) but suppress `CS1591`/`CS1573`.
 - **English only, everywhere in the codebase.** Code, comments, XML docs, commit messages, pull
@@ -287,7 +287,7 @@ discards it, and `.phh` export is the durable artefact.
 ## Layout of the tree
 
 ```
-src/TabletopCardEngine/                   # the class library: Holdem/ (public Hold'em types, Dto/, Options/), Engine/, Data/, Mappers/
+src/TabletopCardEngine/                   # the class library: Holdem/ (public Hold'em types, Dto/, Options/, plus the internal Data/, Engine/, Mappers/, ActionHandlers/ and Diagnostics/)
 src/TabletopCardEngine.OpenTelemetry/     # AddTabletopCardEngineInstrumentation(); references OpenTelemetry.Api and OpenTelemetry.Api.ProviderBuilderExtensions only
 src/TabletopCardEngine.Sqlite/            # UseHoldemSqlite(); the SQLite migrations, plus Design/ for dotnet ef
 src/TabletopCardEngine.PostgreSql/        # UseHoldemPostgreSql(); PostgreSQL migrations
@@ -445,7 +445,7 @@ renumber.
     component is never matched by the child's own stylesheet, and why `::deep` exists.
 23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 6
     seats, no antes, no rake. `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
-    `BettingStructure` pair is not listed in `SupportedGameVariants` (`HoldemActionHandlers/SupportedGameVariants.cs`),
+    `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
     and `InvalidGameOptions = 6` when `MaxPlayersCount` is
     outside `[GamePlayersMinCount, GamePlayersMaxCount]`, `InitialSmallBlind <= 0`, `InitialSmallBlind`
     has more than two decimal places, or `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
@@ -490,9 +490,9 @@ renumber.
 26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
     The three signals are emitted by `HoldemTable.ApplyWithHookAsync` (the internal seam used by both
     `ApplyAsync` and tests):
-    <br>— **Logs** are defined in `Diagnostics/HoldemEngineLog.cs` with `LoggerMessageAttribute` on partial methods; event IDs are stable and never reused.
-    <br>— **Traces** (Activity and tags) are defined in `Diagnostics/HoldemEngineActivity.cs` as static const strings; the source name is `TabletopCardEngineTelemetry.ActivitySourceName`.
-    <br>— **Metrics** (instruments) are created in `Diagnostics/HoldemEngineMetrics.cs` by name and unit; the meter name is `TabletopCardEngineTelemetry.MeterName`.
+    <br>— **Logs** are defined in `Holdem/Diagnostics/HoldemLog.cs` with `LoggerMessageAttribute` on partial methods; event IDs are stable and never reused.
+    <br>— **Traces** (Activity and tags) are defined in `Holdem/Diagnostics/HoldemActivity.cs` as static const strings; the source name is `TabletopCardEngineTelemetry.ActivitySourceName`.
+    <br>— **Metrics** (instruments) are created in `Holdem/Diagnostics/HoldemMetrics.cs` by name and unit; the meter name is `TabletopCardEngineTelemetry.MeterName`.
     <br>Card values (hole cards and the board) reach the log only at Trace level with `EnableSensitiveCardLogging`, and never appear in span tags or metric tags. All emission is deterministic and guarded by activity/logger state checks (`IsAllDataRequested`, `IsEnabled(LogLevel.Trace)`) so disabled signals pay no cost.
     <br>The `ActivitySource` and the fallback `Meter` (when no `IMeterFactory` is available) are process-wide singletons, so a test that wants to isolate its spans and metrics must filter spans by `tabletopcardengine.game.id` and collect metrics through its own container's `IMeterFactory`.
     <br>Renaming or removing an event, tag, or instrument, or changing an EventId or unit, is a breaking change, the same as a CP diagnostic on `dotnet pack`. Adding is not. The contract is enforced by `ObservabilityDocsTests`: every log method, tag name, and instrument is checked to appear in `docs/observability.md`.

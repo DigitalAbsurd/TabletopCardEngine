@@ -1,12 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using TabletopCardEngine.Data;
-using TabletopCardEngine.Diagnostics;
+using TabletopCardEngine.Holdem.ActionHandlers;
+using TabletopCardEngine.Holdem.Data;
+using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Mappers;
 using TabletopCardEngine.Holdem.Options;
-using TabletopCardEngine.HoldemActionHandlers;
-using TabletopCardEngine.Mappers;
 using TabletopCardEngine.Resources;
 
 namespace TabletopCardEngine.Holdem;
@@ -18,11 +18,11 @@ internal sealed class HoldemTable : IHoldemTable
 {
     private readonly HoldemOptions _options;
     private readonly ILogger<HoldemTable> _logger;
-    private readonly HoldemEngineMetrics _metrics;
+    private readonly HoldemMetrics _metrics;
     private readonly HoldemSchemaManager _schemaManager;
     private volatile bool _schemaChecked;
 
-    internal HoldemTable(HoldemOptions options, ILogger<HoldemTable> logger, HoldemEngineMetrics metrics, HoldemSchemaManager schemaManager)
+    internal HoldemTable(HoldemOptions options, ILogger<HoldemTable> logger, HoldemMetrics metrics, HoldemSchemaManager schemaManager)
     {
         _options = options;
         _logger = logger;
@@ -45,13 +45,13 @@ internal sealed class HoldemTable : IHoldemTable
         }
 
         long start = Stopwatch.GetTimestamp();
-        using var activity = HoldemEngineActivity.Source.StartActivity(HoldemEngineActivity.Name, ActivityKind.Internal);
+        using var activity = HoldemActivity.Source.StartActivity(HoldemActivity.Name, ActivityKind.Internal);
 
         var actionType = HoldemActionNames.Of(holdemAction);
         if (activity is { IsAllDataRequested: true })
         {
-            activity.SetTag(HoldemEngineActivity.ActionTypeTag, actionType);
-            activity.SetTag(HoldemEngineActivity.GameIdTag, holdemAction.GameId.ToString("D"));
+            activity.SetTag(HoldemActivity.ActionTypeTag, actionType);
+            activity.SetTag(HoldemActivity.GameIdTag, holdemAction.GameId.ToString("D"));
         }
 
         try
@@ -75,7 +75,7 @@ internal sealed class HoldemTable : IHoldemTable
 
         if (activity is { IsAllDataRequested: true } && holdemAction is HoldemActionPlay playAction)
         {
-            activity.SetTag(HoldemEngineActivity.PlayerActionTypeTag, playAction.ActionType.ToString());
+            activity.SetTag(HoldemActivity.PlayerActionTypeTag, playAction.ActionType.ToString());
         }
 
         var handBefore = game.GetCurrentHand();
@@ -92,7 +92,7 @@ internal sealed class HoldemTable : IHoldemTable
 
         if (existed && holdemAction is not HoldemActionCreateGame && holdemAction.ExpectedVersion is { } expected && expected != game.Version)
         {
-            _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ExpectedVersion);
+            _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemLog.ExpectedVersion);
             SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.Conflict, actionType, start);
             return HoldemResult<GameData>.Fail(ConflictError());
         }
@@ -227,7 +227,7 @@ internal sealed class HoldemTable : IHoldemTable
     /// <summary>Reports that another writer saved the game between this call's load and its save.</summary>
     private HoldemResult<GameData> ConcurrentSaveConflict(HoldemAction holdemAction, Activity? activity, string actionType, long start)
     {
-        _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemEngineLog.ConcurrentSave);
+        _logger.ConcurrencyConflict(actionType, holdemAction.GameId, HoldemLog.ConcurrentSave);
         SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.Conflict, actionType, start);
         return HoldemResult<GameData>.Fail(ConflictError());
     }
@@ -239,7 +239,7 @@ internal sealed class HoldemTable : IHoldemTable
         {
             activity.SetStatus(ActivityStatusCode.Error, ex.GetType().Name);
             activity.AddException(ex);
-            activity.SetTag(HoldemEngineActivity.OutcomeTag, "Exception");
+            activity.SetTag(HoldemActivity.OutcomeTag, "Exception");
         }
 
         _metrics.RecordAction(actionType, "Exception");
@@ -253,8 +253,8 @@ internal sealed class HoldemTable : IHoldemTable
     {
         if (activity is { IsAllDataRequested: true })
         {
-            activity.SetTag(HoldemEngineActivity.OutcomeTag, outcome);
-            activity.SetTag(HoldemEngineActivity.ErrorCodeTag, errorCode.ToString());
+            activity.SetTag(HoldemActivity.OutcomeTag, outcome);
+            activity.SetTag(HoldemActivity.ErrorCodeTag, errorCode.ToString());
         }
 
         _metrics.RecordAction(actionType, outcome);
@@ -267,15 +267,15 @@ internal sealed class HoldemTable : IHoldemTable
     {
         if (activity is { IsAllDataRequested: true })
         {
-            activity.SetTag(HoldemEngineActivity.OutcomeTag, outcome);
+            activity.SetTag(HoldemActivity.OutcomeTag, outcome);
 
             var hand = game.GetCurrentHand();
             if (hand.No != 0)
             {
-                activity.SetTag(HoldemEngineActivity.HandNumberTag, hand.No);
+                activity.SetTag(HoldemActivity.HandNumberTag, hand.No);
             }
 
-            activity.SetTag(HoldemEngineActivity.StreetTag, hand.GetStreet().ToString());
+            activity.SetTag(HoldemActivity.StreetTag, hand.GetStreet().ToString());
         }
 
         _metrics.RecordAction(actionType, outcome);

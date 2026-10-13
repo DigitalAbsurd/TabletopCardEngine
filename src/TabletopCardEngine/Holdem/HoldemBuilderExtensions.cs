@@ -3,8 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Diagnostics.Metrics;
-using TabletopCardEngine.Data;
-using TabletopCardEngine.Diagnostics;
+using TabletopCardEngine.Holdem.Data;
+using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Options;
 
 namespace TabletopCardEngine.Holdem;
@@ -66,7 +66,7 @@ public static class HoldemBuilderExtensions
             var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemTable>()
                 ?? NullLogger<HoldemTable>.Instance;
             var meterFactory = servicesProvider.GetService<IMeterFactory>();
-            var metrics = HoldemEngineMetrics.CreateOrGetFallback(meterFactory);
+            var metrics = HoldemMetrics.CreateOrGetFallback(meterFactory);
             var schemaManager = servicesProvider.GetRequiredService<HoldemSchemaManager>();
             return new HoldemTable(resolvedOptions, logger, metrics, schemaManager);
         });

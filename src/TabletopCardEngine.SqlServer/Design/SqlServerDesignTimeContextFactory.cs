@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using TabletopCardEngine.Data;
+using TabletopCardEngine.Holdem.Data;
 
 namespace TabletopCardEngine.SqlServer.Design;
 

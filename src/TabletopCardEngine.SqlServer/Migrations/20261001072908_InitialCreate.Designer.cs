@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TabletopCardEngine.Data;
+using TabletopCardEngine.Holdem.Data;
 
 #nullable disable
 
@@ -26,7 +26,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("TabletopCardEngine.Data.BuyIn", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.BuyIn", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -46,7 +46,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("BuyIn", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Game", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Game", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
@@ -83,7 +83,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("Game", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Hand", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Hand", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -99,7 +99,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("Hand", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandAction", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandAction", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -152,7 +152,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("HandAction", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandDeckCard", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandDeckCard", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -173,7 +173,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("HandDeckCard", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandHoleCard", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandHoleCard", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -197,7 +197,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("HandHoleCard", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandPlayerEndState", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandPlayerEndState", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -233,7 +233,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("HandPlayerEndState", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandPlayerStartState", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandPlayerStartState", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -253,7 +253,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("HandPlayerStartState", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.TceSchemaRow", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.TceSchemaRow", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -279,7 +279,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Player", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Player", b =>
                 {
                     b.Property<Guid>("GameId")
                         .HasColumnType("uniqueidentifier");
@@ -303,9 +303,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.ToTable("Player", "tce");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.BuyIn", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.BuyIn", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Game", "Game")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Game", "Game")
                         .WithMany("BuyIns")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -314,9 +314,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Game");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Hand", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Hand", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Game", "Game")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Game", "Game")
                         .WithMany("Hands")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -325,15 +325,15 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Game");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandAction", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandAction", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Game", "Game")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Game", "Game")
                         .WithMany()
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("TabletopCardEngine.Data.Hand", "Hand")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Hand", "Hand")
                         .WithMany("Actions")
                         .HasForeignKey("GameId", "HandNo")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -344,9 +344,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Hand");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandDeckCard", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandDeckCard", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Hand", "Hand")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Hand", "Hand")
                         .WithMany("DeckCards")
                         .HasForeignKey("GameId", "HandNo")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -355,9 +355,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Hand");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandHoleCard", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandHoleCard", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Hand", "Hand")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Hand", "Hand")
                         .WithMany("HoleCards")
                         .HasForeignKey("GameId", "HandNo")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -366,9 +366,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Hand");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandPlayerEndState", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandPlayerEndState", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Hand", "Hand")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Hand", "Hand")
                         .WithMany("PlayerEndStates")
                         .HasForeignKey("GameId", "HandNo")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -377,9 +377,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Hand");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.HandPlayerStartState", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.HandPlayerStartState", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Hand", "Hand")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Hand", "Hand")
                         .WithMany("PlayerStartStates")
                         .HasForeignKey("GameId", "HandNo")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -388,9 +388,9 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Hand");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Player", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Player", b =>
                 {
-                    b.HasOne("TabletopCardEngine.Data.Game", "Game")
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Game", "Game")
                         .WithMany("Players")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -399,7 +399,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Game");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Game", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Game", b =>
                 {
                     b.Navigation("BuyIns");
 
@@ -408,7 +408,7 @@ namespace TabletopCardEngine.SqlServer.Migrations
                     b.Navigation("Players");
                 });
 
-            modelBuilder.Entity("TabletopCardEngine.Data.Hand", b =>
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Hand", b =>
                 {
                     b.Navigation("Actions");
 

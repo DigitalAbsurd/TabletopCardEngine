@@ -131,8 +131,8 @@ The engine records four instruments. All metrics use tags to partition data; no 
 
 These diagnostics names form the engine's public contract.
 
-- Event ID numbers, log method names, and EventId values from `HoldemEngineLog` are fixed and stable.
-- Span names, tag names, and tag value meanings from `HoldemEngineActivity` are fixed and stable.
+- Event ID numbers, log method names, and EventId values from `HoldemLog` are fixed and stable.
+- Span names, tag names, and tag value meanings from `HoldemActivity` are fixed and stable.
 - Instrument names, units, tag names, and tag value meanings are fixed and stable.
 - The activity source name (`TabletopCardEngineTelemetry.ActivitySourceName`) and meter name (`TabletopCardEngineTelemetry.MeterName`) are fixed and stable.
 
@@ -190,18 +190,18 @@ The library throws 17 exceptions across 10 files. Each is one of three classes: 
 | `Card.cs` | `Card` constructor | `ArgumentOutOfRangeException` | `cardType` is not a defined `CardType` | *caller error* |
 | `Card.cs` | `Card` constructor | `ArgumentOutOfRangeException` | `cardSuit` is not a defined `CardSuit` | *caller error* |
 | `Card.cs` | `Parse` | `FormatException` | `s` is not a two-character card token | *caller error* |
-| `Data/EntityExtensions.cs` | `TryGetBlindSeats` | `ArgumentException` | A started hand has no small blind row | *broken invariant* |
-| `Data/EntityExtensions.cs` | `TryGetBlindSeats` | `ArgumentException` | A started hand has no big blind row | *broken invariant* |
-| `Engine/CardDeck.cs` | `Draw` | `InvalidOperationException` | `Draw()` called on an exhausted deck (e.g., `ICardShuffler` returns too few cards) | *caller error* |
-| `Engine/HandRunner.cs` | `StartHand` | `InvalidOperationException` | Fewer than two funded seats are available to play | *broken invariant* |
-| `Engine/HandRunner.cs` | `Accept` | `ArgumentOutOfRangeException` | An unexpected `PlayerActionType` is supplied | *broken invariant* |
-| `Engine/HandRunner.cs` | `StartStreet` | `InvalidOperationException` | An unknown `Street` value is supplied (no next street) | *broken invariant* |
-| `Engine/HandRunner.cs` | `EveryoneAgreed` | `InvalidOperationException` | No active seats remain (a state that should never happen) | *broken invariant* |
-| `Engine/HandTable.cs` | Indexer `this[byte]` | `KeyNotFoundException` | The requested seat does not exist at the table | *broken invariant* |
-| `Engine/StreetExtensions.cs` | `Next` | `InvalidOperationException` | `Next()` called on `Street.Finished` | *broken invariant* |
-| `Engine/StreetExtensions.cs` | `BoardSize` | `NotSupportedException` | An unknown `Street` value is supplied | *broken invariant* |
-| `HoldemActionHandlers/PlayActionHandler.cs` | `CalculateBetAmount` | `UnreachableException` | Default arm of a switch over defined `PlayerActionType` values (internal engine defect) | *broken invariant* |
-| `HoldemActionHandlers/PlayActionHandler.cs` | `ToHandActionType` | `UnreachableException` | Default arm of a switch over defined `PlayerActionType` values (internal engine defect) | *broken invariant* |
+| `Holdem/Data/EntityExtensions.cs` | `TryGetBlindSeats` | `ArgumentException` | A started hand has no small blind row | *broken invariant* |
+| `Holdem/Data/EntityExtensions.cs` | `TryGetBlindSeats` | `ArgumentException` | A started hand has no big blind row | *broken invariant* |
+| `Holdem/Engine/CardDeck.cs` | `Draw` | `InvalidOperationException` | `Draw()` called on an exhausted deck (e.g., `ICardShuffler` returns too few cards) | *caller error* |
+| `Holdem/Engine/HandRunner.cs` | `StartHand` | `InvalidOperationException` | Fewer than two funded seats are available to play | *broken invariant* |
+| `Holdem/Engine/HandRunner.cs` | `Accept` | `ArgumentOutOfRangeException` | An unexpected `PlayerActionType` is supplied | *broken invariant* |
+| `Holdem/Engine/HandRunner.cs` | `StartStreet` | `InvalidOperationException` | An unknown `Street` value is supplied (no next street) | *broken invariant* |
+| `Holdem/Engine/HandRunner.cs` | `EveryoneAgreed` | `InvalidOperationException` | No active seats remain (a state that should never happen) | *broken invariant* |
+| `Holdem/Engine/HandTable.cs` | Indexer `this[byte]` | `KeyNotFoundException` | The requested seat does not exist at the table | *broken invariant* |
+| `Holdem/Engine/StreetExtensions.cs` | `Next` | `InvalidOperationException` | `Next()` called on `Street.Finished` | *broken invariant* |
+| `Holdem/Engine/StreetExtensions.cs` | `BoardSize` | `NotSupportedException` | An unknown `Street` value is supplied | *broken invariant* |
+| `Holdem/ActionHandlers/PlayActionHandler.cs` | `CalculateBetAmount` | `UnreachableException` | Default arm of a switch over defined `PlayerActionType` values (internal engine defect) | *broken invariant* |
+| `Holdem/ActionHandlers/PlayActionHandler.cs` | `ToHandActionType` | `UnreachableException` | Default arm of a switch over defined `PlayerActionType` values (internal engine defect) | *broken invariant* |
 | `HoldemResult.cs` | `Value` property | `InvalidOperationException` | `.Value` read on a failed result | *caller error* |
 | `HoldemResult.cs` | `Fail` method | `ArgumentException` | `Fail()` called with no errors (an internal bug) | *broken invariant* |
 

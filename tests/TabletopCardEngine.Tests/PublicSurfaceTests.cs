@@ -65,7 +65,7 @@ public sealed class PublicSurfaceTests
     public void PublicTypes_AreNotInDataNamespace()
     {
         var offenders = typeof(IHoldemTable).Assembly.GetExportedTypes()
-            .Where(type => type.Namespace == "TabletopCardEngine.Data")
+            .Where(type => type.Namespace == "TabletopCardEngine.Holdem.Data")
             .Select(type => type.FullName)
             .ToList();
 

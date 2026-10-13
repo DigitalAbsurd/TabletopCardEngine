@@ -25,7 +25,7 @@ Before merging, confirm:
   ```
   — summary: [paste result here]
 
-- [ ] **Provider matrix** (for Data/, persistence packages, persistence tests, server, or scripts/add-migration.ps1):
+- [ ] **Provider matrix** (for Holdem/Data/, persistence packages, persistence tests, server, or scripts/add-migration.ps1):
   ```
   TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Tests -c Release -- --filter "FullyQualifiedName~Persistence|FullyQualifiedName~MultiHandSession|FullyQualifiedName~ConcurrencyTests"
   TCE_TEST_CONTAINERS=1 dotnet run --project tests/TabletopCardEngine.Server.Tests -c Release -- --filter "FullyQualifiedName~ServerEndToEnd"

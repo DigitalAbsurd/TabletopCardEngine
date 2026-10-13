@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TabletopCardEngine.Data;
+using TabletopCardEngine.Holdem.Data;
 
 namespace TabletopCardEngine.Holdem.Options;
 
