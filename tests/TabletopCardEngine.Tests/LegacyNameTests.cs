@@ -6,9 +6,10 @@ namespace TabletopCardEngine.Tests;
 
 /// <summary>
 /// Ensures the old name <c>OpenHoldemEngine</c>, its abbreviation <c>OHE</c>, and the old owner
-/// <c>miekhra</c> do not appear in the repository tree. The rename to TabletopCardEngine is
-/// recorded in ADR-0007; nothing in the repository stops the old names from coming back through a
-/// copied snippet, a doc written from memory, or a stale branch. These tests enforce it.
+/// <c>miekhra</c> do not appear in the repository tree, and that the retired engine-named API
+/// (ADR-0008) is kept out. The rename to TabletopCardEngine is recorded in ADR-0007; nothing in
+/// the repository stops the old names from coming back through a copied snippet, a doc written
+/// from memory, or a stale branch. These tests enforce it.
 /// </summary>
 [TestClass]
 public sealed class LegacyNameTests
@@ -93,6 +94,57 @@ public sealed class LegacyNameTests
         {
             fileSet.Should().Contain(entry, "every allowlisted path must exist in git ls-files");
         }
+    }
+
+    [TestMethod]
+    public void Repository_ContainsNoRetiredApiName()
+    {
+        var errors = new List<string>();
+        var retiredApiPattern = new Regex(@"HoldemEngine|ApplyHoldemActionAsync|TabletopCardEngine\.(Dto|Options)\b", RegexOptions.None);
+        var adrFilePattern = new Regex(@"^docs/adr/", RegexOptions.None);
+        var retiredApiAllowlist = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "CHANGELOG.md",
+            "tests/TabletopCardEngine.Tests/LegacyNameTests.cs",
+        };
+
+        foreach (var file in _gitLsFiles.Value)
+        {
+            if (retiredApiAllowlist.Contains(file))
+            {
+                continue;
+            }
+
+            if (adrFilePattern.IsMatch(file))
+            {
+                continue;
+            }
+
+            if (IsBinaryFile(file))
+            {
+                continue;
+            }
+
+            try
+            {
+                var lines = File.ReadAllLines(Path.Combine(RepositoryRoot.FullPath, file));
+                for (var lineNo = 0; lineNo < lines.Length; lineNo++)
+                {
+                    var line = lines[lineNo];
+
+                    if (retiredApiPattern.IsMatch(line))
+                    {
+                        errors.Add($"{file}:{lineNo + 1}: {line.Trim()}");
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Skip files we cannot read
+            }
+        }
+
+        errors.Should().BeEmpty("the retired engine-named API must not appear in the repository; every such name is forbidden by ADR-0008");
     }
 
     private static string[] ReadGitLsFiles()
