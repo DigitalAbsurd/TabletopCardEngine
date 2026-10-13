@@ -21,7 +21,7 @@ This document describes how releases are cut and versioned in this repository. I
 ## Tags and versions
 
 - Tags are annotated and start with `v`: `v1.0.0-preview.1`, `v1.0.0-rc.1`, `v1.0.0`.
-- A tag is never moved or reused. A bad release gets a new tag.
+- A tag is never moved or reused. A bad release gets a new tag. The only exception, the deletion of the trial `v1.0.0-preview.1` and `.2` tags before the public launch, is recorded in [ADR-0008](adr/0008-harmonize-the-public-api.md).
 - The ladder for 1.0 is `preview.N`, then `rc.N`, then the stable `1.0.0`.
 - A tag on a commit is what gives every package and image that version through MinVer, as documented in [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts) (fact 30).
 
