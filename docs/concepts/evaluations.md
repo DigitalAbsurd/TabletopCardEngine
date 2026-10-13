@@ -88,7 +88,7 @@ To raise the street wager to 20 (putting in 18 more chips: 20 - 2 = 18):
 
 ```csharp
 var play = HoldemAction.Play(gameId, PlayerActionType.Raise, size: 20);
-var result = await engine.ApplyHoldemActionAsync(play, ct);
+var result = await engine.ApplyAsync(play, ct);
 ```
 
 Notice that the `size` parameter is 20 (the absolute street total), not 18 (the increment). The window says "raise to 8–98", so 20 is in range. The engine records the action and updates:

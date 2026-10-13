@@ -59,22 +59,22 @@ public sealed class EngineOptionsIsolationTests
         randomFlop.CommunityCards.Should().HaveCount(3);
     }
 
-    private static async Task<HandData> StartHandAsync(HoldemEngine engine)
+    private static async Task<HandData> StartHandAsync(IHoldemTable engine)
     {
-        (await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions)))
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions)))
             .IsSuccess.Should().BeTrue();
 
-        var started = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _joinSeats));
+        var started = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _joinSeats));
         started.IsSuccess.Should().BeTrue();
         return started.Value.HandData!;
     }
 
-    private static async Task<HandData> CallAndCheckToFlopAsync(HoldemEngine engine)
+    private static async Task<HandData> CallAndCheckToFlopAsync(IHoldemTable engine)
     {
-        (await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0)))
+        (await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0)))
             .IsSuccess.Should().BeTrue();
 
-        var checkedDown = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0));
+        var checkedDown = await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0));
         checkedDown.IsSuccess.Should().BeTrue();
         return checkedDown.Value.HandData!;
     }

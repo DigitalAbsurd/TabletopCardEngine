@@ -40,7 +40,7 @@ public sealed class GameLifecycleTests
         var finished = await ApplyOkAsync(engine, new HoldemActionFinishGame(_gameId));
         finished.IsFinished.Should().BeTrue();
 
-        var action = await engine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
+        var action = await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
         action.IsFailed.Should().BeTrue();
         action.Errors.Single().Code.Should().Be(HoldemErrorCode.GameFinished);
 
@@ -66,7 +66,7 @@ public sealed class GameLifecycleTests
         ];
         foreach (var action in actions)
         {
-            var result = await engine.ApplyHoldemActionAsync(action);
+            var result = await engine.ApplyAsync(action);
 
             result.IsFailed.Should().BeTrue(action.GetType().Name);
             result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameFinished, action.GetType().Name);
@@ -82,7 +82,7 @@ public sealed class GameLifecycleTests
         await ApplyOkAsync(engine, new HoldemActionCreateGame(_gameId, _gameOptions));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats });
+        var result = await engine.ApplyAsync(new HoldemActionStartHand(_gameId) { JoinSeats = _seats });
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotStarted);
@@ -98,7 +98,7 @@ public sealed class GameLifecycleTests
         await ApplyOkAsync(engine, new HoldemActionStartGame(_gameId, _seats));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats));
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _seats));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameAlreadyStarted);
@@ -111,7 +111,7 @@ public sealed class GameLifecycleTests
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats));
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _seats));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
@@ -125,7 +125,7 @@ public sealed class GameLifecycleTests
         await ApplyOkAsync(engine, new HoldemActionCreateGame(_gameId, _gameOptions));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, [new("Player 1", 9, 1000), new("Player 2", 2, 1000)]));
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("Player 1", 9, 1000), new("Player 2", 2, 1000)]));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidSeat);
@@ -140,7 +140,7 @@ public sealed class GameLifecycleTests
         await ApplyOkAsync(engine, new HoldemActionStartGame(_gameId, _seats));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionFinishGame(_gameId));
+        var result = await engine.ApplyAsync(new HoldemActionFinishGame(_gameId));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.PreviousHandNotEnded);
@@ -168,7 +168,7 @@ public sealed class GameLifecycleTests
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionFinishGame(_gameId));
+        var result = await engine.ApplyAsync(new HoldemActionFinishGame(_gameId));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
@@ -194,7 +194,7 @@ public sealed class GameLifecycleTests
             _ => throw new ArgumentOutOfRangeException(nameof(actionName), actionName, null),
         };
 
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
@@ -206,7 +206,7 @@ public sealed class GameLifecycleTests
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionGetGame(_gameId) { ExpectedVersion = 3 });
+        var result = await engine.ApplyAsync(new HoldemActionGetGame(_gameId) { ExpectedVersion = 3 });
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.GameNotFound);
@@ -232,7 +232,7 @@ public sealed class GameLifecycleTests
         await ApplyOkAsync(engine, new HoldemActionCreateGame(_gameId, _gameOptions));
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(new UnknownAction(_gameId));
+        var result = await engine.ApplyAsync(new UnknownAction(_gameId));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidAction);
@@ -246,7 +246,7 @@ public sealed class GameLifecycleTests
         return (await ApplyOkAsync(engine, new HoldemActionStartGame(_gameId, joinSeats))).HandData!;
     }
 
-    private static async Task PlayHandToEndAsync(HoldemEngine engine)
+    private static async Task PlayHandToEndAsync(IHoldemTable engine)
     {
         // Three seats: the first two to act fold, and the last one takes the pot.
         await ApplyOkAsync(engine, new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
@@ -254,9 +254,9 @@ public sealed class GameLifecycleTests
         ended.HandData!.Street.Should().Be(Street.Finished);
     }
 
-    private static async Task<GameData> ApplyOkAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task<GameData> ApplyOkAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue($"{action.GetType().Name} should be accepted: {string.Join("; ", result.Errors.Select(error => error.Message))}");
         return result.Value;
     }

@@ -143,7 +143,7 @@
     <text x="910" y="148" fill="#d73a49">var result = await</text>
     <text x="910" y="160" fill="#6f42c1">engine</text>
     <text x="940" y="160" fill="#24292e">.</text>
-    <text x="946" y="160" fill="#005a9c">ApplyHoldemActionAsync</text>
+    <text x="946" y="160" fill="#005a9c">ApplyAsync</text>
     <text x="910" y="172" fill="#005a9c">    new HoldemActionPlay</text>
     <text x="910" y="184" fill="#d9d9d9">        GameId: gameId,</text>
 
@@ -151,7 +151,7 @@
     <rect x="900" y="200" width="270" height="60" class="card"/>
     <text x="910" y="218" fill="#d73a49">var result = await</text>
     <text x="910" y="230" fill="#6f42c1">engine</text>
-    <text x="910" y="242" fill="#005a9c">    ApplyHoldemActionAsync(</text>
+    <text x="910" y="242" fill="#005a9c">    ApplyAsync(</text>
     <text x="910" y="254" fill="#005a9c">        new HoldemActionFold(...)</text>
 
     <!-- Code snippet 3 -->

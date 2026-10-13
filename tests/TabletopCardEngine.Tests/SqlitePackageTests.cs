@@ -43,7 +43,7 @@ public sealed class SqlitePackageTests
         status.PendingMigrations.Should().BeEmpty();
         status.DatabaseSchemaVersion.Should().Be(1);
 
-        var engine = host.GetRequiredService<HoldemEngine>();
+        var engine = host.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
@@ -56,7 +56,7 @@ public sealed class SqlitePackageTests
         var manager = host.GetRequiredService<IHoldemSchemaManager>();
         await manager.MigrateAsync();
 
-        var engine = host.GetRequiredService<HoldemEngine>();
+        var engine = host.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         var started = await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
@@ -119,9 +119,9 @@ public sealed class SqlitePackageTests
             .Should().BeEmpty();
     }
 
-    private static async Task<GameData> ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task<GameData> ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
         return result.Value;
     }

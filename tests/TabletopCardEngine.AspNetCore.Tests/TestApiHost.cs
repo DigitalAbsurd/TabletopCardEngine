@@ -15,7 +15,7 @@ internal sealed class TestApiHost : IAsyncDisposable
     {
         App = app;
         Client = app.GetTestClient();
-        Engine = app.Services.GetRequiredService<HoldemEngine>();
+        Engine = app.Services.GetRequiredService<IHoldemTable>();
     }
 
     public WebApplication App { get; }
@@ -23,7 +23,7 @@ internal sealed class TestApiHost : IAsyncDisposable
     public HttpClient Client { get; }
 
     /// <summary>The engine of the host, for seeding games directly.</summary>
-    public HoldemEngine Engine { get; }
+    public IHoldemTable Engine { get; }
 
     /// <param name="map">Maps the endpoints; <c>app.MapHoldemEngineApi()</c> when omitted.</param>
     /// <param name="configure">Adjusts the builder before the app is built.</param>
@@ -55,7 +55,7 @@ internal sealed class TestApiHost : IAsyncDisposable
     /// <summary>Creates and starts a heads-up game (1/2, stacks 100/100), which leaves it at version 2.</summary>
     public async Task<Guid> SeedHeadsUpGameAsync()
     {
-        var created = await Engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(new GameOptionData
+        var created = await Engine.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
         {
             GameType = GameType.Holdem,
             BettingStructure = BettingStructure.NoLimit,
@@ -64,7 +64,7 @@ internal sealed class TestApiHost : IAsyncDisposable
             InitialDealerSeatNo = 1,
         }));
         var gameId = created.Value.GameId;
-        await Engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId,
+        await Engine.ApplyAsync(HoldemAction.StartGame(gameId,
             [new PlayerJoinData("a", 1, 100), new PlayerJoinData("b", 2, 100)]));
         return gameId;
     }

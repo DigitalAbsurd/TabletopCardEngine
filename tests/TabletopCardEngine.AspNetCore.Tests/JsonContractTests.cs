@@ -34,16 +34,16 @@ public sealed class JsonContractTests
         using var host = BuildHost(new Dictionary<string, string?>(), null);
         await StartAsync(host);
 
-        var engine = host.Services.GetRequiredService<HoldemEngine>();
+        var engine = host.Services.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
 
         // Create a game
-        var createResult = await engine.ApplyHoldemActionAsync(
+        var createResult = await engine.ApplyAsync(
             HoldemAction.CreateGame(new GameOptionData { GameType = GameType.Holdem, BettingStructure = BettingStructure.NoLimit, MaxPlayersCount = 2, InitialSmallBlind = 1, InitialDealerSeatNo = 1 }, gameId),
             CancellationToken.None);
 
         // Start the game with two players
-        var startResult = await engine.ApplyHoldemActionAsync(
+        var startResult = await engine.ApplyAsync(
             HoldemAction.StartGame(gameId, new[]
             {
                 new PlayerJoinData("a", 1, 100),

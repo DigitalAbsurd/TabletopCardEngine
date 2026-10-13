@@ -23,7 +23,7 @@ var schemaManager = provider.GetRequiredService<IHoldemSchemaManager>();
 await schemaManager.MigrateAsync();
 
 // The engine is now ready to use
-var engine = provider.GetRequiredService<HoldemEngine>();
+var engine = provider.GetRequiredService<IHoldemTable>();
 ```
 
 The `holdem.db` file holds the schema and all game data. If you restart the application, it reuses the same database.

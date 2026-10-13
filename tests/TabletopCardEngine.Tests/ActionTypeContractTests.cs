@@ -41,11 +41,11 @@ public sealed class ActionTypeContractTests
     public async Task HoldemAction_UndefinedPlayerActionType_FailsWithInvalidActionAndPersistsNothing()
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out var contextFactory);
-        await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
-        (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
+        await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        (await holdemEngine.ApplyAsync(new HoldemActionStartGame(_gameId, _seats))).IsSuccess.Should().BeTrue();
         var rowsBefore = await CountRowsAsync(contextFactory);
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionPlay(_gameId, (PlayerActionType)42, 0));
+        var result = await holdemEngine.ApplyAsync(new HoldemActionPlay(_gameId, (PlayerActionType)42, 0));
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidAction);
@@ -57,9 +57,9 @@ public sealed class ActionTypeContractTests
     public async Task HoldemAction_GetGameRightAfterCreateGame_HasNoHandData()
     {
         using var host = TestEngineHost.Setup(out var holdemEngine, out _);
-        await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
+        await holdemEngine.ApplyAsync(new HoldemActionCreateGame(_gameId, _gameOptions));
 
-        var result = await holdemEngine.ApplyHoldemActionAsync(new HoldemActionGetGame(_gameId));
+        var result = await holdemEngine.ApplyAsync(new HoldemActionGetGame(_gameId));
 
         result.IsSuccess.Should().BeTrue();
         result.Value.HandData.Should().BeNull();

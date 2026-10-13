@@ -155,7 +155,7 @@ Three steps:
 ## Extension points already in v1.0
 
 - #321: supported variants table
-- #322: `HoldemEngine` and `GameOptionData` docs
+- #322: `IHoldemTable` and `GameOptionData` docs
 - #323: per-hand blinds
 - #324: `HandData.Actions` with `SeatNo`
 - #325: `HandData.Actions` with `Amount`

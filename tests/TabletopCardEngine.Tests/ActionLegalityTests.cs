@@ -232,7 +232,7 @@ public sealed class ActionLegalityTests
         return await ApplyOkAsync(engine, new HoldemActionPlay(gameId, bigBlindAction, 0));
     }
 
-    private static async Task<GameData> StartOnFlopAsync(HoldemEngine engine, Guid gameId)
+    private static async Task<GameData> StartOnFlopAsync(IHoldemTable engine, Guid gameId)
     {
         await StartHeadsUpAsync(engine, gameId);
         await ApplyOkAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Call, 0));
@@ -243,11 +243,11 @@ public sealed class ActionLegalityTests
     }
 
     private static async Task AssertRejectedAsync(
-        HoldemEngine engine, IDbContextFactory<HoldemDbContext> contextFactory, GameData before, HoldemActionPlay action)
+        IHoldemTable engine, IDbContextFactory<HoldemDbContext> contextFactory, GameData before, HoldemActionPlay action)
     {
         var actionRowsBefore = await CountHandActionsAsync(contextFactory);
 
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
 
         result.IsFailed.Should().BeTrue();
         result.Errors.Should().ContainSingle().Which.Code.Should().Be(HoldemErrorCode.IllegalAction);
@@ -258,7 +258,7 @@ public sealed class ActionLegalityTests
         after.HandData!.NextPlayerSeatNo.Should().Be(before.HandData!.NextPlayerSeatNo);
     }
 
-    private static async Task<GameData> StartHeadsUpAsync(HoldemEngine engine, Guid gameId)
+    private static async Task<GameData> StartHeadsUpAsync(IHoldemTable engine, Guid gameId)
     {
         await ApplyOkAsync(engine, new HoldemActionCreateGame(gameId, _options));
         return await ApplyOkAsync(engine, new HoldemActionStartGame(gameId,
@@ -268,9 +268,9 @@ public sealed class ActionLegalityTests
         ]));
     }
 
-    private static async Task<GameData> ApplyOkAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task<GameData> ApplyOkAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue($"{action.GetType().Name} should be accepted: {string.Join("; ", result.Errors.Select(error => error.Message))}");
         return result.Value;
     }

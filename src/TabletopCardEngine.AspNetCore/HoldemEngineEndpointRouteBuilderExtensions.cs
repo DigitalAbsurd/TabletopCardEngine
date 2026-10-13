@@ -38,7 +38,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
 
         var group = endpoints.MapGroup(prefix);
 
-        group.MapPost("/games", (HoldemCreateGameRequest request, HttpContext context, HoldemEngine engine) =>
+        group.MapPost("/games", (HoldemCreateGameRequest request, HttpContext context, IHoldemTable engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.CreateGame(request.Options, request.GameId),
                     data => TypedResults.CreatedAtRoute(data, "HoldemGetGame", new { gameId = data.GameId }),
                     honourIfMatch: false))
@@ -49,7 +49,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
                 StatusCodes.Status201Created,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict, StatusCodes.Status422UnprocessableEntity]);
 
-        group.MapPost("/games/{gameId:guid}/start", (HoldemStartGameRequest? request, Guid gameId, HttpContext context, HoldemEngine engine) =>
+        group.MapPost("/games/{gameId:guid}/start", (HoldemStartGameRequest? request, Guid gameId, HttpContext context, IHoldemTable engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.StartGame(gameId, [.. (request?.JoinSeats ?? [])]),
                     data => TypedResults.Ok(data)))
             .WithName("HoldemStartGame")
@@ -59,7 +59,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
-        group.MapGet("/games/{gameId:guid}", (Guid gameId, HttpContext context, HoldemEngine engine) =>
+        group.MapGet("/games/{gameId:guid}", (Guid gameId, HttpContext context, IHoldemTable engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.GetGame(gameId), data => TypedResults.Ok(data)))
             .WithName("HoldemGetGame")
             .WithOpenApiMetadata(
@@ -68,7 +68,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status412PreconditionFailed]);
 
-        group.MapPost("/games/{gameId:guid}/hands", (HoldemStartHandRequest? request, Guid gameId, HttpContext context, HoldemEngine engine) =>
+        group.MapPost("/games/{gameId:guid}/hands", (HoldemStartHandRequest? request, Guid gameId, HttpContext context, IHoldemTable engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.StartHand(gameId, [.. (request?.JoinSeats ?? [])]),
                     data => TypedResults.Ok(data)))
             .WithName("HoldemStartHand")
@@ -78,7 +78,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
-        group.MapPost("/games/{gameId:guid}/actions", (HoldemPlayRequest request, Guid gameId, HttpContext context, HoldemEngine engine) =>
+        group.MapPost("/games/{gameId:guid}/actions", (HoldemPlayRequest request, Guid gameId, HttpContext context, IHoldemTable engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.Play(gameId, request.ActionType, request.Size),
                     data => TypedResults.Ok(data)))
             .WithName("HoldemPlay")
@@ -88,7 +88,7 @@ public static class HoldemEngineEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
-        group.MapPost("/games/{gameId:guid}/finish", (Guid gameId, HttpContext context, HoldemEngine engine) =>
+        group.MapPost("/games/{gameId:guid}/finish", (Guid gameId, HttpContext context, IHoldemTable engine) =>
                 HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.FinishGame(gameId),
                     data => TypedResults.Ok(data)))
             .WithName("HoldemFinishGame")

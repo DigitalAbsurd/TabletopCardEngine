@@ -56,7 +56,7 @@ either: the provider's own exception surfaces unwrapped.
 
 ### Runtime schema checks
 
-Each `HoldemEngine` checks the schema version on its first call. A schema newer than the engine throws `HoldemSchemaException(DatabaseIsNewer)`. A schema older or missing throws `HoldemSchemaException(MigrationRequired)`.
+Each `IHoldemTable` checks the schema version on its first call. A schema newer than the engine throws `HoldemSchemaException(DatabaseIsNewer)`. A schema older or missing throws `HoldemSchemaException(MigrationRequired)`.
 
 `EnsureCreated` is not supported for a relational database on a relational provider, because a database created that way has no migration history and can never be upgraded. Use `MigrateAsync` instead.
 

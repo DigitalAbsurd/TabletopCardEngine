@@ -5,7 +5,7 @@ using TabletopCardEngine.Mappers;
 namespace TabletopCardEngine.Data;
 
 /// <summary>
-/// Creates one context per call and disposes it at the end, the same way <see cref="HoldemEngine"/>
+/// Creates one context per call and disposes it at the end, the same way <see cref="HoldemTable"/>
 /// does, so the manager holds no connection between calls.
 /// </summary>
 internal sealed class HoldemSchemaManager(IDbContextFactory<HoldemDbContext> contextFactory) : IHoldemSchemaManager

@@ -92,7 +92,7 @@ public sealed class SensitiveDataPolicyTests
         messages.Should().Contain(message => message.Contains("River"));
     }
 
-    private static TestEngineHost.DisposableTestData Setup(bool enableSensitiveLogging, out HoldemEngine engine, out FakeLogCollector collector)
+    private static TestEngineHost.DisposableTestData Setup(bool enableSensitiveLogging, out IHoldemTable engine, out FakeLogCollector collector)
     {
         var fakeCollector = new FakeLogCollector();
         collector = fakeCollector;
@@ -114,14 +114,14 @@ public sealed class SensitiveDataPolicyTests
 
     /// <summary>EF Core logs through the same factory, so keep only what the engine wrote.</summary>
     private static IReadOnlyList<FakeLogRecord> EngineRecords(FakeLogCollector collector)
-        => [.. collector.GetSnapshot().Where(record => record.Category == typeof(HoldemEngine).FullName)];
+        => [.. collector.GetSnapshot().Where(record => record.Category == typeof(HoldemTable).FullName)];
 
-    private static async Task ApplyHandAsync(HoldemEngine engine)
+    private static async Task ApplyHandAsync(IHoldemTable engine)
     {
-        var result1 = await engine.ApplyHoldemActionAsync(new HoldemActionCreateGame(_gameId, _options));
+        var result1 = await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, _options));
         result1.IsSuccess.Should().BeTrue();
 
-        var result2 = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _joinSeats));
+        var result2 = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _joinSeats));
         result2.IsSuccess.Should().BeTrue();
 
         var gameData = result2.Value;
@@ -147,12 +147,12 @@ public sealed class SensitiveDataPolicyTests
                 break;
             }
 
-            var result = await engine.ApplyHoldemActionAsync(action);
+            var result = await engine.ApplyAsync(action);
             result.IsSuccess.Should().BeTrue($"action should be valid: {string.Join(", ", result.Errors.Select(e => e.Message))}");
             gameData = result.Value;
         }
 
-        var resultFinish = await engine.ApplyHoldemActionAsync(new HoldemActionFinishGame(_gameId));
+        var resultFinish = await engine.ApplyAsync(new HoldemActionFinishGame(_gameId));
         resultFinish.IsSuccess.Should().BeTrue();
     }
 

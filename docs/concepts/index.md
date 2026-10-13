@@ -7,7 +7,7 @@ TabletopCardEngine models Texas Hold'em cash games with a simple command-and-que
 Everything you do with the engine goes through a single method:
 
 ```csharp
-Task<HoldemResult<GameData>> HoldemEngine.ApplyHoldemActionAsync(HoldemAction action, CancellationToken ct)
+Task<HoldemResult<GameData>> IHoldemTable.ApplyAsync(HoldemAction action, CancellationToken ct)
 ```
 
 ### Actions
@@ -18,30 +18,30 @@ Actions are built from static factories on `HoldemAction`. The game lifecycle lo
 var gameId = Guid.NewGuid();
 
 // Create a game
-var created = await engine.ApplyHoldemActionAsync(
+var created = await engine.ApplyAsync(
     HoldemAction.CreateGame(new GameOptionData { MaxPlayersCount = 6 }), ct);
 gameId = created.Value.GameId;
 
 // Start it and seat players
-var started = await engine.ApplyHoldemActionAsync(
+var started = await engine.ApplyAsync(
     HoldemAction.StartGame(gameId, new[] {
         new PlayerJoinData { SeatNo = 1, Name = "Alice", BuyInAmount = 100 },
         new PlayerJoinData { SeatNo = 2, Name = "Bob", BuyInAmount = 100 }
     }), ct);
 
 // Deal hands and play actions
-var dealt = await engine.ApplyHoldemActionAsync(
+var dealt = await engine.ApplyAsync(
     HoldemAction.StartHand(gameId), ct);
 
-var action = await engine.ApplyHoldemActionAsync(
+var action = await engine.ApplyAsync(
     HoldemAction.Play(gameId, PlayerActionType.Call), ct);
 
 // Read the game state
-var current = await engine.ApplyHoldemActionAsync(
+var current = await engine.ApplyAsync(
     HoldemAction.GetGame(gameId), ct);
 
 // Finish the game between hands
-var finished = await engine.ApplyHoldemActionAsync(
+var finished = await engine.ApplyAsync(
     HoldemAction.FinishGame(gameId), ct);
 ```
 
@@ -52,7 +52,7 @@ The lifecycle is: `CreateGame` → `StartGame` → (`StartHand` | `Play`)* → `
 `HoldemResult<T>` carries either a value or a list of errors. Check the result and access the value:
 
 ```csharp
-var result = await engine.ApplyHoldemActionAsync(action, ct);
+var result = await engine.ApplyAsync(action, ct);
 
 if (result.IsSuccess)
 {
@@ -86,7 +86,7 @@ The hand data includes every seat in the game, the button and blind positions, w
 
 ## The database is the state
 
-The engine has no in-memory game object. Every call to `ApplyHoldemActionAsync` does this:
+The engine has no in-memory game object. Every call to `ApplyAsync` does this:
 
 1. Loads the game and its current hand from the database
 2. Applies the action
@@ -136,10 +136,10 @@ Engine options are per-container, so two instances in two containers can deal di
 To guard against concurrent writes, set `ExpectedVersion` on any action:
 
 ```csharp
-var game = await engine.ApplyHoldemActionAsync(
+var game = await engine.ApplyAsync(
     HoldemAction.GetGame(gameId), ct);
 
-var result = await engine.ApplyHoldemActionAsync(
+var result = await engine.ApplyAsync(
     HoldemAction.Play(gameId, PlayerActionType.Call) 
     { 
         ExpectedVersion = game.Version 
@@ -148,7 +148,7 @@ var result = await engine.ApplyHoldemActionAsync(
 if (!result.IsSuccess && result.Errors.Any(e => e.Code == HoldemErrorCode.Conflict))
 {
     // Another action changed the game; reload and decide
-    var latest = await engine.ApplyHoldemActionAsync(
+    var latest = await engine.ApplyAsync(
         HoldemAction.GetGame(gameId), ct);
 }
 ```

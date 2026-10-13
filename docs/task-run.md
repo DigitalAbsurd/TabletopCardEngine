@@ -360,7 +360,7 @@ renumber.
    After `FinishGame` every action except `GetGame` fails with `GameFinished`. An action record the
    engine does not know fails with `InvalidAction` instead of throwing. A game id nobody created
    fails with `GameNotFound` for every action except `CreateGame` (#258), checked once in
-   `HoldemEngine.ApplyCoreAsync` before the `ExpectedVersion` check, so it wins over `Conflict`.
+   `HoldemTable.ApplyCoreAsync` before the `ExpectedVersion` check, so it wins over `Conflict`.
 3. *Retired by #142:* `GameData.HandData` is now nullable; it is `null` between `CreateGame` and the first `StartHand`.
 4. *Retired by #160:* `SeatData.BetSize` and `HandResultData.Description` are populated now.
 5. **`HandData.Evaluations` mixes two bases on purpose.** A `Call`'s `MinValue`/`MaxValue` is an
@@ -465,7 +465,7 @@ renumber.
     from the loaded version fails with `Conflict` before any handler runs, and so does a
     `DbUpdateConcurrencyException` from the save. On a relational database the save is one explicit transaction that runs
     the conditional `UPDATE Game ... WHERE Version = @old` as its own statement before any child row is written
-    (`HoldemEngine.SaveVersionFirstAsync`), so the second of two racing writers updates no row and gets `Conflict`
+    (`HoldemTable.SaveVersionFirstAsync`), so the second of two racing writers updates no row and gets `Conflict`
     before it can reach a duplicate `HandAction` key. That ordering is what makes it hold on PostgreSQL and SQL Server,
     whose providers batch a save: in a single batch the duplicate insert failed first. EF InMemory applies
     inserts before updates and has no transactions, so on a non-relational provider the engine re-reads
@@ -473,7 +473,7 @@ renumber.
     token and is skipped when `Version` is not one. Nothing is persisted on a conflict. The engine
     never retries and takes no lock: the caller reloads with `GetGame` and decides. Any other
     `DbUpdateException` is a real fault and is not caught. Tests interleave two writers through the
-    internal `HoldemEngine.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
+    internal `HoldemTable.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
     connection serialises everything, and over one named InMemory store.
 25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** Every
     packable project (the seven in `TabletopCardEngine.Packages.slnf`) sets `EnablePackageValidation` with `PackageValidationBaselinePath`
@@ -488,8 +488,8 @@ renumber.
     The committed baselines are the gate until 1.0.0 is on nuget.org; then see
     [docs/public-api.md](public-api.md#after-100-is-on-nugetorg).
 26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
-    The three signals are emitted by `HoldemEngine.ApplyWithHookAsync` (the internal seam used by both
-    `ApplyHoldemActionAsync` and tests):
+    The three signals are emitted by `HoldemTable.ApplyWithHookAsync` (the internal seam used by both
+    `ApplyAsync` and tests):
     <br>— **Logs** are defined in `Diagnostics/HoldemEngineLog.cs` with `LoggerMessageAttribute` on partial methods; event IDs are stable and never reused.
     <br>— **Traces** (Activity and tags) are defined in `Diagnostics/HoldemEngineActivity.cs` as static const strings; the source name is `TabletopCardEngineTelemetry.ActivitySourceName`.
     <br>— **Metrics** (instruments) are created in `Diagnostics/HoldemEngineMetrics.cs` by name and unit; the meter name is `TabletopCardEngineTelemetry.MeterName`.
@@ -503,7 +503,7 @@ renumber.
     plain `UseSqlite`/`UseNpgsql`/`UseSqlServer`. On InMemory it is `EnsureCreated`. The database's version
     is the single row of `__TceSchema` (`SchemaVersion`, `EngineVersion`), model seed data from `HoldemSchema`.
     A newer database is `NewerThanEngine`; an older or missing one is `MigrationRequired`.
-    <br>Each `HoldemEngine` checks `__TceSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
+    <br>Each `IHoldemTable` checks `__TceSchema` on its first call. A newer database throws `HoldemSchemaException(DatabaseIsNewer)`, an older or unversioned one `MigrationRequired`. The check runs before the span and the metrics, and a failure is not cached.
 28. **PostgreSQL and SQL Server tests run in one container per kind per test run, with one database per test (`tce_<guid>`), and only under `TCE_TEST_CONTAINERS=1`; the `providers` job is their gate.**
 29. **An action is legal only when `HandData.Evaluations` offers it, and a Raise only inside its window.**
     Anything else is rejected with `IllegalAction = 13` and nothing is saved. The engine never corrects an

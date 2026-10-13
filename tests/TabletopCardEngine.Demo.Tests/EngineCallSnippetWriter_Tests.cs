@@ -31,7 +31,7 @@ public sealed class EngineCallSnippetWriter_Tests
         snippet.Should().Contain("new HoldemActionCreateGame(");
         snippet.Should().Contain("MaxPlayersCount = 6");
         snippet.Should().Contain("InitialSmallBlind = 50m");
-        snippet.Should().Contain("var result = await engine.ApplyHoldemActionAsync(");
+        snippet.Should().Contain("var result = await engine.ApplyAsync(");
         snippet.Should().Contain(";");
     }
 
@@ -183,7 +183,7 @@ public sealed class EngineCallSnippetWriter_Tests
             snippet.IndexOf("MigrateAsync()", StringComparison.Ordinal));
         snippet.IndexOf("MigrateAsync()", StringComparison.Ordinal).Should().BeLessThan(
             snippet.IndexOf("var engine", StringComparison.Ordinal));
-        snippet.Should().Contain("var engine = provider.GetRequiredService<HoldemEngine>();");
+        snippet.Should().Contain("var engine = provider.GetRequiredService<IHoldemTable>();");
         snippet.Should().Contain("new HoldemActionCreateGame(");
         snippet.Should().Contain("new HoldemActionStartGame(");
     }

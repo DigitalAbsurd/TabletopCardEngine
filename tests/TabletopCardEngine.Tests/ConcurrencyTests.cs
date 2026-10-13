@@ -33,23 +33,23 @@ public sealed class ConcurrencyTests
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory, database: database);
         var gameId = Guid.NewGuid();
 
-        var created = await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
+        var created = await engine.ApplyAsync(HoldemAction.CreateGame(_options, gameId));
         created.Value.Version.Should().Be(1);
-        var started = await engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId, _seats));
+        var started = await engine.ApplyAsync(HoldemAction.StartGame(gameId, _seats));
         var staleVersion = started.Value.Version;
         staleVersion.Should().Be(2);
 
-        var played = await engine.ApplyHoldemActionAsync(HoldemAction.Play(gameId, PlayerActionType.Call) with { ExpectedVersion = staleVersion });
+        var played = await engine.ApplyAsync(HoldemAction.Play(gameId, PlayerActionType.Call) with { ExpectedVersion = staleVersion });
         played.IsSuccess.Should().BeTrue();
         played.Value.Version.Should().Be(staleVersion + 1);
         var rowsBefore = await CountActionsAsync(contextFactory, gameId);
 
-        var stale = await engine.ApplyHoldemActionAsync(HoldemAction.Play(gameId, PlayerActionType.Fold) with { ExpectedVersion = staleVersion });
+        var stale = await engine.ApplyAsync(HoldemAction.Play(gameId, PlayerActionType.Fold) with { ExpectedVersion = staleVersion });
 
         stale.IsSuccess.Should().BeFalse();
         stale.Errors.Should().ContainSingle().Which.Code.Should().Be(HoldemErrorCode.Conflict);
         (await CountActionsAsync(contextFactory, gameId)).Should().Be(rowsBefore);
-        var reloaded = await engine.ApplyHoldemActionAsync(HoldemAction.GetGame(gameId));
+        var reloaded = await engine.ApplyAsync(HoldemAction.GetGame(gameId));
         reloaded.Value.Version.Should().Be(staleVersion + 1);
         reloaded.Value.ShouldAsJToken().BeEquivalentToAsJToken(played.Value);
     }
@@ -63,10 +63,10 @@ public sealed class ConcurrencyTests
     {
         using var host = TestEngineHost.Setup(out var engine, out _, database: database);
         var gameId = Guid.NewGuid();
-        await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
+        await engine.ApplyAsync(HoldemAction.CreateGame(_options, gameId));
 
-        var first = await engine.ApplyHoldemActionAsync(HoldemAction.GetGame(gameId));
-        var second = await engine.ApplyHoldemActionAsync(HoldemAction.GetGame(gameId));
+        var first = await engine.ApplyAsync(HoldemAction.GetGame(gameId));
+        var second = await engine.ApplyAsync(HoldemAction.GetGame(gameId));
 
         second.Value.Version.Should().Be(first.Value.Version).And.Be(1);
     }
@@ -124,10 +124,10 @@ public sealed class ConcurrencyTests
         await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
         var contextFactory = provider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
 
-        var engine = provider.GetRequiredService<HoldemEngine>();
+        var engine = (HoldemTable)provider.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
-        await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(_options, gameId));
-        var started = await engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId, _seats));
+        await engine.ApplyAsync(HoldemAction.CreateGame(_options, gameId));
+        var started = await engine.ApplyAsync(HoldemAction.StartGame(gameId, _seats));
         var rowsBefore = await CountActionsAsync(contextFactory, gameId);
 
         var loadedFirst = new TaskCompletionSource();

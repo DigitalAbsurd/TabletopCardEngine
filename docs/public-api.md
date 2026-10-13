@@ -189,7 +189,7 @@ A card's rank.
 
 Registers the engine and its database context with a dependency-injection container.
 
-- `static IServiceCollection AddHoldemEngine(IServiceCollection services, Action<DbContextOptionsBuilder> dbOptionsAction, Action<HoldemEngineOptionsBuilder>? configure = null)` — Registers `HoldemEngine` as a singleton over an EF Core context factory.
+- `static IServiceCollection AddHoldemEngine(IServiceCollection services, Action<DbContextOptionsBuilder> dbOptionsAction, Action<HoldemEngineOptionsBuilder>? configure = null)` — Registers `IHoldemTable` as a singleton over an EF Core context factory.
 
 #### `TabletopCardEngineTelemetry` (static class)
 
@@ -239,12 +239,6 @@ The display category of a made hand, ascending in strength.
 - `FullHouse = 7` — Three of a kind plus a pair.
 - `FourOfAKind = 8` — Four of a kind.
 - `StraightFlush = 9` — Five suited cards in sequence.
-
-#### `HoldemEngine` (sealed class)
-
-The single entry point for game commands: every game action goes through `ApplyHoldemActionAsync`.
-
-- `Task<HoldemResult<GameData>> ApplyHoldemActionAsync(HoldemAction holdemAction, CancellationToken cancellationToken = default)` — Applies one action to a game and returns the game as it now stands.
 
 #### `HoldemError` (sealed record)
 
@@ -334,6 +328,12 @@ The public way to create and inspect the engine's database schema, so that a hos
 
 - `Task MigrateAsync(CancellationToken cancellationToken = default)` — Brings the schema up to date.
 - `Task<HoldemSchemaStatus> GetSchemaStatusAsync(CancellationToken cancellationToken = default)` — Reports how the database's schema compares with the one this engine expects, without changing anything.
+
+#### `IHoldemTable` (interface)
+
+A Hold'em table: the single entry point for game commands, and every game action goes through `ApplyAsync`.
+
+- `Task<HoldemResult<GameData>> ApplyAsync(HoldemAction action, CancellationToken cancellationToken = default)` — Applies one action to a game and returns the game as it now stands.
 
 #### `PlayerActionType` (enum)
 

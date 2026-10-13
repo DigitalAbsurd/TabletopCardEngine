@@ -21,7 +21,7 @@ using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the database schema
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-var engine = provider.GetRequiredService<HoldemEngine>();
+var engine = provider.GetRequiredService<IHoldemTable>();
 ```
 
 All tables live in the `tce` schema. It is recommended to dedicate a database or at least a login to the engine.

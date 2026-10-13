@@ -1,6 +1,6 @@
 # TabletopCardEngine
 
-A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `ApplyHoldemActionAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
+A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
 
 [![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 
@@ -16,7 +16,7 @@ The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rou
 
 | Package | Use it for |
 |---|---|
-| [TabletopCardEngine](https://www.nuget.org/packages/TabletopCardEngine) | The core engine: the `HoldemEngine` class, the `GameData` DTOs and the schema manager. It references no database provider. |
+| [TabletopCardEngine](https://www.nuget.org/packages/TabletopCardEngine) | The core engine: the `IHoldemTable` interface, the `GameData` DTOs and the schema manager. It references no database provider. |
 | [TabletopCardEngine.Sqlite](https://www.nuget.org/packages/TabletopCardEngine.Sqlite) | SQLite storage and its migrations (`UseHoldemSqlite`). Brings the core with it. |
 | [TabletopCardEngine.PostgreSql](https://www.nuget.org/packages/TabletopCardEngine.PostgreSql) | PostgreSQL storage and its migrations (`UseHoldemPostgreSql`). |
 | [TabletopCardEngine.SqlServer](https://www.nuget.org/packages/TabletopCardEngine.SqlServer) | SQL Server storage and its migrations (`UseHoldemSqlServer`). |
@@ -56,10 +56,10 @@ using var provider = services.BuildServiceProvider();
 
 // Create or upgrade the schema once, at start-up.
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-var engine = provider.GetRequiredService<HoldemEngine>();
+var engine = provider.GetRequiredService<IHoldemTable>();
 
 // A heads-up game: blinds 1/2, two players with 100 each.
-var created = await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(new GameOptionData
+var created = await engine.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
 {
     MaxPlayersCount = 2,
     InitialSmallBlind = 1,
@@ -67,7 +67,7 @@ var created = await engine.ApplyHoldemActionAsync(HoldemAction.CreateGame(new Ga
 var gameId = created.Value.GameId;
 
 // StartGame seats the players, deals hand 1 and posts the blinds.
-var game = (await engine.ApplyHoldemActionAsync(HoldemAction.StartGame(gameId,
+var game = (await engine.ApplyAsync(HoldemAction.StartGame(gameId,
 [
     new PlayerJoinData("Alice", 1, 100),
     new PlayerJoinData("Bob", 2, 100),
@@ -78,7 +78,7 @@ while (game.HandData!.NextPlayerSeatNo != 0)
 {
     var canCheck = game.HandData.Evaluations.Any(e => e.PlayerActionType == PlayerActionType.Check);
     var action = canCheck ? PlayerActionType.Check : PlayerActionType.Call;
-    var result = await engine.ApplyHoldemActionAsync(HoldemAction.Play(gameId, action));
+    var result = await engine.ApplyAsync(HoldemAction.Play(gameId, action));
     if (!result.IsSuccess)
     {
         Console.WriteLine(result.Errors[0].Message);

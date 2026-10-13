@@ -12,7 +12,7 @@ namespace TabletopCardEngine.Demo.Tests;
 [TestClass]
 public sealed class PhhRoundTrip_Tests
 {
-    private static HoldemEngine CreateTestEngine()
+    private static IHoldemTable CreateTestEngine()
     {
         var connection = new SqliteConnection("DataSource=:memory:");
         connection.Open();
@@ -26,7 +26,7 @@ public sealed class PhhRoundTrip_Tests
         var serviceProvider = services.BuildServiceProvider();
         serviceProvider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync().GetAwaiter().GetResult();
 
-        return serviceProvider.GetRequiredService<HoldemEngine>();
+        return serviceProvider.GetRequiredService<IHoldemTable>();
     }
 
     [TestMethod]

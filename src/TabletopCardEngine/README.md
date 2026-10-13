@@ -1,6 +1,6 @@
 # TabletopCardEngine
 
-A .NET 10 class library for Texas Hold'em cash games. Register the engine with a database provider and drive everything through a single async method: `ApplyHoldemActionAsync(action, cancellationToken)`.
+A .NET 10 class library for Texas Hold'em cash games. Register the engine with a database provider and drive everything through a single async method: `IHoldemTable.ApplyAsync(action, cancellationToken)`.
 
 ## Not for real-money gambling
 
@@ -30,9 +30,9 @@ services.AddHoldemEngine(db => db.UseHoldemSqlite("Data Source=holdem.db"));
 using var provider = services.BuildServiceProvider();
 
 await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-var engine = provider.GetRequiredService<HoldemEngine>();
+var engine = provider.GetRequiredService<IHoldemTable>();
 
-var game = await engine.ApplyHoldemActionAsync(
+var game = await engine.ApplyAsync(
     HoldemAction.CreateGame(new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 1 })
 );
 ```

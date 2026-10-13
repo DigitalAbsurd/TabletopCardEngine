@@ -154,7 +154,7 @@ public sealed class TelemetryLeakTests
         return new LeakRun(logRecords, spans, metricTexts);
     }
 
-    private static async Task PlayHandToShowdownAsync(HoldemEngine engine, Guid gameId)
+    private static async Task PlayHandToShowdownAsync(IHoldemTable engine, Guid gameId)
     {
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         var gameData = await ApplyAsync(engine, new HoldemActionStartGame(
@@ -171,9 +171,9 @@ public sealed class TelemetryLeakTests
         gameData.HandData.Seats.Should().OnlyContain(seat => seat.HandResult != null && seat.HandResult.Description != null, "all six seats must reach showdown");
     }
 
-    private static async Task<GameData> ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task<GameData> ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
         return result.Value;
     }

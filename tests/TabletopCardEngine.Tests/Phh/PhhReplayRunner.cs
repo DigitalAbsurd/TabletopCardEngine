@@ -6,7 +6,7 @@ using TabletopCardEngine.Holdem.Dto;
 namespace TabletopCardEngine.Tests.Phh;
 
 /// <summary>
-/// Replays PHH hand histories through <see cref="HoldemEngine"/> and asserts that the engine
+/// Replays PHH hand histories through <see cref="IHoldemTable"/> and asserts that the engine
 /// reproduces them. Each hand is replayed as its own game: the corpus resets stacks before every
 /// hand, and a buy-in can only top a stack up, never trim it.
 /// </summary>
@@ -39,7 +39,7 @@ internal sealed class PhhReplayRunner : IDisposable
 
     private readonly ICardShuffler _shuffler;
     private TestEngineHost.DisposableTestData _host = null!;
-    private HoldemEngine _engine;
+    private IHoldemTable _engine;
     private PhhHandDeck _currentDeck = null!;
     private int _handsOnCurrentDatabase;
 
@@ -293,7 +293,7 @@ internal sealed class PhhReplayRunner : IDisposable
 
     private async Task<GameData> ApplyAsync(HoldemAction holdemAction, PhhHand hand, PhhAction? phhAction = null)
     {
-        var result = await _engine.ApplyHoldemActionAsync(holdemAction);
+        var result = await _engine.ApplyAsync(holdemAction);
 
         if (result.IsFailed)
         {

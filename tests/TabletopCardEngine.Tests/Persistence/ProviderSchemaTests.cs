@@ -67,7 +67,7 @@ public sealed class ProviderSchemaTests
         using (var first = BuildProvider(configure))
         {
             await first.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-            var engine = first.GetRequiredService<HoldemEngine>();
+            var engine = first.GetRequiredService<IHoldemTable>();
             await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
             await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
             await ApplyAsync(engine, new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
@@ -77,7 +77,7 @@ public sealed class ProviderSchemaTests
         // A new container: its engine has its own lazy schema check, which must pass on the migrated database.
         using var second = BuildProvider(configure);
         await second.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-        var after = await ApplyAsync(second.GetRequiredService<HoldemEngine>(), new HoldemActionGetGame(gameId));
+        var after = await ApplyAsync(second.GetRequiredService<IHoldemTable>(), new HoldemActionGetGame(gameId));
 
         after.ShouldAsJToken().BeEquivalentToAsJToken(before);
     }
@@ -93,7 +93,7 @@ public sealed class ProviderSchemaTests
         using var databaseLifetime = lifetime;
         using var provider = BuildProvider(configure);
         await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
-        var engine = provider.GetRequiredService<HoldemEngine>();
+        var engine = provider.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
         await ApplyAsync(engine, new HoldemActionCreateGame(gameId, _options));
         await ApplyAsync(engine, new HoldemActionStartGame(gameId, _joinSeats));
@@ -233,9 +233,9 @@ public sealed class ProviderSchemaTests
         return services.BuildServiceProvider();
     }
 
-    private static async Task<GameData> ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task<GameData> ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
         return result.Value;
     }

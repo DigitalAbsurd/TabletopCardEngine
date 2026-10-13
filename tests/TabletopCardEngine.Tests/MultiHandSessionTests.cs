@@ -58,7 +58,7 @@ public sealed class MultiHandSessionTests
                 getDeckFunc: handNo => cardsByHand[handNo].Board),
             database: database);
 
-        (await holdemEngine.ApplyHoldemActionAsync(new HoldemActionCreateGame(
+        (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(
             GameId: gameId,
             Options: new GameOptionData { MaxPlayersCount = seatCount, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = FirstDealerSeatNo }))).IsSuccess.Should().BeTrue();
 
@@ -79,7 +79,7 @@ public sealed class MultiHandSessionTests
             HoldemAction startAction = handNo == 1
                 ? new HoldemActionStartGame(gameId, joinSeats)
                 : new HoldemActionStartHand(gameId);
-            var startResult = await holdemEngine.ApplyHoldemActionAsync(startAction);
+            var startResult = await holdemEngine.ApplyAsync(startAction);
             startResult.IsSuccess.Should().BeTrue(
                 $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
 
@@ -128,7 +128,7 @@ public sealed class MultiHandSessionTests
     /// on a raise is the "raise to" total the engine wants as the size, regardless of where in the
     /// street the decision falls.
     /// </summary>
-    private static async Task<GameData> PlayOutHandAsync(HoldemEngine holdemEngine, Guid gameId, GameData gameData, Random random)
+    private static async Task<GameData> PlayOutHandAsync(IHoldemTable holdemEngine, Guid gameId, GameData gameData, Random random)
     {
         var decisionsLeft = MaxDecisionsPerHand;
 
@@ -163,7 +163,7 @@ public sealed class MultiHandSessionTests
                 playerAction = new HoldemActionPlay(gameId, PlayerActionType.Fold, 0);
             }
 
-            var result = await holdemEngine.ApplyHoldemActionAsync(playerAction);
+            var result = await holdemEngine.ApplyAsync(playerAction);
             result.IsSuccess.Should().BeTrue(
                 $"{playerAction.ActionType} of {playerAction.Size} by seat {handData.NextPlayerSeatNo} on {handData.Street} " +
                 $"should be legal: {string.Join("; ", result.Errors.Select(error => error.Message))}");

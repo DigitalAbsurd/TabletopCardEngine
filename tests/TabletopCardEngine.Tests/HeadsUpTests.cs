@@ -5,7 +5,7 @@ using TabletopCardEngine.Holdem.Dto;
 namespace TabletopCardEngine.Tests;
 
 /// <summary>
-/// Heads-up play, which nothing else in this suite reaches: <see cref="HoldemEngineTests"/> and
+/// Heads-up play, which nothing else in this suite reaches: <see cref="HoldemTableTests"/> and
 /// <see cref="MultiHandSessionTests"/> both seat six players, and the PHH corpus is six-handed
 /// throughout. Two seats do not merely shorten the ring, they change the positions — the button
 /// posts the small blind, acts first pre-flop and last on every street after it — so the seat on the
@@ -433,7 +433,7 @@ public sealed class HeadsUpTests
         internal static readonly GameOptionData Options = new() { MaxPlayersCount = 2, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = ButtonSeatNo };
 
         private readonly TestEngineHost.DisposableTestData _host;
-        private readonly HoldemEngine _engine;
+        private readonly IHoldemTable _engine;
         private readonly PlayerJoinData[] _joinSeats;
         private bool _seated;
 
@@ -471,7 +471,7 @@ public sealed class HeadsUpTests
 
         private async Task<GameData> ApplyAsync(HoldemAction holdemAction)
         {
-            var result = await _engine.ApplyHoldemActionAsync(holdemAction);
+            var result = await _engine.ApplyAsync(holdemAction);
 
             result.IsSuccess.Should().BeTrue(
                 $"{holdemAction.GetType().Name} should be accepted: " +

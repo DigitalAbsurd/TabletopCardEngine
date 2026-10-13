@@ -4,7 +4,7 @@ An interactive guide to the `TabletopCardEngine` library running live in the bro
 
 - **The poker table**: Live visualization of each player's cards, position, stack, and actions
 - **The database inspector**: The physical SQLite schema and rows the engine writes (the state)
-- **The engine calls log**: The exact C# code (`ApplyHoldemActionAsync` calls) that produced every table change
+- **The engine calls log**: The exact C# code (`ApplyAsync` calls) that produced every table change
 
 **Try it live**: https://digitalabsurd.github.io/TabletopCardEngine/
 
@@ -115,7 +115,7 @@ If the demo does not respond:
 Run the demo locally with `dotnet watch run`, then navigate to `http://localhost:5170/diagnostics` (or `https://localhost:7226/diagnostics` if using the HTTPS profile).
 
 This page:
-1. Creates a test game via `HoldemEngine.ApplyHoldemActionAsync`
+1. Creates a test game via `IHoldemTable.ApplyAsync`
 2. Queries the SQLite database directly to list all nine engine tables
 
 If you see the nine table names, the engine is working correctly.
@@ -158,7 +158,7 @@ The kept-alive connection is critical: without it, each new `DbContext` instance
 
 `Pages/Diagnostics.razor` verifies the engine is working:
 
-1. Creates a game via `HoldemEngine.ApplyHoldemActionAsync(HoldemActionCreateGame, ...)`
+1. Creates a game via `IHoldemTable.ApplyAsync(HoldemActionCreateGame, ...)`
 2. Queries `sqlite_master` directly to list the engine's tables
 3. Displays the nine tables the engine creates
 

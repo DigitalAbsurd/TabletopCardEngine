@@ -1,23 +1,36 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Holdem.Options;
+using TabletopCardEngine.InMemory;
 
 namespace TabletopCardEngine.Tests;
 
 /// <summary>
-/// Verifies that the public API surface complies with the 1.0 design: <see cref="HoldemEngine"/>
-/// is resolvable only through dependency injection, not through a public constructor.
+/// Verifies that the public API surface complies with the 1.0 design: <see cref="IHoldemTable"/>
+/// is a public interface whose implementation is internal and resolvable only through dependency injection.
 /// </summary>
 [TestClass]
 public sealed class PublicSurfaceTests
 {
     [TestMethod]
-    public void HoldemEngine_HasNoPublicConstructor()
+    public void HoldemTable_IsInternal()
     {
-        typeof(HoldemEngine).GetConstructors().Should().BeEmpty(
-            "HoldemEngine must be resolvable only through dependency injection");
+        typeof(IHoldemTable).IsPublic.Should().BeTrue("IHoldemTable is the public entry point");
+        typeof(IHoldemTable).IsInterface.Should().BeTrue("consumers must be able to substitute the table in their tests");
+
+        var services = new ServiceCollection();
+        services.AddHoldemEngine(opts => opts.UseHoldemInMemory(Guid.NewGuid().ToString("N")));
+        using var provider = services.BuildServiceProvider();
+
+        var table = provider.GetRequiredService<IHoldemTable>();
+
+        table.GetType().IsPublic.Should().BeFalse("the implementation is reached only through IHoldemTable");
+        typeof(IHoldemTable).Assembly.GetExportedTypes()
+            .Where(type => type != typeof(IHoldemTable) && typeof(IHoldemTable).IsAssignableFrom(type))
+            .Should().BeEmpty("no public type implements IHoldemTable");
     }
 
     [TestMethod]
@@ -51,7 +64,7 @@ public sealed class PublicSurfaceTests
     [TestMethod]
     public void PublicTypes_AreNotInDataNamespace()
     {
-        var offenders = typeof(HoldemEngine).Assembly.GetExportedTypes()
+        var offenders = typeof(IHoldemTable).Assembly.GetExportedTypes()
             .Where(type => type.Namespace == "TabletopCardEngine.Data")
             .Select(type => type.FullName)
             .ToList();
@@ -67,7 +80,7 @@ public sealed class PublicSurfaceTests
     }
 
     [TestMethod]
-    public async Task HoldemEngine_ResolvesFromContainer()
+    public async Task IHoldemTable_ResolvesFromContainer()
     {
         var gameId = Guid.NewGuid();
         var gameOptions = new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 1, InitialDealerSeatNo = 6 };
@@ -85,7 +98,7 @@ public sealed class PublicSurfaceTests
         using (TestEngineHost.Setup(out var engine, out _))
         {
             // Create a game
-            var createResult = await engine.ApplyHoldemActionAsync(
+            var createResult = await engine.ApplyAsync(
                 new HoldemActionCreateGame(gameId, gameOptions),
                 CancellationToken.None);
 
@@ -93,7 +106,7 @@ public sealed class PublicSurfaceTests
             createResult.Value.GameId.Should().Be(gameId);
 
             // Start a hand to verify the resolved engine is fully functional
-            var startResult = await engine.ApplyHoldemActionAsync(
+            var startResult = await engine.ApplyAsync(
                 new HoldemActionStartGame(gameId, seats),
                 CancellationToken.None);
 

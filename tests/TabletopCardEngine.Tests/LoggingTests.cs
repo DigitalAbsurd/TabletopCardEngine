@@ -51,7 +51,7 @@ public sealed class LoggingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(_gameId, _options));
         collector.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartHand(_gameId));
+        var result = await engine.ApplyAsync(new HoldemActionStartHand(_gameId));
 
         result.IsSuccess.Should().BeFalse();
         var record = EngineRecords(collector).Should().ContainSingle().Subject;
@@ -67,7 +67,7 @@ public sealed class LoggingTests
         await ApplyAsync(engine, new HoldemActionCreateGame(_gameId, _options));
         collector.Clear();
 
-        var result = await engine.ApplyHoldemActionAsync(new HoldemActionStartGame(_gameId, _joinSeats) { ExpectedVersion = 99 });
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _joinSeats) { ExpectedVersion = 99 });
 
         result.IsSuccess.Should().BeFalse();
         var record = EngineRecords(collector).Should().ContainSingle().Subject;
@@ -98,7 +98,7 @@ public sealed class LoggingTests
         }
     }
 
-    private static TestEngineHost.DisposableTestData Setup(out HoldemEngine engine, out FakeLogCollector collector)
+    private static TestEngineHost.DisposableTestData Setup(out IHoldemTable engine, out FakeLogCollector collector)
     {
         var fakeCollector = new FakeLogCollector();
         collector = fakeCollector;
@@ -111,11 +111,11 @@ public sealed class LoggingTests
 
     /// <summary>EF Core logs through the same factory, so keep only what the engine wrote.</summary>
     private static IReadOnlyList<FakeLogRecord> EngineRecords(FakeLogCollector collector)
-        => [.. collector.GetSnapshot().Where(record => record.Category == typeof(HoldemEngine).FullName)];
+        => [.. collector.GetSnapshot().Where(record => record.Category == typeof(HoldemTable).FullName)];
 
-    private static async Task ApplyAsync(HoldemEngine engine, HoldemAction action)
+    private static async Task ApplyAsync(IHoldemTable engine, HoldemAction action)
     {
-        var result = await engine.ApplyHoldemActionAsync(action);
+        var result = await engine.ApplyAsync(action);
         result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
     }
 
