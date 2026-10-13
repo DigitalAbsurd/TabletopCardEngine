@@ -6,9 +6,8 @@ namespace TabletopCardEngine.Tests;
 
 /// <summary>
 /// Guards the nuspec of the seven packages. Nothing in the build fails on a missing description or
-/// license: the SDK quietly falls back to "Package Description" and the assembly name as the author,
-/// which is what v1.0.0-preview.2 shipped with. Reading the project files is enough here; the
-/// release workflow packs the real thing.
+/// license: the SDK quietly falls back to "Package Description" and the assembly name as the author.
+/// Reading the project files is enough here; the release workflow packs the real thing.
 /// </summary>
 [TestClass]
 public sealed class PackageMetadataTests

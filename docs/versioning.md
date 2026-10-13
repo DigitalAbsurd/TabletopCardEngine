@@ -8,7 +8,7 @@ This document states the versioning policy for the Holdem engine and its package
 
 The packages follow [Semantic Versioning 2.0.0](https://semver.org/). **One version for everything (lockstep):** the seven packages in `TabletopCardEngine.Packages.slnf` (`TabletopCardEngine`, `.OpenTelemetry`, `.AspNetCore`, `.Sqlite`, `.PostgreSql`, `.SqlServer`, `.InMemory`) and the Docker images all get the same version from one git tag `vX.Y.Z` or `vX.Y.Z-preview.N` / `vX.Y.Z-rc.N`. A package with no change since the last release still gets the new version.
 
-The pre-release ladder for 1.0 is `1.0.0-preview.1`, then `1.0.0-preview.2`, ..., then `1.0.0-rc.1`, `1.0.0-rc.2`, ..., then `1.0.0`. The public API of 1.0 is frozen from `1.0.0-preview.1` on. When a pre-release breaks a prior pre-release, the maintainers record the reason in the CHANGELOG.
+The pre-release ladder for 1.0 is `1.0.0-preview.1`, then `1.0.0-preview.2`, ..., then `1.0.0-rc.1`, `1.0.0-rc.2`, ..., then `1.0.0`. The public API of 1.0 is frozen from the first `1.0.0-preview.1` cut after the API harmonization (ADR-0008) on. When a pre-release breaks a prior pre-release, the maintainers record the reason in the CHANGELOG.
 
 ## What is a breaking change (major)
 
