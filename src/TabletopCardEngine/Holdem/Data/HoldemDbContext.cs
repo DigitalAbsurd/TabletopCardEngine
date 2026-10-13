@@ -177,7 +177,7 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasMaxLength(EnumColumnMaxLength);
 
         modelBuilder.Entity<TceSchemaRow>()
-            .ToTable("__TceSchema");
+            .ToTable(HoldemSchema.SchemaTable);
 
         modelBuilder.Entity<TceSchemaRow>()
             .HasKey(entity => entity.Id);
@@ -195,5 +195,15 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
 
         modelBuilder.Entity<TceSchemaRow>()
             .HasData(new TceSchemaRow { Id = 1, SchemaVersion = HoldemSchema.Version, EngineVersion = HoldemSchema.EngineVersion });
+
+        // SQLite has no schemas, and HasDefaultSchema there is ignored with a warning, so Hold'em's
+        // tables are kept apart from a host's and another game's by their names instead.
+        if (Database.ProviderName is HoldemProviders.Sqlite)
+        {
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                entityType.SetTableName(HoldemSchema.SqliteTablePrefix + entityType.GetTableName());
+            }
+        }
     }
 }

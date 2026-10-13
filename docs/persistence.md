@@ -62,11 +62,17 @@ Each `IHoldemTable` checks the schema version on its first call. A schema newer 
 
 ## Where the engine's tables live
 
-On PostgreSQL and SQL Server, every table is in the schema `tce`. SQLite has no schemas.
+Hold'em has a database schema of its own, `tce_holdem`, so that another game's `Game` and `Hand` tables can share the database with Hold'em's ([ADR-0008](adr/0008-harmonize-the-public-api.md) §6).
 
-The migration history is the table `__TceMigrationsHistory`, not EF's default `__EFMigrationsHistory`, so it never collides with a host's own EF context running over the same database.
+- On PostgreSQL and SQL Server, every Hold'em table is in the schema `tce_holdem`: `tce_holdem.Game`, `tce_holdem.Hand`, and so on.
+- SQLite has no schemas, so every Hold'em table name starts with `tce_holdem_` instead: `tce_holdem_Game`, `tce_holdem_Hand`, ..., `tce_holdem___TceSchema`. `HoldemDbContext.OnModelCreating` adds the prefix to every entity when the provider is SQLite.
+- InMemory has neither, and its store is never shared with another game's.
 
-The schema version is the single row of `__TceSchema` with `Id = 1`, holding `SchemaVersion` and `EngineVersion`. This row is model seed data (`HasData`), and so each migration writes it.
+The migration history is the table `__TceMigrationsHistory`, not EF's default `__EFMigrationsHistory`, so it never collides with a host's own EF context running over the same database. It is `tce_holdem.__TceMigrationsHistory` on PostgreSQL and SQL Server, and `tce_holdem___TceMigrationsHistory` on SQLite. On SQLite, EF Core also creates its migration lock table, `__EFMigrationsLock`, which EF names and every EF context migrating the file shares.
+
+The schema version is the single row of `__TceSchema` (`tce_holdem.__TceSchema`, or `tce_holdem___TceSchema` on SQLite) with `Id = 1`, holding `SchemaVersion` and `EngineVersion`. This row is model seed data (`HasData`), and so each migration writes it.
+
+Each relational provider package keeps its migrations in `Migrations/Holdem/`, in the namespace `TabletopCardEngine.<Provider>.Migrations.Holdem`, which is where `scripts/add-migration.ps1` writes them.
 
 It is recommended to dedicate a database, or at least a login, to the engine.
 
@@ -106,21 +112,21 @@ Migrations are written per the following rules:
    if (migrationBuilder.ActiveProvider == "Npgsql.EntityFrameworkCore.PostgreSQL")
    {
        migrationBuilder.Sql(@"
-           UPDATE tce.player_seats
+           UPDATE tce_holdem.player_seats
            SET name = TRIM(name)
        ");
    }
    else if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
    {
        migrationBuilder.Sql(@"
-           UPDATE [tce].[player_seats]
+           UPDATE [tce_holdem].[player_seats]
            SET [name] = TRIM([name])
        ");
    }
    else if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.Sqlite")
    {
        migrationBuilder.Sql(@"
-           UPDATE player_seats
+           UPDATE tce_holdem_player_seats
            SET name = TRIM(name)
        ");
    }

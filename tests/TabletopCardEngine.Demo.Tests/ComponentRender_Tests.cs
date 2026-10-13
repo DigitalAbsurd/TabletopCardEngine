@@ -15,6 +15,7 @@ using TabletopCardEngine.Demo.Layout;
 using TabletopCardEngine.Demo.Phh;
 using TabletopCardEngine.Demo.Services;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Sqlite;
 
@@ -340,8 +341,8 @@ public sealed class ComponentRender_Tests
         // Assert - one game, one hand, and a journal holding only the two calls that started it
         applied.Should().BeTrue();
         session.CurrentGameId.Should().NotBe(firstGameId);
-        browser.GetRowCount("Game").Should().Be(1);
-        browser.GetRowCount("Hand").Should().Be(1);
+        browser.GetRowCount(HoldemSchema.SqliteTablePrefix + "Game").Should().Be(1);
+        browser.GetRowCount(HoldemSchema.SqliteTablePrefix + "Hand").Should().Be(1);
         session.Journal.Entries.Should().HaveCount(2);
     }
 
@@ -1174,11 +1175,11 @@ public sealed class ComponentRender_Tests
 
         // Assert - The rendered markup should contain real table names as aria-label attributes or option content.
         // The engine creates multiple tables. Check for at least the primary ones.
-        component.Markup.Should().Contain("aria-label=\"Game\"");
-        component.Markup.Should().Contain("aria-label=\"Hand\"");
-        component.Markup.Should().Contain("aria-label=\"HandAction\"");
-        component.Markup.Should().Contain("aria-label=\"HandPlayerEndState\"");
-        component.Markup.Should().Contain("aria-label=\"HandDeckCard\"");
+        component.Markup.Should().Contain($"aria-label=\"{HoldemSchema.SqliteTablePrefix}Game\"");
+        component.Markup.Should().Contain($"aria-label=\"{HoldemSchema.SqliteTablePrefix}Hand\"");
+        component.Markup.Should().Contain($"aria-label=\"{HoldemSchema.SqliteTablePrefix}HandAction\"");
+        component.Markup.Should().Contain($"aria-label=\"{HoldemSchema.SqliteTablePrefix}HandPlayerEndState\"");
+        component.Markup.Should().Contain($"aria-label=\"{HoldemSchema.SqliteTablePrefix}HandDeckCard\"");
 
         // Also verify the dropdown doesn't show the "No Data" empty state
         component.Markup.Should().NotContain("<div class=\"ant-empty\"");

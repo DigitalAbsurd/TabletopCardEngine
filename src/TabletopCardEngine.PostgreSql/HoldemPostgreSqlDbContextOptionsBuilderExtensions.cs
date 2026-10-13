@@ -7,7 +7,7 @@ using TabletopCardEngine.Holdem.Data;
 namespace TabletopCardEngine.PostgreSql;
 
 /// <summary>
-/// Configures the engine's database as PostgreSQL with the engine's own migrations in the <c>tce</c> schema.
+/// Configures the engine's database as PostgreSQL with the engine's own migrations in the <c>tce_holdem</c> schema.
 /// The plain <c>UseNpgsql</c> call is not enough: EF would look for migrations in the core assembly, which has
 /// none, and <see cref="IHoldemSchemaManager.MigrateAsync"/> would fail with
 /// <see cref="HoldemSchemaFailure.MigrationsNotFound"/>.
@@ -16,7 +16,7 @@ public static class HoldemPostgreSqlDbContextOptionsBuilderExtensions
 {
     /// <summary>
     /// Uses the PostgreSQL database at <paramref name="connectionString"/>, with the migrations of this
-    /// package and the engine's own history table, <c>tce.__TceMigrationsHistory</c>.
+    /// package and the engine's own history table, <c>tce_holdem.__TceMigrationsHistory</c>.
     /// </summary>
     /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>
     /// <param name="connectionString">A PostgreSQL connection string, e.g. <c>Host=localhost;Database=holdem</c>.</param>
@@ -32,7 +32,7 @@ public static class HoldemPostgreSqlDbContextOptionsBuilderExtensions
 
     /// <summary>
     /// Uses an already created PostgreSQL data source, with the migrations of this package and the
-    /// engine's own history table in the <c>tce</c> schema. This is the recommended form for Npgsql,
+    /// engine's own history table in the <c>tce_holdem</c> schema. This is the recommended form for Npgsql,
     /// allowing for connection pooling and advanced configuration.
     /// </summary>
     /// <param name="builder">The options passed to <c>AddHoldem</c>.</param>

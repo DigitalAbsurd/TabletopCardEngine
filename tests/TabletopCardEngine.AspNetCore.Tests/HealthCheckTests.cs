@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.InMemory;
 using TabletopCardEngine.Sqlite;
 
@@ -93,7 +94,7 @@ public sealed class HealthCheckTests
         await MigrateAsync(provider);
         using (var command = connection.CreateCommand())
         {
-            command.CommandText = "UPDATE \"__TceSchema\" SET \"SchemaVersion\" = 999";
+            command.CommandText = $"UPDATE \"{HoldemSchema.SqliteTablePrefix + HoldemSchema.SchemaTable}\" SET \"SchemaVersion\" = 999";
             await command.ExecuteNonQueryAsync();
         }
 

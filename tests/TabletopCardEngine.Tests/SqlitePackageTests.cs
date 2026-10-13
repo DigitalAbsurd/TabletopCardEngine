@@ -101,8 +101,59 @@ public sealed class SqlitePackageTests
             .SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type = 'table'")
             .ToListAsync();
 
-        tables.Should().Contain("__TceMigrationsHistory");
+        tables.Should().Contain(HoldemSchema.SqliteMigrationsHistoryTable);
         tables.Should().NotContain("__EFMigrationsHistory");
+    }
+
+    [TestMethod]
+    public async Task Sqlite_MigrateAsync_CreatesOnlyPrefixedTables()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"tce-sqlite-tables-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={path};Pooling=False";
+        try
+        {
+            var services = new ServiceCollection();
+            services.AddTabletopCardEngine(tce => tce.AddHoldem(o => o.UseHoldemSqlite(connectionString)));
+            await using (var provider = services.BuildServiceProvider())
+            {
+                await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+            }
+
+            var tables = new List<string>();
+            await using (var connection = new SqliteConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'";
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    tables.Add(reader.GetString(0));
+                }
+            }
+
+            // EF Core's migration lock is the one table that is not Hold'em's: EF names it, not the model,
+            // and every EF context migrating this file shares it, so it carries no prefix.
+            tables.Should().BeEquivalentTo(
+            [
+                "__EFMigrationsLock",
+                HoldemSchema.SqliteMigrationsHistoryTable,
+                HoldemSchema.SqliteTablePrefix + HoldemSchema.SchemaTable,
+                "tce_holdem_BuyIn",
+                "tce_holdem_Game",
+                "tce_holdem_Hand",
+                "tce_holdem_HandAction",
+                "tce_holdem_HandDeckCard",
+                "tce_holdem_HandHoleCard",
+                "tce_holdem_HandPlayerEndState",
+                "tce_holdem_HandPlayerStartState",
+                "tce_holdem_Player",
+            ]);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     [TestMethod]

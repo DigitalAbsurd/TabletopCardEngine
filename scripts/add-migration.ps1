@@ -52,11 +52,11 @@ foreach ($provider in $providers) {
         --project $project `
         --startup-project $project `
         --context HoldemDbContext `
-        --output-dir Migrations
+        --output-dir Migrations/Holdem
     if ($LASTEXITCODE -ne 0) { throw "dotnet ef migrations add failed for $($provider.Project) with exit code $LASTEXITCODE" }
 
     # Find the new migration file (the one ending in _$Name.cs, not .Designer.cs).
-    $migrationDir = Join-Path $project 'Migrations'
+    $migrationDir = Join-Path $project 'Migrations/Holdem'
     $migrationFile = Get-ChildItem -Path $migrationDir -Filter "*_$Name.cs" -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $migrationFile) {
         throw "Migration file not found for $Name in $migrationDir"
@@ -71,5 +71,5 @@ foreach ($provider in $providers) {
 
 Write-Host ""
 Write-Host "Reminder: if this migration changes the database schema version, bump HoldemSchema.Version"
-Write-Host "in src/TabletopCardEngine/Data/HoldemSchema.cs and EngineVersion in Directory.Build.props as"
+Write-Host "in src/TabletopCardEngine/Holdem/Data/HoldemSchema.cs and EngineVersion in Directory.Build.props as"
 Write-Host "required by docs/persistence.md"

@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Demo.Services;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Dto;
 using TabletopCardEngine.Sqlite;
 
@@ -50,14 +51,14 @@ public sealed class DemoDatabase_Tests
         var database = serviceProvider.GetRequiredService<DemoDatabase>();
 
         await PlayOneHandAsync(session);
-        browser.GetRowCount("Game").Should().Be(1);
-        browser.GetRowCount("HandAction").Should().BeGreaterThan(0);
+        browser.GetRowCount(HoldemSchema.SqliteTablePrefix + "Game").Should().Be(1);
+        browser.GetRowCount(HoldemSchema.SqliteTablePrefix + "HandAction").Should().BeGreaterThan(0);
 
         // Act
         database.ClearAllData();
 
         // Assert
-        string[] versionTables = ["__TceMigrationsHistory", "__TceSchema"];
+        string[] versionTables = [HoldemSchema.SqliteMigrationsHistoryTable, HoldemSchema.SqliteTablePrefix + HoldemSchema.SchemaTable];
         foreach (var tableName in browser.GetTableNames())
         {
             if (versionTables.Contains(tableName))

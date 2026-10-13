@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using TabletopCardEngine.Holdem.Data;
 
 namespace TabletopCardEngine.Demo.Services;
 
@@ -32,13 +33,15 @@ public sealed class DemoDatabase
     /// <summary>
     /// Deletes every row of every engine table, leaving the schema in place.
     /// <para>
-    /// Tables whose names start with <c>__</c> are engine bookkeeping and are never cleared.
+    /// Tables whose names start with <c>__</c>, after the <c>tce_holdem_</c> prefix of the engine's own
+    /// tables, are bookkeeping (the schema version, the migration history, EF's migration lock) and are
+    /// never cleared.
     /// </para>
     /// </summary>
     public void ClearAllData()
     {
         var tableNames = _browser.GetTableNames()
-            .Where(name => !name.StartsWith("__", StringComparison.Ordinal))
+            .Where(name => !IsBookkeeping(name))
             .ToList();
         if (tableNames.Count == 0)
         {
@@ -57,6 +60,14 @@ public sealed class DemoDatabase
         command.ExecuteNonQuery();
 
         transaction.Commit();
+    }
+
+    private static bool IsBookkeeping(string tableName)
+    {
+        var unprefixed = tableName.StartsWith(HoldemSchema.SqliteTablePrefix, StringComparison.Ordinal)
+            ? tableName[HoldemSchema.SqliteTablePrefix.Length..]
+            : tableName;
+        return unprefixed.StartsWith("__", StringComparison.Ordinal);
     }
 
     /// <summary>Quotes a table name the same way <see cref="SqliteBrowser"/> does, by doubling quotes.</summary>
