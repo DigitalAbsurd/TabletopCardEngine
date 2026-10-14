@@ -8,6 +8,13 @@
         "dotnet-ef"
       ],
       "rollForward": false
+    },
+    "defaultdocumentation.console": {
+      "version": "1.2.6",
+      "commands": [
+        "defaultdocumentation"
+      ],
+      "rollForward": false
     }
   }
 }

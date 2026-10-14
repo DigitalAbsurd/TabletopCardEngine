@@ -1,0 +1,7 @@
+{
+  "GeneratedAccessModifiers": "Api",
+  "GeneratedPages": "Assembly,Namespaces,Types",
+  "FileNameFactory": "FullName",
+  "Markdown.NestedTypeVisibilities": "DeclaringType",
+  "Markdown.TableOfContentsModes": "Grouped,IncludeKind,IncludeSummary"
+}

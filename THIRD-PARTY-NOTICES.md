@@ -28,6 +28,12 @@ After changing a dependency, re-run the script and paste its tables over the one
 assembly versions from git tags; nothing of MinVer ships, and it does not appear in the inventories
 below.
 
+**The local dotnet tools** in `.config/dotnet-tools.json` are not package references. `DefaultDocumentation.Console`
+1.2.6 (MIT-0) generates the Markdown API reference under `docs/api/` from the packages' own XML doc
+comments (ADR-0009), and `dotnet-ef` 10.0.12 (MIT) scaffolds migrations. Neither ships, and as tools
+rather than package references they appear in no inventory below and are not seen by
+`ThirdPartyNoticesTests`.
+
 **The library, `TabletopCardEngine`**, references its dependencies as NuGet packages and redistributes
 none of them. Its runtime closure is Microsoft's EF Core and `Microsoft.Extensions.*`
 packages, all MIT.
