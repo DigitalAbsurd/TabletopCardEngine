@@ -4,6 +4,8 @@ This is the reviewable inventory of what `TabletopCardEngine.dll` exposes. Every
 assembly (`Holdem/Data/`, `Holdem/Engine/`, `Holdem/Mappers/`, `Holdem/ActionHandlers/`) is `internal`; the tests and the
 demo reach it through `InternalsVisibleTo`, which package validation ignores.
 
+The full member-by-member reference of all seven packages is the [API reference](api/index.md).
+
 ## How the baseline is enforced
 
 The library project sets `EnablePackageValidation` and points `PackageValidationBaselinePath` at
