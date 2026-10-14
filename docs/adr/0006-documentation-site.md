@@ -1,6 +1,6 @@
 # ADR-0006: Publish the documentation as a MkDocs Material site on Read the Docs
 
-- **Status:** Accepted
+- **Status:** Accepted; the "no generated API pages" clauses of decisions 1 and 3 superseded by [ADR-0009](0009-generated-api-reference.md)
 - **Date:** 2026-10-06
 - **Issue:** [#359](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/359), milestone
   `v1.0 · README & community docs`

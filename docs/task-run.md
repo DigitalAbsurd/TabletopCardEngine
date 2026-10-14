@@ -331,7 +331,10 @@ docs/adr/                               # architecture decision records (ADR-000
                                         # ADR-0003: database provider licences,
                                         # ADR-0004: the ASP.NET Core integration package,
                                         # ADR-0005: container host and images,
-                                        # ADR-0006: the documentation site)
+                                        # ADR-0006: the documentation site,
+                                        # ADR-0007: the rename to TabletopCardEngine,
+                                        # ADR-0008: the harmonized public API,
+                                        # ADR-0009: the generated API reference)
 scripts/                                # license audit, PHH fixture packing, public API listing, migration scaffolding
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 mkdocs.yml                              # site configuration for MkDocs Material
