@@ -40,6 +40,12 @@ dotnet format TabletopCardEngine.sln
 dotnet format TabletopCardEngine.sln --verify-no-changes
 ```
 
+Regenerate the API reference under `docs/api/` after a change to a public surface or to the XML doc comments of a public member in the seven packages of `TabletopCardEngine.Packages.slnf`. `ApiReferenceDocsTests` fails until this is done. The script needs PowerShell 7 and restores the `DefaultDocumentation.Console` local tool by itself.
+
+```bash
+pwsh ./scripts/generate-api-reference.ps1 -Update
+```
+
 Docker images are built locally from the `Dockerfile` at the repository root. Three targets are supported:
 
 ```bash
@@ -196,7 +202,7 @@ What that means in practice:
 - **Encoding is UTF-8 with BOM, CRLF, final newline**, pinned by `.editorconfig` and
   [.gitattributes](.gitattributes).
 - The library sets `GenerateDocumentationFile`, so **every public type and member needs an XML doc
-  comment** — `CS1591` is an error. `Holdem/Engine/` is the reference for tone: say why, not what the name
+  comment** — `CS1591` is an error. These comments are published as the site's API reference (`docs/api/`, ADR-0009), so they are written for a reader of the docs and never `cref` an internal type. `Holdem/Engine/` is the reference for tone: say why, not what the name
   already says. The test project generates the file too (it is what makes `IDE0005` run at build)
   but suppresses `CS1591`/`CS1573`.
 - **Test method names keep their underscores.** `Subject_Scenario[_Expected]`
