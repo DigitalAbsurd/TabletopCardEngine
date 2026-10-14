@@ -15,11 +15,11 @@ public static class HoldemBuilderExtensions
     /// <summary>
     /// Registers <see cref="IHoldemTable"/> as a singleton over an EF Core context factory.
     /// <para>
-    /// Engine options belong to the container: each call creates its own
-    /// <see cref="HoldemOptions"/> and registers it as a singleton instance, so engines built
-    /// from different containers can be configured differently side by side in one process.
-    /// A container holds one Hold'em registration, so a second call on the same collection throws,
-    /// whether it is made through the same builder or through a second <c>AddTabletopCardEngine</c> call.
+    /// Engine options belong to the container: each call creates its own engine options and
+    /// registers them as a singleton instance, so engines built from different containers can be
+    /// configured differently side by side in one process. A container holds one Hold'em
+    /// registration, so a second call on the same collection throws, whether it is made through
+    /// the same builder or through a second <c>AddTabletopCardEngine</c> call.
     /// </para>
     /// <para>
     /// The engine does not create its own tables. The schema is created with

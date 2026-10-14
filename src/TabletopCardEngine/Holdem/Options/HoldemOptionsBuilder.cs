@@ -3,8 +3,8 @@
 /// <summary>
 /// Configures the engine from <c>HoldemBuilderExtensions.AddHoldem</c>.
 /// <para>
-/// Each builder writes to the <see cref="HoldemOptions"/> instance of the one container it
-/// was created for, so configuring one engine leaves every other engine in the process untouched.
+/// Each builder writes to the engine options of the one container it was created for, so
+/// configuring one engine leaves every other engine in the process untouched.
 /// </para>
 /// </summary>
 public sealed class HoldemOptionsBuilder
