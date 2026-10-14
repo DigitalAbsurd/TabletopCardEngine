@@ -47,6 +47,8 @@
     <ProjectReference Include="..\..\src\TabletopCardEngine.InMemory\TabletopCardEngine.InMemory.csproj" />
     <ProjectReference Include="..\..\src\TabletopCardEngine.PostgreSql\TabletopCardEngine.PostgreSql.csproj" />
     <ProjectReference Include="..\..\src\TabletopCardEngine.SqlServer\TabletopCardEngine.SqlServer.csproj" />
+    <!-- Built, not referenced: ApiReferenceDocsTests runs the API reference script with -NoBuild, which needs this package's assembly in bin/. -->
+    <ProjectReference Include="..\..\src\TabletopCardEngine.AspNetCore\TabletopCardEngine.AspNetCore.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
