@@ -1,0 +1,4 @@
+https://github.com/open-telemetry/opentelemetry-dotnet/blob/core-1.19.1/
+T:OpenTelemetry.IOpenTelemetryBuilder|src/OpenTelemetry.Api.ProviderBuilderExtensions/IOpenTelemetryBuilder.cs|IOpenTelemetryBuilder
+T:OpenTelemetry.Trace.TracerProviderBuilder|src/OpenTelemetry.Api/Trace/TracerProviderBuilder.cs|TracerProviderBuilder
+T:OpenTelemetry.Metrics.MeterProviderBuilder|src/OpenTelemetry.Api/Metrics/MeterProviderBuilder.cs|MeterProviderBuilder
