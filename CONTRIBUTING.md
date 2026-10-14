@@ -128,6 +128,7 @@ For the complete protocol, see [docs/task-run.md#git-and-pull-request-protocol](
 Some changes require additional steps:
 
 - **Public API**: every change to the public surface is checked against the committed baseline. See [docs/public-api.md](docs/public-api.md).
+- **API reference**: a change to a public member or its XML doc comment is regenerated with `pwsh ./scripts/generate-api-reference.ps1 -Update`, and the generated pages are committed with it. Link [docs/task-run.md#gates](docs/task-run.md#gates).
 - **Observability**: new log events, span tags and metrics are part of the public API. See [docs/observability.md](docs/observability.md).
 - **Package updates**: if you add or upgrade a package, update `THIRD-PARTY-NOTICES.md` by running `pwsh ./scripts/audit-licenses.ps1` and pasting the output.
 - **Database schema**: an entity shape change needs a migration for every supported provider. See [docs/persistence.md](docs/persistence.md).
