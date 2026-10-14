@@ -335,7 +335,7 @@ docs/adr/                               # architecture decision records (ADR-000
                                         # ADR-0007: the rename to TabletopCardEngine,
                                         # ADR-0008: the harmonized public API,
                                         # ADR-0009: the generated API reference)
-scripts/                                # license audit, PHH fixture packing, public API listing, migration scaffolding
+scripts/                                # license audit, PHH fixture packing, API reference generation, migration scaffolding
 eng/api-baseline/                       # the committed public API baseline package (fact 25)
 mkdocs.yml                              # site configuration for MkDocs Material
 .readthedocs.yaml                       # Read the Docs build configuration
@@ -485,7 +485,7 @@ renumber.
     pointing at their own baseline, so `dotnet pack TabletopCardEngine.Packages.slnf -c Release` fails
     with `CP0001` (type removed), `CP0002` (member removed) and the other ApiCompat rules on a break;
     `dotnet build` does not check it. The baselines are frozen and pinned by `ApiBaselineFreezeTests` (no break in 1.x, additions allowed):
-    an additive change regenerates the inventory only (`pwsh ./scripts/list-public-api.ps1 -Update`), and a `CP`
+    an additive change regenerates the API reference only (`pwsh ./scripts/generate-api-reference.ps1 -Update`; `ApiReferenceDocsTests` fails until it is done), and a `CP`
     diagnostic means the change is a break. Never re-pack a baseline, never update a pinned hash; that is a
     maintainer decision (see [docs/public-api.md](public-api.md#the-baseline-is-frozen)). Never add a
     `CompatibilitySuppressions.xml` or set `ApiCompatGenerateSuppressionFile`. The check is binary

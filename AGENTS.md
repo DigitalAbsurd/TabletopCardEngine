@@ -23,7 +23,7 @@ The public API gate: packing compares every package against its committed baseli
 `eng/api-baseline/` and fails on a removed or changed public member (`CP0001`, `CP0002`, ...).
 `dotnet build` does not run it. The baselines are frozen and pinned by `ApiBaselineFreezeTests`; never
 re-pack one ([docs/public-api.md#the-baseline-is-frozen](docs/public-api.md#the-baseline-is-frozen)). See
-[docs/public-api.md](docs/public-api.md) for the inventory and the rule.
+[docs/public-api.md](docs/public-api.md) for the rule, and docs/api/ for the generated reference.
 
 ```bash
 dotnet pack TabletopCardEngine.Packages.slnf -c Release

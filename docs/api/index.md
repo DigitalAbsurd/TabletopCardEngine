@@ -23,4 +23,4 @@ These pages document the public .NET surface of the seven packages below. They a
 ## Not covered here
 
 - The REST API is in [ASP.NET Core](../aspnetcore.md) and the server's `/openapi/v1.json` ([Container images](../docker.md)).
-- The compatibility rules (what may change in a minor release) are in [Public API](../public-api.md).
+- The compatibility rules (what may change in a minor release) are in [API compatibility](../public-api.md).
