@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/wordmark-on-dark-1200.png">
+  <img alt="TabletopCardEngine" src="docs/assets/wordmark-1200.png" width="600">
+</picture>
+
 # TabletopCardEngine
 
 A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
@@ -165,3 +170,7 @@ in [NOTICE](NOTICE), as section 4(d) of the license requires.
 The licenses and notices of the third-party packages it depends on, of the assets the demo
 redistributes, and of the vendored PHH hand-history corpus are in
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+The TabletopCardEngine name, logo and wordmark are DigitalAbsurd's and are not covered by the Apache
+License: the [project artwork](THIRD-PARTY-NOTICES.md#project-artwork) section says which files they
+are and how they may be used.
