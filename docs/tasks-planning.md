@@ -40,8 +40,9 @@ browser gate (`TCE_TEST_BROWSER_GATE=1`), the provider matrix (`TCE_TEST_CONTAIN
 needs Docker), and the documentation site build (needs Docker). The evidence for a gate is the local run, quoted in the pull request. The
 `browser-gate-local` label is retired. Do not add a `pull_request` or `push` trigger without being
 told to. The workflows are `Release` (`release.yml`, only on a pushed `v*` tag) and `Deploy demo to GitHub Pages`
-(`deploy-demo.yml`, called by `Release` for stable releases). The old `CI` entry stays listed as
-`disabled_manually` in `gh workflow list --all`, and nothing reads it.
+(`deploy-demo.yml`, called by `Release` for stable releases). `gh workflow list --all` shows
+`Deploy demo to GitHub Pages` as `disabled_manually`, and its job skips itself while the repository is
+private; it is enabled again when the repository goes public. The old `CI` workflow is gone.
 The `Release` workflow is enabled and runs only on a pushed `v*` tag; each run spends the account's Actions minutes.
 
 ## 1. Establish the facts before writing a word
@@ -230,6 +231,13 @@ capabilities. Issue titles stay plain imperative English; the implementer turns 
 Conventional Commit for the pull request. Do **not** add `agent-ready` while you are still writing.
 It is the vetting mark, and it goes on last (step 7).
 
+Some work cannot be done by an assistant at all: a step on nuget.org, Docker Hub or Read the Docs,
+a repository setting, pushing a release tag. File it as an issue all the same, so the batch shows the
+whole path, and label it `manual-work` instead of a size label. A `manual-work` issue never gets
+`agent-ready`, so the runner never picks it; an agent issue that needs it done first names it on its
+`**Depends on:**` line like any other issue, and waits until the maintainer closes it. Write its body
+to the same shape, with **Steps** — the exact clicks, commands and values — in place of **Files**.
+
 ## 7. Check the batch before handing it over
 
 The runner has no judgement and there is no human review step, so the batch is the last place a
@@ -237,7 +245,7 @@ mistake can be caught cheaply.
 
 1. `gh issue list --state open` shows exactly the issues you meant to create, contiguous, in the
    order you meant them to run.
-2. Every issue has exactly one size label.
+2. Every issue has exactly one size label, or `manual-work` and no size label.
 3. Every `Depends on:` number exists, is in this repository, and is not part of a cycle. Walk the
    chain by hand once — the runner will not tell you.
 4. Read one issue as if you had never seen the conversation. If you have to guess at anything, the

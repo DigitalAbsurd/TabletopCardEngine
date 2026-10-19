@@ -34,14 +34,14 @@ This document describes how releases are cut and versioned in this repository. I
 
 ## The release workflow
 
-- A pushed `v*` tag runs `.github/workflows/release.yml`: `build` (the gates, the browser gate and the package version check), `providers` (PostgreSQL and SQL Server), `docker` (the three images, built and not pushed), then `release`, which waits for all three. For a stable tag only, `deploy-demo` follows `release`, so the demo goes live once the release exists.
+- A pushed `v*` tag runs `.github/workflows/release.yml`: `build` (the gates, the browser gate and the package version check), `providers` (PostgreSQL and SQL Server), `docker` (the three images, built and not pushed), then `release`, which waits for all three. For a stable tag only, `deploy-demo` runs once `build` and `providers` pass; it does not wait for `release`. It also skips its job while the repository is private.
 - `release` packs the seven projects of `TabletopCardEngine.Packages.slnf`, requires the count to equal the solution filter's and every file name to end in the tag's version, and writes the notes with `git-cliff --latest`. It then creates the GitHub Release with the notes and the `.nupkg` files. Images and symbol packages are not attached.
 - A tag that contains `-` (`v1.0.0-preview.1`, `v1.0.0-rc.1`) makes a pre-release.
 - A failed run leaves no release. The fix is a new tag, never a moved one.
 
 ### Publishing (not enabled yet)
 
-The release workflow includes two placeholder jobs, `publish-nuget` and `publish-docker`, which are currently disabled with `if: ${{ false }}` and never run. Publishing to nuget.org and Docker Hub is enabled in the milestone `v1.0 · NuGet packages & public launch`, once the repository is public. The `publish-nuget` job will use NuGet Trusted Publishing (OIDC, no long-lived API key) to push the packages from the `release` job to nuget.org. The `publish-docker` job will push the three images (sqlite, postgres, mssql) built by the `docker` job to Docker Hub.
+The release workflow includes two placeholder jobs, `publish-nuget` and `publish-docker`. They run only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and even then they only print a notice. The milestone `v1.0 · NuGet packages & public launch` gives them real steps, splits the release workflow into workflows that can each be run by hand for a given tag, and then sets the variable. `publish-nuget` will use NuGet Trusted Publishing (OIDC, no long-lived API key). `publish-docker` will push the three images (sqlite, postgres, mssql) to the Docker Hub repository `digitalabsurd/tabletopcardengine` with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, which are already set.
 
 ## Changelog
 
