@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="TabletopCardEngine">
+<title>TabletopCardEngine</title>
+<rect width="512" height="512" fill="#16131F"/>
+<rect x="135.57" y="127" width="192.86" height="270" rx="19.29" fill="#FF5A3C" transform="rotate(-14 232 262)"/>
+<rect x="183.57" y="115" width="192.86" height="270" rx="19.29" fill="#F4F1EA" transform="rotate(8 280 250)"/>
+<path fill="#16131F" transform="rotate(188 280 250)" d="M338.60 220.70L299.36 220.70L299.36 310L260.81 310L260.81 220.70L221.40 220.70L221.40 190.00L338.60 190.00L338.60 220.70Z"/>
+</svg>

@@ -7,6 +7,7 @@ license, and this file reproduces the notices those licenses require.
 
 - [What ships, and under which license](#what-ships-and-under-which-license)
 - [PHH dataset](#phh-dataset)
+- [Project artwork](#project-artwork)
 - [Package inventory](#package-inventory)
 - [License texts](#license-texts)
 
@@ -163,6 +164,24 @@ This repository redistributes those records under the dataset's MIT grant, and e
 dataset's copyright notice beside it (`LICENSE-phh-dataset.txt`).
 [The fixture README](tests/TabletopCardEngine.Tests/Resources/phh/README.md) covers provenance and
 citation.
+
+## Project artwork
+
+The TabletopCardEngine logo and wordmark are not covered by the Apache License. They come from
+DigitalAbsurd's branding repository (`brands/tabletopcardengine/exports/`) and are:
+
+- `eng/icon.png`, packed into every NuGet package as `icon.png`;
+- `docs/assets/logo.svg` and `docs/assets/favicon-32.png`, the documentation site's logo and favicon;
+- `docs/assets/wordmark-1200.png` and `docs/assets/wordmark-on-dark-1200.png`, the README header.
+
+```
+Copyright (c) 2026 DigitalAbsurd (Mikhail Khrapunov). All rights reserved.
+```
+
+The names, marks and wordmarks of DigitalAbsurd and of its projects are DigitalAbsurd's property and
+are not licensed for reuse; the open-source licence of this repository does not extend to them. They
+may be shown unmodified to refer to TabletopCardEngine or DigitalAbsurd. Any other use, including in a
+fork or a derived work, needs written permission.
 
 ## Contributor Covenant
 
