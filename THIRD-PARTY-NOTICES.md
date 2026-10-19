@@ -238,6 +238,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 | --- | --- | --- |
 | Microsoft.Data.SqlClient | 7.1.1 | MIT |
 | Microsoft.EntityFrameworkCore.SqlServer | 10.0.12 | MIT |
+| System.Security.Cryptography.Pkcs | 9.0.21 | MIT |
 
 ### TabletopCardEngine.InMemory
 
