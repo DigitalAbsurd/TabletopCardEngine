@@ -61,5 +61,34 @@ jobs:
             exit 1
           fi
 
-      - name: Publish to nuget.org (placeholder)
-        run: echo "::notice::NuGet publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.x
+
+      - name: Pack packages
+        run: dotnet pack TabletopCardEngine.Packages.slnf -c Release -o artifacts
+
+      - name: Verify packages
+        env:
+          TAG: ${{ inputs.tag }}
+        run: bash eng/verify-packages.sh artifacts "${TAG#v}"
+
+      - name: Verify symbol packages
+        run: |
+          nupkg_count=$(find artifacts -maxdepth 1 -name '*.nupkg' | wc -l)
+          snupkg_count=$(find artifacts -maxdepth 1 -name '*.snupkg' | wc -l)
+          if [ "$nupkg_count" -ne "$snupkg_count" ]; then
+            echo "::error::Expected $nupkg_count .snupkg files (one per .nupkg), but found $snupkg_count."
+            ls artifacts
+            exit 1
+          fi
+
+      - name: Authenticate with NuGet
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: digitalabsurd
+
+      - name: Push packages to nuget.org
+        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
