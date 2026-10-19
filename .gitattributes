@@ -18,6 +18,7 @@ Dockerfile      text eol=lf
 .dockerignore   text eol=lf
 *.phhs      text eol=lf
 *.json      text eol=lf
+.github/allowed_signers text eol=lf
 
 *.gz        binary
 *.png       binary
