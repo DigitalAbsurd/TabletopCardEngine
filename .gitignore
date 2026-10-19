@@ -409,6 +409,10 @@ FodyWeavers.xsd
 # The committed template is agent.claude.json.example.
 agent.*.json
 
+# Claude Code's per-user settings (permissions, local overrides) - never committed.
+# The shared .claude/settings.json and .claude/launch.json stay tracked.
+.claude/settings.local.json
+
 # The AspNetCoreSample database
 samples/AspNetCoreSample/*.db*
 
