@@ -168,3 +168,4 @@ jobs:
     uses: ./.github/workflows/publish-docker.yml
     with:
       tag: ${{ github.ref_name }}
+    secrets: inherit

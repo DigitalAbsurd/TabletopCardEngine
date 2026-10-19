@@ -30,6 +30,10 @@ jobs:
   publish-docker:
     if: ${{ vars.TCE_PUBLISH == 'enabled' }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [sqlite, postgres, mssql]
 
     steps:
       # The tag comes from inputs.tag, never from the run's own ref: on a manual dispatch that is the
@@ -58,5 +62,36 @@ jobs:
             exit 1
           fi
 
-      - name: Publish to Docker Hub (placeholder)
-        run: echo "::notice::Docker Hub publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push the ${{ matrix.target }} image
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          docker build --target "${{ matrix.target }}" --build-arg VERSION="$version" -t "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}" .
+          docker push "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}"
+
+      - name: Check the image version label
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          label=$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}")
+          if [ "$label" != "$version" ]; then
+            echo "::error::Image label is '$label', expected '$version'"
+            exit 1
+          fi
+
+      - name: Push the stable target tag
+        if: ${{ !contains(inputs.tag, '-') }}
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          docker tag "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}" "digitalabsurd/tabletopcardengine:${{ matrix.target }}"
+          docker push "digitalabsurd/tabletopcardengine:${{ matrix.target }}"
