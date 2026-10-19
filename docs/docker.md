@@ -74,12 +74,14 @@ The OpenAPI document is served at `/openapi/v1.json` and describes every endpoin
 
 ## Published images
 
-Publishing is not enabled yet: no image has been pushed so far, and the milestone `v1.0 · NuGet packages & public launch` turns it on. From then on, the repository publishes images to Docker Hub as `digitalabsurd/tabletopcardengine`, with these tags:
+The repository publishes images to Docker Hub as `digitalabsurd/tabletopcardengine`, with these tags:
 
-- **`sqlite`, `postgres`, `mssql`** — the latest stable release, one tag per database provider.
+- **`sqlite`, `postgres`, `mssql`** — the latest stable release, one tag per database provider. Published only for stable releases (no `-preview` or similar suffix).
 - **`<version>-<target>`** — a specific version and target, for example `1.0.0-sqlite` or `1.0.0-preview.1-postgres`. Pre-releases are published with a `-preview` or similar suffix.
 
 The `org.opencontainers.image.version` label on each image carries its version. For production workloads, pin a version tag rather than a target-only tag, which moves with every stable release, so updates are deliberate. There is no `latest` tag.
+
+Publishing is gated by the repository variable `TCE_PUBLISH`. To re-run `publish-docker.yml` for an existing tag, use `gh workflow run publish-docker.yml -f tag=vX.Y.Z`.
 
 ## Images
 
@@ -134,7 +136,9 @@ orchestrator or a load balancer.
 
 ## Images built by a release
 
-The `release.yml` workflow builds all three targets for every `v*` tag, with the version stamped as the `org.opencontainers.image.version` label, and checks the label. It does not push them yet: the `publish-docker.yml` workflow it calls is a placeholder until the milestone `v1.0 · NuGet packages & public launch` enables it. Once enabled, it publishes them to Docker Hub as `digitalabsurd/tabletopcardengine:<version>-<target>` (for example `digitalabsurd/tabletopcardengine:1.0.0-preview.1-sqlite`) and, for a stable release (no `-preview` or similar suffix), also with the target-only tag (`digitalabsurd/tabletopcardengine:sqlite`, `digitalabsurd/tabletopcardengine:postgres`, `digitalabsurd/tabletopcardengine:mssql`). A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
+The `release.yml` workflow builds all three targets for every `v*` tag, with the version stamped as the `org.opencontainers.image.version` label, and checks the label. The `docker` job runs before any publishing and serves as a verification gate before the release is created.
+
+The `publish-docker.yml` workflow, called after the release is created, publishes the images to Docker Hub. For each target it builds the image and pushes it as `digitalabsurd/tabletopcardengine:<version>-<target>` (for example `digitalabsurd/tabletopcardengine:1.0.0-preview.1-sqlite`). For a stable release (no `-preview` or similar suffix in the tag), it also pushes the target-only tag (`digitalabsurd/tabletopcardengine:sqlite`, `digitalabsurd/tabletopcardengine:postgres`, `digitalabsurd/tabletopcardengine:mssql`). Publishing is gated by the repository variable `TCE_PUBLISH` and can be re-run for an existing tag with `gh workflow run publish-docker.yml -f tag=vX.Y.Z`. A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
 
 ## Testing the images
 

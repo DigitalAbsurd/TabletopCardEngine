@@ -41,7 +41,7 @@ This document describes how releases are cut and versioned in this repository. I
 |---|---|---|---|
 | `create-release` | `create-release.yml` | `build`, `providers`, `docker` | every tag |
 | `deploy-demo` | `deploy-demo.yml` | `build`, `providers` | a tag without `-` only; its job also skips itself while the repository is private |
-| `publish-nuget` | `publish-nuget.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` (see [Publishing](#publishing-not-enabled-yet)) |
+| `publish-nuget` | `publish-nuget.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` (see [Publishing](#publishing)) |
 | `publish-docker` | `publish-docker.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` |
 
 - `create-release.yml` writes the notes with `git-cliff --latest` and creates the GitHub Release with them. The release carries **no packages**: no `.nupkg`, `.snupkg` or image is attached, and `publish-nuget.yml` packs from the tag itself. If the release already exists, the workflow fails with an error; deleting it is the maintainer's decision.
