@@ -134,7 +134,7 @@ orchestrator or a load balancer.
 
 ## Images built by a release
 
-The `release.yml` workflow builds all three targets for every `v*` tag, with the version stamped as the `org.opencontainers.image.version` label, and checks the label. It does not push them yet: its `publish-docker` job is a placeholder until the milestone `v1.0 · NuGet packages & public launch` enables it. Once enabled, it publishes them to Docker Hub as `digitalabsurd/tabletopcardengine:<version>-<target>` (for example `digitalabsurd/tabletopcardengine:1.0.0-preview.1-sqlite`) and, for a stable release (no `-preview` or similar suffix), also with the target-only tag (`digitalabsurd/tabletopcardengine:sqlite`, `digitalabsurd/tabletopcardengine:postgres`, `digitalabsurd/tabletopcardengine:mssql`). A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
+The `release.yml` workflow builds all three targets for every `v*` tag, with the version stamped as the `org.opencontainers.image.version` label, and checks the label. It does not push them yet: the `publish-docker.yml` workflow it calls is a placeholder until the milestone `v1.0 · NuGet packages & public launch` enables it. Once enabled, it publishes them to Docker Hub as `digitalabsurd/tabletopcardengine:<version>-<target>` (for example `digitalabsurd/tabletopcardengine:1.0.0-preview.1-sqlite`) and, for a stable release (no `-preview` or similar suffix), also with the target-only tag (`digitalabsurd/tabletopcardengine:sqlite`, `digitalabsurd/tabletopcardengine:postgres`, `digitalabsurd/tabletopcardengine:mssql`). A local build with no `--build-arg VERSION=...` is labelled `0.0.0-local`.
 
 ## Testing the images
 

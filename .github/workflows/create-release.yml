@@ -1,0 +1,79 @@
+name: Create GitHub Release
+
+# Called by release.yml for every release tag once its verification jobs pass; workflow_dispatch
+# re-runs it by hand for an existing tag: `gh workflow run create-release.yml -f tag=v1.0.0-preview.1`.
+# The release carries the git-cliff notes only. No package is attached: publish-nuget.yml packs from
+# the tag itself.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0-preview.1.
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0-preview.1.
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # The tag comes from inputs.tag, never from the run's own ref: on a manual dispatch that is the
+      # branch the dispatch ran from.
+      - name: Validate the tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$TAG' is not a release tag (vX.Y.Z or vX.Y.Z-suffix)."
+            exit 1
+          fi
+
+      # Full history: git-cliff needs the commits and the previous tags.
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Check the tag exists
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! git rev-parse --verify --quiet "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG does not exist."
+            exit 1
+          fi
+
+      # Deleting a release is the maintainer's decision, so an existing one stops the run.
+      - name: Check the release does not exist yet
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "::error::A GitHub Release for $TAG already exists. Delete it first to create it again."
+            exit 1
+          fi
+
+      - name: Release notes
+        run: |
+          npx --yes git-cliff@2.14.2 --latest --strip all -o release-notes.md
+          test -s release-notes.md
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          prerelease=()
+          case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag "${prerelease[@]}"

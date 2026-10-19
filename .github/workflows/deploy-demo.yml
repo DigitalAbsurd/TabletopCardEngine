@@ -1,9 +1,20 @@
 name: Deploy demo to GitHub Pages
 
-# Called by release.yml for stable release tags (no `-` in the tag); workflow_dispatch redeploys by hand.
+# Called by release.yml for stable release tags (no `-` in the tag); workflow_dispatch redeploys an
+# existing tag by hand: `gh workflow run deploy-demo.yml -f tag=v1.0.0`.
 on:
   workflow_call:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0.
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0.
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -23,10 +34,32 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # The tag comes from inputs.tag, never from the run's own ref: on a manual dispatch that is the
+      # branch the dispatch ran from.
+      - name: Validate the tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$TAG' is not a release tag (vX.Y.Z or vX.Y.Z-suffix)."
+            exit 1
+          fi
+
+      # Full history at the tag: MinVer reads the version from the tag at HEAD.
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
+
+      - name: Check the tag exists
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! git rev-parse --verify --quiet "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG does not exist."
+            exit 1
+          fi
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v6

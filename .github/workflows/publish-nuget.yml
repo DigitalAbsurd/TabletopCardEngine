@@ -1,0 +1,65 @@
+name: Publish to nuget.org
+
+# Called by release.yml once the GitHub Release exists; workflow_dispatch re-runs it by hand for an
+# existing tag: `gh workflow run publish-nuget.yml -f tag=v1.0.0-preview.1`.
+#
+# Placeholder: publishing to nuget.org starts with the milestone "v1.0 · NuGet packages & public launch",
+# once the repository is public. It will pack from the tag itself (no artifacts are passed between
+# workflows), check the output with eng/verify-packages.sh, and push with NuGet Trusted Publishing
+# (OIDC, no long-lived API key): the NuGet/login action exchanges the job's id-token for a short-lived
+# key for `dotnet nuget push`. To enable it: set TCE_PUBLISH to 'enabled', add the steps, and register
+# this workflow as a trusted publisher on nuget.org. The repository variable is not set.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0-preview.1.
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0-preview.1.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # The gate sits here rather than in the caller, so it holds for a manual dispatch too.
+  publish-nuget:
+    if: ${{ vars.TCE_PUBLISH == 'enabled' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # The tag comes from inputs.tag, never from the run's own ref: on a manual dispatch that is the
+      # branch the dispatch ran from.
+      - name: Validate the tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$TAG' is not a release tag (vX.Y.Z or vX.Y.Z-suffix)."
+            exit 1
+          fi
+
+      # Full history at the tag: MinVer reads the version from the tag at HEAD.
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Check the tag exists
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! git rev-parse --verify --quiet "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG does not exist."
+            exit 1
+          fi
+
+      - name: Publish to nuget.org (placeholder)
+        run: echo "::notice::NuGet publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."

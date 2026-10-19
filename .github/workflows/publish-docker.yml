@@ -1,0 +1,62 @@
+name: Publish to Docker Hub
+
+# Called by release.yml once the GitHub Release exists; workflow_dispatch re-runs it by hand for an
+# existing tag: `gh workflow run publish-docker.yml -f tag=v1.0.0-preview.1`.
+#
+# Placeholder: publishing the three images to Docker Hub starts with the milestone
+# "v1.0 · NuGet packages & public launch". It will build them from the tag, log in with the
+# DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets, then push
+# <namespace>/tabletopcardengine:<version>-<target>, and also :<target> for a stable tag.
+# The repository variable TCE_PUBLISH is not set.
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0-preview.1.
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag, for example v1.0.0-preview.1.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  # The gate sits here rather than in the caller, so it holds for a manual dispatch too.
+  publish-docker:
+    if: ${{ vars.TCE_PUBLISH == 'enabled' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # The tag comes from inputs.tag, never from the run's own ref: on a manual dispatch that is the
+      # branch the dispatch ran from.
+      - name: Validate the tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$TAG' is not a release tag (vX.Y.Z or vX.Y.Z-suffix)."
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Check the tag exists
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if ! git rev-parse --verify --quiet "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG does not exist."
+            exit 1
+          fi
+
+      - name: Publish to Docker Hub (placeholder)
+        run: echo "::notice::Docker Hub publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."

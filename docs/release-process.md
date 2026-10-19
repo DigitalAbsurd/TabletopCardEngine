@@ -34,21 +34,44 @@ This document describes how releases are cut and versioned in this repository. I
 
 ## The release workflow
 
-- A pushed `v*` tag runs `.github/workflows/release.yml`: `build` (the gates, the browser gate and the package version check), `providers` (PostgreSQL and SQL Server), `docker` (the three images, built and not pushed), then `release`, which waits for all three. For a stable tag only, `deploy-demo` runs once `build` and `providers` pass; it does not wait for `release`. It also skips its job while the repository is private.
-- `release` packs the seven projects of `TabletopCardEngine.Packages.slnf`, requires the count to equal the solution filter's and every file name to end in the tag's version, and writes the notes with `git-cliff --latest`. It then creates the GitHub Release with the notes and the `.nupkg` files. Images and symbol packages are not attached.
+- A pushed `v*` tag runs `.github/workflows/release.yml`, the only workflow a tag triggers. Its three verification jobs are `build` (the gates, the browser gate, and `eng/verify-packages.sh` on the packed output: one `.nupkg` per project of `TabletopCardEngine.Packages.slnf`, each ending in the tag's version), `providers` (PostgreSQL and SQL Server) and `docker` (the three images, built and not pushed).
+- It then calls four reusable workflows, passing the tag as the input `tag`:
+
+| Stage | Workflow | Waits for | Runs |
+|---|---|---|---|
+| `create-release` | `create-release.yml` | `build`, `providers`, `docker` | every tag |
+| `deploy-demo` | `deploy-demo.yml` | `build`, `providers` | a tag without `-` only; its job also skips itself while the repository is private |
+| `publish-nuget` | `publish-nuget.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` (see [Publishing](#publishing-not-enabled-yet)) |
+| `publish-docker` | `publish-docker.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` |
+
+- `create-release.yml` writes the notes with `git-cliff --latest` and creates the GitHub Release with them. The release carries **no packages**: no `.nupkg`, `.snupkg` or image is attached, and `publish-nuget.yml` packs from the tag itself. If the release already exists, the workflow fails with an error; deleting it is the maintainer's decision.
 - A tag that contains `-` (`v1.0.0-preview.1`, `v1.0.0-rc.1`) makes a pre-release.
-- A failed run leaves no release. The fix is a new tag, never a moved one.
+- Each of the four workflows checks out `refs/tags/<tag>` with full history, because MinVer reads the version from the tag at `HEAD`, and rejects a `tag` that is not `vX.Y.Z` or `vX.Y.Z-suffix` or does not exist.
+- A failure in `build`, `providers` or `docker` leaves no release. The fix is a new tag, never a moved one.
+
+### Re-running one stage
+
+A tag is never moved. When one stage fails after the others succeeded (the GitHub Release exists but the demo deploy failed, say, or nuget.org rejected a push), re-run that stage alone for the existing tag:
+
+```bash
+gh workflow run create-release.yml -f tag=v1.0.0-preview.1
+gh workflow run deploy-demo.yml -f tag=v1.0.0
+gh workflow run publish-nuget.yml -f tag=v1.0.0-preview.1
+gh workflow run publish-docker.yml -f tag=v1.0.0-preview.1
+```
+
+The tag comes from the input, never from the branch the dispatch runs on. A manual run does not repeat the verification jobs of `release.yml`, so run a stage by hand only for a tag whose release run got past them.
 
 ### Publishing (not enabled yet)
 
-The release workflow includes two placeholder jobs, `publish-nuget` and `publish-docker`. They run only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and even then they only print a notice. The milestone `v1.0 · NuGet packages & public launch` gives them real steps, splits the release workflow into workflows that can each be run by hand for a given tag, and then sets the variable. `publish-nuget` will use NuGet Trusted Publishing (OIDC, no long-lived API key). `publish-docker` will push the three images (sqlite, postgres, mssql) to the Docker Hub repository `digitalabsurd/tabletopcardengine` with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, which are already set.
+`publish-nuget.yml` and `publish-docker.yml` are placeholders. Their job runs only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and even then it only prints a notice. The gate is inside each called workflow, so it holds for a manual dispatch too. The milestone `v1.0 · NuGet packages & public launch` gives them real steps and then sets the variable. `publish-nuget.yml` will pack from the tag, check the output with `eng/verify-packages.sh`, and use NuGet Trusted Publishing (OIDC, no long-lived API key). `publish-docker.yml` will push the three images (sqlite, postgres, mssql) to the Docker Hub repository `digitalabsurd/tabletopcardengine` with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, which are already set.
 
 ## Changelog
 
 - `CHANGELOG.md` is generated by [git-cliff](https://git-cliff.org) from the commit history, configured in `cliff.toml`. Never edit it by hand: if an entry reads badly, fix `cliff.toml` (or the commit subject, for the future).
 - `npx --yes git-cliff@2.14.2 -o CHANGELOG.md` regenerates it. Untagged commits are filed under `## [Unreleased]`.
 - `npx --yes git-cliff@2.14.2 --tag vX.Y.Z -o CHANGELOG.md` is the release-preparation command: it files the unreleased commits under the new version.
-- `npx --yes git-cliff@2.14.2 --latest --strip all` prints the notes of the latest release, which is what the release workflow will use.
+- `npx --yes git-cliff@2.14.2 --latest --strip all` prints the notes of the latest release, which is what `create-release.yml` uses.
 - The tool is always run through `npx` with the version pinned. It is not a NuGet package, so it has no row in `THIRD-PARTY-NOTICES.md`.
 - Conventional Commits are grouped by type; a breaking change (`!` or a `BREAKING CHANGE` footer) goes under **Breaking changes**. The prose verbs in `cliff.toml` (`Add`, `Fix`, `Document`, ...) exist for the history from before Conventional Commits became mandatory only. Do not set `filter_unconventional = true`: it would drop that history.
 
