@@ -49,14 +49,8 @@ jobs:
       - name: Check the public API against the baseline
         run: dotnet pack TabletopCardEngine.Packages.slnf -c Release -o _packages
 
-      - name: Check the package version matches the tag
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          if [ ! -f "_packages/TabletopCardEngine.$version.nupkg" ]; then
-            echo "::error::Expected _packages/TabletopCardEngine.$version.nupkg (tag $GITHUB_REF_NAME); MinVer produced:"
-            ls _packages
-            exit 1
-          fi
+      - name: Check every package carries the tag's version
+        run: bash eng/verify-packages.sh _packages "${GITHUB_REF_NAME#v}"
 
       - name: Cache Playwright browsers
         id: playwright-cache
@@ -127,67 +121,23 @@ jobs:
             exit 1
           fi
 
-  # Creates the GitHub Release: the notes from git-cliff and the .nupkg files. Images are built only,
-  # and NuGet and Docker Hub publishing are placeholders. Only this job may write to the repository.
-  release:
+  # The four stages below are reusable workflows, each also runnable by hand for an existing tag
+  # (`gh workflow run <file> -f tag=vX.Y.Z`, docs/release-process.md). They are called with `uses:`
+  # because a release created with GITHUB_TOKEN would not trigger another workflow. A called workflow
+  # gets no more permissions than its caller job grants.
+
+  # The GitHub Release with the git-cliff notes. It carries no packages. Only this job may write to
+  # the repository.
+  create-release:
     needs: [build, providers, docker]
-    runs-on: ubuntu-latest
     permissions:
       contents: write
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ github.ref_name }}
 
-    steps:
-      # Full history: MinVer needs the tag and git-cliff needs the commits.
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v6
-        with:
-          dotnet-version: 10.x
-
-      # The solution filter leaves the demo out, so no wasm workload is needed.
-      - name: Pack
-        run: dotnet pack TabletopCardEngine.Packages.slnf -c Release -o artifacts
-
-      - name: Check every package carries the tag's version
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          expected=$(jq '.solution.projects | length' TabletopCardEngine.Packages.slnf)
-          packages=(artifacts/*.nupkg)
-          bad=0
-          if [ "${#packages[@]}" -ne "$expected" ]; then
-            bad=1
-          fi
-          for package in "${packages[@]}"; do
-            case "$package" in
-              *".$version.nupkg") ;;
-              *) bad=1 ;;
-            esac
-          done
-          if [ "$bad" -ne 0 ]; then
-            echo "::error::Expected $expected packages ending in .$version.nupkg (tag $GITHUB_REF_NAME); found ${#packages[@]}:"
-            ls artifacts
-            exit 1
-          fi
-          echo "${#packages[@]} packages carry version $version"
-
-      - name: Release notes
-        run: |
-          npx --yes git-cliff@2.14.2 --latest --strip all -o release-notes.md
-          test -s release-notes.md
-
-      - name: Create the GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          prerelease=""
-          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg             --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag $prerelease
-
-  # The demo is deployed for a stable release only (no `-` in the tag). It is a called workflow
-  # because a release created with GITHUB_TOKEN would not trigger one.
+  # The demo is deployed for a stable release only (no `-` in the tag). It does not wait for the
+  # GitHub Release.
   deploy-demo:
     needs: [build, providers]
     if: ${{ !contains(github.ref_name, '-') }}
@@ -196,34 +146,25 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/deploy-demo.yml
+    with:
+      tag: ${{ github.ref_name }}
 
-  # Placeholder: publishing to nuget.org starts with the milestone "v1.0 · NuGet packages & public launch",
-  # once the repository is public. It will use NuGet Trusted Publishing (OIDC, no long-lived API key):
-  # the NuGet/login action exchanges the job's id-token for a short-lived key, then
-  # `dotnet nuget push artifacts/*.nupkg --source https://api.nuget.org/v3/index.json` runs on the
-  # packages the release job built. To enable it: set TCE_PUBLISH to 'enabled', add the steps, and
-  # register this workflow as a trusted publisher on nuget.org. The repository variable is not set.
+  # Placeholder until the milestone "v1.0 · NuGet packages & public launch"; gated by TCE_PUBLISH
+  # inside the called workflow.
   publish-nuget:
-    needs: [release]
-    if: ${{ vars.TCE_PUBLISH == 'enabled' }}
-    runs-on: ubuntu-latest
+    needs: [create-release]
     permissions:
       contents: read
       id-token: write
-    steps:
-      - name: Publish to nuget.org (placeholder)
-        run: echo "::notice::NuGet publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."
+    uses: ./.github/workflows/publish-nuget.yml
+    with:
+      tag: ${{ github.ref_name }}
 
-  # Placeholder: publishing the three images to Docker Hub starts with the same milestone. It will
-  # log in with the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets, then push
-  # <namespace>/tabletopcardengine:<version>-<target>, and also :<target> for a stable tag.
-  # The repository variable is not set.
+  # Placeholder until the same milestone; gated by TCE_PUBLISH inside the called workflow.
   publish-docker:
-    needs: [release, docker]
-    if: ${{ vars.TCE_PUBLISH == 'enabled' }}
-    runs-on: ubuntu-latest
+    needs: [create-release]
     permissions:
       contents: read
-    steps:
-      - name: Publish to Docker Hub (placeholder)
-        run: echo "::notice::Docker Hub publishing is not enabled yet (milestone v1.0 · NuGet packages & public launch)."
+    uses: ./.github/workflows/publish-docker.yml
+    with:
+      tag: ${{ github.ref_name }}

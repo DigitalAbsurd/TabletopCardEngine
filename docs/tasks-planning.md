@@ -39,8 +39,11 @@ only when a release tag is pushed (`release-process.md`). Every check and gate i
 browser gate (`TCE_TEST_BROWSER_GATE=1`), the provider matrix (`TCE_TEST_CONTAINERS=1`,
 needs Docker), and the documentation site build (needs Docker). The evidence for a gate is the local run, quoted in the pull request. The
 `browser-gate-local` label is retired. Do not add a `pull_request` or `push` trigger without being
-told to. The workflows are `Release` (`release.yml`, only on a pushed `v*` tag) and `Deploy demo to GitHub Pages`
-(`deploy-demo.yml`, called by `Release` for stable releases). `gh workflow list --all` shows
+told to. The workflows are `Release` (`release.yml`, the only one a pushed `v*` tag triggers) and the four it calls,
+each of which can also be run by hand for an existing tag (`workflow_dispatch` with a `tag` input, see
+`release-process.md`): `Create GitHub Release` (`create-release.yml`), `Deploy demo to GitHub Pages`
+(`deploy-demo.yml`, stable releases only), `Publish to nuget.org` (`publish-nuget.yml`) and `Publish to
+Docker Hub` (`publish-docker.yml`); the last two are placeholders gated by `TCE_PUBLISH`. `gh workflow list --all` shows
 `Deploy demo to GitHub Pages` as `disabled_manually`, and its job skips itself while the repository is
 private; it is enabled again when the repository goes public. The old `CI` workflow is gone.
 The `Release` workflow is enabled and runs only on a pushed `v*` tag; each run spends the account's Actions minutes.
