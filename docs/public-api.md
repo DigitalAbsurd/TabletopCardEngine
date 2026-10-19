@@ -68,17 +68,14 @@ a maintainer decision.
 
 For the first release after the stable 1.0.0 is published on nuget.org, follow these steps:
 
-1. In each of the six projects, replace `PackageValidationBaselinePath` with
+1. In each of the seven projects of `TabletopCardEngine.Packages.slnf`, replace `PackageValidationBaselinePath` with
    `<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>`. From then on the
    baseline is the last stable version on nuget.org, raised after each stable minor.
 
-2. Add `EnablePackageValidation` and `PackageValidationBaselineVersion` to
-   `TabletopCardEngine.OpenTelemetry` and remove its "never shipped" comment.
-
-3. Delete `eng/api-baseline/` and the re-pack instructions that point at it: this section and fact 25 in
+2. Delete `eng/api-baseline/`, `ApiBaselineFreezeTests`, and the re-pack instructions that point at them: this section and fact 25 in
    [`task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts).
 
-4. A surface change then needs no re-pack. A break against the published version fails `dotnet pack`
+3. A surface change then needs no re-pack. A break against the published version fails `dotnet pack`
    with the same `CP` diagnostics, and it is a major version (see `versioning.md`).
 
 This transition happens in the `v1.0 · NuGet packages & public launch` milestone.
