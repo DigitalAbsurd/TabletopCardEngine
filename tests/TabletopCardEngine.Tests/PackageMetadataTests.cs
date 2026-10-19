@@ -20,6 +20,9 @@ public sealed class PackageMetadataTests
         "PackageProjectUrl",
         "RepositoryUrl",
         "PackageTags",
+        "PackageIcon",
+        "IncludeSymbols",
+        "SymbolPackageFormat",
     ];
 
     [TestMethod]
@@ -45,6 +48,10 @@ public sealed class PackageMetadataTests
 
         Property(props, "PackageLicenseExpression").Should().Be("Apache-2.0", "ADR-0001 licenses the project under Apache-2.0");
         Property(props, "PublishRepositoryUrl").Should().Be("true", "the nuspec's repository element needs its url");
+        Property(props, "PackageIcon").Should().Be("icon.png", "the project mark is packed in every nuspec");
+        Property(props, "IncludeSymbols").Should().Be("true", "nuget.org symbol server requires symbol packages");
+        Property(props, "SymbolPackageFormat").Should().Be("snupkg", "nuget.org symbol server requires the modern .snupkg format");
+        Property(props, "PackageTags").Should().StartWith("tabletop;", "the project's positioning is \"tabletop card games\"");
     }
 
     private static string? Property(string projectPath, string name)

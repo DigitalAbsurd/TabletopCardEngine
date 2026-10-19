@@ -57,7 +57,10 @@
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/DigitalAbsurd/TabletopCardEngine</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>poker;texas-holdem;holdem;no-limit;card-game;game-engine</PackageTags>
+    <PackageTags>tabletop;card-game;poker;texas-holdem;holdem;no-limit;game-engine</PackageTags>
+    <!-- nuget.org symbol server; the .snupkg is pushed alongside the .nupkg by dotnet nuget push. -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup Label="SourceLink">
