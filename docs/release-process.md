@@ -62,9 +62,17 @@ gh workflow run publish-docker.yml -f tag=v1.0.0-preview.1
 
 The tag comes from the input, never from the branch the dispatch runs on. A manual run does not repeat the verification jobs of `release.yml`, so run a stage by hand only for a tag whose release run got past them.
 
-### Publishing (not enabled yet)
+### Publishing
 
-`publish-nuget.yml` and `publish-docker.yml` are placeholders. Their job runs only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and even then it only prints a notice. The gate is inside each called workflow, so it holds for a manual dispatch too. The milestone `v1.0 · NuGet packages & public launch` gives them real steps and then sets the variable. `publish-nuget.yml` will pack from the tag, check the output with `eng/verify-packages.sh`, and use NuGet Trusted Publishing (OIDC, no long-lived API key). `publish-docker.yml` will push the three images (sqlite, postgres, mssql) to the Docker Hub repository `digitalabsurd/tabletopcardengine` with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, which are already set.
+`publish-nuget.yml` packs from the tag, checks the output with `eng/verify-packages.sh`, and pushes to nuget.org using NuGet Trusted Publishing. Trusted Publishing uses OIDC (OpenID Connect) to exchange the job's identity token for a short-lived NuGet API key, which is returned by the `NuGet/login@v1` action in the `NUGET_API_KEY` output — no long-lived API key is stored as a secret. The workflow runs only when the repository variable `TCE_PUBLISH` is `enabled`. To enable it:
+
+1. Register `publish-nuget.yml` as a trusted publisher on nuget.org for the account `digitalabsurd`.
+2. Register `release.yml` as a separate trusted publisher (the OIDC token names the top-level workflow that started the run, so `release.yml` and `publish-nuget.yml` need separate policies).
+3. Set the repository variable `TCE_PUBLISH` to `enabled`.
+
+The `--skip-duplicate` flag in the push command allows a re-run after a partial failure to push only what is missing without failing on already-uploaded packages.
+
+`publish-docker.yml` will push the three images (sqlite, postgres, mssql) to the Docker Hub repository `digitalabsurd/tabletopcardengine` with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, which are already set.
 
 ## Changelog
 
