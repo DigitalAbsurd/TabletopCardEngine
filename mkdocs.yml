@@ -63,6 +63,7 @@ nav:
       - Persistence: persistence.md
       - Observability: observability.md
   - Reference:
+      - Verifying releases: verifying-releases.md
       - API compatibility: public-api.md
       - API reference:
           - api/index.md

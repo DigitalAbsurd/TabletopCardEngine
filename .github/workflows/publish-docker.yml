@@ -24,6 +24,8 @@ on:
 
 permissions:
   contents: read
+  id-token: write
+  attestations: write
 
 jobs:
   # The gate sits here rather than in the caller, so it holds for a manual dispatch too.
@@ -72,12 +74,30 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push the ${{ matrix.target }} image
+        id: push
         env:
           TAG: ${{ inputs.tag }}
         run: |
           version="${TAG#v}"
           docker build --target "${{ matrix.target }}" --build-arg VERSION="$version" -t "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}" .
           docker push "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}"
+
+      - name: Get the image digest
+        id: digest
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          version="${TAG#v}"
+          digest=$(docker inspect --format '{{ index .RepoDigests 0 }}' "digitalabsurd/tabletopcardengine:$version-${{ matrix.target }}" | sed 's/.*@//')
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the image
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: index.docker.io/digitalabsurd/tabletopcardengine
+          subject-digest: ${{ steps.digest.outputs.digest }}
+          push-to-registry: false
 
       - name: Check the image version label
         env:
