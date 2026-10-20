@@ -93,7 +93,7 @@ jobs:
 
       - name: Attest the image
         if: ${{ !github.event.repository.private }}
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: index.docker.io/digitalabsurd/tabletopcardengine
           subject-digest: ${{ steps.digest.outputs.digest }}
