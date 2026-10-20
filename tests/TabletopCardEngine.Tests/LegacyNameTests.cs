@@ -26,6 +26,8 @@ public sealed class LegacyNameTests
         "AGENTS.md",
         // Holds the patterns and the test itself
         "tests/TabletopCardEngine.Tests/LegacyNameTests.cs",
+        // SSH signing keys contain the GitHub username; the old owner's keys must remain valid
+        ".github/allowed_signers",
     ];
 
     [TestMethod]

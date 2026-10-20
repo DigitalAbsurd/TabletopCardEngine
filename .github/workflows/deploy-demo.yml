@@ -52,6 +52,9 @@ jobs:
           ref: refs/tags/${{ inputs.tag }}
           fetch-depth: 0
 
+      - name: Verify the release tag signature
+        run: bash eng/verify-tag.sh "${{ inputs.tag }}"
+
       - name: Check the tag exists
         env:
           TAG: ${{ inputs.tag }}

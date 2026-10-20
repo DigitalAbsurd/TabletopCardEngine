@@ -21,6 +21,7 @@ This document describes how releases are cut and versioned in this repository. I
 ## Tags and versions
 
 - Tags are annotated and start with `v`: `v1.0.0-preview.1`, `v1.0.0-rc.1`, `v1.0.0`.
+- **Tags must be signed with an SSH key** from a YubiKey using `git tag -s vX.Y.Z -m "vX.Y.Z"`. The command prompts for a PIN and a touch. See [ADR-0010](adr/0010-release-signing.md) for the signing policy and [Signing a release tag](#signing-a-release-tag) below.
 - A tag is never moved or reused. A bad release gets a new tag. The only exception, the deletion of the trial `v1.0.0-preview.1` and `.2` tags before the public launch, is recorded in [ADR-0008](adr/0008-harmonize-the-public-api.md).
 - The ladder for 1.0 is `preview.N`, then `rc.N`, then the stable `1.0.0`.
 - A tag on a commit is what gives every package and image that version through MinVer, as documented in [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts) (fact 30).
@@ -29,12 +30,37 @@ This document describes how releases are cut and versioned in this repository. I
 
 1. `main` is green on the four local gates (`dotnet build`, `dotnet format --verify-no-changes`, `dotnet test`, `dotnet pack`), plus the browser gate and the provider matrix.
 2. Update `CHANGELOG.md` in a pull request titled `chore(release): vX.Y.Z[-pre]` (the command is in [Changelog](#changelog)).
-3. Once it is merged, tag that merge commit: `git tag -a vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`.
+3. Once it is merged, tag that merge commit with a signed tag (see [Signing a release tag](#signing-a-release-tag) for how to sign): `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`.
 4. The release workflow does the rest, as described in [The release workflow](#the-release-workflow).
+
+## Signing a release tag
+
+Every release tag is signed with the maintainer's SSH key from a YubiKey (`ed25519-sk`). The CI verifies the signature against the keys in `.github/allowed_signers` on `main` (see [ADR-0010](adr/0010-release-signing.md) for the signing policy and the list of allowed keys).
+
+To sign a release tag with the primary key:
+
+```bash
+git tag -s vX.Y.Z -m "vX.Y.Z"
+```
+
+The command prompts for the YubiKey PIN and a touch. If the tag has already been created but is unsigned or was signed with the wrong key, delete it and create it again:
+
+```bash
+git tag -d vX.Y.Z
+git tag -s vX.Y.Z -m "vX.Y.Z"
+```
+
+To sign with the backup key, pass the key ID as `user.signingkey`:
+
+```bash
+git -c user.signingkey=<keyid> tag -s vX.Y.Z -m "vX.Y.Z"
+```
+
+A failed tag verification in CI (the tag is unsigned, lightweight, or signed by a key not in `.github/allowed_signers`) is fatal and not overridable. The fix is a new signed tag for the next version, never a re-signed or moved tag.
 
 ## The release workflow
 
-- A pushed `v*` tag runs `.github/workflows/release.yml`, the only workflow a tag triggers. Its three verification jobs are `build` (the gates, the browser gate, and `eng/verify-packages.sh` on the packed output: one `.nupkg` per project of `TabletopCardEngine.Packages.slnf`, each ending in the tag's version), `providers` (PostgreSQL and SQL Server) and `docker` (the three images, built and not pushed).
+- A pushed `v*` tag runs `.github/workflows/release.yml`, the only workflow a tag triggers. Its first job is `verify-tag`, which checks that the tag is signed by an allowed key (see [Signing a release tag](#signing-a-release-tag)). Every other job depends on it. The verification jobs are `build` (the gates, the browser gate, and `eng/verify-packages.sh` on the packed output: one `.nupkg` per project of `TabletopCardEngine.Packages.slnf`, each ending in the tag's version), `providers` (PostgreSQL and SQL Server) and `docker` (the three images, built and not pushed).
 - It then calls four reusable workflows, passing the tag as the input `tag`:
 
 | Stage | Workflow | Waits for | Runs |

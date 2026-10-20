@@ -19,3 +19,4 @@ one of *Proposed*, *Accepted*, *Deprecated* or *Superseded by ADR-NNNN*.
 | [0007](0007-rename-to-tabletopcardengine.md) | Rename to TabletopCardEngine | Accepted; §3 and the "no other" clause of §4 superseded by [ADR-0008](0008-harmonize-the-public-api.md) |
 | [0008](0008-harmonize-the-public-api.md) | Harmonize the public API for more than one game | Accepted |
 | [0009](0009-generated-api-reference.md) | Publish a generated .NET API reference in the documentation site | Accepted |
+| [0010](0010-release-signing.md) | Release tag signing and verification | Accepted |
