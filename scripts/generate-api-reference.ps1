@@ -73,7 +73,8 @@ function Get-TypeTitle {
 }
 
 $filter = Get-Content -Raw (Join-Path $repoRoot 'TabletopCardEngine.Packages.slnf') | ConvertFrom-Json
-$packages = @($filter.solution.projects | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) })
+# The .slnf stores Windows separators, and `\` is no separator on Linux.
+$packages = @($filter.solution.projects | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension(($_ -replace '\\', '/')) })
 $core = 'TabletopCardEngine'
 $packages = @($core) + @($packages | Where-Object { $_ -ne $core })
 
