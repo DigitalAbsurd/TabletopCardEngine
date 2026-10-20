@@ -409,7 +409,8 @@ renumber.
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
     `Size` keeps the nominal blind.
 19. **`.github/workflows/` holds `release.yml` and the four workflows it calls.** `release.yml` (`name: Release`) is the only
-    workflow a pushed `v*` tag triggers, with no `pull_request`, `branches` or `workflow_dispatch`. Its own jobs verify: `build` (build, format, tests, pack,
+    workflow a pushed `v*` tag triggers, with no `pull_request`, `branches` or `workflow_dispatch`. Its first job is `verify-tag`, which verifies that the tag is
+    signed by an SSH key in `.github/allowed_signers` on `main` (see [ADR-0010](adr/0010-release-signing.md)); every other job depends on it and cannot run if the signature check fails. Its own verification jobs are: `build` (build, format, tests, pack,
     `eng/verify-packages.sh` on the packed output, the browser gate), `providers` (the provider matrix of fact 28) and `docker` (a matrix over the three targets; builds and checks the label; never pushes).
     It then calls, with `uses:` and `with: tag: ${{ github.ref_name }}`, `create-release.yml` (needs `build`, `providers` and `docker`; the only
     caller job with `contents: write`; creates the GitHub Release with the git-cliff notes and no packages, a pre-release when the tag has `-`, and fails if the release already exists),
@@ -417,7 +418,7 @@ renumber.
     The two publish workflows are placeholders that only print a notice; their job runs only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and the gate sits inside
     the called workflow, so a manual dispatch honours it too. They get their real steps in the milestone `v1.0 · NuGet packages & public launch`. Each of the four has both `workflow_call` and
     `workflow_dispatch` with one required string input `tag`, so one stage can be re-run by hand for an existing tag (`gh workflow run publish-nuget.yml -f tag=v1.0.0-preview.1`).
-    Each job first rejects a `tag` that is not `vX.Y.Z[-suffix]`, checks out `refs/tags/<tag>`, fails when the tag does not exist, and reads the tag from `inputs.tag` only, never from
+    Each job first verifies the tag signature (in the called workflows only; `release.yml` does it in its own `verify-tag` job), then rejects a `tag` that is not `vX.Y.Z[-suffix]`, checks out `refs/tags/<tag>`, fails when the tag does not exist, and reads the tag from `inputs.tag` only, never from
     `GITHUB_REF_NAME` or `github.ref_name`, which on a manual dispatch is the branch. A release created with `GITHUB_TOKEN` starts no
     other workflow, so the stages are called rather than chained with `on: release` or `workflow_run`. Every workflow declares a `permissions:` block, which means every scope it
     does not list is dropped to *none*; a called workflow gets no more than its caller job grants, which is why
