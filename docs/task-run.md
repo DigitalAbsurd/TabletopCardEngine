@@ -415,14 +415,14 @@ renumber.
     It then calls, with `uses:` and `with: tag: ${{ github.ref_name }}`, `create-release.yml` (needs `build`, `providers` and `docker`; the only
     caller job with `contents: write`; creates the GitHub Release with the git-cliff notes and no packages, a pre-release when the tag has `-`, and fails if the release already exists),
     `deploy-demo.yml` (for a tag without `-`; needs `build` and `providers`, not the release), and `publish-nuget.yml` and `publish-docker.yml` (both need `create-release`).
-    The two publish workflows are placeholders that only print a notice; their job runs only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and the gate sits inside
-    the called workflow, so a manual dispatch honours it too. They get their real steps in the milestone `v1.0 · NuGet packages & public launch`. Each of the four has both `workflow_call` and
+    `publish-nuget.yml` packs from the tag, verifies the packages and symbol packages, attests them, logs in with `NuGet/login` and pushes; `publish-docker.yml` logs in to Docker Hub, builds and pushes each target, attests the image digest, checks the version label and pushes the stable target tag. Their jobs run only when the repository variable `TCE_PUBLISH` is `enabled`, which it is not, and the gate sits inside
+    the called workflow, so a manual dispatch honours it too. Each of the four has both `workflow_call` and
     `workflow_dispatch` with one required string input `tag`, so one stage can be re-run by hand for an existing tag (`gh workflow run publish-nuget.yml -f tag=v1.0.0-preview.1`).
     Each job first verifies the tag signature (in the called workflows only; `release.yml` does it in its own `verify-tag` job), then rejects a `tag` that is not `vX.Y.Z[-suffix]`, checks out `refs/tags/<tag>`, fails when the tag does not exist, and reads the tag from `inputs.tag` only, never from
     `GITHUB_REF_NAME` or `github.ref_name`, which on a manual dispatch is the branch. A release created with `GITHUB_TOKEN` starts no
     other workflow, so the stages are called rather than chained with `on: release` or `workflow_run`. Every workflow declares a `permissions:` block, which means every scope it
     does not list is dropped to *none*; a called workflow gets no more than its caller job grants, which is why
-    the `deploy-demo` caller job lists `pages: write` and `id-token: write`. Every checkout uses `fetch-depth: 0` (fact 30).
+    the `deploy-demo` caller job lists `pages: write` and `id-token: write`. Every checkout uses `fetch-depth: 0` (fact 30) except the `docker` job's in `release.yml`, which needs no history because the image takes its version from `--build-arg VERSION`.
 20. **AntDesign has no catch-all for unknown parameters.** The base chain `AntDomComponentBase` to
     `AntComponentBase` exposes only `Class`, `ClassMapper`, `ComponentIdGenerator`, `ConfigProvider`,
     `Id`, `Ref`, `RTL`, `Style`, `IsDisposed`, `Js`, `RefBack`, and there is no

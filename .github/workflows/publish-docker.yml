@@ -3,11 +3,10 @@ name: Publish to Docker Hub
 # Called by release.yml once the GitHub Release exists; workflow_dispatch re-runs it by hand for an
 # existing tag: `gh workflow run publish-docker.yml -f tag=v1.0.0-preview.1`.
 #
-# Placeholder: publishing the three images to Docker Hub starts with the milestone
-# "v1.0 · NuGet packages & public launch". It will build them from the tag, log in with the
-# DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets, then push
-# <namespace>/tabletopcardengine:<version>-<target>, and also :<target> for a stable tag.
-# The repository variable TCE_PUBLISH is not set.
+# Builds the three images from the tag, logs in to Docker Hub, pushes each target, attests the image
+# digest, checks the version label, and pushes the stable target tag for stable releases. The job runs
+# only when the repository variable TCE_PUBLISH is `enabled`, which it is not. Setup: the
+# DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets.
 on:
   workflow_call:
     inputs:
