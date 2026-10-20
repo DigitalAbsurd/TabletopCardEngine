@@ -61,14 +61,14 @@ A failed tag verification in CI (the tag is unsigned, lightweight, or signed by 
 ## The release workflow
 
 - A pushed `v*` tag runs `.github/workflows/release.yml`, the only workflow a tag triggers. Its first job is `verify-tag`, which checks that the tag is signed by an allowed key (see [Signing a release tag](#signing-a-release-tag)). Every other job depends on it. The verification jobs are `build` (the gates, the browser gate, and `eng/verify-packages.sh` on the packed output: one `.nupkg` per project of `TabletopCardEngine.Packages.slnf`, each ending in the tag's version), `providers` (PostgreSQL and SQL Server) and `docker` (the three images, built and not pushed).
-- It then calls four reusable workflows, passing the tag as the input `tag`:
+- It then calls four reusable workflows, passing the tag as the input `tag`. Each publish stage creates a build provenance attestation for its artifacts (see [Verifying releases](verifying-releases.md)):
 
-| Stage | Workflow | Waits for | Runs |
-|---|---|---|---|
-| `create-release` | `create-release.yml` | `build`, `providers`, `docker` | every tag |
-| `deploy-demo` | `deploy-demo.yml` | `build`, `providers` | a tag without `-` only; its job also skips itself while the repository is private |
-| `publish-nuget` | `publish-nuget.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` (see [Publishing](#publishing)) |
-| `publish-docker` | `publish-docker.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` |
+| Stage | Workflow | Waits for | Runs | Attestations |
+|---|---|---|---|---|
+| `create-release` | `create-release.yml` | `build`, `providers`, `docker` | every tag | none |
+| `deploy-demo` | `deploy-demo.yml` | `build`, `providers` | a tag without `-` only; its job also skips itself while the repository is private | none |
+| `publish-nuget` | `publish-nuget.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` (see [Publishing](#publishing)) | `.nupkg`, `.snupkg`, and extracted DLLs |
+| `publish-docker` | `publish-docker.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` | pushed image digests |
 
 - `create-release.yml` writes the notes with `git-cliff --latest` and creates the GitHub Release with them. The release carries **no packages**: no `.nupkg`, `.snupkg` or image is attached, and `publish-nuget.yml` packs from the tag itself. If the release already exists, the workflow fails with an error; deleting it is the maintainer's decision.
 - A tag that contains `-` (`v1.0.0-preview.1`, `v1.0.0-rc.1`) makes a pre-release.

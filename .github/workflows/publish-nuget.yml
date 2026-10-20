@@ -26,6 +26,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  attestations: write
 
 jobs:
   # The gate sits here rather than in the caller, so it holds for a manual dispatch too.
@@ -86,6 +87,20 @@ jobs:
             ls artifacts
             exit 1
           fi
+
+      - name: Extract DLLs for attestation
+        if: ${{ !github.event.repository.private }}
+        run: |
+          mkdir -p _attest
+          for pkg in artifacts/*.nupkg; do
+            unzip -j -o "$pkg" 'lib/net10.0/*.dll' -d _attest
+          done
+
+      - name: Attest packages
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: artifacts/*.nupkg,artifacts/*.snupkg,_attest/*.dll
 
       - name: Authenticate with NuGet
         id: login

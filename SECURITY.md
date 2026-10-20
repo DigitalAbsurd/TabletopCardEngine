@@ -24,6 +24,10 @@ When you report, include:
 
 Only the project maintainers can read the report, and you will be notified when it is addressed.
 
+## Verifying releases
+
+TabletopCardEngine publishes cryptographic attestations for all release artifacts (NuGet packages, container images, and signed release tags). See [docs/verifying-releases.md](docs/verifying-releases.md) for instructions on how to verify them.
+
 ## What happens next
 
 1. The maintainers acknowledge your report.
