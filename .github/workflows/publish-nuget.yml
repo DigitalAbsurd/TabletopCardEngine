@@ -3,12 +3,10 @@ name: Publish to nuget.org
 # Called by release.yml once the GitHub Release exists; workflow_dispatch re-runs it by hand for an
 # existing tag: `gh workflow run publish-nuget.yml -f tag=v1.0.0-preview.1`.
 #
-# Placeholder: publishing to nuget.org starts with the milestone "v1.0 · NuGet packages & public launch",
-# once the repository is public. It will pack from the tag itself (no artifacts are passed between
-# workflows), check the output with eng/verify-packages.sh, and push with NuGet Trusted Publishing
-# (OIDC, no long-lived API key): the NuGet/login action exchanges the job's id-token for a short-lived
-# key for `dotnet nuget push`. To enable it: set TCE_PUBLISH to 'enabled', add the steps, and register
-# this workflow as a trusted publisher on nuget.org. The repository variable is not set.
+# Packs the libraries from the tag, verifies the packages and symbol packages, attests them, logs in
+# with NuGet Trusted Publishing (OIDC via NuGet/login), and pushes to nuget.org. The job runs only
+# when the repository variable TCE_PUBLISH is `enabled`, which it is not. Setup: register this
+# workflow as a trusted publisher on nuget.org.
 on:
   workflow_call:
     inputs:
