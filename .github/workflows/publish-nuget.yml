@@ -98,7 +98,7 @@ jobs:
 
       - name: Attest packages
         if: ${{ !github.event.repository.private }}
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: artifacts/*.nupkg,artifacts/*.snupkg,_attest/*.dll
 
