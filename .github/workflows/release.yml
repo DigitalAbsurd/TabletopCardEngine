@@ -170,6 +170,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      attestations: write
     uses: ./.github/workflows/publish-nuget.yml
     with:
       tag: ${{ github.ref_name }}
@@ -179,6 +180,8 @@ jobs:
     needs: [create-release]
     permissions:
       contents: read
+      id-token: write
+      attestations: write
     uses: ./.github/workflows/publish-docker.yml
     with:
       tag: ${{ github.ref_name }}
