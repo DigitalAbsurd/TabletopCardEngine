@@ -137,6 +137,7 @@ Versions follow [docs/versioning.md](docs/versioning.md).
 - **ci**: Split the solution filter paths on any platform in the baseline test ([#358](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/358))
 - **persistence**: Pin System.Security.Cryptography.Pkcs to 9.0.21 ([#454](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/454))
 - **ci**: Grant the publish caller jobs the attestation permissions ([#483](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/483))
+- **ci**: Read the .slnf project paths on any platform in generate-api-reference.ps1 ([#486](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/486))
 
 ### Changed
 - Make Database Inspector and Engine Calls collapsible, collapsed by default ([#92](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/92))

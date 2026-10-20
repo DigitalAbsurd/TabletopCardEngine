@@ -22,7 +22,7 @@ This document describes how releases are cut and versioned in this repository. I
 
 - Tags are annotated and start with `v`: `v1.0.0-preview.1`, `v1.0.0-rc.1`, `v1.0.0`.
 - **Tags must be signed with an SSH key** from a YubiKey using `git tag -s vX.Y.Z -m "vX.Y.Z"`. The command prompts for a PIN and a touch. See [ADR-0010](adr/0010-release-signing.md) for the signing policy and [Signing a release tag](#signing-a-release-tag) below.
-- A tag is never moved or reused. A bad release gets a new tag. The only exception, the deletion of the trial `v1.0.0-preview.1` and `.2` tags before the public launch, is recorded in [ADR-0008](adr/0008-harmonize-the-public-api.md).
+- A tag is never moved or reused. A bad release gets a new tag. There are two exceptions, both before the public launch. The deletion of the trial `v1.0.0-preview.1` and `.2` tags is recorded in [ADR-0008](adr/0008-harmonize-the-public-api.md). The first signed `v1.0.0-preview.1` tag (on `bb95c4b`) was deleted and the tag was signed again on a later commit, because its release run failed in the `build` job on a Linux-only defect ([#485](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/485)) before any release, package or image existed; that decision was the maintainer's, in [#460](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/460).
 - The ladder for 1.0 is `preview.N`, then `rc.N`, then the stable `1.0.0`.
 - A tag on a commit is what gives every package and image that version through MinVer, as documented in [`docs/task-run.md`](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/task-run.md#engine-facts) (fact 30).
 
