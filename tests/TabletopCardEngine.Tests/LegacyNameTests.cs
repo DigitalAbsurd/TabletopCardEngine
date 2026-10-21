@@ -209,5 +209,13 @@ public sealed class LegacyNameTests
         {
             return true;
         }
+        catch (FileNotFoundException)
+        {
+            return true;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return true;
+        }
     }
 }

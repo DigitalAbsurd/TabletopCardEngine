@@ -10,13 +10,12 @@
 
   <PropertyGroup Label="Public API baseline">
     <!--
-      dotnet pack compares the public surface against the committed baseline package and fails
-      on a removed or changed member (CP0001, CP0002, ...). Until 1.0.0 is on nuget.org there is
-      no published version to resolve, so the baseline is a package in the tree. Changing the
-      surface means re-packing it in the same pull request: see docs/public-api.md.
+      dotnet pack compares the public surface against the published 1.0.0 version on nuget.org
+      and fails on a removed or changed member (CP0001, CP0002, ...). A break is a major version:
+      see docs/public-api.md.
     -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselinePath>$(MSBuildThisFileDirectory)../../eng/api-baseline/TabletopCardEngine.1.0.0-baseline.nupkg</PackageValidationBaselinePath>
+    <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

@@ -80,7 +80,7 @@ returned group. Hiding cards per viewer is not in v1.
 ## Consequences
 
 - **A fourth shipped package.** It needs the same package metadata, README and license as the
-  others, its own API baseline in `eng/api-baseline/`, and a section in `THIRD-PARTY-NOTICES.md`
+  others, its own API baseline enforced against the published version on nuget.org, and a section in `THIRD-PARTY-NOTICES.md`
   (which lists no package for it).
 - **All of ASP.NET Core for a worker host** that only wants the configuration overload.
 - **The core grants it `InternalsVisibleTo`**, as it does for the provider packages, so the

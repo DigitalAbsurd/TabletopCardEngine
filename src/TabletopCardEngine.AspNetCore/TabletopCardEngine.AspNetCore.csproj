@@ -11,11 +11,11 @@
   <PropertyGroup Label="Public API baseline">
     <!--
       The same gate as the core library, over this package's own baseline: dotnet pack fails on a
-      removed or changed public member (CP0001, CP0002, ...). Changing the surface means re-packing
-      the baseline in the same pull request: see docs/public-api.md.
+      removed or changed public member (CP0001, CP0002, ...). A break is a major version:
+      see docs/public-api.md.
     -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselinePath>$(MSBuildThisFileDirectory)../../eng/api-baseline/TabletopCardEngine.AspNetCore.1.0.0-baseline.nupkg</PackageValidationBaselinePath>
+    <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

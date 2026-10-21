@@ -88,16 +88,17 @@ did not mention, is renamed with them. The host has no public API, so no baselin
 | `HoldemServer:Provider` (`HoldemServer__Provider`) | `TabletopCardEngineServer:Provider` (`TabletopCardEngineServer__Provider`) |
 | section `HoldemEngine` (`HoldemEngine__*`), bound to `HoldemEngineHostOptions` | section `TabletopCardEngine` (`TabletopCardEngine__*`) |
 
-### 4. Exception 1: API baselines are re-packed once
+### 4. Exception 1: API baselines were re-packed once
 
-Package validation compares types by full name, so after the namespace changes every public type reads
-as removed (`CP0001`) against the old baselines. The seven files in `eng/api-baseline/` are replaced
-by `TabletopCardEngine*.1.0.0-baseline.nupkg` packed from the renamed code, and the hashes in
-`ApiBaselineFreezeTests` are updated in the same pull request. The re-pack is acceptable only because
-the public inventory is unchanged except for the name (checked by `scripts/list-public-api.ps1`), and
-it reaches `CHANGELOG.md` the only way anything does: the rename's squash commit is a breaking
+Package validation compares types by full name, so after the namespace changes every public type read
+as removed (`CP0001`) against the old baselines. The seven files in `eng/api-baseline/` were replaced
+by `TabletopCardEngine*.1.0.0-baseline.nupkg` packed from the renamed code, and were pinned in
+`ApiBaselineFreezeTests` in that pull request. The re-pack was acceptable only because
+the public inventory was unchanged except for the name (checked by `scripts/list-public-api.ps1`), and
+it reached `CHANGELOG.md` the only way anything does: the rename's squash commit was a breaking
 Conventional Commit (`refactor!:` with a `BREAKING CHANGE:` footer naming the re-pack), which
-git-cliff files under **Breaking changes**. This ADR authorizes this one re-pack and no other.
+git-cliff filed under **Breaking changes**. Once `1.0.0` was published on nuget.org, the baselines
+switched to the published version and `eng/api-baseline/` was deleted (#468). This ADR authorized that one re-pack and no other.
 
 ### 5. Exception 2: `InitialCreate` migrations are edited in place
 

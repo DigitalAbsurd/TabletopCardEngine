@@ -46,7 +46,7 @@ Before merging, confirm:
 
 ### When this change affects the public API
 
-- [ ] **Public API** — reviewed against the baseline in `eng/api-baseline/`; [see docs/public-api.md](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/public-api.md)
+- [ ] **Public API** — reviewed against the published 1.0.0 baseline on nuget.org; [see docs/public-api.md](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/public-api.md)
 
 - [ ] **Observability** — new events, tags, metrics added to [docs/observability.md](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/observability.md)
 
