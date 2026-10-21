@@ -39,4 +39,4 @@ var game = await table.ApplyAsync(
 
 The engine supports 2 to 6 seats, no-limit betting, and deals the cards, posts blinds, and validates bets automatically. The database holds the ledger—each call rehydrates the game state from rows and applies the action, then saves the result.
 
-**Documentation:** [Getting started](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/getting-started.md) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
+**Documentation:** [Getting started](https://tabletopcardengine.readthedocs.io/en/stable/getting-started/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)

@@ -7,7 +7,7 @@
 
 A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
 
-[![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) [![Docs](https://readthedocs.org/projects/tabletopcardengine/badge/?version=stable)](https://tabletopcardengine.readthedocs.io/en/stable/)
 
 ## Demo
 
@@ -17,7 +17,7 @@ Try the [interactive Blazor WebAssembly demo](https://digitalabsurd.github.io/Ta
 
 ## Features and limits
 
-The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1 is limited on purpose: No-Limit Hold'em cash games only, 2 to 6 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/roadmap.md).
+The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1 is limited on purpose: No-Limit Hold'em cash games only, 2 to 6 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
 
 | Package | Use it for |
 |---|---|
@@ -110,13 +110,13 @@ Run it with:
 dotnet run
 ```
 
-The [getting started guide](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/getting-started.md) explains each step.
+The [getting started guide](https://tabletopcardengine.readthedocs.io/en/stable/getting-started/) explains each step.
 
 ## Usage
 
 ### The command and `GameData` loop
 
-Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evaluations` lists what the player on the clock may do, `HandData.NextPlayerSeatNo` names that player (`0` when nobody acts), and an optional `ExpectedVersion` on the action turns a stale write into a `Conflict`. See [Key concepts](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/concepts/index.md).
+Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evaluations` lists what the player on the clock may do, `HandData.NextPlayerSeatNo` names that player (`0` when nobody acts), and an optional `ExpectedVersion` on the action turns a stale write into a `Conflict`. See [Key concepts](https://tabletopcardengine.readthedocs.io/en/stable/concepts/).
 
 ### REST API
 
@@ -130,7 +130,7 @@ builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
 app.MapHoldemApi();
 ```
 
-See [ASP.NET Core](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/aspnetcore.md).
+See [ASP.NET Core](https://tabletopcardengine.readthedocs.io/en/stable/aspnetcore/).
 
 ### Docker images
 
@@ -140,7 +140,7 @@ Images for SQLite, PostgreSQL and SQL Server run the same REST API:
 docker run -d -p 8080:8080 -v holdem-data:/data digitalabsurd/tabletopcardengine:sqlite
 ```
 
-There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy. See [Container images](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/docker.md).
+There is no API authentication in the container, so run the image on a trusted network or behind an authenticating reverse proxy. See [Container images](https://tabletopcardengine.readthedocs.io/en/stable/docker/).
 
 ## Configuration
 
@@ -152,7 +152,7 @@ The container host reads these settings from the environment:
 | `TabletopCardEngineServer__Provider` | The database provider: `Sqlite`, `PostgreSql` or `SqlServer`, required. |
 | `TabletopCardEngine__Holdem__*` | Hold'em's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
 
-The details are in [Configuration](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/docker.md#configuration).
+The details are in [Configuration](https://tabletopcardengine.readthedocs.io/en/stable/docker/#configuration).
 
 ## Contributing
 
