@@ -26,7 +26,7 @@ dotnet test
 dotnet pack TabletopCardEngine.Packages.slnf -c Release
 ```
 
-The last one is the public API gate: it fails on a break against the committed baseline (fact 25).
+The last one is the public API gate: it fails on a break against the published 1.0.0 baseline on nuget.org.
 
 Style is enforced at build time, so a formatting or naming violation **fails `dotnet build`**.
 Do not hand-tune whitespace to chase a diagnostic — run the formatter and re-read the diff:
@@ -339,7 +339,6 @@ docs/adr/                               # architecture decision records (ADR-000
                                         # ADR-0008: the harmonized public API,
                                         # ADR-0009: the generated API reference)
 scripts/                                # license audit, PHH fixture packing, API reference generation, migration scaffolding
-eng/api-baseline/                       # the committed public API baseline package (fact 25)
 eng/verify-packages.sh                  # checks a pack output: one .nupkg per project of the .slnf, each with the expected version
 eng/api-reference/                      # DefaultDocumentation configuration and extern links file
 mkdocs.yml                              # site configuration for MkDocs Material
@@ -491,18 +490,6 @@ renumber.
     `DbUpdateException` is a real fault and is not caught. Tests interleave two writers through the
     internal `HoldemTable.ApplyWithHookAsync` seam over a SQLite *file*, since a shared `:memory:`
     connection serialises everything, and over one named InMemory store.
-25. **The public API baseline lives in `eng/api-baseline/`, and `dotnet pack` enforces it.** Every
-    packable project (the seven in `TabletopCardEngine.Packages.slnf`) sets `EnablePackageValidation` with `PackageValidationBaselinePath`
-    pointing at their own baseline, so `dotnet pack TabletopCardEngine.Packages.slnf -c Release` fails
-    with `CP0001` (type removed), `CP0002` (member removed) and the other ApiCompat rules on a break;
-    `dotnet build` does not check it. The baselines are frozen and pinned by `ApiBaselineFreezeTests` (no break in 1.x, additions allowed):
-    an additive change regenerates the API reference only (`pwsh ./scripts/generate-api-reference.ps1 -Update`; `ApiReferenceDocsTests` fails until it is done), and a `CP`
-    diagnostic means the change is a break. Never re-pack a baseline, never update a pinned hash; that is a
-    maintainer decision (see [docs/public-api.md](public-api.md#the-baseline-is-frozen)). Never add a
-    `CompatibilitySuppressions.xml` or set `ApiCompatGenerateSuppressionFile`. The check is binary
-    compatibility only: removing a parameter's default value is a source break it does not report.
-    The committed baselines are the gate until 1.0.0 is on nuget.org; then see
-    [docs/public-api.md](public-api.md#after-100-is-on-nugetorg).
 26. **Log events, span tags, and metric instruments are public API, documented in `docs/observability.md`.**
     The three signals are emitted by `HoldemTable.ApplyWithHookAsync` (the internal seam used by both
     `ApplyAsync` and tests):

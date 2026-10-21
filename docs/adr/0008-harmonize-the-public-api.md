@@ -140,15 +140,16 @@ and metric names in `docs/observability.md`). A per-game tag on those signals is
 change. `GameOptionData.GameType` stays as the Hold'em-family variant switch; `docs/roadmap.md` still
 lists Omaha as out of scope, and this ADR only lays the foundation.
 
-### 10. Exception 1: baselines are re-packed inside this milestone
+### 10. Exception 1: baselines were re-packed inside this milestone
 
-This supersedes ADR-0007 §4's "this one re-pack and no other" and the rule in `docs/public-api.md` that
+This superseded ADR-0007 §4's "this one re-pack and no other" and the rule in `docs/public-api.md` that
 changing a pinned hash is never an agent's doing, **for the issues of this milestone only**. Each issue
-that breaks a package re-packs only that package's baseline with
+that broke a package re-packed only that package's baseline with
 `-p:Version=1.0.0-baseline -p:MinVerVersionOverride=1.0.0-baseline -p:EnablePackageValidation=false`,
-after checking that every `CP` diagnostic names a row of the mapping table, re-pins the hash in
-`ApiBaselineFreezeTests`, and lands as a `refactor!:` commit with a `BREAKING CHANGE:` footer. After
-the milestone the rule in `docs/public-api.md` holds again unchanged.
+after checking that every `CP` diagnostic named a row of the mapping table, re-pinned the hash in
+`ApiBaselineFreezeTests`, and landed as a `refactor!:` commit with a `BREAKING CHANGE:` footer. Once
+`1.0.0` was published on nuget.org (#467), the milestone concluded by switching to the published baseline (#468),
+deleting `eng/api-baseline/` and `ApiBaselineFreezeTests`, and the rule in `docs/public-api.md` holds again unchanged.
 
 ### 11. Exception 2: `InitialCreate` is edited in place again
 

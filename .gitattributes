@@ -22,4 +22,3 @@ Dockerfile      text eol=lf
 
 *.gz        binary
 *.png       binary
-eng/api-baseline/*.nupkg binary
