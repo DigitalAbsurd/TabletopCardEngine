@@ -15,6 +15,10 @@ body = """
 {% else %}\
 ## [Unreleased]
 {% endif %}\
+{% set releases = commits | filter(attribute="group", value="release") %}\
+{% if commits | length == releases | length %}
+No changes since the previous version.
+{% endif %}\
 {% set breaking = commits | filter(attribute="breaking", value=true) %}\
 {% if breaking | length > 0 %}
 ### Breaking changes
@@ -22,13 +26,15 @@ body = """
 - {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}
 {% endfor %}\
 {% endif %}\
-{% for group, commits in commits | group_by(attribute="group") %}
+{% for group, commits in commits | group_by(attribute="group") %}\
+{% if group != "release" %}
 ### {{ group | striptags | trim | upper_first }}
 {% for commit in commits %}\
 {% if not commit.breaking %}\
 - {% if commit.scope %}**{{ commit.scope }}**: {% endif %}{{ commit.message | upper_first }}
 {% endif %}\
 {% endfor %}\
+{% endif %}\
 {% endfor %}
 """
 footer = ""
@@ -49,7 +55,9 @@ commit_preprocessors = [
 ]
 # The prose verbs below exist for the history that predates mandatory Conventional Commits.
 commit_parsers = [
-    { message = '^chore\(release\)', skip = true },
+    # Kept, not skipped, so that a version with nothing but its release commit is still rendered
+    # (git-cliff drops a version with no commits); the body hides the group.
+    { message = '^chore\(release\)', group = "release" },
     { message = '^WIP', skip = true },
     { message = '^fix: merge conflicts$', skip = true },
     { message = '^Merge', skip = true },
