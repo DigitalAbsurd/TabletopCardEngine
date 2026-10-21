@@ -111,4 +111,13 @@ The `--skip-duplicate` flag in the push command allows a re-run after a partial 
 
 ## Protecting `main`
 
-Branch protection is not enforced while the repository is private (GitHub Pro is required). Protecting `main` with required status checks and code reviews is planned for the milestone `v1.0 · NuGet packages & public launch`.
+Two repository rulesets, both enforced (`active`) and with no bypass list, stop history from being rewritten ([#464](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/464)):
+
+| Ruleset | Target | Rules |
+|---|---|---|
+| `protect-main` | the default branch (`main`) | Restrict deletions, Block force pushes |
+| `protect-release-tags` | tags matching `v*` | Restrict deletions, Restrict updates, Block force pushes |
+
+Nothing else is required. CI does not run on pull requests (all gates run locally), so the rulesets require no status checks, and they require no pull request or review either: the task runner (`run-next-task.ps1`) merges to `main` with the maintainer's credentials, and such a rule would block it. A new `v*` tag can still be created; once pushed it can be neither moved nor deleted, which is what [Tags and versions](#tags-and-versions) promises. Deleting and re-creating a tag locally before it is pushed, as in [Signing a release tag](#signing-a-release-tag), is unaffected.
+
+`gh api repos/DigitalAbsurd/TabletopCardEngine/rulesets` lists them.
