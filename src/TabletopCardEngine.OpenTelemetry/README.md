@@ -22,4 +22,4 @@ services
 
 The engine publishes activity spans for each action (`ApplyAsync`) with tags for game ID, hand number, and error codes. Metrics include action counts, durations, and schema checks. Logs are written to `ILogger<HoldemTable>` at Debug, Information, and Trace levels depending on the signal.
 
-**Documentation:** [Observability](https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/observability.md) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
+**Documentation:** [Observability](https://tabletopcardengine.readthedocs.io/en/stable/observability/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
