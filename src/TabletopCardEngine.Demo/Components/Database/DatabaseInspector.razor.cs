@@ -59,7 +59,7 @@ public abstract class DatabaseInspectorBase : ComponentBase
             if (TableNames.Count > 0)
             {
                 SelectedTable = TableNames[0];
-                await LoadTableDataAsync(SelectedTable);
+                LoadTableData(SelectedTable);
             }
         }
         catch (Exception ex)
@@ -78,11 +78,11 @@ public abstract class DatabaseInspectorBase : ComponentBase
         if (SelectedTable != null)
         {
             var previousCount = RowCount;
-            _ = InvokeAsync(async () =>
+            _ = InvokeAsync(() =>
             {
                 try
                 {
-                    await LoadTableDataAsync(SelectedTable);
+                    LoadTableData(SelectedTable);
                     RowCountChanged = RowCount != previousCount;
                 }
                 catch (Exception ex)
@@ -93,6 +93,8 @@ public abstract class DatabaseInspectorBase : ComponentBase
                 {
                     StateHasChanged();
                 }
+
+                return Task.CompletedTask;
             });
         }
     }
@@ -100,14 +102,14 @@ public abstract class DatabaseInspectorBase : ComponentBase
     /// <summary>
     /// Called when the user selects a different table from the dropdown.
     /// </summary>
-    public async Task OnTableSelectedAsync(string? tableName)
+    public Task OnTableSelectedAsync(string? tableName)
     {
         SelectedTable = tableName;
         CurrentPage = 1;
         RowCountChanged = false;
         try
         {
-            await LoadTableDataAsync(SelectedTable);
+            LoadTableData(SelectedTable);
             LastErrorMessage = null;
         }
         catch (Exception ex)
@@ -116,18 +118,19 @@ public abstract class DatabaseInspectorBase : ComponentBase
         }
 
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Called when the user navigates to a different page in the pagination.
     /// </summary>
-    public async Task OnPageChangedAsync(PaginationEventArgs args)
+    public Task OnPageChangedAsync(PaginationEventArgs args)
     {
         // Get the current page from the event args
         CurrentPage = (int)args.Page;
         try
         {
-            await LoadTableDataAsync(SelectedTable);
+            LoadTableData(SelectedTable);
             LastErrorMessage = null;
         }
         catch (Exception ex)
@@ -136,40 +139,39 @@ public abstract class DatabaseInspectorBase : ComponentBase
         }
 
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Loads the schema and rows for the given table.
+    /// Runs inline on the caller's context instead of on a thread-pool thread, because the connection is shared with the engine and is not thread-safe.
     /// </summary>
-    private async Task LoadTableDataAsync(string? tableName)
+    private void LoadTableData(string? tableName)
     {
         if (string.IsNullOrEmpty(tableName))
         {
             return;
         }
 
-        await Task.Run(() =>
+        try
         {
-            try
-            {
-                Columns = SqliteBrowser.GetColumnInfo(tableName);
-                RowCount = SqliteBrowser.GetRowCount(tableName);
-                CreateTableStatement = SqliteBrowser.GetCreateTableStatement(tableName);
+            Columns = SqliteBrowser.GetColumnInfo(tableName);
+            RowCount = SqliteBrowser.GetRowCount(tableName);
+            CreateTableStatement = SqliteBrowser.GetCreateTableStatement(tableName);
 
-                var offset = (CurrentPage - 1) * PageSize;
-                Rows = SqliteBrowser.GetTableRows(tableName, PageSize, offset);
-                LastErrorMessage = null;
-            }
-            catch (Exception ex)
-            {
-                LastErrorMessage = ex.Message;
-                Columns = [];
-                Rows = [];
-                RowCount = 0;
-                CreateTableStatement = null;
-                throw;
-            }
-        });
+            var offset = (CurrentPage - 1) * PageSize;
+            Rows = SqliteBrowser.GetTableRows(tableName, PageSize, offset);
+            LastErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            LastErrorMessage = ex.Message;
+            Columns = [];
+            Rows = [];
+            RowCount = 0;
+            CreateTableStatement = null;
+            throw;
+        }
     }
 
     /// <summary>

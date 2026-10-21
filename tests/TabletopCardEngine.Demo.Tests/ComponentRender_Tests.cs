@@ -1164,6 +1164,7 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        SetupBrowserGeometryInterop(ctx);
         RegisterDemoServices(ctx.Services);
 
         // Initialize the engine to create the database tables
