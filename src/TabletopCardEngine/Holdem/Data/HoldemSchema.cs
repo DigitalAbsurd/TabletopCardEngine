@@ -4,10 +4,10 @@
 internal static class HoldemSchema
 {
     /// <summary>Raised whenever a migration changes the schema; never lowered.</summary>
-    internal const int Version = 1;
+    internal const int Version = 2;
 
     /// <summary>The engine release that introduced this schema version; bumped together with <see cref="Version"/>.</summary>
-    internal const string EngineVersion = "1.0.0";
+    internal const string EngineVersion = "1.1.0";
 
     /// <summary>
     /// Hold'em's own database schema on PostgreSQL and SQL Server, keeping its tables separate from a

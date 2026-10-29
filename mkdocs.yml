@@ -92,6 +92,7 @@ nav:
                   - 'HoldemSchemaFailure': api/TabletopCardEngine/TabletopCardEngine.Holdem.HoldemSchemaFailure.md
                   - 'HoldemSchemaState': api/TabletopCardEngine/TabletopCardEngine.Holdem.HoldemSchemaState.md
                   - 'HoldemSchemaStatus': api/TabletopCardEngine/TabletopCardEngine.Holdem.HoldemSchemaStatus.md
+                  - 'HoldemTableFormat': api/TabletopCardEngine/TabletopCardEngine.Holdem.HoldemTableFormat.md
                   - 'ICardShuffler': api/TabletopCardEngine/TabletopCardEngine.Holdem.ICardShuffler.md
                   - 'IHoldemSchemaManager': api/TabletopCardEngine/TabletopCardEngine.Holdem.IHoldemSchemaManager.md
                   - 'IHoldemTable': api/TabletopCardEngine/TabletopCardEngine.Holdem.IHoldemTable.md

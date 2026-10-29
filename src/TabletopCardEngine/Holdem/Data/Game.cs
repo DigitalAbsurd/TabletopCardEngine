@@ -12,6 +12,7 @@ internal class Game
     public byte InitialDealerSeatNo { get; set; } = 1;
     public GameType GameType { get; set; } = GameType.Holdem;
     public BettingStructure BettingStructure { get; set; } = BettingStructure.NoLimit;
+    public HoldemTableFormat TableFormat { get; set; } = HoldemTableFormat.SixMax;
 
     public bool IsFinished { get; set; }
 

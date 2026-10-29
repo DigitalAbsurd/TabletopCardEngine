@@ -41,7 +41,7 @@ public sealed class SqlitePackageTests
 
         status.State.Should().Be(HoldemSchemaState.UpToDate);
         status.PendingMigrations.Should().BeEmpty();
-        status.DatabaseSchemaVersion.Should().Be(1);
+        status.DatabaseSchemaVersion.Should().Be(2);
 
         var engine = host.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
