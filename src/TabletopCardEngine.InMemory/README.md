@@ -3,7 +3,7 @@
 In-memory provider for `TabletopCardEngine`. Use this for tests, prototypes, and isolated unit testing—not for production.
 
 ```bash
-dotnet add package TabletopCardEngine.InMemory --prerelease
+dotnet add package TabletopCardEngine.InMemory
 ```
 
 Register the engine with an in-memory store. The string is a unique name for the store:

@@ -3,7 +3,7 @@
 SQL Server provider for `TabletopCardEngine`. Use this for production deployments.
 
 ```bash
-dotnet add package TabletopCardEngine.SqlServer --prerelease
+dotnet add package TabletopCardEngine.SqlServer
 ```
 
 Register the engine with SQL Server. Note the `TrustServerCertificate=True` flag: most container SQL Server images use self-signed certificates, and this flag skips validation without disabling encryption.

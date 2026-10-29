@@ -43,7 +43,7 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10
 ```bash
 dotnet new console -n HoldemQuickStart
 cd HoldemQuickStart
-dotnet add package TabletopCardEngine.InMemory --prerelease
+dotnet add package TabletopCardEngine.InMemory
 ```
 
 The InMemory package brings the core package with it. Replace the generated `Program.cs` with:
