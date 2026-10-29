@@ -103,6 +103,53 @@ public sealed class GameSetupEndpointTests
     }
 
     [TestMethod]
+    public async Task CreateGame_WithTableFormatFullRing_And9Seats_Succeeds()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var json = "{\"options\":{\"tableFormat\":\"FullRing\",\"maxPlayersCount\":9}}";
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/holdem/games");
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await host.Client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await ReadJsonAsync(response);
+        body.GetProperty("options").GetProperty("tableFormat").GetString().Should().Be("FullRing");
+        body.GetProperty("options").GetProperty("maxPlayersCount").GetInt32().Should().Be(9);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_WithTableFormatAsInteger_Returns400()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var json = "{\"options\":{\"tableFormat\":3}}";
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/holdem/games");
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await host.Client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_WithTableFormatHeadsUpAnd6Seats_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var json = "{\"options\":{\"tableFormat\":\"HeadsUp\",\"maxPlayersCount\":6}}";
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/holdem/games");
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await host.Client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        var problem = await ReadJsonAsync(response);
+        problem.GetProperty("code").GetString().Should().Be("InvalidGameOptions");
+    }
+
+    [TestMethod]
     public async Task StartGame_HeadsUp_Returns200()
     {
         await using var host = await TestApiHost.StartAsync();

@@ -36,7 +36,7 @@ public bool EnableSensitiveCardLogging { get; set; }
 
 ## HoldemHostOptions\.GamePlayersMaxCount Property
 
-Most seats a game may have\. This release allows 2 to 6; a setting can only narrow it\.
+Most seats a game may have\. This release allows 2 to 10; a setting can only narrow it\.
 
 ```csharp
 public int GamePlayersMaxCount { get; set; }
@@ -49,7 +49,7 @@ public int GamePlayersMaxCount { get; set; }
 
 ## HoldemHostOptions\.GamePlayersMinCount Property
 
-Fewest seats a game may have\. This release allows 2 to 6; a setting can only narrow it\.
+Fewest seats a game may have\. This release allows 2 to 10; a setting can only narrow it\.
 
 ```csharp
 public int GamePlayersMinCount { get; set; }

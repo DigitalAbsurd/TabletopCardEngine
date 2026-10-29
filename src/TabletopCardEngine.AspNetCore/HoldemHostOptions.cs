@@ -13,13 +13,13 @@ namespace TabletopCardEngine.AspNetCore;
 /// </summary>
 public sealed class HoldemHostOptions : IValidatableObject
 {
-    /// <summary>Fewest seats a game may have. This release allows 2 to 6; a setting can only narrow it.</summary>
-    [Range(2, 6)]
+    /// <summary>Fewest seats a game may have. This release allows 2 to 10; a setting can only narrow it.</summary>
+    [Range(2, 10)]
     public int GamePlayersMinCount { get; set; } = 2;
 
-    /// <summary>Most seats a game may have. This release allows 2 to 6; a setting can only narrow it.</summary>
-    [Range(2, 6)]
-    public int GamePlayersMaxCount { get; set; } = 6;
+    /// <summary>Most seats a game may have. This release allows 2 to 10; a setting can only narrow it.</summary>
+    [Range(2, 10)]
+    public int GamePlayersMaxCount { get; set; } = 10;
 
     /// <summary>
     /// When <c>true</c>, the engine logs hole cards and the board at Trace level. Never enable it in production.
