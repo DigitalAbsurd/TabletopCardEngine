@@ -15,7 +15,7 @@ Five features are in:
 - Pot-Limit and Fixed-Limit
 - Tournaments (SNG/MTT, blind levels, antes)
 - Rebuy, buy-in and kick-off
-- 9 to 10 seats
+- 9 to 10 seats (✓ **Shipped in 1.1.0**)
 - Hand history export (PHH)
 
 Out of scope for this roadmap (candidates considered and not selected):
@@ -46,25 +46,9 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 [#338](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/338)
 
-**Already in v1.0:**
+**Shipped in 1.1.0:**
 
-- `SeatNo` is a `byte`
-- `HandTable` holds occupied seats only and walks them as a ring
-- The database has no seat constraint
-
-**Comes with the feature:**
-
-- Lift the cap in `HoldemOptionsBuilder.WithSettings` (throws above 6)
-- `HoldemSettings.GamePlayersMaxCount` docs
-- `[Range(2, 6)]` in `TabletopCardEngine.AspNetCore/HoldemHostOptions.cs`
-- The demo's `DemoGameDefaults.MaxPlayers`
-- The 2–6 dropdown in `GameSetup.razor`
-- The demo's PHH replay then accepts 7+ player hands
-
-**Oracle:**
-
-- `MultiHandSessionTests` with a `[DataRow(10)]`
-- A full-ring PHH fixture if one can be sourced under a permissive license
+The engine now supports No-Limit Hold'em in three table formats chosen at game creation: Heads-Up (2-Max, exactly 2 players), 6-Max (2 to 6 players, the default), and Full Ring (7 to 10 players). See [the v1.1.0 milestone](https://github.com/DigitalAbsurd/TabletopCardEngine/milestone/16) for the implementation.
 
 ## Hand history export (PHH)
 
