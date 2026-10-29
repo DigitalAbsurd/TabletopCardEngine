@@ -15,7 +15,18 @@ public sealed record GameOptionData
     /// <summary>How bets are sized. Only <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> exists in v1.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 
-    /// <summary>How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release.</summary>
+    /// <summary>
+    /// The table format, which caps the seats: <see cref="HoldemTableFormat.HeadsUp"/> is exactly 2,
+    /// <see cref="HoldemTableFormat.SixMax"/> is 2 to 6 and <see cref="HoldemTableFormat.FullRing"/> is 7 to 10.
+    /// Defaults to <see cref="HoldemTableFormat.SixMax"/>, so a caller that never sets it gets the 1.0 table.
+    /// An undefined value is rejected when the game is created.
+    /// </summary>
+    public HoldemTableFormat TableFormat { get; init; } = HoldemTableFormat.SixMax;
+
+    /// <summary>
+    /// How many seats the table has; must lie in the range of <see cref="TableFormat"/> and within the
+    /// engine's configured seat limits, which are 2 to 10 by default.
+    /// </summary>
     public int MaxPlayersCount { get; init; } = 6;
 
     /// <summary>The small blind of every hand in this release; the big blind is twice this. Read a hand's actual blinds from <see cref="HandData.SmallBlind"/> and <see cref="HandData.BigBlind"/>. Must be positive and have at most two decimal places.</summary>

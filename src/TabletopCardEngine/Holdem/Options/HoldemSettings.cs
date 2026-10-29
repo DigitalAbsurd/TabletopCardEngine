@@ -3,11 +3,14 @@
 /// <summary>Validation limits applied to every game the engine runs.</summary>
 public sealed class HoldemSettings
 {
-    /// <summary>Fewest seats a hand may be dealt to. Within 2 to 6 in this release; <c>WithSettings</c> throws outside that range.</summary>
+    /// <summary>Fewest seats a hand may be dealt to. Within 2 to 10; <c>WithSettings</c> throws outside that range.</summary>
     public int GamePlayersMinCount { get; set; } = 2;
 
-    /// <summary>Most seats a hand may be dealt to. Within 2 to 6 in this release; <c>WithSettings</c> throws outside that range.</summary>
-    public int GamePlayersMaxCount { get; set; } = 6;
+    /// <summary>
+    /// Most seats a hand may be dealt to. Within 2 to 10, and 10 by default; <c>WithSettings</c> throws outside
+    /// that range. A game's table format caps its seats as well, so the default 6-Max table still stops at 6.
+    /// </summary>
+    public int GamePlayersMaxCount { get; set; } = 10;
 
     /// <summary>
     /// When <c>true</c>, the engine logs every seat's hole cards and the board at Trace level.

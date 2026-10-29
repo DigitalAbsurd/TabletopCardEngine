@@ -95,9 +95,10 @@ Task<Result<GameData>> IHoldemTable.ApplyAsync(HoldemAction action, Cancellation
 
 ### Scope of v1
 
-No-Limit Texas Hold'em, cash games, 2 to 6 seats, no antes, no rake. Other structures, more seats,
-antes and tournaments are planned as later minor releases ([docs/roadmap.md](docs/roadmap.md)), and `GameOptionData`
-(`GameType`, `BettingStructure`) is where they will plug in. The engine enforces this: see fact 23 in [docs/task-run.md](docs/task-run.md).
+No-Limit Texas Hold'em, cash games, 2 to 10 seats in three table formats chosen with
+`GameOptionData.TableFormat` (`HeadsUp` exactly 2, `SixMax` 2 to 6 and the default, `FullRing` 7 to 10),
+no antes, no rake. Other structures, antes and tournaments are planned as later minor releases
+([docs/roadmap.md](docs/roadmap.md)), and `GameOptionData` (`GameType`, `BettingStructure`) is where they will plug in. The engine enforces this: see fact 23 in [docs/task-run.md](docs/task-run.md).
 
 ## Architecture
 

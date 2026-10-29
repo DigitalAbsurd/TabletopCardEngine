@@ -31,7 +31,8 @@ public bool EnableSensitiveCardLogging { get; set; }
 
 ## HoldemSettings\.GamePlayersMaxCount Property
 
-Most seats a hand may be dealt to\. Within 2 to 6 in this release; `WithSettings` throws outside that range\.
+Most seats a hand may be dealt to\. Within 2 to 10, and 10 by default; `WithSettings` throws outside
+that range\. A game's table format caps its seats as well, so the default 6\-Max table still stops at 6\.
 
 ```csharp
 public int GamePlayersMaxCount { get; set; }
@@ -44,7 +45,7 @@ public int GamePlayersMaxCount { get; set; }
 
 ## HoldemSettings\.GamePlayersMinCount Property
 
-Fewest seats a hand may be dealt to\. Within 2 to 6 in this release; `WithSettings` throws outside that range\.
+Fewest seats a hand may be dealt to\. Within 2 to 10; `WithSettings` throws outside that range\.
 
 ```csharp
 public int GamePlayersMinCount { get; set; }

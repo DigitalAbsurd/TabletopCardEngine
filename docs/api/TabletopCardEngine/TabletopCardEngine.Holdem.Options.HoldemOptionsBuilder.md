@@ -61,5 +61,5 @@ The same builder, for chaining\.
 #### Exceptions
 
 [System\.ArgumentOutOfRangeException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception 'System\.ArgumentOutOfRangeException')  
-The settings end up with a minimum below 2, a maximum above 6 \(the v1 scope, which a setting
-can only narrow\), or a minimum above the maximum\. That is a configuration error, not a game result\.
+The settings end up with a minimum below 2, a maximum above 10 \(the largest table format, which a
+setting can only narrow\), or a minimum above the maximum\. That is a configuration error, not a game result\.

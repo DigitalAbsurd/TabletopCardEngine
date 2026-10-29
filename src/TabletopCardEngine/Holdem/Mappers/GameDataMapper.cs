@@ -35,6 +35,7 @@ internal static class GameDataMapper
             {
                 GameType = game.GameType,
                 BettingStructure = game.BettingStructure,
+                TableFormat = game.TableFormat,
                 MaxPlayersCount = game.MaxPlayersCount,
                 InitialSmallBlind = game.InitialSmallBlind,
                 InitialDealerSeatNo = game.InitialDealerSeatNo,
