@@ -98,4 +98,26 @@ public sealed class ConfigurationTests
         host.Services.GetRequiredService<HoldemOptions>().Settings.EnableSensitiveCardLogging.Should().BeTrue();
         await host.StopAsync();
     }
+
+    [TestMethod]
+    public async Task Configuration_GamePlayersMaxCount10_BindsAndIsApplied()
+    {
+        using var host = BuildHost(new() { ["GamePlayersMaxCount"] = "10" });
+        await StartAsync(host);
+        var engine = host.Services.GetRequiredService<IHoldemTable>();
+        var result = await engine.ApplyAsync(
+            HoldemAction.CreateGame(new GameOptionData { MaxPlayersCount = 10, TableFormat = HoldemTableFormat.FullRing }),
+            CancellationToken.None);
+        result.IsSuccess.Should().BeTrue();
+        await host.StopAsync();
+    }
+
+    [TestMethod]
+    public async Task Configuration_GamePlayersMaxCount11_FailsOnStart()
+    {
+        using var host = BuildHost(new() { ["GamePlayersMaxCount"] = "11" });
+        var act = () => host.StartAsync();
+        (await act.Should().ThrowAsync<OptionsValidationException>())
+            .Which.Message.Should().Contain("GamePlayersMaxCount");
+    }
 }

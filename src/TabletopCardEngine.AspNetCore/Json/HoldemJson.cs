@@ -14,6 +14,7 @@ internal static class HoldemJson
         converters.Add(new JsonStringEnumConverter<GameType>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<HandActionType>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<HandRankType>(namingPolicy: null, allowIntegerValues: false));
+        converters.Add(new JsonStringEnumConverter<HoldemTableFormat>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<PlayerActionType>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<Street>(namingPolicy: null, allowIntegerValues: false));
     }

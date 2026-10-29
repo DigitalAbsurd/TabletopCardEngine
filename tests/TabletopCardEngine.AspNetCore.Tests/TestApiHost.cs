@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
@@ -31,7 +30,6 @@ internal sealed class TestApiHost : IAsyncDisposable
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
-        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["TabletopCardEngine:Holdem:GamePlayersMaxCount"] = "6" });
         builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
             builder.Configuration.GetSection("TabletopCardEngine:Holdem"),
             db => db.UseHoldemInMemory(Guid.NewGuid().ToString("N"))));

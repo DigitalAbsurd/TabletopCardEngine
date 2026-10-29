@@ -48,7 +48,7 @@ builder.Services.AddTabletopCardEngine(tce => tce.AddHoldem(
 
 ```json
 { "ConnectionStrings": { "TabletopCardEngine": "Data Source=holdem.db" },
-  "TabletopCardEngine": { "Holdem": { "GamePlayersMaxCount": 6 } } }
+  "TabletopCardEngine": { "Holdem": { "GamePlayersMaxCount": 10 } } }
 ```
 
 The database stays in code: the package references no provider (ADR-0004), so the host passes the
@@ -62,8 +62,8 @@ connection string `ConnectionStrings:TabletopCardEngine` is not per game: all ga
 
 | Key | Type | Default | Rule |
 |---|---|---|---|
-| `GamePlayersMinCount` | `int` | `2` | 2 to 6, and not above `GamePlayersMaxCount` |
-| `GamePlayersMaxCount` | `int` | `6` | 2 to 6, and not below `GamePlayersMinCount` |
+| `GamePlayersMinCount` | `int` | `2` | 2 to 10, and not above `GamePlayersMaxCount` |
+| `GamePlayersMaxCount` | `int` | `10` | 2 to 10, and not below `GamePlayersMinCount` |
 | `EnableSensitiveCardLogging` | `bool` | `false` | Logs hole cards and the board at Trace level; never for production |
 | `MigrateDatabaseOnStartup` | `bool` | `false` | Migrates the database schema on start-up when `true` |
 
