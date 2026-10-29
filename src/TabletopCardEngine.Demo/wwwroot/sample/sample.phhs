@@ -112,3 +112,26 @@ starting_stacks = [10000, 10000, 10000, 10000, 10000, 10000]
 players = ['Eddie', 'Bill', 'Pluribus', 'MrWhite', 'Gogo', 'Budd']
 actions = ['d dh p1 4s4h', 'd dh p2 9c3c', 'd dh p3 2h5h', 'd dh p4 KdAs', 'd dh p5 JcJd', 'd dh p6 6c6s', 'p3 f', 'p4 cbr 300', 'p5 cbr 1000', 'p6 f', 'p1 f', 'p2 f', 'p4 f']
 finishing_stacks = [9950, 9900, 10000, 9750, 10300, 10100]
+
+# handhq/PTY-2009-07-01_2009-07-23_400NLH_OBFU/4/pty_NLH_handhq_1-OBFUSCATED.phhs#902
+[11]
+variant = 'NT'
+ante_trimming_status = false
+antes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+blinds_or_straddles = [2, 4, 0, 0, 0, 0, 0, 0, -4, 0]
+min_bet = 4
+starting_stacks = [531.24, 400, 465.60, 163, 626.65, 386, 712.27, 463, 400, 436.50]
+actions = ['d dh p1 ????', 'd dh p2 ????', 'd dh p3 ????', 'd dh p4 ????', 'd dh p5 ????', 'd dh p6 ????', 'd dh p7 ????', 'd dh p8 ????', 'd dh p9 ????', 'd dh p10 ????', 'p3 f', 'p4 f', 'p5 f', 'p6 f', 'p7 cc', 'p8 f', 'p9 cc', 'p10 f', 'p1 f', 'p2 cc', 'd db 6d3dKc', 'p2 cc', 'p7 cc', 'p9 cc', 'd db 8s', 'p2 cc', 'p7 cc', 'p9 cc', 'd db 7s', 'p2 cc', 'p7 cc', 'p9 cc', 'p2 sm 4sTs', 'p7 sm 4cTc', 'p9 sm Qh7h']
+venue = 'PartyPoker'
+time = 00:40:08
+day = 1
+month = 7
+year = 2009
+hand = 16406827470
+seats = [5, 6, 7, 8, 9, 10, 1, 2, 3, 4]
+table = 'Table  127573'
+players = ['bme6LenQ8gYkhKI5/5xGhQ', 'FwzUnOJPKOhd1Er3UqmrpA', '8+IZTS2g3uZaxyD7Ypsf6w', 'wv2fIPs4BNmo/940eESh6Q', 'CiMJi5YRK4fYlnMvYm7xuQ', 'DcLCcITGrwwoCGiWpLf5PQ', 'fLn5RaeCTdN3kNybhKSu0g', '2SLu1ssuoTUOcnciv0y6Pw', 'F79/TH+VqLVjbdIWVi2eFA', 'glaxkz3JJu9JUZbr1PX/aA']
+winnings = [0, 0, 0, 0, 0, 0, 0, 0, 13.30, 0]
+currency = 'USD'
+currency_symbol = '$'
+time_zone_abbreviation = 'EDT'

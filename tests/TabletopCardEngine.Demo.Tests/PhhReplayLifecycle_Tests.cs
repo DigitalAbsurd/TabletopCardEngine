@@ -199,4 +199,54 @@ public sealed class PhhReplayLifecycle_Tests
         // Assert: Final stacks match the recorded finishing stacks
         controller.FinalStacksMatch.Should().BeTrue(controller.FinalStacksMessage);
     }
+
+    [TestMethod]
+    public async Task ReplayBundledSampleHand11_FullRingHandWithoutFinishingStacks()
+    {
+        // Arrange: Load hand 11 from the bundled sample (the 10-player full-ring handhq hand)
+        var samplePath = Path.Combine(
+            AppContext.BaseDirectory,
+            "..", "..", "..", "..", "..",
+            "src", "TabletopCardEngine.Demo", "wwwroot", "sample", "sample.phhs");
+        samplePath = Path.GetFullPath(samplePath);
+
+        var phhsText = await File.ReadAllTextAsync(samplePath);
+
+        var hands = PhhReader.ReadAll(phhsText);
+        hands.Should().NotBeEmpty();
+        if (hands.Count < 11)
+        {
+            throw new InvalidOperationException("bundled sample should have at least 11 hands");
+        }
+        var hand11 = hands[10];
+
+        // Verify it's a 10-player hand
+        hand11.PlayerCount.Should().Be(10);
+
+        // Set up the test session
+        var (session, shuffler, _, _) = CreateTestSession();
+        var controller = new PhhReplayController(session, shuffler);
+
+        // Act: Load hand 11
+        var loaded = await controller.LoadHandAsync(hand11);
+        loaded.Should().BeTrue(controller.ReplayError ?? "hand load failed");
+
+        // Assert: Game was created with FullRing format and 10 seats
+        var game = session.CurrentGame;
+        game.Should().NotBeNull();
+        game!.Options.TableFormat.Should().Be(HoldemTableFormat.FullRing);
+        game.HandData!.Seats.Should().HaveCount(10);
+
+        // Act: Replay hand to completion
+        while (!controller.IsComplete)
+        {
+            var replayed = await controller.ReplayNextActionAsync();
+            replayed.Should().BeTrue(controller.ReplayError ?? "action replay failed");
+        }
+
+        // Assert: Replay completed successfully and FinalStacksMatch is null (no finishing stacks in handhq)
+        controller.IsComplete.Should().BeTrue();
+        controller.FinalStacksMatch.Should().BeNull("handhq hands do not record finishing stacks");
+        controller.FinalStacksMessage.Should().Contain("No recorded finishing stacks");
+    }
 }
