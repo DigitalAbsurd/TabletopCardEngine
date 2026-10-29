@@ -40,12 +40,20 @@ public sealed class MultiHandSessionTests
     [TestMethod]
     [DataRow(6, TestDatabaseKind.Sqlite, DisplayName = "six-handed, Sqlite")]
     [DataRow(2, TestDatabaseKind.Sqlite, DisplayName = "heads-up, Sqlite")]
+    [DataRow(9, TestDatabaseKind.Sqlite, DisplayName = "nine-handed, Sqlite")]
+    [DataRow(10, TestDatabaseKind.Sqlite, DisplayName = "ten-handed, Sqlite")]
     [DataRow(6, TestDatabaseKind.InMemory, DisplayName = "six-handed, InMemory")]
     [DataRow(2, TestDatabaseKind.InMemory, DisplayName = "heads-up, InMemory")]
+    [DataRow(9, TestDatabaseKind.InMemory, DisplayName = "nine-handed, InMemory")]
+    [DataRow(10, TestDatabaseKind.InMemory, DisplayName = "ten-handed, InMemory")]
     [DataRow(6, TestDatabaseKind.PostgreSql, DisplayName = "six-handed, PostgreSql")]
     [DataRow(2, TestDatabaseKind.PostgreSql, DisplayName = "heads-up, PostgreSql")]
+    [DataRow(9, TestDatabaseKind.PostgreSql, DisplayName = "nine-handed, PostgreSql")]
+    [DataRow(10, TestDatabaseKind.PostgreSql, DisplayName = "ten-handed, PostgreSql")]
     [DataRow(6, TestDatabaseKind.SqlServer, DisplayName = "six-handed, SqlServer")]
     [DataRow(2, TestDatabaseKind.SqlServer, DisplayName = "heads-up, SqlServer")]
+    [DataRow(9, TestDatabaseKind.SqlServer, DisplayName = "nine-handed, SqlServer")]
+    [DataRow(10, TestDatabaseKind.SqlServer, DisplayName = "ten-handed, SqlServer")]
     public async Task MultiHandSession_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database)
     {
         var gameId = Guid.Parse("{22222222-2222-2222-2222-222222222222}");
@@ -60,7 +68,7 @@ public sealed class MultiHandSessionTests
 
         (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = seatCount, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = FirstDealerSeatNo }))).IsSuccess.Should().BeTrue();
+            Options: new GameOptionData { TableFormat = GetTableFormat(seatCount), MaxPlayersCount = seatCount, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = FirstDealerSeatNo }))).IsSuccess.Should().BeTrue();
 
         var joinSeats = Enumerable.Range(1, seatCount)
             .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, BuyIn))
@@ -204,6 +212,17 @@ public sealed class MultiHandSessionTests
     }
 
     private static byte NextSeatNo(byte seatNo, int seatCount) => (byte)(seatNo % seatCount + 1);
+
+    private static HoldemTableFormat GetTableFormat(int seatCount)
+    {
+        return seatCount switch
+        {
+            2 => HoldemTableFormat.HeadsUp,
+            >= 3 and <= 6 => HoldemTableFormat.SixMax,
+            >= 7 and <= 10 => HoldemTableFormat.FullRing,
+            _ => throw new ArgumentOutOfRangeException(nameof(seatCount))
+        };
+    }
 
     /// <summary>
     /// A full shuffle per hand: two cards for each seat, then the five board cards. Driven by the
