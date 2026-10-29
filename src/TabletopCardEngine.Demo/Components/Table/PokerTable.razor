@@ -7,7 +7,7 @@
    and the board, and the action bar along the bottom. The session's settings are in the page
    header, so every pixel of the table's height goes to the hand. Nothing about the running hand
    is shown anywhere else on the page, so nothing here is shown twice. *@
-<div class="poker-table">
+<div class="@TableClass">
     @if (Hand is not null)
     {
         <div class="table-seats-row">
@@ -124,6 +124,17 @@
     private decimal SmallBlind => GameData?.Options.InitialSmallBlind ?? 0m;
 
     private bool IsHandFinished => Hand?.Street == Street.Finished;
+
+    /// <summary>
+    /// More seats than a six-max table has. The finished hand lists one result chip per seat, and
+    /// ten of them no longer fit two lines of the default centre, so the centre widens
+    /// (PokerTable.razor.css) instead of the table growing a third line.
+    /// </summary>
+    private bool IsLargeTable => Hand?.Seats.Count > SixMaxSeatCount;
+
+    private string TableClass => IsLargeTable ? "poker-table poker-table-large" : "poker-table";
+
+    private const int SixMaxSeatCount = 6;
 
     private static readonly IReadOnlySet<DataCard> _noCards = new HashSet<DataCard>();
 

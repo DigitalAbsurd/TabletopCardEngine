@@ -74,6 +74,15 @@ public sealed class DemoLayout_Tests
 
     private const int MaximumActionsPerHand = 30;
 
+    /// <summary>The seats of the game the demo deals on arrival: a six-max table.</summary>
+    private const int DefaultSeatCount = 6;
+
+    /// <summary>The most seats a table has: the widest seat rows and the longest list of results.</summary>
+    private const int FullRingSeatCount = 10;
+
+    /// <summary>A check or call for each of ten seats on four streets, with room to spare.</summary>
+    private const int MaximumCheckCallActions = 80;
+
     /// <summary>The call list, the page's scroll container and the document: none may scroll sideways.</summary>
     private static readonly string[] _overflowScrollers =
         [DemoPage.EngineCallListSelector, DemoPage.LayoutContentSelector, DemoPage.DocumentScrollerSelector];
@@ -243,18 +252,20 @@ public sealed class DemoLayout_Tests
     }
 
     [TestMethod]
-    [DataRow(WideViewportWidth)]
-    [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GamePage_HasNoHorizontalOverflow(int viewportWidth)
+    [DataRow(WideViewportWidth, DefaultSeatCount)]
+    [DataRow(NarrowViewportWidth, DefaultSeatCount)]
+    [DataRow(WideViewportWidth, FullRingSeatCount)]
+    [DataRow(NarrowViewportWidth, FullRingSeatCount)]
+    public async Task DemoLayout_GamePage_HasNoHorizontalOverflow(int viewportWidth, int seatCount)
     {
-        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, seatCount: seatCount);
 
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
 
         layoutContent.Found.Should().BeTrue($"{DemoPage.LayoutContentSelector} renders the routed page");
         layoutContent.ScrollWidth.Should().Be(
             layoutContent.ClientWidth,
-            $"the game page must not overflow horizontally at {viewportWidth}px ({layoutContent})");
+            $"the {seatCount}-seat game page must not overflow horizontally at {viewportWidth}px ({layoutContent})");
         AssertNoConsoleErrors(page);
     }
 
@@ -268,12 +279,15 @@ public sealed class DemoLayout_Tests
     /// is a notification in an overlay, so it no longer takes height from the table.
     /// </summary>
     [TestMethod]
-    [DataRow(WideViewportWidth, ViewportHeight)]
-    [DataRow(NarrowViewportWidth, ViewportHeight)]
-    [DataRow(LaptopViewportWidth, LaptopViewportHeight)]
-    public async Task DemoLayout_GamePage_PokerTableFitsTheViewportHeight(int viewportWidth, int viewportHeight)
+    [DataRow(WideViewportWidth, ViewportHeight, DefaultSeatCount)]
+    [DataRow(NarrowViewportWidth, ViewportHeight, DefaultSeatCount)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight, DefaultSeatCount)]
+    [DataRow(WideViewportWidth, ViewportHeight, FullRingSeatCount)]
+    [DataRow(NarrowViewportWidth, ViewportHeight, FullRingSeatCount)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight, FullRingSeatCount)]
+    public async Task DemoLayout_GamePage_PokerTableFitsTheViewportHeight(int viewportWidth, int viewportHeight, int seatCount)
     {
-        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight);
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight, seatCount: seatCount);
 
         double tableHeight = await page.ReadElementHeightAsync(DemoPage.PokerTableSelector);
         double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
@@ -283,7 +297,7 @@ public sealed class DemoLayout_Tests
         layoutContent.ScrollTop.Should().Be(0, $"nothing has been scrolled yet ({layoutContent})");
         tableHeight.Should().BeLessOrEqualTo(
             layoutContent.ClientHeight,
-            $"the poker table must fit the space under the header at {viewportWidth}x{viewportHeight} "
+            $"the {seatCount}-seat poker table must fit the space under the header at {viewportWidth}x{viewportHeight} "
             + $"(table: {tableHeight}px; {layoutContent})");
         barBottom.Should().BeLessOrEqualTo(
             contentBottom,
@@ -533,16 +547,81 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
+    /// A row of seats stays on one line: every seat in it has the same top. A row that wraps pushes
+    /// its last seats onto a second line, which breaks the table's height budget and the clockwise
+    /// reading order, and no other assertion notices it (issue #504).
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth, DefaultSeatCount)]
+    [DataRow(NarrowViewportWidth, DefaultSeatCount)]
+    [DataRow(LaptopViewportWidth, DefaultSeatCount)]
+    [DataRow(WideViewportWidth, FullRingSeatCount)]
+    [DataRow(NarrowViewportWidth, FullRingSeatCount)]
+    [DataRow(LaptopViewportWidth, FullRingSeatCount)]
+    public async Task DemoLayout_GamePage_SeatRowsDoNotWrap(int viewportWidth, int seatCount)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, seatCount: seatCount);
+
+        IReadOnlyList<IReadOnlyList<double>> rows = await page.ReadSeatRowTopsAsync();
+
+        rows.Should().HaveCount(2, "the seats sit in a top row and a bottom row");
+        rows.Sum(row => row.Count).Should().Be(seatCount, "every seat is in one of the two rows");
+        foreach (IReadOnlyList<double> tops in rows)
+        {
+            tops.Distinct().Should().ContainSingle(
+                $"a row of seats must not wrap at {viewportWidth}px with {seatCount} seats (tops: {string.Join(", ", tops)})");
+        }
+
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// A hand that reaches showdown lists one result chip per seat in the middle of the table, so a
+    /// full table is at its tallest once the hand is over. At 1366x768 ten chips took a third line
+    /// and the action bar ended 20px below the screen (issue #504).
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth, ViewportHeight)]
+    [DataRow(NarrowViewportWidth, ViewportHeight)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight)]
+    public async Task DemoLayout_FullRingTable_FinishedHandFitsTheViewportHeight(int viewportWidth, int viewportHeight)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight, seatCount: FullRingSeatCount);
+
+        int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
+
+        actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
+        (await page.CountAsync(DemoPage.HandResultChipSelector)).Should().Be(FullRingSeatCount, "every seat reached the showdown");
+
+        double tableBottom = await page.ReadElementBottomAsync(DemoPage.PokerTableSelector);
+        double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
+        double contentBottom = await page.ReadElementBottomAsync(DemoPage.LayoutContentSelector);
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+
+        tableBottom.Should().BeLessOrEqualTo(
+            contentBottom,
+            $"the finished ten-seat table must fit the space under the header at {viewportWidth}x{viewportHeight} "
+            + $"(table bottom: {tableBottom}px; content bottom: {contentBottom}px; {layoutContent})");
+        barBottom.Should().BeLessOrEqualTo(
+            contentBottom,
+            $"the action bar must be on screen once the hand is over at {viewportWidth}x{viewportHeight} "
+            + $"(bar bottom: {barBottom}px; content bottom: {contentBottom}px)");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
     /// The action bar is exactly as wide as a row of seats and centred under them (issue #108).
     /// Before that it stretched from one edge of the table to the other, 1444px against the rows'
     /// 1200px at 1500px, running past the seats on both sides.
     /// </summary>
     [TestMethod]
-    [DataRow(WideViewportWidth)]
-    [DataRow(NarrowViewportWidth)]
-    public async Task DemoLayout_GamePage_ActionBarMatchesTheSeatRows(int viewportWidth)
+    [DataRow(WideViewportWidth, DefaultSeatCount)]
+    [DataRow(NarrowViewportWidth, DefaultSeatCount)]
+    [DataRow(WideViewportWidth, FullRingSeatCount)]
+    [DataRow(NarrowViewportWidth, FullRingSeatCount)]
+    public async Task DemoLayout_GamePage_ActionBarMatchesTheSeatRows(int viewportWidth, int seatCount)
     {
-        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, seatCount: seatCount);
 
         ElementBox bar = (await page.ReadElementBoxesAsync(DemoPage.ActionBarSelector)).Single();
         ElementBox bottomRow = (await page.ReadElementBoxesAsync(DemoPage.SeatRowSelector))[^1];
@@ -726,7 +805,8 @@ public sealed class DemoLayout_Tests
     private static async Task<DemoPage> OpenDemoAsync(
         int viewportWidth,
         int viewportHeight = ViewportHeight,
-        bool keepNotification = false)
+        bool keepNotification = false,
+        int seatCount = DefaultSeatCount)
     {
         if (!DemoSite.IsEnabled)
         {
@@ -739,6 +819,11 @@ public sealed class DemoLayout_Tests
 
         DemoPage page = await site.NewPageAsync(viewportWidth, viewportHeight);
         await page.OpenAsync(keepNotification);
+        if (seatCount != DefaultSeatCount)
+        {
+            await page.CreateGameAsync("Full Ring", seatCount);
+        }
+
         return page;
     }
 
