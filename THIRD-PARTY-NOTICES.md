@@ -124,6 +124,7 @@ The following hand histories come from the [PHH dataset](https://github.com/uoft
 
 - `tests/TabletopCardEngine.Tests/Resources/phh/pluribus.phhs.gz`
 - `tests/TabletopCardEngine.Tests/Resources/phh/handhq-headsup.phhs.gz`
+- `tests/TabletopCardEngine.Tests/Resources/phh/handhq-fullring.phhs.gz`
 - `src/TabletopCardEngine.Demo/wwwroot/sample/sample.phhs`, ten Pluribus hands
 
 The two test corpora are pinned to upstream commit `e47fbd5816372360bade4de5d712346fe1bb70f6`. The
@@ -157,8 +158,9 @@ The dataset in turn compiles hands from other sources:
 
 - `pluribus`: the 10 000 hands played by the Pluribus bot, released with Brown, N. & Sandholm, T.
   (2019), *Superhuman AI for multiplayer poker*, Science 365(6456), 885–890.
-- `handhq`: anonymised PokerStars $0.25/$0.50 hand logs from July 2009. The source obfuscates player
-  names, and the records hold only game play.
+- `handhq`: anonymised PokerStars and PartyPoker hand logs from July 2009. PokerStars logs are
+  $0.25/$0.50 and PartyPoker logs include $2/$4. The source obfuscates player names, and the records
+  hold only game play.
 
 This repository redistributes those records under the dataset's MIT grant, and every copy keeps the
 dataset's copyright notice beside it (`LICENSE-phh-dataset.txt`).

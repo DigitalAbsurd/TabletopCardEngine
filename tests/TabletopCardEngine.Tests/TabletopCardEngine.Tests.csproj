@@ -20,11 +20,13 @@
   <ItemGroup>
     <None Remove="Resources\phh\pluribus.phhs.gz" />
     <None Remove="Resources\phh\handhq-headsup.phhs.gz" />
+    <None Remove="Resources\phh\handhq-fullring.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\phh\pluribus.phhs.gz" />
     <EmbeddedResource Include="Resources\phh\handhq-headsup.phhs.gz" />
+    <EmbeddedResource Include="Resources\phh\handhq-fullring.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>
