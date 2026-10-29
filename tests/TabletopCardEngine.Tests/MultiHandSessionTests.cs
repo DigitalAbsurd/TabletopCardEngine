@@ -14,8 +14,8 @@ namespace TabletopCardEngine.Tests;
 /// </summary>
 /// <remarks>
 /// There is no external oracle here — the invariants are the oracle, which is why the action policy
-/// only ever checks, calls, folds or makes the smallest legal raise. Bet sizing is already covered by
-/// the thousands of recorded raises the PHH replay drives through the engine.
+/// only ever checks, calls, folds or makes the smallest legal raise on an unraised street, and never re-raises.
+/// Bet sizing is already covered by the thousands of recorded raises the PHH replay drives through the engine.
 /// <para>
 /// Run at two table sizes. Heads-up is not a shorter ring but a different one — the button posts the
 /// small blind and the acting order flips after the pre-flop — and it is the only shape where the
@@ -132,7 +132,7 @@ public sealed class MultiHandSessionTests
 
     /// <summary>
     /// Drives the hand to its end. The policy checks when it can, otherwise calls or folds, and
-    /// occasionally opens with the smallest legal raise — <see cref="PlayerActionEvaluationData.MinValue"/>
+    /// occasionally opens a street with the smallest legal raise, but never re-raises. <see cref="PlayerActionEvaluationData.MinValue"/>
     /// on a raise is the "raise to" total the engine wants as the size, regardless of where in the
     /// street the decision falls.
     /// </summary>
@@ -153,8 +153,11 @@ public sealed class MultiHandSessionTests
             var call = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Call);
             var raise = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
 
+            var streetRaised = handData.Actions.Any(action => action.Street == handData.Street
+                && action.ActionType is HandActionType.Raise or HandActionType.Bet or HandActionType.AllIn);
+
             HoldemActionPlay playerAction;
-            if (raise != null && random.Next(4) == 0)
+            if (raise != null && !streetRaised && random.Next(4) == 0)
             {
                 playerAction = new HoldemActionPlay(gameId, PlayerActionType.Raise, raise.MinValue);
             }
