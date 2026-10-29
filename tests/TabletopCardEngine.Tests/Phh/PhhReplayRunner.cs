@@ -71,6 +71,19 @@ internal sealed class PhhReplayRunner : IDisposable
         => playerCount == 2 ? ((byte)2, (byte)1) : ((byte)1, (byte)2);
 
     /// <summary>
+    /// The table format that suits this player count. <c>2</c> players play heads-up,
+    /// <c>3..6</c> play six-max, and <c>7..10</c> play full-ring.
+    /// </summary>
+    internal static HoldemTableFormat TableFormatFor(int playerCount)
+        => playerCount switch
+        {
+            2 => HoldemTableFormat.HeadsUp,
+            >= 3 and <= 6 => HoldemTableFormat.SixMax,
+            >= 7 and <= 10 => HoldemTableFormat.FullRing,
+            _ => throw new ArgumentOutOfRangeException(nameof(playerCount), playerCount, "Player count must be between 2 and 10"),
+        };
+
+    /// <summary>
     /// Whether the engine can model this hand at all. The engine plays no-limit hold'em with no
     /// antes and a big blind of exactly twice the small blind (<c>StartHandActionHandler</c> derives
     /// it that way), and it can only settle a showdown the history wrote every card of.
@@ -165,7 +178,7 @@ internal sealed class PhhReplayRunner : IDisposable
 
         await ApplyAsync(new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
+            Options: new GameOptionData { TableFormat = TableFormatFor(playerCount), MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
             hand);
 
         var gameData = await ApplyAsync(new HoldemActionStartGame(gameId,

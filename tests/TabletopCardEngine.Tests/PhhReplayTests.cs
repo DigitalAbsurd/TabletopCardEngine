@@ -16,6 +16,7 @@ public sealed class PhhReplayTests
 {
     private const int PluribusHandCount = 10_000;
     private const int HeadsUpHandCount = 2_351;
+    private const int FullRingHandCount = 1_505;
 
     /// <summary>
     /// How many of the heads-up hands the engine can replay. The rest are showdowns where the history
@@ -23,6 +24,13 @@ public sealed class PhhReplayTests
     /// or filter regression that quietly shrinks the corpus fails here.
     /// </summary>
     private const int HeadsUpSupportedHandCount = 2_145;
+
+    /// <summary>
+    /// How many of the full-ring hands the engine can replay. The rest are showdowns where the history
+    /// only recorded one player's cards — real play. Pinned so that a reader or filter regression that
+    /// quietly shrinks the corpus fails here.
+    /// </summary>
+    private const int FullRingSupportedHandCount = 1_283;
 
     /// <summary>
     /// Guards the reader and the fixture itself. In particular it asserts that *no* hand is skipped
@@ -138,6 +146,59 @@ public sealed class PhhReplayTests
     public async Task PhhHeadsUpReplay_Test()
     {
         var hands = PhhFixture.HeadsUpUpToLimit;
+
+        hands.Should().NotBeEmpty();
+
+        using var runner = new PhhReplayRunner();
+        foreach (var hand in hands)
+        {
+            await runner.ReplayAsync(hand);
+        }
+    }
+
+    /// <summary>
+    /// Guards the full-ring corpus. Unlike the Pluribus hands these are real online play, so some are
+    /// filtered out — the counts are pinned rather than the filter being asserted empty.
+    /// </summary>
+    [TestMethod]
+    public void PhhFullRingCorpus_ParsesAndIsMostlySupported()
+    {
+        var corpus = PhhFixture.FullRing;
+
+        corpus.Should().HaveCount(FullRingHandCount, "the vendored fixture holds this many full-ring hands");
+        corpus.Should().OnlyContain(hand => hand.BlindsOrStraddles.Length >= 7 && hand.BlindsOrStraddles.Length <= 10,
+            "the packer keeps full-ring hands only");
+
+        var supported = corpus.Count(hand => PhhReplayRunner.IsSupported(hand, out _));
+        supported.Should().Be(FullRingSupportedHandCount, "how much of the corpus the engine can replay");
+
+        var unsupportedReasons = corpus
+            .Select(hand =>
+            {
+                PhhReplayRunner.IsSupported(hand, out var reason);
+                return reason;
+            })
+            .Where(reason => reason.Length > 0)
+            .Distinct()
+            .ToArray();
+
+        unsupportedReasons.Should().Equal(
+            ["a showdown is reached without every contender's cards and the whole board recorded", "straddles are not supported by the engine"],
+            "full-ring hands are filtered by specific reasons");
+
+        // A concrete hand, spelled out, so a reader regression fails here rather than mid-replay.
+        var firstHand = corpus[0];
+        firstHand.PlayerCount.Should().Be(7, "the first full-ring hand is 7-seated");
+    }
+
+    /// <summary>
+    /// The full-ring replay. Every seat, blind, actor and board card is checked against the history;
+    /// the money is not, because handhq records no finishing stacks and rakes its pots.
+    /// </summary>
+    [TestMethod]
+    public async Task PhhFullRingReplay_Test()
+    {
+        var hands = PhhFixture.FullRingUpToLimit;
 
         hands.Should().NotBeEmpty();
 
