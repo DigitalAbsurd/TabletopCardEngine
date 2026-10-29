@@ -14,7 +14,10 @@ internal static class GameOptionsValidation
             return new HoldemError(HoldemErrorCode.UnsupportedGameOptions, PackResource.HoldemValidation_UnsupportedGameOptions);
         }
 
-        if (options.MaxPlayersCount < settings.GamePlayersMinCount
+        if (!Enum.IsDefined(options.TableFormat)
+            || options.MaxPlayersCount < options.TableFormat.MinSeats()
+            || options.MaxPlayersCount > options.TableFormat.MaxSeats()
+            || options.MaxPlayersCount < settings.GamePlayersMinCount
             || options.MaxPlayersCount > settings.GamePlayersMaxCount
             || options.InitialSmallBlind <= 0
             || !AmountRules.HasValidScale(options.InitialSmallBlind)

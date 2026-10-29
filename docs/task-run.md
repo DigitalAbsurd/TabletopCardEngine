@@ -401,7 +401,8 @@ renumber.
 17. **Thirteen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
-    of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6`, `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
+    of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6` (which also covers an undefined table
+    format and a seat count outside the format's range), `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
     `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, and `IllegalAction = 13` of fact 29.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
@@ -458,11 +459,12 @@ renumber.
     than to a default one. Define custom properties in the global `wwwroot/css/app.css`, never in a
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
-23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 6
-    seats, no antes, no rake. `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
+23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 10
+    seats, no antes, no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
+    `FullRing` 7 to 10 (`Holdem/ActionHandlers/HoldemTableFormatExtensions.cs`). `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
-    and `InvalidGameOptions = 6` when `MaxPlayersCount` is
-    outside `[GamePlayersMinCount, GamePlayersMaxCount]`, `InitialSmallBlind <= 0`, `InitialSmallBlind`
+    and `InvalidGameOptions = 6` when `TableFormat` is not a defined `HoldemTableFormat`, `MaxPlayersCount` is
+    outside the format's range or outside `[GamePlayersMinCount, GamePlayersMaxCount]` (2 to 10 by default), `InitialSmallBlind <= 0`, `InitialSmallBlind`
     has more than two decimal places, or `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
     `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat,
     has `BuyInAmount <= 0`, `BuyInAmount` has more than two decimal places, or `Name` is `null`, empty,
@@ -471,7 +473,7 @@ renumber.
     (`InitialSmallBlind`, `BuyInAmount`, `Size`) have at most two decimal places, and a player's `Name` is
     1 to 64 characters (`AmountRules`).
     `HoldemOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
-    with a minimum below 2, a maximum above 6 or a minimum above the maximum: a configuration error, not a
+    with a minimum below 2, a maximum above 10 or a minimum above the maximum: a configuration error, not a
     game result. `GameOptionData` has no positional constructor; build it with an object initializer.
 24. **`Game.Version` is the concurrency token, and `Conflict = 11` reports a lost race.** `CreateGame`
     starts it at `1`; every other call that saves increments it, so the `UPDATE Game ... WHERE Version`

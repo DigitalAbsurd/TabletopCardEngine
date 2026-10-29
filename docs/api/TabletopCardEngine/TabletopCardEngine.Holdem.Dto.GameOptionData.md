@@ -73,7 +73,8 @@ public decimal InitialSmallBlind { get; init; }
 
 ## GameOptionData\.MaxPlayersCount Property
 
-How many seats the table has; must lie within the engine's configured seat limits, which are 2 to 6 in this release\.
+How many seats the table has; must lie in the range of [TableFormat](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.TableFormat 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.TableFormat') and within the
+engine's configured seat limits, which are 2 to 10 by default\.
 
 ```csharp
 public int MaxPlayersCount { get; init; }
@@ -81,3 +82,19 @@ public int MaxPlayersCount { get; init; }
 
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.TableFormat'></a>
+
+## GameOptionData\.TableFormat Property
+
+The table format, which caps the seats: [HeadsUp](TabletopCardEngine.Holdem.HoldemTableFormat.md#TabletopCardEngine.Holdem.HoldemTableFormat.HeadsUp 'TabletopCardEngine\.Holdem\.HoldemTableFormat\.HeadsUp') is exactly 2,
+[SixMax](TabletopCardEngine.Holdem.HoldemTableFormat.md#TabletopCardEngine.Holdem.HoldemTableFormat.SixMax 'TabletopCardEngine\.Holdem\.HoldemTableFormat\.SixMax') is 2 to 6 and [FullRing](TabletopCardEngine.Holdem.HoldemTableFormat.md#TabletopCardEngine.Holdem.HoldemTableFormat.FullRing 'TabletopCardEngine\.Holdem\.HoldemTableFormat\.FullRing') is 7 to 10\.
+Defaults to [SixMax](TabletopCardEngine.Holdem.HoldemTableFormat.md#TabletopCardEngine.Holdem.HoldemTableFormat.SixMax 'TabletopCardEngine\.Holdem\.HoldemTableFormat\.SixMax'), so a caller that never sets it gets the 1\.0 table\.
+An undefined value is rejected when the game is created\.
+
+```csharp
+public TabletopCardEngine.Holdem.HoldemTableFormat TableFormat { get; init; }
+```
+
+#### Property Value
+[HoldemTableFormat](TabletopCardEngine.Holdem.HoldemTableFormat.md 'TabletopCardEngine\.Holdem\.HoldemTableFormat')

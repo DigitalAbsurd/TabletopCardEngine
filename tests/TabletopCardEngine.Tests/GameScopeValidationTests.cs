@@ -71,6 +71,38 @@ public sealed class GameScopeValidationTests
         => await AssertCreateGameFailsAsync(new GameOptionData { MaxPlayersCount = 7 }, HoldemErrorCode.InvalidGameOptions);
 
     [TestMethod]
+    [DataRow(HoldemTableFormat.HeadsUp, 2, true)]
+    [DataRow(HoldemTableFormat.HeadsUp, 3, false)]
+    [DataRow(HoldemTableFormat.SixMax, 2, true)]
+    [DataRow(HoldemTableFormat.SixMax, 6, true)]
+    [DataRow(HoldemTableFormat.SixMax, 7, false)]
+    [DataRow(HoldemTableFormat.FullRing, 6, false)]
+    [DataRow(HoldemTableFormat.FullRing, 7, true)]
+    [DataRow(HoldemTableFormat.FullRing, 9, true)]
+    [DataRow(HoldemTableFormat.FullRing, 10, true)]
+    [DataRow(HoldemTableFormat.FullRing, 11, false)]
+    [DataRow((HoldemTableFormat)99, 6, false)]
+    public async Task CreateGame_TableFormatAndSeats_AcceptedOnlyInTheFormatsRange(HoldemTableFormat tableFormat, int seats, bool valid)
+    {
+        var options = new GameOptionData { TableFormat = tableFormat, MaxPlayersCount = seats };
+        if (!valid)
+        {
+            await AssertCreateGameFailsAsync(options, HoldemErrorCode.InvalidGameOptions);
+            return;
+        }
+
+        using var host = TestEngineHost.Setup(out var engine, out _);
+
+        var result = await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, options));
+
+        result.IsSuccess.Should().BeTrue();
+        var reloaded = await engine.ApplyAsync(new HoldemActionGetGame(_gameId));
+        reloaded.IsSuccess.Should().BeTrue();
+        reloaded.Value.Options.TableFormat.Should().Be(tableFormat);
+        reloaded.Value.Options.MaxPlayersCount.Should().Be(seats);
+    }
+
+    [TestMethod]
     public async Task CreateGame_ZeroSmallBlind_FailsWithInvalidGameOptions()
         => await AssertCreateGameFailsAsync(new GameOptionData { InitialSmallBlind = 0 }, HoldemErrorCode.InvalidGameOptions);
 
@@ -106,6 +138,59 @@ public sealed class GameScopeValidationTests
         result.IsFailed.Should().BeTrue();
         result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidGameOptions);
         (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_NarrowedSettingsMax_RejectsNineSeatFullRingGame()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory, configureSettings: settings => settings.GamePlayersMaxCount = 8);
+
+        var result = await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { TableFormat = HoldemTableFormat.FullRing, MaxPlayersCount = 9 }));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidGameOptions);
+        (await CountRowsAsync(contextFactory)).Should().OnlyContain(count => count == 0);
+    }
+
+    [TestMethod]
+    public async Task FullRing_TenSeats_PlaysAHandToTheEnd()
+    {
+        const int seatCount = 10;
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.FullRing, MaxPlayersCount = seatCount };
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, options))).IsSuccess.Should().BeTrue();
+        PlayerJoinData[] joinSeats = [.. Enumerable.Range(1, seatCount).Select(seatNo => new PlayerJoinData($"Player {seatNo}", (byte)seatNo, 1000))];
+
+        var started = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, joinSeats));
+
+        started.IsSuccess.Should().BeTrue();
+        var gameData = started.Value;
+        var handData = gameData.HandData!;
+        handData.Seats.Should().HaveCount(seatCount);
+        handData.Seats.Should().OnlyContain(seat => seat.Hole != null && seat.Hole.Count == 2);
+        handData.SmallBlindSeatNo.Should().Be(NextSeatNo(handData.DealerSeatNo, seatCount));
+        handData.BigBlindSeatNo.Should().Be(NextSeatNo(handData.SmallBlindSeatNo, seatCount));
+
+        var decisionsLeft = 100;
+        while (!gameData.HandData!.Seats.Any(seat => seat.HandResult != null))
+        {
+            (--decisionsLeft).Should().BePositive("a check/call hand should end within 100 decisions");
+            var evaluations = gameData.HandData!.Evaluations;
+            var actionType = evaluations.Any(evaluation => evaluation.PlayerActionType == PlayerActionType.Check)
+                ? PlayerActionType.Check
+                : PlayerActionType.Call;
+            evaluations.Should().Contain(evaluation => evaluation.PlayerActionType == actionType);
+
+            var result = await engine.ApplyAsync(new HoldemActionPlay(_gameId, actionType, 0));
+
+            result.IsSuccess.Should().BeTrue(string.Join("; ", result.Errors.Select(error => error.Message)));
+            gameData = result.Value;
+        }
+
+        handData = gameData.HandData!;
+        handData.CommunityCards.Should().HaveCount(5);
+        handData.Seats.Sum(seat => seat.HandResult!.Net).Should().Be(0);
+        handData.Seats.SelectMany(seat => seat.Hole!).Concat(handData.CommunityCards).Should().OnlyHaveUniqueItems();
     }
 
     [TestMethod]
@@ -187,9 +272,9 @@ public sealed class GameScopeValidationTests
     }
 
     [TestMethod]
-    public void WithSettings_MaxAboveSix_Throws()
+    public void WithSettings_MaxAboveTen_Throws()
     {
-        var act = () => TestEngineHost.Setup(out _, out _, configureSettings: settings => settings.GamePlayersMaxCount = 7);
+        var act = () => TestEngineHost.Setup(out _, out _, configureSettings: settings => settings.GamePlayersMaxCount = 11);
 
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
@@ -239,6 +324,8 @@ public sealed class GameScopeValidationTests
         result.Errors.Single().Message.Should().NotBeNullOrWhiteSpace();
         (await CountRowsAsync(contextFactory)).Should().Equal(rowsBefore);
     }
+
+    private static byte NextSeatNo(byte seatNo, int seatCount) => (byte)((seatNo % seatCount) + 1);
 
     private static async Task<int[]> CountRowsAsync(IDbContextFactory<HoldemDbContext> contextFactory)
     {
