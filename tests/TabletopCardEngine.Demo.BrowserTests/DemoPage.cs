@@ -93,6 +93,15 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>A row of seats on the table; the top row is first, the bottom row last.</summary>
     public const string SeatRowSelector = ".table-seats-row";
 
+    /// <summary>
+    /// The Table format dropdown of the New Game form. AntDesign puts the field's <c>Id</c> on the
+    /// hidden search input as <c>setup-table-format_list</c>, so the clickable box is its parent.
+    /// </summary>
+    public const string TableFormatFieldSelector = ".ant-select:has(#setup-table-format_list)";
+
+    /// <summary>The Max Players dropdown of the New Game form, found the same way.</summary>
+    public const string MaxPlayersFieldSelector = ".ant-select:has(#setup-max-players_list)";
+
     /// <summary>One entry in the engine-call log; the log is mounted even while its tab is hidden.</summary>
     public const string EngineCallEntrySelector = ".engine-call-entry";
 
@@ -484,6 +493,83 @@ internal sealed class DemoPage : IAsyncDisposable
     {
         await _page.Locator(NewGameButtonSelector).First.ClickAsync();
         await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>
+    /// Deals a new game of the given table format and seat count through the New Game form, the way
+    /// a visitor would: open the modal, pick the format, pick the seat count, press Apply, and wait
+    /// for the hand on the clock.
+    /// </summary>
+    /// <param name="formatLabel">The format's caption in the form's dropdown, such as <c>Full Ring</c>.</param>
+    /// <param name="seatCount">The Max Players value; every seat is filled with a player.</param>
+    public async Task CreateGameAsync(string formatLabel, int seatCount)
+    {
+        await OpenNewGameModalAsync();
+
+        await SelectOptionAsync(TableFormatFieldSelector, formatLabel);
+        await SelectOptionAsync(MaxPlayersFieldSelector, seatCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        // Picking a format that raises the seat count empties the Dealer Seat field in the form (issue
+        // #520), and Apply then refuses the form. Typing the
+        // dealer seat back is what a visitor has to do too.
+        await _page.Locator("#setup-dealer-seat").FillAsync("1");
+        await _page.Locator("#setup-dealer-seat").PressAsync("Tab");
+
+        await _page.Locator(".ant-modal-footer .ant-btn-primary").ClickAsync();
+        await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = BootTimeoutMilliseconds });
+        await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        await DismissNotificationsAsync();
+    }
+
+    /// <summary>
+    /// The <c>top</c> edge of every seat in every <c>.table-seats-row</c>, one list per row in
+    /// document order. A row whose seats do not share one top has wrapped onto a second line.
+    /// </summary>
+    public async Task<IReadOnlyList<IReadOnlyList<double>>> ReadSeatRowTopsAsync()
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => JSON.stringify(
+                Array.from(document.querySelectorAll(selector))
+                    .map(row => Array.from(row.children).map(seat => seat.getBoundingClientRect().top)))
+            """,
+            SeatRowSelector);
+        return JsonSerializer.Deserialize<List<List<double>>>(json, _jsonOptions)
+            ?.Select(row => (IReadOnlyList<double>)row).ToList()
+            ?? [];
+    }
+
+    /// <summary>
+    /// Checks or calls for every seat on the clock until the hand is over, so it reaches showdown
+    /// with every seat still in and the finished hand lists one result chip per seat, the tallest
+    /// the table's centre ever gets.
+    /// </summary>
+    /// <param name="maximumActions">A budget, so a hand that never ends fails rather than hangs.</param>
+    /// <returns>The number of actions taken.</returns>
+    public async Task<int> PlayCheckCallDownAsync(int maximumActions)
+    {
+        ILocator buttons = _page.Locator(".action-bar .check-btn, .action-bar .call-btn");
+        ILocator entries = _page.Locator(EngineCallEntrySelector);
+
+        int actions = 0;
+        while (actions < maximumActions && await buttons.CountAsync() > 0)
+        {
+            int before = await entries.CountAsync();
+            await buttons.First.ClickAsync();
+            await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
+            await _page.WaitForTimeoutAsync(SettleMilliseconds);
+            actions++;
+        }
+
+        return actions;
+    }
+
+    private async Task SelectOptionAsync(string fieldSelector, string optionText)
+    {
+        await _page.Locator(fieldSelector).ClickAsync();
+        await _page.Locator($".ant-select-item-option[aria-label=\"{optionText}\"]:visible").ClickAsync();
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 

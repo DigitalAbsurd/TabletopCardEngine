@@ -550,8 +550,11 @@ table's height budget is tightest. And the dev server has to be stopped afterwar
    has not been shown to work — and put it back.
 3. Open the demo with the console open and touch nothing: no exception, no `does not have a property
    matching the name`, no yellow bar in the footer.
-4. Create a six-handed game and play a hand to showdown, then start the next one. The table, the
-   database inspector and the call log stay consistent at every step, and the console stays clean.
+4. Create a six-handed game and play a hand to showdown, then start the next one. Then create a
+   ten-seat Full Ring game (Table format Full Ring, Max Players 10) and play a hand to showdown the
+   same way: both seat rows stay on one line each, and the finished hand's ten result chips leave the
+   action bar on screen. The table, the database inspector and the call log stay consistent at every
+   step, and the console stays clean.
 5. Take every action through the action bar along the bottom of the table: it names the player on the
    clock; the −/+ steps of one small blind, the Min / All-in marks on the raise slider and the white
    ½ Pot / Pot buttons beside the amount box only size the raise; each preset shows its amount

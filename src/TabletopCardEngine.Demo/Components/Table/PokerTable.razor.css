@@ -39,6 +39,13 @@
     max-width: 600px;
 }
 
+/* Seven to ten seats: the finished hand's ten result chips take three lines of a 600px centre, a
+   line more than the six-seat table pays, and at 1366x768 that pushes the action bar off the
+   screen. 900px holds five chips a line, so the chips stay on two. */
+.poker-table-large .table-center {
+    max-width: 900px;
+}
+
 .community-cards {
     display: flex;
     gap: 0.5rem;
