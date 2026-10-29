@@ -113,7 +113,7 @@ public sealed class PhhReplayLifecycle_Tests
 
         // Act 2: Create a new game (through the replay engine this would fail: no deck is registered for it)
         var newGameId = Guid.NewGuid();
-        var gameOptions = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var gameOptions = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -147,7 +147,7 @@ public sealed class PhhReplayLifecycle_Tests
         };
 
         var badGameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act 1: Create a game
         var createTask = session.CreateGameAsync(options, badGameId);

@@ -1,4 +1,5 @@
-﻿using TabletopCardEngine.Holdem.Dto;
+﻿using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Services;
 
@@ -21,10 +22,14 @@ public static class DemoGameDefaults
     /// <summary>The stack every seat sits down with.</summary>
     public const decimal BuyIn = 100m;
 
+    /// <summary>The table format the demo boots with.</summary>
+    public const HoldemTableFormat TableFormat = HoldemTableFormat.SixMax;
+
     /// <summary>The game options the demo boots with.</summary>
     public static GameOptionData CreateOptions()
         => new()
         {
+            TableFormat = TableFormat,
             MaxPlayersCount = MaxPlayers,
             InitialSmallBlind = SmallBlind,
             InitialDealerSeatNo = DealerSeatNo,

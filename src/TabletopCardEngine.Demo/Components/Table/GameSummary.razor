@@ -1,5 +1,6 @@
 ﻿@using AntDesign
 @using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Holdem
 @using TabletopCardEngine.Holdem.Dto
 
 @* The settings the running session was created with. GameData.Options is the only record of them,
@@ -9,6 +10,10 @@
    table's D badge. *@
 <div class="game-summary">
     <div class="game-summary-items">
+        <span class="game-summary-item">
+            <span class="game-summary-label">Format</span>
+            <span class="game-summary-value">@GetTableFormatLabel()</span>
+        </span>
         <span class="game-summary-item">
             <span class="game-summary-label">Blinds</span>
             <span class="game-summary-value">@AmountFormat.Format(SmallBlind) / @AmountFormat.Format(BigBlind)</span>
@@ -50,6 +55,11 @@
     private decimal BigBlind => SmallBlind * 2;
 
     private int HandNumber => GameData?.HandData is { No: > 0 } hand ? hand.No : 0;
+
+    private string GetTableFormatLabel() =>
+        GameData?.Options.TableFormat is HoldemTableFormat format
+            ? HoldemTableFormatLabels.GetLabel(format)
+            : string.Empty;
 
     private async Task OnNewGameClickedAsync()
     {

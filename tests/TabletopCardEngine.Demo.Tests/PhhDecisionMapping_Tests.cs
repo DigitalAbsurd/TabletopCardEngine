@@ -36,7 +36,7 @@ public sealed class PhhDecisionMapping_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using TabletopCardEngine.Demo.Services;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Components.Table;
@@ -24,6 +25,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     [Inject]
     public required DemoDatabase Database { get; set; }
 
+    private HoldemTableFormat _tableFormat = DemoGameDefaults.TableFormat;
     private int _maxPlayers = DemoGameDefaults.MaxPlayers;
     private decimal _smallBlind = DemoGameDefaults.SmallBlind;
     private byte _dealerSeat = DemoGameDefaults.DealerSeatNo;
@@ -56,6 +58,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     /// </summary>
     public void ResetToDefaults()
     {
+        _tableFormat = DemoGameDefaults.TableFormat;
         _maxPlayers = DemoGameDefaults.MaxPlayers;
         _smallBlind = DemoGameDefaults.SmallBlind;
         _dealerSeat = DemoGameDefaults.DealerSeatNo;
@@ -72,6 +75,25 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         {
             _players.Add(new PlayerSetup { Name = $"Player {i}", SeatNo = i, BuyInAmount = DemoGameDefaults.BuyIn });
         }
+    }
+
+    /// <summary>
+    /// Called when the table format changes. Sets Max Players to that format's default
+    /// and adjusts the player list accordingly.
+    /// </summary>
+    private Task OnTableFormatChangedAsync(HoldemTableFormat newFormat)
+    {
+        _tableFormat = newFormat;
+
+        var newMaxPlayers = newFormat switch
+        {
+            HoldemTableFormat.HeadsUp => 2,
+            HoldemTableFormat.SixMax => 6,
+            HoldemTableFormat.FullRing => 9,
+            _ => 6,
+        };
+
+        return OnMaxPlayersChangedAsync(newMaxPlayers);
     }
 
     /// <summary>
@@ -224,7 +246,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             Session.Reset();
             Database.ClearAllData();
 
-            var gameOptions = new GameOptionData { MaxPlayersCount = _maxPlayers, InitialSmallBlind = _smallBlind, InitialDealerSeatNo = _dealerSeat };
+            var gameOptions = new GameOptionData { TableFormat = _tableFormat, MaxPlayersCount = _maxPlayers, InitialSmallBlind = _smallBlind, InitialDealerSeatNo = _dealerSeat };
 
             var createSuccess = await Session.CreateGameAsync(gameOptions, cancellationToken: cancellationToken);
             if (!createSuccess)

@@ -1,5 +1,6 @@
 ﻿@using AntDesign
 @using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Holdem
 
 <Card Title="Game Setup" Class="game-setup-card">
     <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
@@ -19,6 +20,24 @@
            caption can run into the input beside it. *@
         <div class="game-options">
             <div class="form-group">
+                <label for="setup-table-format">Table format</label>
+                <Select
+                    Id="setup-table-format"
+                    Value="@_tableFormat"
+                    ValueChanged="@OnTableFormatChangedAsync"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="HoldemTableFormat"
+                    TItem="HoldemTableFormat">
+                    <SelectOptions>
+                        <SelectOption TItemValue="HoldemTableFormat" TItem="HoldemTableFormat" Value="@HoldemTableFormat.HeadsUp" Label="Heads-Up (2-Max)" />
+                        <SelectOption TItemValue="HoldemTableFormat" TItem="HoldemTableFormat" Value="@HoldemTableFormat.SixMax" Label="6-Max" />
+                        <SelectOption TItemValue="HoldemTableFormat" TItem="HoldemTableFormat" Value="@HoldemTableFormat.FullRing" Label="Full Ring" />
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            <div class="form-group">
                 <label for="setup-max-players">Max Players</label>
                 <Select
                     Id="setup-max-players"
@@ -29,11 +48,25 @@
                     TItemValue="int"
                     TItem="int">
                     <SelectOptions>
-                        <SelectOption TItemValue="int" TItem="int" Value="2" Label="2 (Heads-up)" />
-                        <SelectOption TItemValue="int" TItem="int" Value="3" Label="3" />
-                        <SelectOption TItemValue="int" TItem="int" Value="4" Label="4" />
-                        <SelectOption TItemValue="int" TItem="int" Value="5" Label="5" />
-                        <SelectOption TItemValue="int" TItem="int" Value="6" Label="6" />
+                        @if (_tableFormat == HoldemTableFormat.HeadsUp)
+                        {
+                            <SelectOption TItemValue="int" TItem="int" Value="2" Label="2" />
+                        }
+                        else if (_tableFormat == HoldemTableFormat.SixMax)
+                        {
+                            <SelectOption TItemValue="int" TItem="int" Value="2" Label="2" />
+                            <SelectOption TItemValue="int" TItem="int" Value="3" Label="3" />
+                            <SelectOption TItemValue="int" TItem="int" Value="4" Label="4" />
+                            <SelectOption TItemValue="int" TItem="int" Value="5" Label="5" />
+                            <SelectOption TItemValue="int" TItem="int" Value="6" Label="6" />
+                        }
+                        else if (_tableFormat == HoldemTableFormat.FullRing)
+                        {
+                            <SelectOption TItemValue="int" TItem="int" Value="7" Label="7" />
+                            <SelectOption TItemValue="int" TItem="int" Value="8" Label="8" />
+                            <SelectOption TItemValue="int" TItem="int" Value="9" Label="9" />
+                            <SelectOption TItemValue="int" TItem="int" Value="10" Label="10" />
+                        }
                     </SelectOptions>
                 </Select>
             </div>
