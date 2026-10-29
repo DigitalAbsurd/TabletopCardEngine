@@ -3,7 +3,7 @@
 ASP.NET Core integration for `TabletopCardEngine`. Wires the engine into a host and exposes it over HTTP with health checks and a REST API.
 
 ```bash
-dotnet add package TabletopCardEngine.AspNetCore --prerelease
+dotnet add package TabletopCardEngine.AspNetCore
 ```
 
 Register the engine with a database provider, add a health check, and map the API:

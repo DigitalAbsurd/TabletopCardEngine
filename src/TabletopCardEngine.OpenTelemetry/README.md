@@ -3,7 +3,7 @@
 OpenTelemetry instrumentation for `TabletopCardEngine`. Adds automatic tracing and metrics to the engine with a single method call.
 
 ```bash
-dotnet add package TabletopCardEngine.OpenTelemetry --prerelease
+dotnet add package TabletopCardEngine.OpenTelemetry
 ```
 
 Wire up OpenTelemetry tracing and metrics with the instrumentation:

@@ -3,7 +3,7 @@
 PostgreSQL provider for `TabletopCardEngine`. Use this for production deployments.
 
 ```bash
-dotnet add package TabletopCardEngine.PostgreSql --prerelease
+dotnet add package TabletopCardEngine.PostgreSql
 ```
 
 Register the engine with PostgreSQL:

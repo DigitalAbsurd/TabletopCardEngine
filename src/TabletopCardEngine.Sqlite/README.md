@@ -3,7 +3,7 @@
 SQLite provider for `TabletopCardEngine`. Use this for development, prototypes, and small deployments.
 
 ```bash
-dotnet add package TabletopCardEngine.Sqlite --prerelease
+dotnet add package TabletopCardEngine.Sqlite
 ```
 
 Register the engine with SQLite and create or migrate the schema at startup:

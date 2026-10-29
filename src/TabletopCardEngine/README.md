@@ -12,8 +12,8 @@ number generator or a tamper-evident audit trail.
 Install the core package alongside a provider package (SQLite, PostgreSQL, SQL Server, or in-memory):
 
 ```bash
-dotnet add package TabletopCardEngine --prerelease
-dotnet add package TabletopCardEngine.Sqlite --prerelease
+dotnet add package TabletopCardEngine
+dotnet add package TabletopCardEngine.Sqlite
 ```
 
 Here's a minimal example that creates a game, starts a hand, and plays it to the end:
