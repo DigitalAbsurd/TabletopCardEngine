@@ -26,6 +26,7 @@ public sealed class QuickStartTests
         // A heads-up game: blinds 1/2, two players with 100 each.
         var created = await table.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
         {
+            TableFormat = HoldemTableFormat.HeadsUp,
             MaxPlayersCount = 2,
             InitialSmallBlind = 1,
         }));

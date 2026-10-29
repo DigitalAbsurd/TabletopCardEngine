@@ -17,7 +17,7 @@ Try the [interactive Blazor WebAssembly demo](https://digitalabsurd.github.io/Ta
 
 ## Features and limits
 
-The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1 is limited on purpose: No-Limit Hold'em cash games only, 2 to 6 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
+The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1.1 supports: No-Limit Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seats, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
 
 | Package | Use it for |
 |---|---|
@@ -66,6 +66,7 @@ var table = provider.GetRequiredService<IHoldemTable>();
 // A heads-up game: blinds 1/2, two players with 100 each.
 var created = await table.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
 {
+    TableFormat = HoldemTableFormat.HeadsUp,
     MaxPlayersCount = 2,
     InitialSmallBlind = 1,
 }));

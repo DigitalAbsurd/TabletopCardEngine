@@ -19,7 +19,7 @@ var gameId = Guid.NewGuid();
 
 // Create a game
 var created = await engine.ApplyAsync(
-    HoldemAction.CreateGame(new GameOptionData { MaxPlayersCount = 6 }), ct);
+    HoldemAction.CreateGame(new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6 }), ct);
 gameId = created.Value.GameId;
 
 // Start it and seat players
@@ -83,6 +83,20 @@ public record GameData(
 ```
 
 The hand data includes every seat in the game, the button and blind positions, whose turn it is (`NextPlayerSeatNo`), the board, the pots, and `Evaluations` — the actions the current player may legally take.
+
+## Table formats
+
+The engine supports No-Limit Hold'em in three table formats, chosen when a game is created with `GameOptionData.TableFormat` (`HoldemTableFormat`):
+
+| Format | User-facing name | Seats (`MaxPlayersCount`) | What it is |
+|---|---|---|---|
+| `HeadsUp` | Heads-Up (2-Max) | exactly 2 | One-on-one play between two players |
+| `SixMax` | 6-Max | 2–6 | Short-handed tables of up to six players — the **default** |
+| `FullRing` | Full Ring | 7–10 | The traditional full-size table of up to ten players |
+
+When you create a game, if `MaxPlayersCount` falls outside the format's range, the engine returns `HoldemErrorCode.InvalidGameOptions`. If you do not specify a format, `SixMax` is used by default, which ensures existing code that creates games with up to six players continues to work.
+
+**Heads-up changes positions:** In heads-up play with exactly 2 players, the button posts the small blind and acts first pre-flop and last on every street after it. This is different from full-ring and short-handed play, where the button is to the left of the small blind and acts last pre-flop.
 
 ## The database is the state
 
