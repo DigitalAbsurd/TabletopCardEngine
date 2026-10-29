@@ -8,6 +8,7 @@ Two vendored corpora, both from the [PHH dataset](https://github.com/uoftcprg/ph
 | --- | --- | --- |
 | `pluribus.phhs.gz` | 10 000, all replayable | Bot play, six-handed. Exact oracle. |
 | `handhq-headsup.phhs.gz` | 2 351, of which 2 145 replayable | Real online play, heads-up. Structural oracle. |
+| `handhq-fullring.phhs.gz` | 1 505, of which 1 505 replayable | Real online play, full-ring (7–10 seated). Structural oracle. |
 
 ## `pluribus.phhs.gz`
 
@@ -72,6 +73,42 @@ So heads-up, `p1` is the big blind. The engine reaches the same layout from
 `InitialDealerSeatNo = PlayerCount` unchanged, because it moves the small blind onto the button itself
 when only two seats are funded.
 
+## `handhq-fullring.phhs.gz`
+
+The full-ring hands (7 to 10 seated) from two sources of the **`data/handhq`** subset of the
+[PHH dataset](https://github.com/uoftcprg/phh-dataset):
+- 7–9 seated hands from the first five files of **`PS-2009-07-01_2009-07-23_50NLH_OBFU/0.5`** — anonymised PokerStars \$0.25/\$0.50 no-limit hold'em logs scraped in July 2009
+- 10 seated hands from the first twenty files of **`PTY-2009-07-01_2009-07-23_400NLH_OBFU/4`** — anonymised PartyPoker \$2/\$4 no-limit hold'em logs from July 2009
+
+Only hands whose `blinds_or_straddles` has 7–9 entries (for 7–9 players) or exactly 10 entries (for 10 players) are
+kept; that is a mechanical "is this full-ring" test, and every other requirement is decided at test time by
+`PhhReplayRunner.IsSupported`, so the filter has one home. Records are copied verbatim apart from the renumbered
+`[N]` header.
+
+| Player count | Hands |
+| --- | --- |
+| 7 players | 178 |
+| 8 players | 524 |
+| 9 players | 568 |
+| 10 players | 235 |
+| **Total** | **1 505** |
+
+**What this corpus does and does not verify.** Positions, start stacks, hole cards (where shown), the seat on the
+clock at every decision, street progression and every board card are all checked against the history, same as for
+heads-up. The money is not: handhq records no `finishing_stacks`, and its pots are raked, which this engine has no
+concept of — so an exact stack comparison is impossible in principle, not merely unavailable. `Sum(Net) == 0` is still
+asserted, as an engine invariant rather than against the history.
+
+A hand is filtered out when it reaches a showdown the history did not write every card of, which is normal for real
+play: only what was shown is recorded.
+
+### Seating full-ring
+
+The PHH specification says `p1` posts the small blind and the last player has the button. In full-ring the first player
+is not the last, so this layout always holds: `p1` is the small blind, `p2` is the big blind, and players 3–*n* act
+in order down to the dealer button (the last player). The engine reaches the same layout from `InitialDealerSeatNo = PlayerCount`
+directly.
+
 ## Format
 
 See the [PHH specification](https://phh.readthedocs.io/en/stable/spec.html). The action grammar used
@@ -86,17 +123,20 @@ writes only what was shown, as `sm`, and `PhhHandDeck` reads both.
 ```
 pwsh ./scripts/pack-phh-fixture.ps1
 pwsh ./scripts/pack-phh-headsup-fixture.ps1
+pwsh ./scripts/pack-phh-fullring-fixture.ps1
 ```
 
 The first sparse-clones the upstream repository (a full clone is ~1.7 GB; a blobless sparse checkout
 of `data/pluribus` is ~12 MB), repacks `pluribus.phhs.gz` and refreshes `LICENSE-phh-dataset.txt`.
-The second packs `handhq-headsup.phhs.gz`; it reads its handful of upstream files with
-`git cat-file` rather than checking them out, because a checkout of `data/handhq` runs to several
-gigabytes. Update the commit SHA above afterwards. Neither script is part of the build or CI.
+The second packs `handhq-headsup.phhs.gz`, and the third packs `handhq-fullring.phhs.gz`; both read
+their handful of upstream files with `git cat-file` rather than checking them out, because a checkout
+of `data/handhq` runs to several gigabytes. Update the commit SHA above afterwards. None of the scripts
+are part of the build or CI.
 
-There are two scripts rather than one switch because the subsets differ in shape on disk:
+There are three scripts rather than one switch because the subsets differ in shape on disk:
 `data/pluribus` is one `.phh` file per hand, while `data/handhq` is `.phhs` files holding a thousand
-hands each, so packing means splitting records out and renumbering them.
+hands each, so packing means splitting records out and renumbering them. Different subsets within
+`data/handhq` also need different filters (heads-up vs full-ring).
 
 ## Citation
 
