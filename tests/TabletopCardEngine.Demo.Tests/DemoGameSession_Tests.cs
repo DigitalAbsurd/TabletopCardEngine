@@ -34,7 +34,7 @@ public sealed class DemoGameSession_Tests
         // Arrange
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act
         var result = await session.CreateGameAsync(options);
@@ -53,7 +53,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -82,7 +82,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -122,7 +122,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act
         await session.CreateGameAsync(options, gameId);
@@ -145,7 +145,7 @@ public sealed class DemoGameSession_Tests
         // Arrange
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var eventRaised = false;
         session.StateChanged += (s, e) =>
@@ -166,7 +166,7 @@ public sealed class DemoGameSession_Tests
         // Arrange
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         string? errorMessage = null;
         session.EngineError += (s, e) =>
@@ -191,7 +191,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         string? errorMessage = null;
         session.EngineError += (s, e) =>
@@ -219,7 +219,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -265,7 +265,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -299,7 +299,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var stateChangedCount = 0;
         session.StateChanged += (s, e) =>
@@ -325,7 +325,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         // Act - Create game successfully
         await session.CreateGameAsync(options, gameId);
@@ -345,7 +345,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 3, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 3, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -382,7 +382,7 @@ public sealed class DemoGameSession_Tests
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
         var gameId = Guid.NewGuid();
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -415,7 +415,7 @@ public sealed class DemoGameSession_Tests
         // Arrange - heads-up at 50/100: the button calls, the big blind checks, 200 in the pot
         var engine = CreateTestEngine();
         var session = new DemoGameSession(engine);
-        await session.CreateGameAsync(new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }, Guid.NewGuid());
+        await session.CreateGameAsync(new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }, Guid.NewGuid());
         await session.StartFirstHandAsync(
         [
             new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
@@ -433,4 +433,40 @@ public sealed class DemoGameSession_Tests
         RaiseSizing.PotRaise(hand, 50m).Should().Be(200m);
         RaiseSizing.Presets(hand, 50m).Should().Equal(new RaiseMark(200m, "Pot", "Current bet 0 + pot 200 = 200"));
     }
+
+    [TestMethod]
+    public async Task CreateGame_FullRing_NineSeatGame_Succeeds()
+    {
+        // Arrange
+        var engine = CreateTestEngine();
+        var session = new DemoGameSession(engine);
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.FullRing, MaxPlayersCount = 9, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+
+        var joinSeats = new PlayerJoinData[]
+        {
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 1000m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 1000m),
+            new(SeatNo: 3, Name: "Player 3", BuyInAmount: 1000m),
+            new(SeatNo: 4, Name: "Player 4", BuyInAmount: 1000m),
+            new(SeatNo: 5, Name: "Player 5", BuyInAmount: 1000m),
+            new(SeatNo: 6, Name: "Player 6", BuyInAmount: 1000m),
+            new(SeatNo: 7, Name: "Player 7", BuyInAmount: 1000m),
+            new(SeatNo: 8, Name: "Player 8", BuyInAmount: 1000m),
+            new(SeatNo: 9, Name: "Player 9", BuyInAmount: 1000m),
+        };
+
+        // Act
+        var gameCreated = await session.CreateGameAsync(options);
+        gameCreated.Should().BeTrue();
+
+        var result = await session.StartFirstHandAsync(joinSeats);
+
+        // Assert
+        result.Should().BeTrue();
+        session.CurrentHand.Should().NotBeNull();
+        session.CurrentHand!.No.Should().Be(1);
+        session.CurrentHand.Seats.Should().HaveCount(9);
+        session.CurrentGame!.Options.TableFormat.Should().Be(HoldemTableFormat.FullRing);
+    }
 }
+

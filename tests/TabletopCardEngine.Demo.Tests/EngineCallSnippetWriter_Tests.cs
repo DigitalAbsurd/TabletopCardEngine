@@ -15,7 +15,7 @@ public sealed class EngineCallSnippetWriter_Tests
         var gameId = Guid.NewGuid();
         var action = new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
+            Options: new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
         );
         var entry = new EngineCallJournalEntry(
             SequenceNumber: 1,
@@ -29,6 +29,7 @@ public sealed class EngineCallSnippetWriter_Tests
 
         // Assert
         snippet.Should().Contain("new HoldemActionCreateGame(");
+        snippet.Should().Contain("TableFormat = HoldemTableFormat.SixMax");
         snippet.Should().Contain("MaxPlayersCount = 6");
         snippet.Should().Contain("InitialSmallBlind = 50m");
         snippet.Should().Contain("var result = await engine.ApplyAsync(");
@@ -122,7 +123,7 @@ public sealed class EngineCallSnippetWriter_Tests
         var gameId = Guid.NewGuid();
         var action = new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
+            Options: new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
         );
 #pragma warning disable CA1861
         var entry = new EngineCallJournalEntry(
@@ -150,7 +151,7 @@ public sealed class EngineCallSnippetWriter_Tests
 
         var createAction = new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
+            Options: new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
         );
         journal.RecordSuccess(createAction);
 
@@ -196,7 +197,7 @@ public sealed class EngineCallSnippetWriter_Tests
         var gameId = Guid.NewGuid();
         var action = new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
+            Options: new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
         );
         var entry = new EngineCallJournalEntry(
             SequenceNumber: 1,
@@ -219,7 +220,7 @@ public sealed class EngineCallSnippetWriter_Tests
         var gameId = Guid.NewGuid();
         var action = new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
+            Options: new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 }
         );
         var errorMsg = "The game with passed Id already exists ";
         var entry = new EngineCallJournalEntry(

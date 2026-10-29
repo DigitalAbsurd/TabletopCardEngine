@@ -93,7 +93,7 @@ public sealed class ComponentRender_Tests
         var engine = CreateAndInitializeEngine(serviceProvider);
         var session = serviceProvider.GetRequiredService<DemoGameSession>();
 
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         var joinSeats = new PlayerJoinData[]
         {
@@ -276,7 +276,7 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void GameSetup_MaxPlayersSelect_RendersFiveOptions()
+    public void GameSetup_TableFormatSelect_RendersTwoOptions()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -287,12 +287,32 @@ public sealed class ComponentRender_Tests
         // Act
         var component = ctx.Render<GameSetup>();
 
-        // Assert - one option per supported table size, two through six
-        var options = component.FindComponents<AntDesign.SelectOption<int, int>>();
-        options.Should().HaveCount(5);
-        options.Select(option => option.Instance.Value).Should().Equal(2, 3, 4, 5, 6);
-        options.Select(option => option.Instance.Label).Should().Equal("2 (Heads-up)", "3", "4", "5", "6");
+        // Assert - three options: Heads-Up, 6-Max, Full Ring
+        var formatOptions = component.FindComponents<AntDesign.SelectOption<HoldemTableFormat, HoldemTableFormat>>();
+        formatOptions.Should().HaveCount(3);
+        formatOptions.Select(option => option.Instance.Value).Should().Equal(HoldemTableFormat.HeadsUp, HoldemTableFormat.SixMax, HoldemTableFormat.FullRing);
+        formatOptions.Select(option => option.Instance.Label).Should().Equal("Heads-Up (2-Max)", "6-Max", "Full Ring");
     }
+
+    [TestMethod]
+    public void GameSetup_MaxPlayersSelect_RendersTwoToSixByDefaultSixMaxFormat()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+
+        // Act
+        var component = ctx.Render<GameSetup>();
+
+        // Assert - one option per supported table size, two through six (6-Max default)
+        var playerOptions = component.FindComponents<AntDesign.SelectOption<int, int>>();
+        playerOptions.Should().HaveCount(5);
+        playerOptions.Select(option => option.Instance.Value).Should().Equal(2, 3, 4, 5, 6);
+        playerOptions.Select(option => option.Instance.Label).Should().Equal("2", "3", "4", "5", "6");
+    }
+
 
     [TestMethod]
     public async Task GameSetup_ApplyAsync_StartsAGameUnderTheFormSettings()
@@ -381,7 +401,7 @@ public sealed class ComponentRender_Tests
 
         var gameData = new GameData(
             GameId: Guid.NewGuid(),
-            Options: new GameOptionData { MaxPlayersCount = 6, InitialSmallBlind = 5m, InitialDealerSeatNo = 3 },
+            Options: new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6, InitialSmallBlind = 5m, InitialDealerSeatNo = 3 },
             HandData: BuildHandDataWithSeats(6));
 
         // Act
@@ -667,9 +687,16 @@ public sealed class ComponentRender_Tests
 
     private static GameData BuildGameData(HandData handData)
     {
+        var format = handData.Seats.Count switch
+        {
+            2 => HoldemTableFormat.HeadsUp,
+            3 or 4 or 5 or 6 => HoldemTableFormat.SixMax,
+            7 or 8 or 9 or 10 => HoldemTableFormat.FullRing,
+            _ => HoldemTableFormat.SixMax,
+        };
         return new GameData(
             GameId: Guid.NewGuid(),
-            Options: new GameOptionData { MaxPlayersCount = handData.Seats.Count, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 },
+            Options: new GameOptionData { TableFormat = format, MaxPlayersCount = handData.Seats.Count, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 },
             HandData: handData);
     }
 
@@ -1126,7 +1153,7 @@ public sealed class ComponentRender_Tests
             Evaluations: Array.Empty<PlayerActionEvaluationData>()
         );
 
-        var options = new GameOptionData { MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 50m, InitialDealerSeatNo = 1 };
 
         return new GameData(
             GameId: Guid.NewGuid(),
