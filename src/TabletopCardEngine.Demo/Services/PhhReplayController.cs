@@ -96,7 +96,14 @@ public sealed class PhhReplayController
         {
             MaxPlayersCount = (byte)hand.PlayerCount,
             InitialSmallBlind = hand.SmallBlind,
-            InitialDealerSeatNo = (byte)hand.PlayerCount // Last player is on the button
+            InitialDealerSeatNo = (byte)hand.PlayerCount, // Last player is on the button
+            TableFormat = hand.PlayerCount switch
+            {
+                2 => HoldemTableFormat.HeadsUp,
+                >= 3 and <= 6 => HoldemTableFormat.SixMax,
+                >= 7 and <= 10 => HoldemTableFormat.FullRing,
+                _ => HoldemTableFormat.SixMax // Should not happen due to PhhSupport check
+            }
         };
 
         // Register the deck with the shuffler

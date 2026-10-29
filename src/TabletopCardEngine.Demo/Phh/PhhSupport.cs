@@ -32,6 +32,10 @@ public static class PhhSupport
         {
             reason = $"{hand.PlayerCount} players — a hand needs at least two";
         }
+        else if (hand.PlayerCount > 10)
+        {
+            reason = "more than 10 players — the engine's largest table is Full Ring, 10 seats";
+        }
         else if (hand.BlindsOrStraddles.Length != hand.PlayerCount || hand.Antes.Length != hand.PlayerCount)
         {
             reason = "the antes and blinds do not line up with the players";
