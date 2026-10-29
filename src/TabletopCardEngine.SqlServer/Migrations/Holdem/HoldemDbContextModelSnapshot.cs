@@ -71,6 +71,13 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                     b.Property<int>("MaxPlayersCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("TableFormat")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("SixMax");
+
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("int");
@@ -295,8 +302,8 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.0.0",
-                            SchemaVersion = 1
+                            EngineVersion = "1.1.0",
+                            SchemaVersion = 2
                         });
                 });
 

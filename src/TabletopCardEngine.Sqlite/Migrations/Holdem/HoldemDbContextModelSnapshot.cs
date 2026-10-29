@@ -65,6 +65,13 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                     b.Property<int>("MaxPlayersCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("TableFormat")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("SixMax");
+
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("INTEGER");
@@ -289,8 +296,8 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.0.0",
-                            SchemaVersion = 1
+                            EngineVersion = "1.1.0",
+                            SchemaVersion = 2
                         });
                 });
 

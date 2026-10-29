@@ -54,16 +54,19 @@ public sealed class DemoDatabase_Tests
         browser.GetRowCount(HoldemSchema.SqliteTablePrefix + "Game").Should().Be(1);
         browser.GetRowCount(HoldemSchema.SqliteTablePrefix + "HandAction").Should().BeGreaterThan(0);
 
+        string[] versionTables = [HoldemSchema.SqliteMigrationsHistoryTable, HoldemSchema.SqliteTablePrefix + HoldemSchema.SchemaTable];
+        var versionRowCounts = versionTables.ToDictionary(tableName => tableName, browser.GetRowCount);
+        versionRowCounts.Values.Should().OnlyContain(count => count > 0);
+
         // Act
         database.ClearAllData();
 
         // Assert
-        string[] versionTables = [HoldemSchema.SqliteMigrationsHistoryTable, HoldemSchema.SqliteTablePrefix + HoldemSchema.SchemaTable];
         foreach (var tableName in browser.GetTableNames())
         {
             if (versionTables.Contains(tableName))
             {
-                browser.GetRowCount(tableName).Should().Be(1, $"{tableName} is a schema table and must not be cleared");
+                browser.GetRowCount(tableName).Should().Be(versionRowCounts[tableName], $"{tableName} is a schema table and must not be cleared");
             }
             else if (tableName.StartsWith("__", StringComparison.Ordinal))
             {

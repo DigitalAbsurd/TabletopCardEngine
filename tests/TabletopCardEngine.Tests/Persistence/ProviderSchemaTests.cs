@@ -132,7 +132,7 @@ public sealed class ProviderSchemaTests
         var migrationIds = MigrationIds(database);
         var fixtures = DiscoverFixtures();
 
-        // Only InitialCreate exists today, so this iterates nothing; it starts testing with the second migration.
+        // InitialCreate has nothing before it to upgrade from, so testing starts with the second migration.
         for (var index = 1; index < migrationIds.Count; index++)
         {
             var fixture = fixtures.Single(candidate => migrationIds[index].EndsWith("_" + candidate.MigrationName, StringComparison.Ordinal));
@@ -179,7 +179,7 @@ public sealed class ProviderSchemaTests
         var fixtures = DiscoverFixtures();
         var problems = new List<string>();
 
-        // With only InitialCreate today every provider's list is one long and the guard passes trivially.
+        // InitialCreate is skipped: it has no previous schema to seed.
         foreach (var provider in new[] { TestDatabaseKind.Sqlite, TestDatabaseKind.PostgreSql, TestDatabaseKind.SqlServer })
         {
             foreach (var id in MigrationIds(provider).Skip(1))

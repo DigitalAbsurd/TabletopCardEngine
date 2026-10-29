@@ -27,7 +27,7 @@ public sealed class SchemaCheckTests
         using var host = TestEngineHost.Setup(out var engine, out _, seedAction: async context =>
         {
             var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
-            schemaRow.SchemaVersion = 2;
+            schemaRow.SchemaVersion = HoldemSchema.Version + 1;
             await context.SaveChangesAsync();
         });
 
@@ -39,7 +39,7 @@ public sealed class SchemaCheckTests
 
         exception.Failure.Should().Be(HoldemSchemaFailure.DatabaseIsNewer);
         exception.Status.Should().NotBeNull();
-        exception.Status!.DatabaseSchemaVersion.Should().Be(2);
+        exception.Status!.DatabaseSchemaVersion.Should().Be(HoldemSchema.Version + 1);
     }
 
     [TestMethod]
@@ -67,7 +67,7 @@ public sealed class SchemaCheckTests
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory, seedAction: async context =>
         {
             var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
-            schemaRow.SchemaVersion = 2;
+            schemaRow.SchemaVersion = HoldemSchema.Version + 1;
             await context.SaveChangesAsync();
         });
 
@@ -93,7 +93,7 @@ public sealed class SchemaCheckTests
         using var host = TestEngineHost.Setup(out var engine, out _, seedAction: async context =>
         {
             var schemaRow = await context.Set<TceSchemaRow>().FirstAsync(r => r.Id == 1);
-            schemaRow.SchemaVersion = 2;
+            schemaRow.SchemaVersion = HoldemSchema.Version + 1;
             await context.SaveChangesAsync();
         });
 

@@ -25,7 +25,7 @@ The maintainer has chosen a new name, `TabletopCardEngine`, and measured availab
   private throughout.
 
 The rename needs two one-off exceptions to rules this repository otherwise holds absolute:
-[docs/public-api.md](../public-api.md#the-baseline-is-frozen) requires that changing a pinned
+[docs/public-api.md](../public-api.md#the-baseline-is-enforced-after-each-release) requires that changing a pinned
 baseline hash be a maintainer decision recorded in the CHANGELOG, never something an agent does;
 and applied migrations are never edited. Both exceptions are authorized and recorded here.
 

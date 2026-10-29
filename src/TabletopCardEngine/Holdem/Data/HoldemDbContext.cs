@@ -171,6 +171,13 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasConversion<string>()
             .HasMaxLength(EnumColumnMaxLength);
 
+        // The default is what games created before the column existed get: they all played 2 to 6 seats.
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.TableFormat)
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength)
+            .HasDefaultValue(HoldemTableFormat.SixMax);
+
         modelBuilder.Entity<HandPlayerEndState>()
             .Property(entity => entity.RankType)
             .HasConversion<string>()
