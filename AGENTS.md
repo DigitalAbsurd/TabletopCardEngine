@@ -228,6 +228,9 @@ The provider matrix lives in `Persistence/`. `TestDatabase.Configure(TestDatabas
 - `PhhCorpus_ParsesAndIsFullySupported` asserts that **no** hand is filtered out as unsupported, so a reader regression cannot silently shrink the corpus.
 
 A second corpus, `handhq-headsup.phhs.gz`, covers heads-up: 2 351 real \$0.25/\$0.50 PokerStars hands, 2 145 of them replayable. It is a **structural** oracle only — handhq records no `finishing_stacks` and rakes its pots, so `AssertHandResult` compares stacks only when a hand has them, and `IsSupported` no longer requires them. `PhhHeadsUpCorpus_ParsesAndIsMostlySupported` pins the supported count instead of asserting nothing is filtered. Heads-up seating in PHH is the one place the spec's two rules collide: the *last* player posts the small blind, not `p1` (see `PhhReplayRunner.BlindSeatsFor` and the fixture README).
+
+A third corpus, `handhq-fullring.phhs.gz`, covers full-ring: 1 505 real online hands with 7 to 10 seated players, all of them replayable — \$0.25/\$0.50 PokerStars hands and \$2/\$4 PartyPoker hands from July 2009. It is a **structural** oracle only, same as heads-up: handhq records no `finishing_stacks` and rakes its pots. `PhhFullRingCorpus_ParsesAndIsMostlySupported` pins the supported count instead of asserting nothing is filtered.
+
 - `PhhReplayRunner` throws away and rebuilds its database every 250 hands. Every hand is its own game, so rows only pile up, and an unbounded run slows down badly as the in-memory database grows.
 
 [MultiHandSessionTests.cs](tests/TabletopCardEngine.Tests/MultiHandSessionTests.cs) covers what per-hand replay cannot: one 200-hand game with stacks carrying over, a seeded action policy, and invariants as the oracle (chip conservation, button rotation, blind placement, no negative stacks, `Sum(Net) == 0`). It runs twice, `[DataRow(6)]` and `[DataRow(2)]`, so the heads-up positions get the same 200 hands.
