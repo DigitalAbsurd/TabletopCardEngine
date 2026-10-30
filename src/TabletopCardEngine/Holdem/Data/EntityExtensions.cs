@@ -99,6 +99,39 @@ internal static class EntityExtensions
     internal static bool HasSeatActed(this Hand hand, byte seatNo)
         => hand.GetSeatActions(seatNo).SelectMany(street => street.Value).Any();
 
+    /// <summary>
+    /// The seat's latest occupant: its <see cref="Player"/> row with the highest <see cref="Player.HandNoStart"/>,
+    /// whether or not that player has left since, or <see langword="null"/> for a seat nobody has taken.
+    /// </summary>
+    internal static Player? GetSeatLatestPlayer(this Game game, byte seatNo)
+        => game.Players
+            .Where(player => player.SeatNo == seatNo)
+            .OrderByDescending(player => player.HandNoStart)
+            .FirstOrDefault();
+
+    /// <summary>Whether the seat has a player who has not left: the seat is taken for the next hand.</summary>
+    internal static bool IsSeatTaken(this Game game, byte seatNo)
+        => game.GetSeatLatestPlayer(seatNo) is { HandNoEnd: null };
+
+    /// <summary>
+    /// The player who sat in the seat during hand <paramref name="handNo"/>, or <see langword="null"/>. A seat has
+    /// one row per occupant, so this is the row that had joined by then and had not left before it.
+    /// </summary>
+    internal static Player? GetSeatPlayer(this Game game, byte seatNo, int handNo)
+        => game.Players
+            .Where(player => player.SeatNo == seatNo && player.HandNoStart <= handNo && (player.HandNoEnd == null || player.HandNoEnd >= handNo))
+            .OrderByDescending(player => player.HandNoStart)
+            .FirstOrDefault();
+
+    /// <summary>
+    /// The players of <paramref name="hand"/>, one per seat that has a start state in it, ascending by seat number.
+    /// </summary>
+    internal static IEnumerable<Player> GetHandPlayers(this Game game, Hand hand)
+        => hand.PlayerStartStates
+            .Select(startState => game.GetSeatPlayer(startState.SeatNo, hand.No))
+            .OfType<Player>()
+            .OrderBy(player => player.SeatNo);
+
     internal static int GetPlayerIndex(this Player player)
         => player.SeatNo - 1;
 

@@ -108,6 +108,7 @@ nav:
                   - 'HoldemActionCreateGame': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionCreateGame.md
                   - 'HoldemActionFinishGame': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionFinishGame.md
                   - 'HoldemActionGetGame': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionGetGame.md
+                  - 'HoldemActionLeaveSeat': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md
                   - 'HoldemActionPlay': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionPlay.md
                   - 'HoldemActionStartGame': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionStartGame.md
                   - 'HoldemActionStartHand': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionStartHand.md

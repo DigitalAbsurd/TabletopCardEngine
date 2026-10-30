@@ -36,6 +36,12 @@ public record SeatData(
     /// <summary>Stacks are decimal, so "no chips left" is a comparison against this, never against zero.</summary>
     private const decimal DecimalMinPrecision = 0.0001M;
 
+    /// <summary>
+    /// Whether the seat's player has left with <see cref="HoldemActionLeaveSeat"/> after the current hand. The seat
+    /// still shows how that hand ended for the player; it is dealt out of the next hand and free for a new player.
+    /// </summary>
+    public bool HasLeft { get; init; }
+
     /// <summary>Whether the seat is still contesting the pot — it has chips and cards, or it is all in.</summary>
     public bool IsActive
         => (Stack > DecimalMinPrecision && Hole?.Count > 0 && LastAction?.ActionType != HandActionType.Fold)

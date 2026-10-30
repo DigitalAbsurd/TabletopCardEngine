@@ -19,6 +19,7 @@ Derived
 ↳ [HoldemActionCreateGame](TabletopCardEngine.Holdem.Dto.HoldemActionCreateGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionCreateGame')  
 ↳ [HoldemActionFinishGame](TabletopCardEngine.Holdem.Dto.HoldemActionFinishGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionFinishGame')  
 ↳ [HoldemActionGetGame](TabletopCardEngine.Holdem.Dto.HoldemActionGetGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionGetGame')  
+↳ [HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat')  
 ↳ [HoldemActionPlay](TabletopCardEngine.Holdem.Dto.HoldemActionPlay.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionPlay')  
 ↳ [HoldemActionStartGame](TabletopCardEngine.Holdem.Dto.HoldemActionStartGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartGame')  
 ↳ [HoldemActionStartHand](TabletopCardEngine.Holdem.Dto.HoldemActionStartHand.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartHand')
@@ -143,6 +144,32 @@ The game to read\.
 
 #### Returns
 [HoldemActionGetGame](TabletopCardEngine.Holdem.Dto.HoldemActionGetGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionGetGame')
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.LeaveSeat(System.Guid,byte)'></a>
+
+## HoldemAction\.LeaveSeat\(Guid, byte\) Method
+
+Stands the player in a seat up, between hands only, freeing the seat for a new player\.
+
+```csharp
+public static TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat LeaveSeat(System.Guid gameId, byte seatNo);
+```
+#### Parameters
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.LeaveSeat(System.Guid,byte).gameId'></a>
+
+`gameId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The game to leave\.
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.LeaveSeat(System.Guid,byte).seatNo'></a>
+
+`seatNo` [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')
+
+The seat whose player leaves\. Seats are 1\-based\.
+
+#### Returns
+[HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat')
 
 <a name='TabletopCardEngine.Holdem.Dto.HoldemAction.Play(System.Guid,TabletopCardEngine.Holdem.PlayerActionType,decimal)'></a>
 

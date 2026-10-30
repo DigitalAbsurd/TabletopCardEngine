@@ -14,7 +14,7 @@ internal static class HoldemActivity
     /// <summary>The span name for each <see cref="IHoldemTable.ApplyAsync"/> call.</summary>
     internal const string Name = "TabletopCardEngine.ApplyHoldemAction";
 
-    /// <summary>The action type: <c>CreateGame</c>, <c>GetGame</c>, <c>StartGame</c>, <c>StartHand</c>, <c>Play</c>, <c>FinishGame</c>, or <c>Unknown</c>.</summary>
+    /// <summary>The action type: <c>CreateGame</c>, <c>GetGame</c>, <c>StartGame</c>, <c>StartHand</c>, <c>Play</c>, <c>FinishGame</c>, <c>LeaveSeat</c>, or <c>Unknown</c>.</summary>
     internal const string ActionTypeTag = "tabletopcardengine.action.type";
 
     /// <summary>For <c>Play</c> actions only: the player action type (<c>Fold</c>, <c>Check</c>, <c>Call</c>, <c>Raise</c>, <c>Bet</c>, <c>AllIn</c>).</summary>

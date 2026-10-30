@@ -98,7 +98,7 @@ The engine opens one `Activity` (a span in OpenTelemetry terminology) per call t
 
 | Tag Name | Type | Values | When Set |
 |---|---|---|---|
-| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, or `Unknown` | Always (at start) |
+| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, `LeaveSeat`, or `Unknown` | Always (at start) |
 | `tabletopcardengine.game.id` | string | The game ID as a GUID string | Always (at start) |
 | `tabletopcardengine.player_action.type` | string | `Fold`, `Check`, `Call`, `Raise`, `Bet`, `AllIn` | Only for `Play` actions |
 | `tabletopcardengine.hand.no` | integer | The current hand's number | Set at return if hand number > 0 |

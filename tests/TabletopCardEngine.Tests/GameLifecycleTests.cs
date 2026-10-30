@@ -181,6 +181,7 @@ public sealed class GameLifecycleTests
     [DataRow(nameof(HoldemActionStartHand))]
     [DataRow(nameof(HoldemActionPlay))]
     [DataRow(nameof(HoldemActionFinishGame))]
+    [DataRow(nameof(HoldemActionLeaveSeat))]
     public async Task Lifecycle_EveryActionButCreateGameOnUnknownGame_FailsWithGameNotFound(string actionName)
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
@@ -191,6 +192,7 @@ public sealed class GameLifecycleTests
             nameof(HoldemActionStartHand) => new HoldemActionStartHand(_gameId),
             nameof(HoldemActionPlay) => new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0),
             nameof(HoldemActionFinishGame) => new HoldemActionFinishGame(_gameId),
+            nameof(HoldemActionLeaveSeat) => new HoldemActionLeaveSeat(_gameId, 1),
             _ => throw new ArgumentOutOfRangeException(nameof(actionName), actionName, null),
         };
 

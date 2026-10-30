@@ -57,6 +57,12 @@ public abstract record HoldemAction(Guid GameId)
     /// <param name="gameId">The game to finish.</param>
     public static HoldemActionFinishGame FinishGame(Guid gameId)
         => new(gameId);
+
+    /// <summary>Stands the player in a seat up, between hands only, freeing the seat for a new player.</summary>
+    /// <param name="gameId">The game to leave.</param>
+    /// <param name="seatNo">The seat whose player leaves. Seats are 1-based.</param>
+    public static HoldemActionLeaveSeat LeaveSeat(Guid gameId, byte seatNo)
+        => new(gameId, seatNo);
 }
 
 /// <summary>Reads the game back without changing anything.</summary>
@@ -83,7 +89,7 @@ public record HoldemActionStartGame(Guid GameId, IReadOnlyList<PlayerJoinData> J
 /// <param name="GameId">The game to deal in.</param>
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
-    /// <summary>Players who sit down between hands, each into a seat that has never been occupied in this game; topping up an occupied seat is not supported. Any read-only list will do; the engine only reads it.</summary>
+    /// <summary>Players who sit down between hands, each into an empty seat: never occupied, or left with <see cref="HoldemActionLeaveSeat"/>; topping up an occupied seat is not supported. Any read-only list will do; the engine only reads it.</summary>
     public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
 }
 
@@ -107,3 +113,16 @@ public record HoldemActionPlay(Guid GameId, PlayerActionType ActionType, decimal
 /// </summary>
 /// <param name="GameId">The game to finish.</param>
 public record HoldemActionFinishGame(Guid GameId) : HoldemAction(GameId);
+
+/// <summary>
+/// Stands the player in a seat up, between hands only: it fails with <see cref="HoldemErrorCode.GameNotStarted"/>
+/// before hand 1 and with <see cref="HoldemErrorCode.PreviousHandNotEnded"/> while a hand is in progress, so a
+/// player who wants to quit mid-hand folds first. The seat's stack leaves with the player and is not dealt
+/// into the next hand. The seat is free for <see cref="HoldemActionStartHand.JoinSeats"/> from the next hand on,
+/// and until then <see cref="SeatData.HasLeft"/> shows it. A seat outside the table, an empty seat or a player
+/// who has already left fails with <see cref="HoldemErrorCode.InvalidSeat"/>. The engine never stands a seat up
+/// on its own, not even a busted one.
+/// </summary>
+/// <param name="GameId">The game to leave.</param>
+/// <param name="SeatNo">The seat whose player leaves. Seats are 1-based.</param>
+public record HoldemActionLeaveSeat(Guid GameId, byte SeatNo) : HoldemAction(GameId);
