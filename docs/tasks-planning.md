@@ -180,11 +180,20 @@ given none, it picks from the whole repository. A milestone nobody asked for the
 organise anything — it only hides the issue from a scoped run, and it adds a segment to the branch
 name (`feature/mls-7/issue-N` rather than `feature/issue-N`) for no reason.
 
-**The exception is `Backlog`.** Every follow-up an implementer files while working a task goes into
-the `Backlog` milestone ([docs/task-run.md](task-run.md#where-the-task-text-comes-from)), so the pool
-of unplanned work stays in one place instead of scattered unassigned across the repository. When
-you plan a batch, triage `Backlog` too: move what belongs to a real milestone there, and bring the
-rest to ready where it is.
+**The exceptions are follow-ups.** A follow-up an implementer files while working a task goes into
+that task's milestone when the milestone needs it to meet its goal or its "Done when", and into the
+`Backlog` milestone otherwise ([docs/task-run.md](task-run.md#where-the-task-text-comes-from)). The
+first keeps a defect in what a milestone delivers inside the milestone's scoped run; the second
+keeps the pool of unplanned work in one place instead of scattered unassigned across the
+repository. When you plan a batch, triage `Backlog` too: move what belongs to a real milestone
+there, and bring the rest to ready where it is.
+
+A milestone's description lists its issues, a mermaid graph of their dependencies and a
+**Done when**. A follow-up filed into the milestone is listed in a section of its own,
+**Found during the work:**, between the issue list and the graph: the implementer appends one line
+there and changes nothing else. When you vet such an issue, add it to the graph, and add it to the
+`**Depends on:**` line of the milestone's closing `manual-work` issue when the release must wait for
+it.
 
 ## 6. Write the issue so it stands alone
 
@@ -286,7 +295,8 @@ The consequences for planning:
   nothing mentions an unlabelled one. Once nothing is ready, the runner lists every skipped issue
   with its reason (`has no 'agent-ready' label`, `was applied by 'x', whose role is 'none'`,
   `was edited after 'agent-ready' was applied`, `waits on #N (OPEN)`).
-- **Follow-up issues the agent files arrive in `Backlog`, and by default unvetted.** The prompt
+- **Follow-up issues the agent files arrive in the task's milestone or in `Backlog`, and by
+  default unvetted.** Look under **Found during the work:** in the milestone's description too. The prompt
   forbids the agent to touch `agent-ready`, but the agent runs with your `gh` credentials, which
   could. Review those issues like any other before labelling them. An issue with an
   `**Open decisions.**` section is not ready: decide, rewrite the body, then label it.
