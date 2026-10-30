@@ -83,6 +83,28 @@ The `org.opencontainers.image.version` label on each image carries its version. 
 
 Publishing is gated by the repository variable `TCE_PUBLISH`. To re-run `publish-docker.yml` for an existing tag, use `gh workflow run publish-docker.yml -f tag=vX.Y.Z`.
 
+## Upgrading an image
+
+The images migrate the schema on start-up by default (`MigrateDatabaseOnStartup=true` is baked in). Migrating the database is one-way: once an image migrates, older images cannot access that database.
+
+Before upgrading:
+
+1. **Back up the database.** A migration failure or a backward-incompatibility could lose data.
+   - For the `sqlite` target: back up the `/data` volume or the mounted directory.
+   - For `postgres` and `mssql`: back up the database with your database tool.
+2. **Stop the old container.** A rolling upgrade is not supported. Stop every instance of the old image before starting the new one. The first instance of the new image that starts will migrate the schema, making it inaccessible to old instances.
+
+To upgrade:
+
+1. Pull the new image with `docker pull` or build it locally.
+2. For a production workload, pin a version tag (`1.1.0-sqlite`, `1.0.0-postgres`, etc.) rather than a target-only tag. Target-only tags (`sqlite`, `postgres`, `mssql`) move with every stable release, and an upgrade becomes implicit when you pull.
+3. Start the new container in place of the old one. The schema is migrated automatically on start-up.
+4. If the migration fails, restore your backup and contact support.
+
+If you need to go back to an older image, restore the database backup created before the upgrade. A migrated schema cannot be used by an older engine version.
+
+See [Migrations — Upgrading the package](migrations.md#upgrading-the-package) for details on schema versioning and what each 1.x to 1.y upgrade changes.
+
 ## Images
 
 The `Dockerfile` at the repository root builds the host in an SDK stage (`builder`) and copies the

@@ -80,10 +80,11 @@ internal sealed class AddGameTableFormatUpgradeFixture : IUpgradeFixture
             var expected = await PlayOnCurrentSchemaAsync(game);
             migrated.Value.ShouldAsJToken().BeEquivalentToAsJToken(expected);
 
-            // GameData does not expose the format yet, so the stored column is read directly.
+            // The migration wrote the database default to the column, so verify it is there and matches the mapped value.
             var query = $"""SELECT "TableFormat" AS "Value" FROM {Table("Game", kind)} WHERE "Id" = {GuidLiteral(game.Id, kind)}""";
             var tableFormat = await context.Database.SqlQueryRaw<string>(query).SingleAsync();
             tableFormat.Should().Be(nameof(HoldemTableFormat.SixMax), "games stored before the column existed are six-max");
+            migrated.Value.Options.TableFormat.Should().Be(HoldemTableFormat.SixMax);
         }
     }
 
