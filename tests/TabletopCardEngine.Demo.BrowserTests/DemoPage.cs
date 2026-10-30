@@ -510,12 +510,6 @@ internal sealed class DemoPage : IAsyncDisposable
         await SelectOptionAsync(TableFormatFieldSelector, formatLabel);
         await SelectOptionAsync(MaxPlayersFieldSelector, seatCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-        // Picking a format that raises the seat count empties the Dealer Seat field in the form (issue
-        // #520), and Apply then refuses the form. Typing the
-        // dealer seat back is what a visitor has to do too.
-        await _page.Locator("#setup-dealer-seat").FillAsync("1");
-        await _page.Locator("#setup-dealer-seat").PressAsync("Tab");
-
         await _page.Locator(".ant-modal-footer .ant-btn-primary").ClickAsync();
         await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = BootTimeoutMilliseconds });
         await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });

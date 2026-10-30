@@ -101,7 +101,8 @@
                     max="@_maxPlayers"
                     disabled="@_isLoading"
                     placeholder="Initial dealer seat"
-                    @bind="_dealerSeat"
+                    value="@_dealerSeat"
+                    @onchange="OnDealerSeatChangedAsync"
                     class="setup-input" />
             </div>
         </div>
