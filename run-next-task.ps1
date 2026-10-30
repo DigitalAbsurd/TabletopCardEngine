@@ -109,8 +109,10 @@
     label them. With -AllowAgentVetting the prompt instead lets the agent apply -ReadyLabel
     to an issue it filed in this run, when that issue has no "**Open decisions.**" section
     and the label goes on after its last edit; it may never label any other issue or remove
-    the label. The vetting checks above are unchanged. In both modes, follow-ups go into
-    the Backlog milestone with one size label.
+    the label. The vetting checks above are unchanged. In both modes, follow-ups carry one
+    size label and go into the task's own milestone when that milestone needs them (the
+    agent also lists them under "**Found during the work:**" in its description), and into
+    the Backlog milestone otherwise.
 #>
 
 [CmdletBinding()]
@@ -497,14 +499,29 @@ function Write-TaskFile($Issue) {
     return $path
 }
 
-function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$ContextFiles, [string]$TaskFile) {
+# Where the follow-ups of an issue go (docs/task-run.md, "Where the task text comes from"):
+# into the issue's own milestone when that milestone needs them, otherwise into Backlog.
+# An issue with no milestone, or one already in Backlog, sends every follow-up to Backlog.
+function Get-FollowUpRules($IssueMilestone) {
+    $common = 'carry exactly one size label (7b, 35b or 70b), and list any open forks under an "**Open decisions.**" heading.'
+    $backlog = 'Backlog'
+    if ($null -eq $IssueMilestone -or -not $IssueMilestone.number -or $IssueMilestone.title -eq $backlog) {
+        return "Issues you file go into the $backlog milestone (gh issue create --milestone $backlog), $common"
+    }
+
+    $title = [string]$IssueMilestone.title
+    $number = [int]$IssueMilestone.number
+    return "An issue you file that the milestone '$title' needs to meet its goal or its ""Done when"" (a defect in, or a gap in, what that milestone delivers) goes into that milestone (gh issue create --milestone '$title'); then read the milestone's description (gh api repos/$Repo/milestones/$number --jq .description), append one line ""- <issue title>. - [#N](<issue url>)"" under a ""**Found during the work:**"" heading (add the heading after the issue list and before the mermaid block if it is missing), change nothing else, and write it back (gh api -X PATCH repos/$Repo/milestones/$number -F description=@<file>). Every other issue you file goes into the $backlog milestone (gh issue create --milestone $backlog). Do not edit any other issue. Either way, issues you file $common"
+}
+
+function New-TaskPrompt([int]$IssueNumber, [string]$BranchPrefix, [string[]]$ContextFiles, [string]$TaskFile, $IssueMilestone) {
     # Each assistant has its own house-rules file (CLAUDE.md, AGENTS.md, ...), so the
     # settings file names them rather than the script hard-coding one.
     $docs = (@('docs/task-run.md') + @($ContextFiles)) -join ', '
 
-    # Follow-ups always go into the Backlog milestone with one size label; only the label
-    # that marks an issue as vetted depends on the switch.
-    $followUpRules = 'Issues you file go into the Backlog milestone (gh issue create --milestone Backlog), carry exactly one size label (7b, 35b or 70b), and list any open forks under an "**Open decisions.**" heading.'
+    # Where follow-ups go depends on the issue's milestone; only the label that marks an
+    # issue as vetted depends on the switch.
+    $followUpRules = Get-FollowUpRules -IssueMilestone $IssueMilestone
     $readyLabelRule = if ($AllowAgentVetting) {
         "Never apply or remove the ""$ReadyLabel"" label on any issue, with one exception: you may apply it to an issue you filed yourself in this run, only when its body has no ""**Open decisions.**"" section, and only after your last edit to its title and body. Never apply it to any other issue, and never remove it from any issue. $followUpRules"
     }
@@ -621,7 +638,7 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
     Write-Host "Next ready issue: #$issueNumber - $($readyIssue.title). Branch: '<type>/$branchPrefix$issueNumber-...'"
 
     $taskFile = Write-TaskFile -Issue $readyIssue
-    $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile
+    $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile -IssueMilestone $readyIssue.milestone
 
     $taskClock = [Diagnostics.Stopwatch]::StartNew()
     Write-Host "Handing issue #$issueNumber to $($agentSettings.Command) ($modelId), task text in $taskFile..."
