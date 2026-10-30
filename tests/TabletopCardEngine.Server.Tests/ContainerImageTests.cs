@@ -221,6 +221,7 @@ public sealed class ContainerImageTests
             "HoldemCreateGame",
             "HoldemFinishGame",
             "HoldemGetGame",
+            "HoldemLeaveSeat",
             "HoldemPlay",
             "HoldemStartGame",
             "HoldemStartHand");
@@ -355,10 +356,129 @@ public sealed class ContainerImageTests
         }
     }
 
+    [TestMethod]
+    [DataRow("sqlite")]
+    [DataRow("postgres")]
+    [DataRow("mssql")]
+    public async Task Image_UpgradedGameTakesAndLosesPlayers(string target)
+    {
+        var current = await ImageAsync(target);
+        var previous = new DockerImage(_previousStableImages[target]);
+
+        await using var network = new NetworkBuilder().Build();
+        await network.CreateAsync();
+
+        // A named volume is filled from the image's /data on first mount, so the old image must mount it first.
+        await using var volume = new VolumeBuilder().Build();
+        await volume.CreateAsync();
+
+        IContainer? database = null;
+        try
+        {
+            Dictionary<string, string> environment;
+            (database, environment) = await StartDatabaseAsync(target, network);
+            var dataVolume = target == "sqlite" ? volume : null;
+
+            string gameUrl;
+            string etag;
+            await using (var old = await StartServerAsync(previous, network, environment, dataVolume))
+            {
+                using var client = ClientFor(old);
+                (await HealthDataAsync(client)).GetProperty("state").GetString().Should().Be("UpToDate");
+
+                var created = await client.PostAsync("/api/holdem/games", GameScenario.Json("{\"options\":{\"maxPlayersCount\":3}}"));
+                created.StatusCode.Should().Be(HttpStatusCode.Created);
+                gameUrl = $"/api/holdem/games/{(await GameScenario.ReadJsonAsync(created)).GetProperty("gameId").GetGuid()}";
+                var started = await client.SendAsync(GameScenario.Post($"{gameUrl}/start", GameScenario.HeadsUpStartBody));
+                started.StatusCode.Should().Be(HttpStatusCode.OK);
+                await FoldToTheEndAsync(client, gameUrl, started);
+
+                var read = await client.GetAsync(gameUrl);
+                read.StatusCode.Should().Be(HttpStatusCode.OK);
+                etag = read.Headers.ETag!.Tag;
+            }
+
+            await using var upgraded = await StartServerAsync(current, network, environment, dataVolume);
+            using var upgradedClient = ClientFor(upgraded);
+            (await HealthDataAsync(upgradedClient)).GetProperty("state").GetString().Should().Be("UpToDate");
+
+            var after = await upgradedClient.GetAsync(gameUrl);
+            after.StatusCode.Should().Be(HttpStatusCode.OK);
+            after.Headers.ETag!.Tag.Should().Be(etag, "the migration does not bump Game.Version");
+            (await GameScenario.ReadJsonAsync(after)).GetProperty("options").GetProperty("tableFormat").GetString().Should().Be("SixMax");
+            var version = GameScenario.VersionOf(after);
+
+            // Seat 3 sits down between hands.
+            var join = "{\"joinSeats\":[{\"name\":\"c\",\"seatNo\":3,\"buyInAmount\":100}]}";
+            var hand = await upgradedClient.SendAsync(GameScenario.Post($"{gameUrl}/hands", join));
+            hand.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(hand).Should().Be(version + 1);
+            version = GameScenario.VersionOf(hand);
+            (await SeatNumbersAsync(hand)).Should().Equal(1, 2, 3);
+            version = await FoldToTheEndAsync(upgradedClient, gameUrl, hand);
+
+            // Seat 1 stands up; the next hand is dealt to seats 2 and 3 only.
+            version = await LeaveAsync(upgradedClient, gameUrl, 1, version);
+            hand = await upgradedClient.SendAsync(GameScenario.Post($"{gameUrl}/hands", null));
+            hand.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(hand).Should().Be(version + 1);
+            (await SeatNumbersAsync(hand)).Should().Equal(2, 3);
+            version = await FoldToTheEndAsync(upgradedClient, gameUrl, hand);
+
+            // Seat 2 stands up too, which leaves one player: no hand can be dealt.
+            version = await LeaveAsync(upgradedClient, gameUrl, 2, version);
+            var refused = await upgradedClient.SendAsync(GameScenario.Post($"{gameUrl}/hands", null));
+            refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            (await GameScenario.ReadJsonAsync(refused)).GetProperty("code").GetString().Should().Be("NotEnoughPlayers");
+        }
+        finally
+        {
+            if (database is not null)
+            {
+                await database.DisposeAsync();
+            }
+        }
+    }
+
+    private static async Task<List<int>> SeatNumbersAsync(HttpResponseMessage response)
+        => (await GameScenario.ReadJsonAsync(response)).GetProperty("handData").GetProperty("seats").EnumerateArray()
+            .Select(seat => seat.GetProperty("seatNo").GetInt32()).ToList();
+
+    /// <summary>Folds the seat on the clock, as the response names it, until nobody is to act. Returns the version.</summary>
+    private static async Task<int> FoldToTheEndAsync(HttpClient client, string gameUrl, HttpResponseMessage response)
+    {
+        var version = GameScenario.VersionOf(response);
+        var game = await GameScenario.ReadJsonAsync(response);
+        var requests = 0;
+        while (game.GetProperty("handData").GetProperty("evaluations").GetArrayLength() > 0)
+        {
+            (++requests).Should().BeLessOrEqualTo(10, "folding ends a hand of at most three seats in two requests");
+            var folded = await client.SendAsync(GameScenario.Post($"{gameUrl}/actions", "{\"actionType\":\"Fold\"}"));
+            folded.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(folded).Should().Be(version + 1);
+            version = GameScenario.VersionOf(folded);
+            game = await GameScenario.ReadJsonAsync(folded);
+        }
+        return version;
+    }
+
+    private static async Task<int> LeaveAsync(HttpClient client, string gameUrl, int seatNo, int version)
+    {
+        var left = await client.SendAsync(GameScenario.Post($"{gameUrl}/seats/{seatNo}/leave", null));
+        left.StatusCode.Should().Be(HttpStatusCode.OK);
+        GameScenario.VersionOf(left).Should().Be(version + 1);
+        return GameScenario.VersionOf(left);
+    }
+
     private static string WithoutTableFormat(JsonElement game)
     {
         var node = JsonNode.Parse(game.GetRawText())!;
         node["options"]!.AsObject().Remove("tableFormat");
+        // 1.1 adds hasLeft to every seat, as it adds the table format to the options.
+        foreach (var seat in node["handData"]!["seats"]!.AsArray())
+        {
+            seat!.AsObject().Remove("hasLeft");
+        }
         return node.ToJsonString();
     }
 
