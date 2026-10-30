@@ -120,6 +120,14 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     /// </summary>
     private Task OnMaxPlayersChangedAsync(int newMaxPlayers)
     {
+        // A format change swaps the Max Players options, and while the selected value is missing
+        // from the new list the AntDesign Select reports default(int). Taken at face value, that 0
+        // empties the player list and drags the dealer seat down to 0 (issue #544).
+        if (newMaxPlayers < MinPlayersOf(_tableFormat) || newMaxPlayers > MaxPlayersOf(_tableFormat))
+        {
+            return Task.CompletedTask;
+        }
+
         if (newMaxPlayers < _maxPlayers)
         {
             // Lowering max players: trim the list to fit and renumber seats
@@ -154,6 +162,18 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
 
         return Task.CompletedTask;
     }
+
+    /// <summary>The smallest Max Players the form offers for a table format.</summary>
+    private static int MinPlayersOf(HoldemTableFormat format) =>
+        format == HoldemTableFormat.FullRing ? 7 : 2;
+
+    /// <summary>The largest Max Players the form offers for a table format.</summary>
+    private static int MaxPlayersOf(HoldemTableFormat format) => format switch
+    {
+        HoldemTableFormat.HeadsUp => 2,
+        HoldemTableFormat.FullRing => 10,
+        _ => 6,
+    };
 
     private void OnEngineError(object? sender, EngineErrorEventArgs e)
     {
