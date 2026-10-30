@@ -46,6 +46,11 @@ internal static class ServerDatabases
                 return new NpgsqlConnectionStringBuilder(_postgreSql.Value.GetAwaiter().GetResult().GetConnectionString())
                 {
                     Database = NewDatabaseName(),
+
+                    // On Windows Npgsql first asks for GSS encryption through SSPI, and on a domain-joined
+                    // machine that handshake can eat the whole 15 s connect timeout when several tests
+                    // open connections at once; the container offers no GSS anyway.
+                    GssEncryptionMode = GssEncryptionMode.Disable,
                 }.ConnectionString;
             case HoldemServerProvider.SqlServer:
                 RequireContainers();

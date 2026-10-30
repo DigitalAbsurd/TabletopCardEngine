@@ -71,6 +71,11 @@ internal static class TestDatabase
                 var postgreSql = new NpgsqlConnectionStringBuilder(_postgreSql.Value.GetAwaiter().GetResult().GetConnectionString())
                 {
                     Database = NewDatabaseName(),
+
+                    // On Windows Npgsql first asks for GSS encryption through SSPI, and on a domain-joined
+                    // machine that handshake can eat the whole 15 s connect timeout when several tests
+                    // open connections at once; the container offers no GSS anyway.
+                    GssEncryptionMode = GssEncryptionMode.Disable,
                 }.ConnectionString;
                 lifetime = NoopLifetime.Instance;
                 return options => options.UseHoldemPostgreSql(postgreSql);
