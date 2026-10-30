@@ -34,6 +34,14 @@ public sealed class MultiHandSessionTests
     /// <summary>A backstop, so a stuck hand fails the test instead of looping forever.</summary>
     private const int MaxDecisionsPerHand = 200;
 
+    // The churn policy: a seated player leaves one hand in LeaveOdds, an empty seat is taken one hand in
+    // JoinOdds, and at ExodusHandNo everybody but one player leaves, so the table is certain to run dry.
+    private const int LeaveOdds = 12;
+    private const int JoinOdds = 3;
+    private const int ExodusHandNo = 60;
+    private const int MinBuyInBigBlinds = 50;
+    private const int MaxBuyInBigBlinds = 200;
+
     /// <summary>Fixed so a failure is reproducible.</summary>
     private const int Seed = 20260825;
 
@@ -128,6 +136,221 @@ public sealed class MultiHandSessionTests
 
             previousDealerSeatNo = handData.DealerSeatNo;
         }
+    }
+
+    /// <summary>
+    /// The same 200-hand session with the table's membership changing between hands: players leave
+    /// (a busted one always does), new players take the empty seats with a buy-in of their own, and once
+    /// a scripted exodus leaves one player at the table the next hand cannot start until someone joins.
+    /// The oracle is the invariants — chips bought in equal chips on the table plus chips taken away,
+    /// and the button and blinds walk clockwise over the seats that were dealt in. The expected seats
+    /// are walked in the test, not taken from the engine's own table helpers.
+    /// </summary>
+    [TestMethod]
+    [DataRow(6, TestDatabaseKind.Sqlite, DisplayName = "six-handed churn, Sqlite")]
+    [DataRow(10, TestDatabaseKind.Sqlite, DisplayName = "ten-handed churn, Sqlite")]
+    [DataRow(6, TestDatabaseKind.InMemory, DisplayName = "six-handed churn, InMemory")]
+    [DataRow(10, TestDatabaseKind.InMemory, DisplayName = "ten-handed churn, InMemory")]
+    [DataRow(6, TestDatabaseKind.PostgreSql, DisplayName = "six-handed churn, PostgreSql")]
+    [DataRow(10, TestDatabaseKind.PostgreSql, DisplayName = "ten-handed churn, PostgreSql")]
+    [DataRow(6, TestDatabaseKind.SqlServer, DisplayName = "six-handed churn, SqlServer")]
+    [DataRow(10, TestDatabaseKind.SqlServer, DisplayName = "ten-handed churn, SqlServer")]
+    public async Task MultiHandSession_WithPlayersJoiningAndLeaving_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database)
+    {
+        var gameId = Guid.Parse("{33333333-3333-3333-3333-333333333333}");
+        var random = new Random(Seed + seatCount);
+        var cardsByHand = new Dictionary<int, (Dictionary<byte, Card[]> Hole, Card[] Board)>();
+
+        using var host = TestEngineHost.Setup(out var holdemEngine, out _,
+            shuffler: new TestCardShuffler(
+                getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
+                getDeckFunc: handNo => cardsByHand[handNo].Board),
+            database: database);
+
+        (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(
+            GameId: gameId,
+            Options: new GameOptionData { TableFormat = GetTableFormat(seatCount), MaxPlayersCount = seatCount, InitialSmallBlind = SmallBlind, InitialDealerSeatNo = FirstDealerSeatNo }))).IsSuccess.Should().BeTrue();
+
+        var allSeatNos = Enumerable.Range(1, seatCount).Select(seatNo => (byte)seatNo).ToArray();
+
+        // What the test believes about the table: the stack of every seat with a player in it.
+        var stacks = new Dictionary<byte, decimal>();
+        var names = new Dictionary<byte, string>();
+        var everSeated = new HashSet<byte>();
+        var totalBuyIns = 0M;
+        var totalTakenAway = 0M;
+        var joinerCount = 0;
+        var leaves = 0;
+        var rejoins = 0;
+        var pauses = 0;
+        var pauseChecked = false;
+        byte? previousDealerSeatNo = null;
+
+        PlayerJoinData Join(byte seatNo, string name)
+        {
+            var buyIn = random.Next(MinBuyInBigBlinds, MaxBuyInBigBlinds + 1) * BigBlind;
+            stacks[seatNo] = buyIn;
+            names[seatNo] = name;
+            totalBuyIns += buyIn;
+            if (!everSeated.Add(seatNo))
+            {
+                rejoins++;
+            }
+
+            return new PlayerJoinData(name, seatNo, buyIn);
+        }
+
+        for (var handNo = 1; handNo <= HandCount; handNo++)
+        {
+            cardsByHand[handNo] = DealCards(random, seatCount);
+
+            using var scope = new AssertionScope($"{seatCount}-handed churn session hand #{handNo}");
+
+            HoldemAction startAction;
+            if (handNo == 1)
+            {
+                startAction = new HoldemActionStartGame(gameId, [.. allSeatNos.Select(seatNo => Join(seatNo, $"Seat{seatNo}"))]);
+            }
+            else
+            {
+                var keepSeatNo = allSeatNos[random.Next(seatCount)];
+                foreach (var seatNo in allSeatNos.Where(stacks.ContainsKey).ToArray())
+                {
+                    var shouldLeave = stacks[seatNo] <= 0
+                        || (handNo == ExodusHandNo && seatNo != keepSeatNo)
+                        || random.Next(LeaveOdds) == 0;
+                    if (!shouldLeave)
+                    {
+                        continue;
+                    }
+
+                    var leaveResult = await holdemEngine.ApplyAsync(HoldemAction.LeaveSeat(gameId, seatNo));
+                    leaveResult.IsSuccess.Should().BeTrue(
+                        $"seat {seatNo} should be able to leave between hands: {string.Join("; ", leaveResult.Errors.Select(error => error.Message))}");
+                    var leaver = leaveResult.Value.HandData!.Seats.Single(seat => seat.SeatNo == seatNo);
+                    leaver.HasLeft.Should().BeTrue($"seat {seatNo} has left");
+                    (leaver.StartHandStack + leaver.HandResult!.Net).Should().Be(stacks[seatNo],
+                        "a leaver takes the stack its last hand ended on");
+
+                    totalTakenAway += stacks[seatNo];
+                    stacks.Remove(seatNo);
+                    names.Remove(seatNo);
+                    leaves++;
+                }
+
+                var emptySeatNos = allSeatNos.Where(seatNo => !stacks.ContainsKey(seatNo)).ToArray();
+                var joiningSeatNos = emptySeatNos.Where(_ => random.Next(JoinOdds) == 0).ToList();
+
+                if (stacks.Count < 2)
+                {
+                    // Fewer than two players are left, so nobody can be dealt in without a join.
+                    pauses++;
+                    if (!pauseChecked)
+                    {
+                        pauseChecked = true;
+                        var before = await holdemEngine.ApplyAsync(HoldemAction.GetGame(gameId));
+                        var stalled = await holdemEngine.ApplyAsync(HoldemAction.StartHand(gameId));
+                        stalled.IsFailed.Should().BeTrue("a hand cannot be dealt to fewer than two players");
+                        stalled.Errors.Single().Code.Should().Be(HoldemErrorCode.NotEnoughPlayers);
+                        (await holdemEngine.ApplyAsync(HoldemAction.GetGame(gameId))).Value.Should().Be(before.Value,
+                            "the refused hand saved nothing");
+                    }
+
+                    foreach (var seatNo in emptySeatNos.Except(joiningSeatNos).Take(2 - stacks.Count - joiningSeatNos.Count))
+                    {
+                        joiningSeatNos.Add(seatNo);
+                    }
+                }
+
+                startAction = HoldemAction.StartHand(gameId,
+                    [.. joiningSeatNos.Select(seatNo => Join(seatNo, $"Joiner {++joinerCount}"))]);
+            }
+
+            var startResult = await holdemEngine.ApplyAsync(startAction);
+            startResult.IsSuccess.Should().BeTrue(
+                $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
+
+            var handData = startResult.Value.HandData!;
+            handData.No.Should().Be(handNo);
+
+            var dealtIn = allSeatNos.Where(seatNo => stacks.TryGetValue(seatNo, out var stack) && stack > 0).ToArray();
+            AssertDealtInSeats(handData, dealtIn, stacks, names);
+            AssertChurnButtonAndBlinds(handData, dealtIn, previousDealerSeatNo, seatCount);
+
+            var gameData = await PlayOutHandAsync(holdemEngine, gameId, startResult.Value, random);
+            handData = gameData.HandData!;
+
+            handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
+                .Be(0, "a hand neither creates nor destroys chips");
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.HandResult.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
+                stacks[seatData.SeatNo] = seatData.StartHandStack + (seatData.HandResult?.Net ?? 0);
+                stacks[seatData.SeatNo].Should().BeGreaterOrEqualTo(0, $"seat {seatData.SeatNo} cannot end below nothing");
+            }
+
+            (stacks.Values.Sum() + totalTakenAway).Should().Be(totalBuyIns,
+                "every chip bought in is on the table or went away with a leaver");
+
+            previousDealerSeatNo = handData.DealerSeatNo;
+        }
+
+        using var counters = new AssertionScope("the session must actually have churned");
+        leaves.Should().BeGreaterThan(0, "somebody left");
+        rejoins.Should().BeGreaterThan(0, "a seat somebody had left was taken by a new player");
+        pauses.Should().BeGreaterThan(0, "the table was down to fewer than two players at least once");
+        pauseChecked.Should().BeTrue("the first pause was put to the engine");
+    }
+
+    private static void AssertDealtInSeats(HandData handData, byte[] dealtIn, Dictionary<byte, decimal> stacks, Dictionary<byte, string> names)
+    {
+        handData.Seats.Select(seat => seat.SeatNo).Should().Equal(dealtIn,
+            "every dealt-in seat appears exactly once, in seat order, and nobody else does");
+
+        foreach (var seatData in handData.Seats)
+        {
+            seatData.Name.Should().Be(names[seatData.SeatNo], $"who sits in seat {seatData.SeatNo}");
+            seatData.StartHandStack.Should().Be(stacks[seatData.SeatNo],
+                $"seat {seatData.SeatNo} should start on what its player has");
+            seatData.HasLeft.Should().BeFalse($"seat {seatData.SeatNo} is dealt in");
+        }
+    }
+
+    private static void AssertChurnButtonAndBlinds(HandData handData, byte[] dealtIn, byte? previousDealerSeatNo, int seatCount)
+    {
+        var expectedDealerSeatNo = previousDealerSeatNo == null
+            ? FirstDealerSeatNo
+            : NextDealtInSeatNo(dealtIn, previousDealerSeatNo.Value, seatCount);
+
+        handData.DealerSeatNo.Should().Be(expectedDealerSeatNo,
+            "the button moves to the next dealt-in seat clockwise of where it was");
+
+        // Heads-up the button posts the small blind; with more players the small blind is the next dealt-in seat.
+        var expectedSmallBlindSeatNo = dealtIn.Length == 2
+            ? handData.DealerSeatNo
+            : NextDealtInSeatNo(dealtIn, handData.DealerSeatNo, seatCount);
+
+        handData.SmallBlindSeatNo.Should().Be(expectedSmallBlindSeatNo, "where the small blind sits");
+        handData.BigBlindSeatNo.Should().Be(NextDealtInSeatNo(dealtIn, handData.SmallBlindSeatNo, seatCount),
+            "the big blind sits at the next dealt-in seat after the small blind");
+        handData.SmallBlindSeatNo.Should().NotBe(handData.BigBlindSeatNo, "two seats post the blinds");
+        dealtIn.Should().Contain([handData.DealerSeatNo, handData.SmallBlindSeatNo, handData.BigBlindSeatNo]);
+    }
+
+    /// <summary>Walks the ring one seat at a time from <paramref name="afterSeatNo"/>, wrapping, until it meets a dealt-in seat.</summary>
+    private static byte NextDealtInSeatNo(byte[] dealtIn, byte afterSeatNo, int seatCount)
+    {
+        for (var step = 1; step <= seatCount; step++)
+        {
+            var seatNo = (byte)((afterSeatNo - 1 + step) % seatCount + 1);
+            if (dealtIn.Contains(seatNo))
+            {
+                return seatNo;
+            }
+        }
+
+        throw new InvalidOperationException("Nobody is dealt in.");
     }
 
     /// <summary>
