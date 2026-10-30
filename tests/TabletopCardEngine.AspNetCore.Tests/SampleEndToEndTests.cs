@@ -144,4 +144,53 @@ public sealed class SampleEndToEndTests
         var body = await ReadJsonAsync(response);
         body.GetProperty("entries").GetProperty("tabletopcardengine-holdem").GetProperty("data").GetProperty("state").GetString().Should().Be("MigrationRequired");
     });
+
+    [TestMethod]
+    public Task Sample_LeaveAndRejoin_PlaysTwoHandsWithSeatChange() => RunAsync(true, async client =>
+    {
+        var created = await client.PostAsync("/api/holdem/games", Json("{\"options\":{\"maxPlayersCount\":6}}"));
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+        var gameId = (await ReadJsonAsync(created)).GetProperty("gameId").GetGuid();
+        var gameUrl = $"/api/holdem/games/{gameId}";
+
+        var started = await client.SendAsync(Post($"{gameUrl}/start",
+            "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":100},{\"name\":\"b\",\"seatNo\":2,\"buyInAmount\":100}]}"));
+        started.StatusCode.Should().Be(HttpStatusCode.OK);
+        var version = VersionOf(started);
+
+        // Play hand 1 to completion
+        var game = await ReadJsonAsync(started);
+        while (game.GetProperty("handData").GetProperty("evaluations").GetArrayLength() > 0)
+        {
+            var offered = game.GetProperty("handData").GetProperty("evaluations").EnumerateArray()
+                .Select(evaluation => evaluation.GetProperty("playerActionType").GetString()).ToList();
+            var action = offered.Contains("Check") ? "Check" : "Call";
+
+            var played = await client.SendAsync(Post($"{gameUrl}/actions", $"{{\"actionType\":\"{action}\"}}"));
+            played.StatusCode.Should().Be(HttpStatusCode.OK);
+            version = VersionOf(played);
+            game = await ReadJsonAsync(played);
+        }
+
+        // Leave seat 1
+        var left = await client.SendAsync(Post($"{gameUrl}/seats/1/leave", null));
+        left.StatusCode.Should().Be(HttpStatusCode.OK);
+        game = await ReadJsonAsync(left);
+        var seat1Left = game.GetProperty("handData").GetProperty("seats").EnumerateArray()
+            .First(s => s.GetProperty("seatNo").GetInt32() == 1);
+        seat1Left.GetProperty("hasLeft").GetBoolean().Should().BeTrue();
+
+        // Start hand 2 with a rejoin at seat 1
+        var handTwo = await client.SendAsync(Post($"{gameUrl}/hands",
+            "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":50}]}"));
+        handTwo.StatusCode.Should().Be(HttpStatusCode.OK);
+        game = await ReadJsonAsync(handTwo);
+        game.GetProperty("handData").GetProperty("no").GetInt32().Should().Be(2);
+        var seatsAfterRejoin = game.GetProperty("handData").GetProperty("seats").EnumerateArray().ToList();
+        seatsAfterRejoin.Should().HaveCount(2);
+        var seat1Rejoined = seatsAfterRejoin.First(s => s.GetProperty("seatNo").GetInt32() == 1);
+        seat1Rejoined.GetProperty("hasLeft").GetBoolean().Should().BeFalse();
+        var seat2 = seatsAfterRejoin.First(s => s.GetProperty("seatNo").GetInt32() == 2);
+        seat2.GetProperty("hasLeft").GetBoolean().Should().BeFalse();
+    });
 }

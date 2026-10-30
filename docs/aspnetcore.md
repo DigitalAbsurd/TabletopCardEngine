@@ -185,6 +185,7 @@ engine with the request's abort token, answers a failure with the problem respon
 | `POST` | `/games/{gameId:guid}/hands` | `StartHand` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `NotEnoughPlayers` \| `PreviousHandNotEnded`, 412 `Conflict` |
 | `POST` | `/games/{gameId:guid}/actions` | `Play` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`, malformed JSON, numeric enum), 404 `GameNotFound`, 409 `GameFinished`, 412 `Conflict`, 422 `IllegalAction` |
 | `POST` | `/games/{gameId:guid}/finish` | `FinishGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `PreviousHandNotEnded`, 412 `Conflict` |
+| `POST` | `/games/{gameId:guid}/seats/{seatNo:int}/leave` | `LeaveSeat` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `PreviousHandNotEnded` \| `GameFinished`, 412 `Conflict`, 422 `InvalidSeat` |
 
 A `gameId` that is not a GUID does not match the route and answers 404.
 
@@ -245,6 +246,12 @@ or
 ```
 
 `POST /games/{gameId}/finish` closes the game between hands (no body):
+
+```json
+{}
+```
+
+`POST /games/{gameId}/seats/{seatNo}/leave` stands a player up between hands (no body):
 
 ```json
 {}
