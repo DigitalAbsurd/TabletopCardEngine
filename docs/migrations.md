@@ -93,7 +93,7 @@ When you upgrade from 1.0 to 1.1:
 3. Deploy the 1.1 package.
 4. Run `MigrateAsync` or restart your application (if `MigrateDatabaseOnStartup` is enabled).
 
-No data is lost and no manual steps are required. Existing games are read back as `SixMax`. The migration is applied by `MigrateAsync` automatically when it runs.
+No data is lost and no manual steps are required. Existing games are read back as `SixMax`. Version 1.1 adds no migration for joining and leaving seats, because the column that records when a player leaves exists since 1.0: games created by 1.0 can take and lose players after the upgrade. The migration is applied by `MigrateAsync` automatically when it runs.
 
 ## `EnsureCreated` is not supported
 
