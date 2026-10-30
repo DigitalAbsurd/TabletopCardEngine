@@ -57,6 +57,22 @@ public sealed class EngineCallSnippetWriter_Tests
     }
 
     [TestMethod]
+    public void GenerateSnippet_StartHandWithJoinSeats_ListsTheJoiningPlayers()
+    {
+        // Arrange
+        var action = HoldemAction.StartHand(Guid.NewGuid(), [new PlayerJoinData("Dana", 4, 100m)]);
+        var entry = new EngineCallJournalEntry(SequenceNumber: 1, Action: action, Succeeded: true, ErrorMessages: []);
+
+        // Act
+        var snippet = EngineCallSnippetWriter.GenerateSnippet(entry);
+
+        // Assert
+        snippet.Should().Contain("new HoldemActionStartHand(GameId: ");
+        snippet.Should().Contain("JoinSeats =");
+        snippet.Should().Contain("new PlayerJoinData(Name: \"Dana\", SeatNo: 4, BuyInAmount: 100m)");
+    }
+
+    [TestMethod]
     [DataRow(true, DisplayName = "Succeeded")]
     [DataRow(false, DisplayName = "Failed")]
     public void GenerateSnippet_AvailableActions_OnlyAfterASuccess(bool succeeded)

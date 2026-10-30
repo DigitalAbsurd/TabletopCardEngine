@@ -116,9 +116,14 @@ public sealed class DemoGameSession
     /// <summary>
     /// Starts the next hand of the current game.
     /// </summary>
+    /// <param name="joinSeats">
+    /// Players who sit down before this hand is dealt, each into a free seat, or <c>null</c> for none.
+    /// </param>
     /// <param name="cancellationToken">Cancellation token for the database operation.</param>
     /// <returns><c>true</c> if the hand was started successfully, <c>false</c> on validation error.</returns>
-    public async Task<bool> StartNextHandAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> StartNextHandAsync(
+        PlayerJoinData[]? joinSeats = null,
+        CancellationToken cancellationToken = default)
     {
         if (CurrentGameId == Guid.Empty)
         {
@@ -126,7 +131,25 @@ public sealed class DemoGameSession
             return false;
         }
 
-        var action = HoldemAction.StartHand(CurrentGameId);
+        var action = HoldemAction.StartHand(CurrentGameId, joinSeats);
+        return await ApplyActionInternalAsync(action, cancellationToken);
+    }
+
+    /// <summary>
+    /// Stands a player up between hands, which frees the seat for the next hand.
+    /// </summary>
+    /// <param name="seatNo">The seat of the player who leaves.</param>
+    /// <param name="cancellationToken">Cancellation token for the database operation.</param>
+    /// <returns><c>true</c> if the player left, <c>false</c> on validation error.</returns>
+    public async Task<bool> LeaveSeatAsync(byte seatNo, CancellationToken cancellationToken = default)
+    {
+        if (CurrentGameId == Guid.Empty)
+        {
+            RaiseEngineError("No game has been created yet.");
+            return false;
+        }
+
+        var action = HoldemAction.LeaveSeat(CurrentGameId, seatNo);
         return await ApplyActionInternalAsync(action, cancellationToken);
     }
 

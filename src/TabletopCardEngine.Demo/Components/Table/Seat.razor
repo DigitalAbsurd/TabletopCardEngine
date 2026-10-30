@@ -9,6 +9,22 @@
     <div class="seat-content">
         <div class="seat-name">@SeatData.Name</div>
 
+        @if (SeatData.HasLeft)
+        {
+            <span class="badge-left" title="This player has stood up; the seat is free for the next hand">Left</span>
+        }
+        else if (CanStandUp)
+        {
+            @* Busted seats get it too: standing up is how a seat with no chips is freed. *@
+            <button type="button"
+                class="seat-stand-up"
+                data-seat-no="@SeatData.SeatNo"
+                aria-label="@($"Stand up {SeatData.Name}")"
+                @onclick="@(() => OnStandUp.InvokeAsync(SeatData.SeatNo))">
+                Stand up
+            </button>
+        }
+
         <div class="seat-stack">
             @if (IsDealer)
             {
@@ -79,6 +95,14 @@
     [Parameter]
     public IReadOnlySet<DataCard>? HighlightedCards { get; set; }
 
+    /// <summary>Whether the seat offers Stand up: between hands only, which the table decides.</summary>
+    [Parameter]
+    public bool CanStandUp { get; set; }
+
+    /// <summary>Raised with the seat number when Stand up is pressed.</summary>
+    [Parameter]
+    public EventCallback<byte> OnStandUp { get; set; }
+
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
 
     private string GetSeatClasses()
@@ -93,6 +117,9 @@
 
         if (SeatData.IsAllIn)
             classes.Add("seat-all-in");
+
+        if (SeatData.HasLeft)
+            classes.Add("seat-left");
 
         return string.Join(" ", classes);
     }

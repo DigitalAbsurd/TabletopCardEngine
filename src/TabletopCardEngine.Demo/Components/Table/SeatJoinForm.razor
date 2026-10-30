@@ -1,0 +1,114 @@
+@using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Holdem.Dto
+
+@* Sits a player down between hands. It only queues: the queued players are handed to the next Deal
+   as StartHand.JoinSeats, so the visitor sees one engine call seat them and deal. The panel opens
+   over the table instead of growing the action bar, which has no height to spare. *@
+<div class="seat-join">
+    <button type="button" class="seat-join-toggle" aria-expanded="@(_isOpen ? "true" : "false")" @onclick="Toggle">
+        Sit down@(Pending.Count > 0 ? $" ({Pending.Count})" : string.Empty)
+    </button>
+
+    @if (_isOpen)
+    {
+        <div class="seat-join-panel" role="group" aria-label="Sit down">
+            @if (FreeSeats.Count == 0)
+            {
+                <div class="seat-join-none">Every seat is taken.</div>
+            }
+            else
+            {
+                <label>Seat
+                    <select class="seat-join-seat" @bind="_seatNo">
+                        @foreach (var seatNo in FreeSeats)
+                        {
+                            <option value="@seatNo">@seatNo</option>
+                        }
+                    </select>
+                </label>
+                <label>Name
+                    <input class="seat-join-name" type="text" maxlength="64" placeholder="@DefaultName" @bind="_name" />
+                </label>
+                <label>Buy-in
+                    <input class="seat-join-buyin" type="number" min="0" step="any" @bind="_buyIn" />
+                </label>
+                <button type="button" class="seat-join-add" disabled="@(!IsValid)" @onclick="QueueAsync">Add</button>
+            }
+
+            @foreach (var join in Pending)
+            {
+                var seatNo = join.SeatNo;
+                <span class="seat-join-queued">
+                    @join.Name · seat @join.SeatNo · @AmountFormat.Format(join.BuyInAmount)
+                    <button type="button" class="seat-join-remove" aria-label="@($"Remove {join.Name}")" @onclick="@(() => OnUnqueue.InvokeAsync(seatNo))">×</button>
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>The finished hand, whose seats say which numbers are taken.</summary>
+    [Parameter]
+    public required HandData Hand { get; set; }
+
+    /// <summary>How many seats the table has; the free ones are <c>1..MaxPlayers</c> minus the occupied.</summary>
+    [Parameter]
+    public int MaxPlayers { get; set; }
+
+    /// <summary>The players queued for the next Deal, which take their seats off the select.</summary>
+    [Parameter]
+    public IReadOnlyList<PlayerJoinData> Pending { get; set; } = [];
+
+    /// <summary>Raised with a player to queue for the next Deal.</summary>
+    [Parameter]
+    public EventCallback<PlayerJoinData> OnQueue { get; set; }
+
+    /// <summary>Raised with the seat number of a queued player to take back out of the queue.</summary>
+    [Parameter]
+    public EventCallback<byte> OnUnqueue { get; set; }
+
+    private bool _isOpen;
+    private byte _seatNo;
+    private string _name = string.Empty;
+    private decimal _buyIn = DemoGameDefaults.BuyIn;
+
+    /// <summary>
+    /// The seats a player may take: a seat of the table that no one holds. A seat whose player has
+    /// left is still in the finished hand's seats, so it counts as free.
+    /// </summary>
+    private IReadOnlyList<byte> FreeSeats
+    {
+        get
+        {
+            var taken = Hand.Seats.Where(s => !s.HasLeft).Select(s => s.SeatNo)
+                .Concat(Pending.Select(p => p.SeatNo))
+                .ToHashSet();
+            return Enumerable.Range(1, MaxPlayers).Select(n => (byte)n).Where(n => !taken.Contains(n)).ToList();
+        }
+    }
+
+    private string DefaultName => $"Player {_seatNo}";
+
+    private bool IsValid => _seatNo != 0 && _buyIn > 0 && _name.Length <= 64;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        var free = FreeSeats;
+        if (!free.Contains(_seatNo))
+        {
+            _seatNo = free.Count > 0 ? free[0] : (byte)0;
+        }
+    }
+
+    private void Toggle() => _isOpen = !_isOpen;
+
+    private async Task QueueAsync()
+    {
+        var name = string.IsNullOrWhiteSpace(_name) ? DefaultName : _name.Trim();
+        await OnQueue.InvokeAsync(new PlayerJoinData(name, _seatNo, _buyIn));
+        _name = string.Empty;
+        _buyIn = DemoGameDefaults.BuyIn;
+    }
+}

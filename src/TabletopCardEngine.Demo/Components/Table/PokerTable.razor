@@ -15,6 +15,8 @@
             {
                 <Seat
                     SeatData="seat"
+                    CanStandUp="@CanSeat"
+                    OnStandUp="@OnStandUp"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -90,6 +92,8 @@
             {
                 <Seat
                     SeatData="seat"
+                    CanStandUp="@CanSeat"
+                    OnStandUp="@OnStandUp"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -101,6 +105,11 @@
         <ActionPanel
             HandData="@Hand"
             RaiseStep="@SmallBlind"
+            CanSeat="@CanSeat"
+            MaxPlayers="@(GameData?.Options.MaxPlayersCount ?? 0)"
+            PendingJoins="@PendingJoins"
+            OnQueueJoin="@OnQueueJoin"
+            OnUnqueueJoin="@OnUnqueueJoin"
             OnNextHand="@OnNextHand" />
     }
 </div>
@@ -113,6 +122,27 @@
     /// <summary>Raised from the action bar once a hand is finished, to deal the next one.</summary>
     [Parameter]
     public EventCallback OnNextHand { get; set; }
+
+    /// <summary>The players queued to sit down with the next hand.</summary>
+    [Parameter]
+    public IReadOnlyList<PlayerJoinData> PendingJoins { get; set; } = [];
+
+    /// <summary>Raised with a player the visitor queues to sit down with the next hand.</summary>
+    [Parameter]
+    public EventCallback<PlayerJoinData> OnQueueJoin { get; set; }
+
+    /// <summary>Raised with the seat of a queued player the visitor takes back out.</summary>
+    [Parameter]
+    public EventCallback<byte> OnUnqueueJoin { get; set; }
+
+    /// <summary>Raised with the seat number when the visitor stands a player up.</summary>
+    [Parameter]
+    public EventCallback<byte> OnStandUp { get; set; }
+
+    /// <summary>
+    /// Whether players may sit down or stand up: only between hands, of a game that is not finished.
+    /// </summary>
+    private bool CanSeat => IsHandFinished && GameData is { IsFinished: false };
 
     /// <summary>
     /// The dealt hand, or null. GameData.HandData is null

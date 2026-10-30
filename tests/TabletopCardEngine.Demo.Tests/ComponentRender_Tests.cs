@@ -759,6 +759,156 @@ public sealed class ComponentRender_Tests
             HandData: handData);
     }
 
+    private static GameData BuildSeatingGameData(
+        int seatCount,
+        Street street = Street.Finished,
+        bool isGameFinished = false,
+        Func<SeatData, SeatData>? seat = null)
+    {
+        var hand = BuildHandDataWithSeats(seatCount);
+        hand = hand with { Street = street, Seats = hand.Seats.Select(s => seat?.Invoke(s) ?? s).ToArray() };
+        var game = BuildGameData(hand);
+        return game with
+        {
+            Options = game.Options with { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6 },
+            IsFinished = isGameFinished,
+        };
+    }
+
+    private static IRenderedComponent<PokerTable> RenderSeatingTable(BunitContext ctx, GameData game)
+    {
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        return ctx.Render<PokerTable>(parameters => parameters.Add(p => p.GameData, game));
+    }
+
+    [TestMethod]
+    public void PokerTable_BetweenHands_OffersStandUpOnEverySeatAndSitDown()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+
+        // Act
+        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3));
+
+        // Assert
+        component.FindAll(".seat-stand-up").Should().HaveCount(3);
+        component.FindAll(".seat-join-toggle").Should().HaveCount(1);
+        component.Find(".seat-join-toggle").TextContent.Trim().Should().Be("Sit down");
+    }
+
+    [TestMethod]
+    public void PokerTable_HandInProgress_HidesStandUpAndSitDown()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+
+        // Act
+        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, street: Street.Flop));
+
+        // Assert
+        component.FindAll(".seat-stand-up").Should().BeEmpty();
+        component.FindAll(".seat-join").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_FinishedGame_HidesStandUpAndSitDown()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+
+        // Act
+        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, isGameFinished: true));
+
+        // Assert
+        component.FindAll(".seat-stand-up").Should().BeEmpty();
+        component.FindAll(".seat-join").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_SeatThatLeft_IsDimmedWithLeftBadgeAndNoControls()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+
+        // Act
+        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s));
+
+        // Assert
+        var left = component.FindAll(".seat").Single(s => s.TextContent.Contains("Player 2", StringComparison.Ordinal));
+        left.ClassList.Should().Contain("seat-left");
+        left.QuerySelector(".badge-left")!.TextContent.Should().Be("Left");
+        left.QuerySelector(".seat-stand-up").Should().BeNull();
+        component.FindAll(".seat-stand-up").Should().HaveCount(2);
+    }
+
+    [TestMethod]
+    public void PokerTable_BustedSeat_StillOffersStandUp()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+
+        // Act
+        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, seat: s => s.SeatNo == 1 ? s with { Stack = 0m } : s));
+
+        // Assert - standing up is how a busted seat is freed
+        component.FindAll(".seat-stand-up[data-seat-no='1']").Should().HaveCount(1);
+    }
+
+    [TestMethod]
+    public void PokerTable_SitDown_ListsOnlyTheFreeSeats()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s));
+
+        // Act
+        component.Find(".seat-join-toggle").Click();
+
+        // Assert - 1 and 3 are taken, 2 left, and 4 to 6 were never occupied
+        component.FindAll(".seat-join-seat option").Select(o => o.TextContent).Should().Equal("2", "4", "5", "6");
+    }
+
+    [TestMethod]
+    public void PokerTable_SitDown_QueuesAPlayerWithTheBuyIn()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var queued = new List<PlayerJoinData>();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildSeatingGameData(3))
+            .Add(p => p.OnQueueJoin, queued.Add));
+        component.Find(".seat-join-toggle").Click();
+
+        // Act
+        component.Find(".seat-join-name").Change("Dana");
+        component.Find(".seat-join-add").Click();
+
+        // Assert
+        queued.Should().Equal(new PlayerJoinData("Dana", 4, DemoGameDefaults.BuyIn));
+    }
+
+    [TestMethod]
+    public void PokerTable_StandUp_RaisesTheSeatNumber()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var stoodUp = new List<byte>();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildSeatingGameData(3))
+            .Add(p => p.OnStandUp, stoodUp.Add));
+
+        // Act
+        component.Find(".seat-stand-up[data-seat-no='2']").Click();
+
+        // Assert
+        stoodUp.Should().Equal((byte)2);
+    }
+
     [TestMethod]
     [DataRow(Street.PreFlop, 0)]
     [DataRow(Street.Flop, 1)]
