@@ -26,7 +26,7 @@ dotnet test
 dotnet pack TabletopCardEngine.Packages.slnf -c Release
 ```
 
-The last one is the public API gate: it fails on a break against the published 1.0.0 baseline on nuget.org.
+The last one is the public API gate: it fails on a break against the published 1.1.0 baseline on nuget.org.
 
 Style is enforced at build time, so a formatting or naming violation **fails `dotnet build`**.
 Do not hand-tune whitespace to chase a diagnostic — run the formatter and re-read the diff:

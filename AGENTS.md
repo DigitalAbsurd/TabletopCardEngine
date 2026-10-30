@@ -19,7 +19,7 @@ dotnet build
 dotnet test
 ```
 
-The public API gate: packing compares every package against the published 1.0.0 baseline on nuget.org
+The public API gate: packing compares every package against the published 1.1.0 baseline on nuget.org
 and fails on a removed or changed public member (`CP0001`, `CP0002`, ...).
 `dotnet build` does not run it. A break is a major version under [docs/versioning.md](docs/versioning.md).
 See [docs/public-api.md](docs/public-api.md) for the rule, and docs/api/ for the generated reference.
