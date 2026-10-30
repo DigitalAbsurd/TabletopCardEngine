@@ -802,6 +802,7 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
+
     private static async Task<DemoPage> OpenDemoAsync(
         int viewportWidth,
         int viewportHeight = ViewportHeight,

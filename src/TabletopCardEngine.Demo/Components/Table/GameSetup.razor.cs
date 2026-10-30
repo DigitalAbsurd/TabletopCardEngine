@@ -97,6 +97,24 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     }
 
     /// <summary>
+    /// Called when the Dealer Seat input changes. Parses the string value to a byte,
+    /// clamping it to valid range.
+    /// </summary>
+    private Task OnDealerSeatChangedAsync(ChangeEventArgs e)
+    {
+        if (e.Value is string stringValue && byte.TryParse(stringValue, out var parsedValue))
+        {
+            _dealerSeat = parsedValue;
+        }
+        else if (e.Value is string emptyString && string.IsNullOrEmpty(emptyString))
+        {
+            _dealerSeat = DemoGameDefaults.DealerSeatNo;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Called when the Max Players value changes. Handles trimming the player list if the
     /// value is lowered below the current player count, or adds empty slots if raised.
     /// </summary>
@@ -232,6 +250,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         if (!IsFormValid)
         {
             _errorMessage = "Please fill all fields with valid values";
+            await InvokeAsync(StateHasChanged);
             return false;
         }
 

@@ -313,6 +313,35 @@ public sealed class ComponentRender_Tests
         playerOptions.Select(option => option.Instance.Label).Should().Equal("2", "3", "4", "5", "6");
     }
 
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_ShowsErrorMessageWhenFormIsInvalid()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        var component = ctx.Render<GameSetup>();
+
+        // Act - remove all players to make the form invalid (needs at least 2)
+        var playerRows = component.FindAll(".player-row");
+        while (playerRows.Count > 2)
+        {
+            playerRows[playerRows.Count - 1].QuerySelector("button")!.Click();
+            playerRows = component.FindAll(".player-row");
+        }
+        playerRows[0].QuerySelector("input")!.Change(string.Empty);
+
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert - form is invalid; ApplyAsync sets error message and calls StateHasChanged
+        applied.Should().BeFalse();
+        component.FindAll(".ant-alert").Should().HaveCount(1);
+        component.Find(".ant-alert").TextContent.Should().Contain("Please fill all fields with valid values");
+    }
+
 
     [TestMethod]
     public async Task GameSetup_ApplyAsync_StartsAGameUnderTheFormSettings()
