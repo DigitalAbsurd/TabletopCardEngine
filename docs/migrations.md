@@ -74,12 +74,26 @@ Neither state is recoverable at runtime: the engine refuses every call until the
 When you upgrade the `TabletopCardEngine` package to a new version:
 
 1. **Back up the database.** A migration failure or a backward-incompatibility (rare but possible) could lose data.
-2. **Deploy the new package.**
-3. **Run the migration.** Call `MigrateAsync` or set `MigrateDatabaseOnStartup: true` as above.
+2. **Stop every instance of the old version.** A rolling upgrade is not supported: the first instance of the new version that runs the migration stops every old instance from accessing that database. Old instances then fail with `HoldemSchemaException(DatabaseIsNewer)` on the next call. Once migrated, the database cannot be used by an older engine version.
+3. **Deploy the new package.**
+4. **Run the migration.** Call `MigrateAsync` or set `MigrateDatabaseOnStartup: true` as above.
 
 The schema version is tracked in the database and compared on every engine call. A schema migrated by a newer engine cannot be downgraded: `GetSchemaStatusAsync` returns `NewerThanEngine`, and the engine refuses to run. If you need to go back to an older engine version, you must restore a backup of the database created before the upgrade.
 
 For details on versioning and the schema version number, see [Versioning](versioning.md#the-database-schema-and-the-package-version).
+
+### 1.0 to 1.1
+
+The 1.0 to 1.1 migration is `AddGameTableFormat`. It adds the column `TableFormat` to the `Game` table with a default value of `SixMax`, the table format that implicitly existed before. The schema version is incremented from 1 to 2, and the engine version is updated to `1.1.0`.
+
+When you upgrade from 1.0 to 1.1:
+
+1. Back up your database.
+2. Stop every instance of the 1.0 engine.
+3. Deploy the 1.1 package.
+4. Run `MigrateAsync` or restart your application (if `MigrateDatabaseOnStartup` is enabled).
+
+No data is lost and no manual steps are required. Existing games are read back as `SixMax`. The migration is applied by `MigrateAsync` automatically when it runs.
 
 ## `EnsureCreated` is not supported
 
