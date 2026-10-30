@@ -24,6 +24,20 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
             return seatError;
         }
 
+        var seatsWithChips = game.GetCurrentHand().PlayerEndStates
+            .Where(endState => endState.FinishStack > 0)
+            .Select(endState => endState.SeatNo)
+            .ToHashSet();
+        foreach (var joinData in startHandData.JoinSeats)
+        {
+            seatsWithChips.Add(joinData.SeatNo);
+        }
+
+        if (seatsWithChips.Count < 2)
+        {
+            return new HoldemError(HoldemErrorCode.NotEnoughPlayers, PackResource.HoldemValidation_NotEnoughPlayers);
+        }
+
         await HandDealer.DealAsync(game, startHandData.JoinSeats, cardShuffler, cancellationToken);
 
         return null;

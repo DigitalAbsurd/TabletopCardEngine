@@ -19,6 +19,11 @@ internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler) : Hold
             return seatError;
         }
 
+        if (holdemAction.JoinSeats.Count < 2)
+        {
+            return new HoldemError(HoldemErrorCode.NotEnoughPlayers, PackResource.HoldemValidation_NotEnoughPlayers);
+        }
+
         // The first hand resolves the previous dealer by walking the seats in order, so the order is
         // fixed here rather than left to every caller.
         var joinSeats = holdemAction.JoinSeats.OrderBy(join => join.SeatNo).ToArray();

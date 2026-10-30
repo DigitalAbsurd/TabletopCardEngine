@@ -239,6 +239,36 @@ public sealed class GameLifecycleTests
         (await CountRowsAsync(contextFactory)).Should().Equal(rowsBefore);
     }
 
+    [TestMethod]
+    public async Task Lifecycle_StartGameWithOneSeat_FailsWithNotEnoughPlayers()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        await ApplyOkAsync(engine, new HoldemActionCreateGame(_gameId, _gameOptions));
+        var rowsBefore = await CountRowsAsync(contextFactory);
+
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("Player 1", 1, 1000)]));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.NotEnoughPlayers);
+        result.Errors.Single().Message.Should().NotBeNullOrWhiteSpace();
+        (await CountRowsAsync(contextFactory)).Should().Equal(rowsBefore);
+    }
+
+    [TestMethod]
+    public async Task Lifecycle_StartHandWithNolongerSeatedPlayersThenJoinNewSeat_SucceedsOnSecondAttempt()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        await ApplyOkAsync(engine, new HoldemActionCreateGame(_gameId, _gameOptions));
+        await ApplyOkAsync(engine, new HoldemActionStartGame(_gameId, _seats));
+
+        await PlayHandToEndAsync(engine);
+
+        var second = await ApplyOkAsync(engine,
+            new HoldemActionStartHand(_gameId) { JoinSeats = [new("Player 4", 4, 1000)] });
+        second.HandData!.No.Should().Be(2);
+        second.HandData!.Seats.Should().HaveCount(4, "three original players plus one new player");
+    }
+
     private static async Task<HandData> StartAndReadHandAsync(PlayerJoinData[] joinSeats)
     {
         using var host = TestEngineHost.Setup(out var engine, out _);

@@ -180,9 +180,9 @@ engine with the request's abort token, answers a failure with the problem respon
 | Method | Path | Engine action | Success | Problem statuses |
 |---|---|---|---|---|
 | `POST` | `/games` | `CreateGame` | 201 with `GameData`, `Location` header, and an `ETag` | 400 (malformed JSON), 409 `GameAlreadyExists`, 422 `InvalidGameOptions` |
-| `POST` | `/games/{gameId:guid}/start` | `StartGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameAlreadyStarted`, 412 `Conflict`, 422 `InvalidSeat` |
+| `POST` | `/games/{gameId:guid}/start` | `StartGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameAlreadyStarted` \| `NotEnoughPlayers`, 412 `Conflict`, 422 `InvalidSeat` |
 | `GET` | `/games/{gameId:guid}` | `GetGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 412 `Conflict` |
-| `POST` | `/games/{gameId:guid}/hands` | `StartHand` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `PreviousHandNotEnded`, 412 `Conflict` |
+| `POST` | `/games/{gameId:guid}/hands` | `StartHand` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `NotEnoughPlayers` \| `PreviousHandNotEnded`, 412 `Conflict` |
 | `POST` | `/games/{gameId:guid}/actions` | `Play` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`, malformed JSON, numeric enum), 404 `GameNotFound`, 409 `GameFinished`, 412 `Conflict`, 422 `IllegalAction` |
 | `POST` | `/games/{gameId:guid}/finish` | `FinishGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `PreviousHandNotEnded`, 412 `Conflict` |
 
@@ -373,6 +373,7 @@ Every error returned by the engine comes back as an HTTP problem response with a
 | `Conflict` | 11 | 412 when the request carried `If-Match`, 409 otherwise |
 | `GameNotFound` | 12 | 404 |
 | `IllegalAction` | 13 | 422 |
+| `NotEnoughPlayers` | 14 | 409 |
 
 **The logic.**
 

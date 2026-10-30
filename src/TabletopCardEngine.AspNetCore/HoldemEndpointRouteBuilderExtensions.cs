@@ -55,7 +55,7 @@ public static class HoldemEndpointRouteBuilderExtensions
             .WithName("HoldemStartGame")
             .WithOpenApiMetadata(
                 "Seats the players and deals hand 1.",
-                "Seats the supplied players and deals the first hand. Returns 200 with GameData. May return 400 (bad If-Match), 404 (GameNotFound), 409 (GameAlreadyStarted, PreviousHandNotEnded), 412 (Conflict), or 422 (InvalidSeat).",
+                "Seats the supplied players and deals the first hand. Returns 200 with GameData. May return 400 (bad If-Match), 404 (GameNotFound), 409 (GameAlreadyStarted, NotEnoughPlayers, PreviousHandNotEnded), 412 (Conflict), or 422 (InvalidSeat).",
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
@@ -74,7 +74,7 @@ public static class HoldemEndpointRouteBuilderExtensions
             .WithName("HoldemStartHand")
             .WithOpenApiMetadata(
                 "Deals the next hand.",
-                "Deals the next hand in the game, optionally seating new players. Returns 200 with GameData. May return 400 (bad If-Match), 404 (GameNotFound), 409 (GameNotStarted, PreviousHandNotEnded), 412 (Conflict), or 422 (InvalidAction).",
+                "Deals the next hand in the game, optionally seating new players. Returns 200 with GameData. May return 400 (bad If-Match), 404 (GameNotFound), 409 (GameNotStarted, NotEnoughPlayers, PreviousHandNotEnded), 412 (Conflict), or 422 (InvalidAction).",
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
