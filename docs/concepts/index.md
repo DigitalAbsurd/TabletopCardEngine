@@ -45,7 +45,7 @@ var finished = await engine.ApplyAsync(
     HoldemAction.FinishGame(gameId), ct);
 ```
 
-The lifecycle is: `CreateGame` → `StartGame` → (`StartHand` | `Play`)* → `FinishGame`. `GetGame` reads the game back without changing it and is allowed in any state. Once `FinishGame` closes the game, every action except `GetGame` fails with `HoldemErrorCode.GameFinished`.
+The lifecycle is: `CreateGame` → `StartGame` → (`StartHand` | `LeaveSeat` | `Play`)* → `FinishGame`. `GetGame` reads the game back without changing it and is allowed in any state. Once `FinishGame` closes the game, every action except `GetGame` fails with `HoldemErrorCode.GameFinished`.
 
 ### Results and errors
 
@@ -97,6 +97,37 @@ The engine supports No-Limit Hold'em in three table formats, chosen when a game 
 When you create a game, if `MaxPlayersCount` falls outside the format's range, the engine returns `HoldemErrorCode.InvalidGameOptions`. If you do not specify a format, `SixMax` is used by default, which ensures existing code that creates games with up to six players continues to work.
 
 **Heads-up changes positions:** In heads-up play with exactly 2 players, the button posts the small blind and acts first pre-flop and last on every street after it. This is different from full-ring and short-handed play, where the button is to the left of the small blind and acts last pre-flop.
+
+## Seats and players
+
+`StartGame` seats at least two players in an empty game and deals the first hand. Between hands, `StartHand` can add new players to empty seats with its optional `JoinSeats` parameter — players join with a new buy-in and begin play on the next hand. When a player runs out of chips (a "bust"), their seat remains occupied until they leave.
+
+`LeaveSeat` stands a player up between hands, freeing the seat for a new player. The departing player's stack leaves with them; it does not stay at the table. A seat can only be vacated when no hand is in progress — `LeaveSeat` returns an error if called during play or when the game is finished.
+
+When fewer than two seats have money left, no more hands can start. The engine returns `HoldemErrorCode.NotEnoughPlayers` and waits for new players to join:
+
+```csharp
+// A hand leaves Alice and Bob broke after Bob wins both
+var game = /* ... hand finished, each has 0 */;
+
+// Cannot start the next hand
+var nextHand = await engine.ApplyAsync(HoldemAction.StartHand(gameId), ct);
+// IsSuccess: false, Errors: [{ Code: NotEnoughPlayers, ... }]
+
+// Sit Dana down with a buy-in
+game = (await engine.ApplyAsync(
+    HoldemAction.StartHand(gameId, [
+        new PlayerJoinData("Dana", 3, 100)
+    ]), ct)).Value!;
+
+// Now play resumes
+
+// After play, stand Alice up to leave
+var afterLeave = (await engine.ApplyAsync(
+    HoldemAction.LeaveSeat(gameId, 1), ct)).Value!;
+```
+
+The lifecycle remains: `CreateGame` → `StartGame` → (`StartHand` | `LeaveSeat` | player actions)* → `FinishGame`.
 
 ## The database is the state
 

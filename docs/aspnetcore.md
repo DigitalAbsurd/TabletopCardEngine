@@ -220,11 +220,13 @@ A `gameId` that is not a GUID does not match the route and answers 404.
 }
 ```
 
-`POST /games/{gameId}/hands` deals the next hand, optionally seating new players (body is optional):
+`POST /games/{gameId}/hands` deals the next hand, optionally seating new players (body is optional). Players join in empty seats with new buy-ins:
 
 ```json
 {
-  "joinSeats": []
+  "joinSeats": [
+    { "name": "Dana", "seatNo": 3, "buyInAmount": 100 }
+  ]
 }
 ```
 

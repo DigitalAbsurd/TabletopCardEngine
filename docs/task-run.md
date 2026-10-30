@@ -411,12 +411,12 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Thirteen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Fourteen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6` (which also covers an undefined table
-    format and a seat count outside the format's range), `InvalidSeat = 7`, and the three lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, and `IllegalAction = 13` of fact 29.
+    format and a seat count outside the format's range), `InvalidSeat = 7`, and the four lifecycle codes of fact 2:
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, and `IllegalAction = 13` of fact 29.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
