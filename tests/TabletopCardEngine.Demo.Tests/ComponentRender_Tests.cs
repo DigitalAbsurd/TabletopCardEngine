@@ -369,6 +369,36 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    [DataRow(9)]
+    [DataRow(10)]
+    public async Task GameSetup_ApplyAsync_DealsAFullRingGameAfterTheFormatChanges(int seatCount)
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        var component = ctx.Render<GameSetup>();
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
+
+        // Act - what a visitor does: pick Full Ring, pick the seat count, leave Dealer Seat alone
+        var formatSelect = component.FindComponent<AntDesign.Select<HoldemTableFormat, HoldemTableFormat>>();
+        await component.InvokeAsync(() => formatSelect.Instance.ValueChanged.InvokeAsync(HoldemTableFormat.FullRing));
+        var maxPlayersSelect = component.FindComponent<AntDesign.Select<int, int>>();
+        await component.InvokeAsync(() => maxPlayersSelect.Instance.ValueChanged.InvokeAsync(seatCount));
+
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        component.Find("#setup-dealer-seat").GetAttribute("value").Should().Be("1");
+        applied.Should().BeTrue();
+        session.CurrentGame!.Options.MaxPlayersCount.Should().Be(seatCount);
+        session.CurrentHand!.Seats.Should().HaveCount(seatCount);
+    }
+
+    [TestMethod]
     public async Task GameSetup_ApplyAsync_ClearsThePreviousGamesRowsAndCalls()
     {
         // Arrange - a game is already running, as it always is on the single-screen demo
