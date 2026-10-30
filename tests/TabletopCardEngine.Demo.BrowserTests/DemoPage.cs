@@ -511,7 +511,7 @@ internal sealed class DemoPage : IAsyncDisposable
         await SelectOptionAsync(MaxPlayersFieldSelector, seatCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         await _page.Locator(".ant-modal-footer .ant-btn-primary").ClickAsync();
-        await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Hidden, Timeout = BootTimeoutMilliseconds });
+        await WaitForGameSetupToCloseAsync();
         await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
         await DismissNotificationsAsync();
@@ -558,6 +558,34 @@ internal sealed class DemoPage : IAsyncDisposable
         }
 
         return actions;
+    }
+
+    /// <summary>
+    /// Waits for the New Game modal to close after Apply. A refused form keeps the modal open and
+    /// says why in an alert, so that alert fails the wait at once with its text, rather than after the
+    /// whole boot timeout with nothing to go on (issue #544).
+    /// </summary>
+    private async Task WaitForGameSetupToCloseAsync()
+    {
+        ILocator form = _page.Locator(GameSetupSelector);
+        ILocator alert = _page.Locator($"{GameSetupSelector} .ant-alert");
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+
+        while (await form.IsVisibleAsync())
+        {
+            if (await alert.IsVisibleAsync())
+            {
+                string reason = string.Join(" ", await alert.AllInnerTextsAsync());
+                throw new InvalidOperationException($"The New Game form refused Apply: {reason}");
+            }
+
+            if (clock.ElapsedMilliseconds > BootTimeoutMilliseconds)
+            {
+                throw new TimeoutException($"The New Game modal was still open {BootTimeoutMilliseconds} ms after Apply.");
+            }
+
+            await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        }
     }
 
     private async Task SelectOptionAsync(string fieldSelector, string optionText)
