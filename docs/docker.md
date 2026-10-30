@@ -159,6 +159,8 @@ image itself. For every target the gate checks that:
 It also checks that the `postgres` and `mssql` images without a connection string exit with a non-zero
 code and a log naming `ConnectionStrings__TabletopCardEngine`, and that a `sqlite` container keeps a game in its
 `/data` volume across a stop and a start.
+It also checks the upgrade: a game created on the previous stable release's image (`1.0.0`) is still there, with its
+`ETag` unchanged, after the current image starts on the same database or volume, and the game can be played on. The upgrade test pulls the previous stable images from Docker Hub by digest, so it needs network access to Docker Hub.
 
 The gate needs Docker and runs only with `TCE_TEST_CONTAINERS=1`. Without it every test reports
 inconclusive. From the repository root:
