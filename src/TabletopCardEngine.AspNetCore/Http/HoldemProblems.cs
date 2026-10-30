@@ -31,6 +31,7 @@ internal static class HoldemProblems
         HoldemErrorCode.Conflict => ifMatchPresent ? 412 : 409,
         HoldemErrorCode.GameNotFound => 404,
         HoldemErrorCode.IllegalAction => 422,
+        HoldemErrorCode.NotEnoughPlayers => 409,
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, null),
     };
 

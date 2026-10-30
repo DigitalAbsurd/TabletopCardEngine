@@ -156,4 +156,7 @@
   <data name="HoldemValidation_Conflict" xml:space="preserve">
     <value>The game was changed by another action; reload it and try again.</value>
   </data>
+  <data name="HoldemValidation_NotEnoughPlayers" xml:space="preserve">
+    <value>Fewer than two seats would have chips to play the hand: seat more players with StartHand and try again</value>
+  </data>
 </root>

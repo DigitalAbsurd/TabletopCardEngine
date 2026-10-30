@@ -90,3 +90,9 @@ No game with the requested id exists\. Every action except `CreateGame` needs on
 
 The action is not one the seat to act may take now, or its size is outside the window offered\.
 [Evaluations](TabletopCardEngine.Holdem.Dto.HandData.md#TabletopCardEngine.Holdem.Dto.HandData.Evaluations 'TabletopCardEngine\.Holdem\.Dto\.HandData\.Evaluations') lists what is legal; nothing was applied\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.NotEnoughPlayers'></a>
+
+`NotEnoughPlayers` 14
+
+Fewer than two seats would have chips to play the hand: seat more players with `StartHand` and try again\.

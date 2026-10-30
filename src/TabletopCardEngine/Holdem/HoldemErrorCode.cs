@@ -48,4 +48,7 @@ public enum HoldemErrorCode
     /// <see cref="Dto.HandData.Evaluations"/> lists what is legal; nothing was applied.
     /// </summary>
     IllegalAction = 13,
+
+    /// <summary>Fewer than two seats would have chips to play the hand: seat more players with <c>StartHand</c> and try again.</summary>
+    NotEnoughPlayers = 14,
 }

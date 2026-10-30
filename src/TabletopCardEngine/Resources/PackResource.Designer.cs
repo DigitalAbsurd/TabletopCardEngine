@@ -176,5 +176,14 @@ namespace TabletopCardEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_Conflict", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fewer than two seats would have chips to play the hand: seat more players with StartHand and try again.
+        /// </summary>
+        internal static string HoldemValidation_NotEnoughPlayers {
+            get {
+                return ResourceManager.GetString("HoldemValidation_NotEnoughPlayers", resourceCulture);
+            }
+        }
     }
 }
