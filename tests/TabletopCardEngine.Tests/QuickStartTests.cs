@@ -64,4 +64,63 @@ public sealed class QuickStartTests
         game.HandData.Street.Should().Be(Street.Finished);
         game.HandData.Seats.Sum(s => s.HandResult!.Net).Should().Be(0);
     }
+
+    [TestMethod]
+    public async Task QuickStart_JoinsAndLeavesSeats()
+    {
+        var services = new ServiceCollection();
+        services.AddTabletopCardEngine(tce => tce.AddHoldem(db => db.UseHoldemInMemory(Guid.NewGuid().ToString())));
+        using var provider = services.BuildServiceProvider();
+
+        await provider.GetRequiredService<IHoldemSchemaManager>().MigrateAsync();
+        var table = provider.GetRequiredService<IHoldemTable>();
+
+        // Create and start a 6-max game
+        var created = await table.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
+        {
+            TableFormat = HoldemTableFormat.SixMax,
+            MaxPlayersCount = 6,
+            InitialSmallBlind = 1,
+        }));
+        var gameId = created.Value!.GameId;
+
+        // Start with two players
+        var game = (await table.ApplyAsync(HoldemAction.StartGame(gameId,
+        [
+            new PlayerJoinData("Alice", 1, 100),
+            new PlayerJoinData("Bob", 2, 100),
+        ]))).Value!;
+
+        // Play one hand to completion
+        while (game.HandData!.NextPlayerSeatNo != 0)
+        {
+            var canCheck = game.HandData.Evaluations.Any(e => e.PlayerActionType == PlayerActionType.Check);
+            var action = canCheck ? PlayerActionType.Check : PlayerActionType.Call;
+            game = (await table.ApplyAsync(HoldemAction.Play(gameId, action))).Value!;
+        }
+
+        // Seat a third player joining between hands
+        game = (await table.ApplyAsync(
+            HoldemAction.StartHand(gameId,
+            [
+                new PlayerJoinData("Dana", 3, 100),
+            ]))).Value!;
+        game.HandData!.Seats.Should().HaveCount(3);
+
+        // Play another hand to completion
+        while (game.HandData!.NextPlayerSeatNo != 0)
+        {
+            var canCheck = game.HandData.Evaluations.Any(e => e.PlayerActionType == PlayerActionType.Check);
+            var action = canCheck ? PlayerActionType.Check : PlayerActionType.Call;
+            game = (await table.ApplyAsync(HoldemAction.Play(gameId, action))).Value!;
+        }
+
+        // Stand Alice up (she was in seat 1)
+        var afterLeave = (await table.ApplyAsync(HoldemAction.LeaveSeat(gameId, 1))).Value!;
+        afterLeave.Should().NotBeNull();
+        // After LeaveSeat between hands, start the next hand to confirm Alice is no longer seated
+        var nextHand = (await table.ApplyAsync(HoldemAction.StartHand(gameId))).Value!;
+        nextHand.HandData!.Seats.Should().HaveCount(2);
+        nextHand.HandData.Seats.Should().NotContain(s => s.Name == "Alice");
+    }
 }

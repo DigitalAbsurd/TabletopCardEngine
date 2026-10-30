@@ -50,6 +50,8 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 The engine now supports No-Limit Hold'em in three table formats chosen at game creation: Heads-Up (2-Max, exactly 2 players), 6-Max (2 to 6 players, the default), and Full Ring (7 to 10 players). See [the v1.1.0 milestone](https://github.com/DigitalAbsurd/TabletopCardEngine/milestone/16) for the implementation.
 
+Also shipped in 1.1.0: seat lifecycle management — players can join empty seats between hands with `StartHand.JoinSeats`, and stand up to leave with `LeaveSeat`, freeing the seat for a new player. When fewer than two seats have money left, new players must join before the next hand can start (`NotEnoughPlayers`).
+
 ## Hand history export (PHH)
 
 [#339](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/339)
@@ -80,10 +82,15 @@ The engine now supports No-Limit Hold'em in three table formats chosen at game c
 - `Player.HandNoEnd` (never set yet)
 - The top-up branch in `HandDealer.CalculateStartStacks` (unreachable until `SeatValidation` allows an occupied seat)
 
-**Comes with the feature:**
+**Shipped in 1.1.0:**
 
-- New `HoldemAction` records (leave or kick a seat, top up)
-- Relaxed `SeatValidation`
+- `LeaveSeat` action to stand a player up between hands, freeing the seat
+- `StartHand.JoinSeats` to seat new players into empty seats
+
+**Comes with the feature (after 1.1.0):**
+
+- Top-up and rebuy actions
+- Relaxed `SeatValidation` to allow re-seating an occupied seat
 - `HandTableFactory` honouring `HandNoEnd`
 - Removed from v1.0 in #140 on purpose: `BuyIns`, `KickOffSeats`, `AllowRebuy`
 

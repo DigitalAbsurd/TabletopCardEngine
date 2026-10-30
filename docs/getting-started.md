@@ -103,6 +103,23 @@ Bob: 2d ah, Full house, +2
 
 **The next hand.** To play another hand, call `HoldemAction.StartHand(gameId)` without changing the players or the stacks. The blinds post again, and play resumes.
 
+**Joining between hands.** Call `HoldemAction.StartHand(gameId, joinSeats)` to seat new players as the hand starts:
+
+```csharp
+// Seat a third player with a new buy-in
+var newHand = await table.ApplyAsync(HoldemAction.StartHand(gameId,
+[
+    new PlayerJoinData("Dana", 3, 100),
+]));
+```
+
+**Leaving between hands.** Call `HoldemAction.LeaveSeat(gameId, seatNo)` to stand a player up after the hand ends:
+
+```csharp
+// Stand Alice up (she was in seat 1)
+var afterLeave = await table.ApplyAsync(HoldemAction.LeaveSeat(gameId, 1));
+```
+
 ## Next steps
 
 - **[Key concepts](concepts/index.md)** — blinds, seats, streets, board, hand evaluation, and ledger
