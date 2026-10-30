@@ -98,6 +98,25 @@ public static class HoldemEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed]);
 
+        group.MapPost("/games/{gameId:guid}/seats/{seatNo:int}/leave", async (Guid gameId, int seatNo, HttpContext context, IHoldemTable engine) =>
+        {
+            if (seatNo < 1 || seatNo > 255)
+            {
+                return TypedResults.Problem(
+                    statusCode: 422,
+                    detail: "Seat number must be between 1 and 255.");
+            }
+
+            return await HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.LeaveSeat(gameId, (byte)seatNo),
+                data => TypedResults.Ok(data));
+        })
+            .WithName("HoldemLeaveSeat")
+            .WithOpenApiMetadata(
+                "Stands a player up between hands.",
+                "Stands a player up between hands. Returns 200 with GameData. May return 400 (bad If-Match), 404 (GameNotFound), 409 (GameNotStarted, PreviousHandNotEnded, GameFinished), 412 (Conflict), or 422 (InvalidSeat).",
+                StatusCodes.Status200OK,
+                [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
+
         return group;
     }
 

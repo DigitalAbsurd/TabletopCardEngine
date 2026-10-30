@@ -239,4 +239,73 @@ public sealed class GamePlayEndpointTests
         finishResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await ReadJsonAsync(finishResponse)).GetProperty("code").GetString().Should().Be("GameNotFound");
     }
+
+    [TestMethod]
+    public async Task LeaveSeat_BetweenHands_Returns200()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await host.SeedHeadsUpGameAsync();
+
+        // Seat 1 folds to end the hand
+        using var foldRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/actions");
+        foldRequest.Content = new StringContent("{\"actionType\":\"Fold\"}", Encoding.UTF8, "application/json");
+        await host.Client.SendAsync(foldRequest);
+
+        // Leave seat 1
+        using var leaveRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/seats/1/leave");
+        var leaveResponse = await host.Client.SendAsync(leaveRequest);
+
+        leaveResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        var game = await ReadJsonAsync(leaveResponse);
+        var seats = game.GetProperty("handData").GetProperty("seats").EnumerateArray().ToList();
+        seats.Should().HaveCount(2);
+        var activeSeat = seats.First(s => !s.GetProperty("hasLeft").GetBoolean());
+        activeSeat.GetProperty("seatNo").GetInt32().Should().Be(2);
+    }
+
+    [TestMethod]
+    public async Task LeaveSeat_MidHand_Returns409()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await host.SeedHeadsUpGameAsync();
+
+        // Try to leave seat 1 mid-hand
+        using var leaveRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/seats/1/leave");
+        var leaveResponse = await host.Client.SendAsync(leaveRequest);
+
+        leaveResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await ReadJsonAsync(leaveResponse)).GetProperty("code").GetString().Should().Be("PreviousHandNotEnded");
+    }
+
+    [TestMethod]
+    public async Task LeaveSeat_EmptySeat_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await host.SeedHeadsUpGameAsync();
+
+        // Seat 1 folds to end the hand
+        using var foldRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/actions");
+        foldRequest.Content = new StringContent("{\"actionType\":\"Fold\"}", Encoding.UTF8, "application/json");
+        await host.Client.SendAsync(foldRequest);
+
+        // Try to leave an empty seat
+        using var leaveRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/seats/3/leave");
+        var leaveResponse = await host.Client.SendAsync(leaveRequest);
+
+        leaveResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(leaveResponse)).GetProperty("code").GetString().Should().Be("InvalidSeat");
+    }
+
+    [TestMethod]
+    public async Task LeaveSeat_UnknownGame_Returns404()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var unknownId = Guid.NewGuid();
+
+        using var leaveRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{unknownId}/seats/1/leave");
+        var leaveResponse = await host.Client.SendAsync(leaveRequest);
+
+        leaveResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await ReadJsonAsync(leaveResponse)).GetProperty("code").GetString().Should().Be("GameNotFound");
+    }
 }

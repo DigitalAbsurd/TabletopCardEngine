@@ -77,6 +77,7 @@ public sealed class OpenApiDocumentTests
             "/api/holdem/games/{gameId}/actions",
             "/api/holdem/games/{gameId}/finish",
             "/api/holdem/games/{gameId}/hands",
+            "/api/holdem/games/{gameId}/seats/{seatNo}/leave",
             "/api/holdem/games/{gameId}/start");
 
         var operationIds = new HashSet<string>();
@@ -95,6 +96,7 @@ public sealed class OpenApiDocumentTests
             "HoldemCreateGame",
             "HoldemFinishGame",
             "HoldemGetGame",
+            "HoldemLeaveSeat",
             "HoldemPlay",
             "HoldemStartGame",
             "HoldemStartHand");
