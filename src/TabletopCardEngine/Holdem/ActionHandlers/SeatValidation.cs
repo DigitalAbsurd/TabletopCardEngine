@@ -16,7 +16,7 @@ internal static class SeatValidation
         foreach (var join in joinSeats)
         {
             var outOfRange = join.SeatNo < 1 || join.SeatNo > game.MaxPlayersCount;
-            var occupied = game.Players.Any(player => player.SeatNo == join.SeatNo);
+            var occupied = game.IsSeatTaken(join.SeatNo);
             var invalidName = string.IsNullOrWhiteSpace(join.Name) || join.Name.Length > AmountRules.PlayerNameMaxLength;
             if (outOfRange || occupied || !seen.Add(join.SeatNo) || join.BuyInAmount <= 0 || !AmountRules.HasValidScale(join.BuyInAmount) || invalidName)
             {

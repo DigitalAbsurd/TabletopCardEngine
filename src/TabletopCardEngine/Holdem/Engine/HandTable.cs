@@ -55,7 +55,15 @@ internal sealed class HandTable
         }
 
         var anchorIndex = ordered.FindIndex(seat => seat.SeatNo == anchor);
-        var startIndex = anchorIndex < 0 ? 0 : anchorIndex;
+        var startIndex = anchorIndex;
+        if (anchorIndex < 0)
+        {
+            // The anchor is not at the table (the previous button left between hands), so the walk
+            // starts at the first seat clockwise of where it was, which is then a candidate itself.
+            startIndex = ordered.FindIndex(seat => seat.SeatNo > anchor);
+            startIndex = startIndex < 0 ? 0 : startIndex;
+            offset = 0;
+        }
 
         for (var step = offset; step < offset + ordered.Count; step++)
         {

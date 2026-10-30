@@ -40,11 +40,11 @@ internal static class HandTableFactory
     internal static IEnumerable<byte> CurrentSeatNumbers(Game game)
         => CurrentSeatPlayers(game).Select(player => player.SeatNo);
 
+    // The current hand's start states say who it is dealt to: a player who left after an earlier hand has
+    // none, and a newly dealt hand gets them before the table is built, so one rule serves both rehydrating
+    // a hand in progress and dealing a new one.
     private static IEnumerable<Data.Player> CurrentSeatPlayers(Game game)
-        => game.Players
-            .GroupBy(player => player.SeatNo)
-            .Select(seatPlayers => seatPlayers.OrderByDescending(player => player.HandNoStart).First())
-            .OrderBy(player => player.SeatNo);
+        => game.GetHandPlayers(game.GetCurrentHand());
 
     private static TableSeat BuildSeat(Hand hand, Data.Player player)
     {

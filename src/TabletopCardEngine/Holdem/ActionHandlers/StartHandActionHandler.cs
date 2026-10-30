@@ -25,7 +25,7 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
         }
 
         var seatsWithChips = game.GetCurrentHand().PlayerEndStates
-            .Where(endState => endState.FinishStack > 0)
+            .Where(endState => endState.FinishStack > 0 && game.IsSeatTaken(endState.SeatNo))
             .Select(endState => endState.SeatNo)
             .ToHashSet();
         foreach (var joinData in startHandData.JoinSeats)

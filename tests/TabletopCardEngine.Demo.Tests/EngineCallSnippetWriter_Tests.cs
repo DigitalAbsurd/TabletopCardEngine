@@ -37,6 +37,26 @@ public sealed class EngineCallSnippetWriter_Tests
     }
 
     [TestMethod]
+    public void GenerateSnippet_LeaveSeat_ProducesValidCSharp()
+    {
+        // Arrange
+        var action = new HoldemActionLeaveSeat(GameId: Guid.NewGuid(), SeatNo: 3);
+        var entry = new EngineCallJournalEntry(
+            SequenceNumber: 1,
+            Action: action,
+            Succeeded: true,
+            ErrorMessages: []);
+
+        // Act
+        var snippet = EngineCallSnippetWriter.GenerateSnippet(entry);
+
+        // Assert
+        snippet.Should().Contain("new HoldemActionLeaveSeat(GameId: ");
+        snippet.Should().Contain("SeatNo: 3)");
+        snippet.Should().NotContain("UnknownAction");
+    }
+
+    [TestMethod]
     [DataRow(true, DisplayName = "Succeeded")]
     [DataRow(false, DisplayName = "Failed")]
     public void GenerateSnippet_AvailableActions_OnlyAfterASuccess(bool succeeded)

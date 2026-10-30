@@ -100,6 +100,20 @@ public TabletopCardEngine.Holdem.Dto.HandResultData? HandResult { get; init; }
 #### Property Value
 [HandResultData](TabletopCardEngine.Holdem.Dto.HandResultData.md 'TabletopCardEngine\.Holdem\.Dto\.HandResultData')
 
+<a name='TabletopCardEngine.Holdem.Dto.SeatData.HasLeft'></a>
+
+## SeatData\.HasLeft Property
+
+Whether the seat's player has left with [HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat') after the current hand\. The seat
+still shows how that hand ended for the player; it is dealt out of the next hand and free for a new player\.
+
+```csharp
+public bool HasLeft { get; init; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
 <a name='TabletopCardEngine.Holdem.Dto.SeatData.Hole'></a>
 
 ## SeatData\.Hole Property

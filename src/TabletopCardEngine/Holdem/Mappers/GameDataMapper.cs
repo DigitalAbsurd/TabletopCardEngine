@@ -43,7 +43,7 @@ internal static class GameDataMapper
             HandData: currentHand.No != default
                 ? new HandData(
                     No: currentHand.No,
-                    Seats: new EquatableList<SeatData>(game.Players.OrderBy(player => player.SeatNo).Select(player => new SeatData(
+                    Seats: new EquatableList<SeatData>(game.GetHandPlayers(currentHand).Select(player => new SeatData(
                             SeatNo: player.SeatNo,
                             Name: player.Name,
                             Hole: currentHand.GetSeatHoleCards(player.SeatNo) is { } hole ? new EquatableList<Card>(hole) : null,
@@ -63,7 +63,10 @@ internal static class GameDataMapper
                                     Strength: endState.Strength,
                                     RankType: endState.RankType,
                                     Description: endState.Description))
-                                .SingleOrDefault()))),
+                                .SingleOrDefault())
+                    {
+                        HasLeft = player.HandNoEnd != null,
+                    })),
                     DealerSeatNo: currentHand.DealerSeatNo,
                     SmallBlindSeatNo: smallBlindSeatNo,
                     BigBlindSeatNo: bigBlindSeatNo,

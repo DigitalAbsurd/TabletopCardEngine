@@ -89,7 +89,11 @@ internal static class HandDealer
 
         IEnumerable<HandPlayerStartState> CalculateStartStacks()
         {
-            var handStartStates = game.GetCurrentHand().PlayerEndStates
+            // A player who left after the current hand takes the stack along, so only the seats still
+            // seated carry their finish stack into the next hand.
+            var currentHand = game.GetCurrentHand();
+            var handStartStates = currentHand.PlayerEndStates
+                    .Where(endState => game.GetSeatPlayer(endState.SeatNo, currentHand.No) is { HandNoEnd: null })
                     .Select(endState => new HandPlayerStartState
                     {
                         GameId = game.Id,
