@@ -7,6 +7,7 @@
 @using TabletopCardEngine.Demo.Components
 @using TabletopCardEngine.Demo.Components.EngineCalls
 @using TabletopCardEngine.Demo.Components.Table
+@using TabletopCardEngine.Holdem.Dto
 @implements IAsyncDisposable
 @inject INotificationService Notice
 @inject DemoGameSession Session
@@ -60,6 +61,16 @@
                     ShowIcon="true" />
             }
 
+            @if (!string.IsNullOrEmpty(_seatingErrorMessage))
+            {
+                <Alert
+                    Message="The engine rejected the call"
+                    Description="@_seatingErrorMessage"
+                    Type="@AlertType.Error"
+                    Closable="false"
+                    ShowIcon="true" />
+            }
+
             <ErrorBoundary @ref="_tableErrorBoundary">
                 <ChildContent>
                     @* The table is the whole pane: the street, the hand's outcome and the action bar
@@ -67,6 +78,10 @@
                     <div class="main-region">
                         <PokerTable
                             GameData="@Session.CurrentGame"
+                            PendingJoins="@_pendingJoins"
+                            OnQueueJoin="@OnQueueJoin"
+                            OnUnqueueJoin="@OnUnqueueJoin"
+                            OnStandUp="@OnStandUpAsync"
                             OnNextHand="@OnNextHandAsync" />
                     </div>
                 </ChildContent>
@@ -146,6 +161,8 @@
     private bool _newGameVisible;
     private bool _isApplying;
     private string? _bootErrorMessage;
+    private string? _seatingErrorMessage;
+    private readonly List<PlayerJoinData> _pendingJoins = [];
 
     private const string ApplyLabel = "Apply";
     private const string CancelLabel = "Cancel";
@@ -268,9 +285,54 @@
         StateHasChanged();
     }
 
+    /// <summary>Deals the next hand, seating the queued players with it.</summary>
     private async Task OnNextHandAsync()
     {
-        await Session.StartNextHandAsync();
+        var succeeded = await RunSeatingCallAsync(
+            () => Session.StartNextHandAsync(_pendingJoins.Count > 0 ? [.. _pendingJoins] : null));
+
+        // A rejected deal (NotEnoughPlayers, say) keeps the queue, so Sit down stays available
+        // and the visitor can add a player and deal again.
+        if (succeeded)
+        {
+            _pendingJoins.Clear();
+        }
+    }
+
+    private async Task OnStandUpAsync(byte seatNo)
+    {
+        await RunSeatingCallAsync(() => Session.LeaveSeatAsync(seatNo));
+    }
+
+    private void OnQueueJoin(PlayerJoinData join)
+    {
+        _pendingJoins.Add(join);
+    }
+
+    private void OnUnqueueJoin(byte seatNo)
+    {
+        _pendingJoins.RemoveAll(p => p.SeatNo == seatNo);
+    }
+
+    /// <summary>
+    /// Runs a call that changes who sits at the table and shows the engine's reason in the alert
+    /// above the table when it is rejected; a success clears the alert.
+    /// </summary>
+    private async Task<bool> RunSeatingCallAsync(Func<Task<bool>> call)
+    {
+        string? error = null;
+        void Capture(object? sender, EngineErrorEventArgs e) => error = e.Message;
+
+        Session.EngineError += Capture;
+        try
+        {
+            return await call();
+        }
+        finally
+        {
+            Session.EngineError -= Capture;
+            _seatingErrorMessage = error;
+        }
     }
 
     /// <summary>Opens the New Game modal on a form that starts from the defaults every time.</summary>
@@ -296,6 +358,8 @@
             if (await _gameSetup.ApplyAsync())
             {
                 _bootErrorMessage = null;
+                _seatingErrorMessage = null;
+                _pendingJoins.Clear();
                 _selectedHistoryHand = null;
                 _newGameVisible = false;
                 _activeTab = GameTableTab;

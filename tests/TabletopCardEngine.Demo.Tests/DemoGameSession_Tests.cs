@@ -292,6 +292,100 @@ public sealed class DemoGameSession_Tests
         errorMessage.Should().Be("The previous hand has not completed yet. Wait for the hand to finish before starting the next one.");
     }
 
+    private static async Task<DemoGameSession> StartSixMaxSessionAsync(int players)
+    {
+        var session = new DemoGameSession(CreateTestEngine());
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6, InitialSmallBlind = 5m, InitialDealerSeatNo = 1 };
+        (await session.CreateGameAsync(options)).Should().BeTrue();
+        (await session.StartFirstHandAsync(DemoGameDefaults.CreateJoinSeats(players))).Should().BeTrue();
+        await FoldToTheEndAsync(session);
+        return session;
+    }
+
+    /// <summary>Folds every seat on the clock until the hand is over.</summary>
+    private static async Task FoldToTheEndAsync(DemoGameSession session)
+    {
+        while (session.CurrentHand!.Street != Street.Finished)
+        {
+            (await session.ApplyPlayerActionAsync(PlayerActionType.Fold)).Should().BeTrue();
+        }
+    }
+
+    [TestMethod]
+    public async Task StartNextHand_WithJoinSeats_SeatsTheNewPlayerAndDealsHer()
+    {
+        // Arrange
+        var session = await StartSixMaxSessionAsync(players: 3);
+
+        // Act
+        var started = await session.StartNextHandAsync([new PlayerJoinData("Dana", 4, 250m)]);
+
+        // Assert
+        started.Should().BeTrue();
+        session.CurrentHand!.Seats.Select(s => s.SeatNo).Should().Equal((byte)1, (byte)2, (byte)3, (byte)4);
+        var dana = session.CurrentHand.Seats.Single(s => s.SeatNo == 4);
+        dana.Name.Should().Be("Dana");
+        dana.Hole.Should().HaveCount(2);
+        session.Journal.Entries[^1].Action.Should().BeOfType<HoldemActionStartHand>()
+            .Which.JoinSeats.Should().Equal(new PlayerJoinData("Dana", 4, 250m));
+    }
+
+    [TestMethod]
+    public async Task LeaveSeat_BetweenHands_MarksTheSeatAndTheNextHandDealsOneFewer()
+    {
+        // Arrange
+        var session = await StartSixMaxSessionAsync(players: 4);
+
+        // Act
+        var left = await session.LeaveSeatAsync(2);
+
+        // Assert - the seat is still in the finished hand, flagged, and the call is journalled
+        left.Should().BeTrue();
+        session.CurrentHand!.Seats.Single(s => s.SeatNo == 2).HasLeft.Should().BeTrue();
+        session.Journal.Entries[^1].Action.Should().BeOfType<HoldemActionLeaveSeat>()
+            .Which.SeatNo.Should().Be(2);
+
+        (await session.StartNextHandAsync()).Should().BeTrue();
+        session.CurrentHand.Seats.Select(s => s.SeatNo).Should().Equal((byte)1, (byte)3, (byte)4);
+    }
+
+    [TestMethod]
+    public async Task StartNextHand_TooFewPlayers_RaisesTheEngineMessageAndKeepsTheSeatsFree()
+    {
+        // Arrange
+        var session = await StartSixMaxSessionAsync(players: 2);
+        string? errorMessage = null;
+        session.EngineError += (s, e) => errorMessage = e.Message;
+        (await session.LeaveSeatAsync(1)).Should().BeTrue();
+
+        // Act
+        var started = await session.StartNextHandAsync();
+
+        // Assert
+        started.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+        session.Journal.Entries[^1].Succeeded.Should().BeFalse();
+
+        // Sitting down is still possible, and then the hand deals
+        (await session.StartNextHandAsync([new PlayerJoinData("Dana", 1, 100m)])).Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task LeaveSeat_WithoutAGame_RaisesAnEngineError()
+    {
+        // Arrange
+        var session = new DemoGameSession(CreateTestEngine());
+        string? errorMessage = null;
+        session.EngineError += (s, e) => errorMessage = e.Message;
+
+        // Act
+        var left = await session.LeaveSeatAsync(1);
+
+        // Assert
+        left.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+    }
+
     [TestMethod]
     public async Task StateChanged_NotRaised_OnFailedCall()
     {

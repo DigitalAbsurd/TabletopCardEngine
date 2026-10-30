@@ -1,0 +1,95 @@
+/* The toggle is the only part in the action bar's flow. The panel opens upward over the table, so
+   neither opening it nor queueing a player changes the height the browser gate pins. */
+.seat-join {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.seat-join-toggle,
+.seat-join-add,
+.seat-join-remove {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    cursor: pointer;
+}
+
+.seat-join-toggle {
+    height: 40px;
+    padding: 0 1rem;
+    font-weight: 600;
+}
+
+.seat-join-add:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.seat-join-panel {
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem 0.75rem;
+    width: max-content;
+    max-width: min(34rem, 90vw);
+    padding: 0.6rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(20, 20, 20, 0.95);
+    color: #fff;
+    font-size: 12px;
+}
+
+.seat-join-panel label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.seat-join-panel select,
+.seat-join-panel input {
+    height: 28px;
+    padding: 0 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+    background: #fff;
+    color: #1f1f1f;
+}
+
+.seat-join-name {
+    width: 9rem;
+}
+
+.seat-join-buyin {
+    width: 6rem;
+}
+
+.seat-join-add {
+    height: 28px;
+    padding: 0 0.75rem;
+}
+
+.seat-join-queued {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.seat-join-remove {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    line-height: 1;
+}
+
+.seat-join-none {
+    color: rgba(255, 255, 255, 0.7);
+}

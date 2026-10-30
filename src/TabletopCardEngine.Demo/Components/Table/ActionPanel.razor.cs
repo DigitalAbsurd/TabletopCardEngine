@@ -31,6 +31,26 @@ public partial class ActionPanel : ComponentBase
     [Parameter]
     public EventCallback OnNextHand { get; set; }
 
+    /// <summary>Whether players may sit down: between hands of a game that is not finished.</summary>
+    [Parameter]
+    public bool CanSeat { get; set; }
+
+    /// <summary>How many seats the table has.</summary>
+    [Parameter]
+    public int MaxPlayers { get; set; }
+
+    /// <summary>The players queued to sit down with the next hand.</summary>
+    [Parameter]
+    public IReadOnlyList<PlayerJoinData> PendingJoins { get; set; } = [];
+
+    /// <summary>Raised with a player to queue for the next hand.</summary>
+    [Parameter]
+    public EventCallback<PlayerJoinData> OnQueueJoin { get; set; }
+
+    /// <summary>Raised with the seat of a queued player to take back out.</summary>
+    [Parameter]
+    public EventCallback<byte> OnUnqueueJoin { get; set; }
+
     /// <summary>The demo session to apply actions through.</summary>
     [Inject]
     public DemoGameSession Session { get; set; } = null!;
