@@ -15,6 +15,10 @@ internal static class GameScenario
     // A hand of two players needs a handful of actions; more than this means the action choice is wrong.
     private const int MaxRequestsPerHand = 20;
 
+    internal const string HeadsUpCreateBody = "{\"options\":{\"maxPlayersCount\":2}}";
+
+    internal const string HeadsUpStartBody = "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":100},{\"name\":\"b\",\"seatNo\":2,\"buyInAmount\":100}]}";
+
     internal static async Task<JsonElement> ReadJsonAsync(HttpResponseMessage response)
     {
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
@@ -45,13 +49,12 @@ internal static class GameScenario
     /// </summary>
     internal static async Task PlayFromCreationToFinishAsync(HttpClient client)
     {
-        var created = await client.PostAsync("/api/holdem/games", Json("{\"options\":{\"maxPlayersCount\":2}}"));
+        var created = await client.PostAsync("/api/holdem/games", Json(HeadsUpCreateBody));
         created.StatusCode.Should().Be(HttpStatusCode.Created);
         var gameId = (await ReadJsonAsync(created)).GetProperty("gameId").GetGuid();
         var gameUrl = $"/api/holdem/games/{gameId}";
 
-        var started = await client.SendAsync(Post($"{gameUrl}/start",
-            "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":100},{\"name\":\"b\",\"seatNo\":2,\"buyInAmount\":100}]}"));
+        var started = await client.SendAsync(Post($"{gameUrl}/start", HeadsUpStartBody));
         started.StatusCode.Should().Be(HttpStatusCode.OK);
         var version = VersionOf(started);
         var game = await ReadJsonAsync(started);
