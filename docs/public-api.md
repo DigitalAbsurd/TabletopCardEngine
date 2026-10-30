@@ -12,7 +12,7 @@ The member-by-member reference of all seven packages is the [API reference](api/
 ## How the baseline is enforced
 
 Each of the seven packable projects sets `EnablePackageValidation` and points `PackageValidationBaselineVersion`
-at `1.0.0`, the last stable version on nuget.org. The gate is the plain command, with no extra properties:
+at `1.1.0`, the last stable version on nuget.org. The gate is the plain command, with no extra properties:
 
 ```
 dotnet pack src/TabletopCardEngine -c Release
