@@ -29,3 +29,7 @@ await app.RunAsync();
 The health check calls the engine to report the database schema state. The API exposes endpoints to create games, start hands, play actions, and retrieve game state.
 
 **Documentation:** [ASP.NET Core](https://tabletopcardengine.readthedocs.io/en/stable/aspnetcore/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
+
+## Questions and feedback
+
+Ask questions and share ideas in [GitHub Discussions](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions), and report bugs in [GitHub Issues](https://github.com/DigitalAbsurd/TabletopCardEngine/issues).

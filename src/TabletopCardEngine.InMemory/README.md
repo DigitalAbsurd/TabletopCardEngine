@@ -26,3 +26,7 @@ var engine = provider.GetRequiredService<IHoldemTable>();
 Two engines given the same store name will share the same data. Use a unique name for each isolated engine—one per test, one per tenant, etc. The in-memory store does not persist across process restarts.
 
 **Documentation:** [Database providers](https://tabletopcardengine.readthedocs.io/en/stable/providers/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
+
+## Questions and feedback
+
+Ask questions and share ideas in [GitHub Discussions](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions), and report bugs in [GitHub Issues](https://github.com/DigitalAbsurd/TabletopCardEngine/issues).

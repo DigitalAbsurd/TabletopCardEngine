@@ -7,7 +7,7 @@
 
 A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
 
-[![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/vpre/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) [![Docs](https://readthedocs.org/projects/tabletopcardengine/badge/?version=stable)](https://tabletopcardengine.readthedocs.io/en/stable/)
+[![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/v/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![Docker pulls](https://img.shields.io/docker/pulls/digitalabsurd/tabletopcardengine)](https://hub.docker.com/r/digitalabsurd/tabletopcardengine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) [![Docs](https://readthedocs.org/projects/tabletopcardengine/badge/?version=stable)](https://tabletopcardengine.readthedocs.io/en/stable/)
 
 ## Demo
 
@@ -154,6 +154,10 @@ The container host reads these settings from the environment:
 | `TabletopCardEngine__Holdem__*` | Hold'em's host options, such as `GamePlayersMinCount` and `MigrateDatabaseOnStartup`. |
 
 The details are in [Configuration](https://tabletopcardengine.readthedocs.io/en/stable/docker/#configuration).
+
+## Questions and feedback
+
+TabletopCardEngine 1.x is stable, and feedback from real use decides what comes next. Ask a question in [Q&A](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/q-a), propose a feature in [Ideas](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/ideas), and if you build something with it, tell us in [Show and tell](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/show-and-tell). Bugs go to [issues](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/new/choose). Releases are announced in [Announcements](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/announcements); to be notified, watch the repository with *Custom → Releases*.
 
 ## Contributing
 
