@@ -48,7 +48,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 
 **Shipped in 1.1.0:**
 
-The engine now supports No-Limit Hold'em in three table formats chosen at game creation: Heads-Up (2-Max, exactly 2 players), 6-Max (2 to 6 players, the default), and Full Ring (7 to 10 players). See [the v1.1.0 milestone](https://github.com/DigitalAbsurd/TabletopCardEngine/milestone/16) for the implementation.
+The engine now supports No-Limit Hold'em in three table formats chosen at game creation: Heads-Up (2-Max, exactly 2 players), 6-Max (2 to 6 players, the default), and Full Ring (7 to 10 players). See [the 1.1.0 milestone](https://github.com/DigitalAbsurd/TabletopCardEngine/milestone/17) for the implementation.
 
 Also shipped in 1.1.0: seat lifecycle management — players can join empty seats between hands with `StartHand.JoinSeats`, and stand up to leave with `LeaveSeat`, freeing the seat for a new player. When fewer than two seats have money left, new players must join before the next hand can start (`NotEnoughPlayers`).
 
