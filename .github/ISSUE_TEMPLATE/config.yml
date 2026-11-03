@@ -1,8 +1,14 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/q-a
+    about: Questions about using the engine, the packages or the images.
+  - name: Share how you use it
+    url: https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/show-and-tell
+    about: Tell us what you build with TabletopCardEngine; it is the feedback that shapes the roadmap.
   - name: Report a security vulnerability
     url: https://github.com/DigitalAbsurd/TabletopCardEngine/security/advisories/new
     about: Security vulnerabilities should be reported privately, not as a public issue.
   - name: Documentation
-    url: https://github.com/DigitalAbsurd/TabletopCardEngine/blob/main/docs/index.md
+    url: https://tabletopcardengine.readthedocs.io/en/stable/
     about: Read the documentation for guides, API reference and architecture.

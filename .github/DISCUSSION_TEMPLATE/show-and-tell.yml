@@ -1,0 +1,27 @@
+body:
+  - type: textarea
+    id: building
+    attributes:
+      label: What are you building?
+      description: Tell us about your project.
+    validations:
+      required: true
+  - type: textarea
+    id: packages_images
+    attributes:
+      label: Which packages or images do you use?
+      description: Which packages or Docker images from TabletopCardEngine did you choose?
+    validations:
+      required: true
+  - type: textarea
+    id: hard_missing
+    attributes:
+      label: What was hard or missing?
+      description: Any features or documentation you wish existed?
+  - type: checkboxes
+    id: mentions
+    attributes:
+      label: Mention in README or release notes
+      description: You may mention this project in the README or release notes.
+      options:
+        - label: You may mention this project in the README or release notes

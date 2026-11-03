@@ -1,0 +1,36 @@
+title: "[Q] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for asking! Check the [documentation](https://tabletopcardengine.readthedocs.io/en/stable/) first — the API reference, guides, and architecture notes may answer your question.
+  - type: textarea
+    id: trying_to_do
+    attributes:
+      label: What are you trying to do?
+      description: Describe your use case or the problem you are trying to solve.
+    validations:
+      required: true
+  - type: textarea
+    id: what_tried
+    attributes:
+      label: What did you try?
+      description: What steps have you already taken, or what code have you tried?
+    validations:
+      required: true
+  - type: input
+    id: package_version
+    attributes:
+      label: Package and version
+      placeholder: "TabletopCardEngine.Sqlite 1.1.0"
+  - type: dropdown
+    id: database_provider
+    attributes:
+      label: Database provider
+      options:
+        - SQLite
+        - PostgreSQL
+        - SQL Server
+        - InMemory
+        - Docker image
+        - Other

@@ -1,0 +1,24 @@
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What problem are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: What you would like
+      description: How would you like this to work?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Any other approaches you have thought of?
+  - type: markdown
+    attributes:
+      value: |
+        Features planned for v1 and later releases are in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
