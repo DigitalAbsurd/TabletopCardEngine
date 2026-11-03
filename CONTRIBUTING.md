@@ -4,7 +4,7 @@ Thank you for your interest in contributing! This document explains how to contr
 
 ## Before you start
 
-**Open an issue first** for anything beyond a small fix. Use the [issue forms](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/new/choose) to start.
+**Open an issue first** for anything beyond a small fix. Use the [issue forms](https://github.com/DigitalAbsurd/TabletopCardEngine/issues/new/choose) to start. For questions and feature ideas, use [GitHub Discussions](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions) instead.
 
 **Security reports** go through [SECURITY.md](SECURITY.md), never a public issue.
 

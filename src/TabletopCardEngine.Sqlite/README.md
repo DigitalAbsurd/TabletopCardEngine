@@ -29,3 +29,7 @@ var engine = provider.GetRequiredService<IHoldemTable>();
 The `holdem.db` file holds the schema and all game data. If you restart the application, it reuses the same database. SQLite has no schemas, so every Hold'em table name starts with `tce_holdem_` (`tce_holdem_Game`, `tce_holdem_Hand`, ...).
 
 **Documentation:** [Database providers](https://tabletopcardengine.readthedocs.io/en/stable/providers/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
+
+## Questions and feedback
+
+Ask questions and share ideas in [GitHub Discussions](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions), and report bugs in [GitHub Issues](https://github.com/DigitalAbsurd/TabletopCardEngine/issues).

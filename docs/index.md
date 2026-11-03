@@ -27,3 +27,4 @@ An interactive walkthrough that shows how the engine works:
 - **[Guides](aspnetcore.md)** — usage patterns, container images, and observability
 - **[Reference](api/index.md)** — the generated API reference, the compatibility rules and supported databases
 - **[Project](versioning.md)** — versioning, support, roadmap, and architecture decisions
+- **[GitHub Discussions](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions)** — ask questions, share ideas, and tell us what you build

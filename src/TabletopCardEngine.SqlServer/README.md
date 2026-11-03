@@ -27,3 +27,7 @@ var engine = provider.GetRequiredService<IHoldemTable>();
 All Hold'em tables live in the `tce_holdem` schema. It is recommended to dedicate a database or at least a login to the engine.
 
 **Documentation:** [Database providers](https://tabletopcardengine.readthedocs.io/en/stable/providers/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
+
+## Questions and feedback
+
+Ask questions and share ideas in [GitHub Discussions](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions), and report bugs in [GitHub Issues](https://github.com/DigitalAbsurd/TabletopCardEngine/issues).
