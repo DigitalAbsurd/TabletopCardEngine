@@ -31,7 +31,7 @@ This document describes how releases are cut and versioned in this repository. I
 1. `main` is green on the four local gates (`dotnet build`, `dotnet format --verify-no-changes`, `dotnet test`, `dotnet pack`), plus the browser gate and the provider matrix.
 2. Update `CHANGELOG.md` in a pull request titled `chore(release): vX.Y.Z[-pre]` (the command is in [Changelog](#changelog)).
 3. Once it is merged, tag that merge commit with a signed tag (see [Signing a release tag](#signing-a-release-tag) for how to sign): `git tag -s vX.Y.Z -m "vX.Y.Z"` and `git push origin vX.Y.Z`.
-4. The release workflow does the rest, as described in [The release workflow](#the-release-workflow).
+4. The release workflow does the rest, as described in [The release workflow](#the-release-workflow). After publishing, announce the release: see [Announcing a release](#announcing-a-release).
 
 ## Signing a release tag
 
@@ -99,6 +99,21 @@ The tag comes from the input, never from the branch the dispatch runs on. A manu
 The `--skip-duplicate` flag in the push command allows a re-run after a partial failure to push only what is missing without failing on already-uploaded packages.
 
 `publish-docker.yml` will push the three images (sqlite, postgres, mssql) to the Docker Hub repository `digitalabsurd/tabletopcardengine` with the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets, which are already set.
+
+## Announcing a release
+
+A release is announced to the community after it is published to nuget.org and Docker Hub.
+
+- **When:** announce only **stable** releases (without `-` in the version), after the `Release` run is green and the packages and images are visible on nuget.org and Docker Hub. Pre-releases are not announced.
+- **Where:** create a post in GitHub Discussions → **Announcements**, titled `TabletopCardEngine X.Y.Z`.
+- **Format:** the post has three parts:
+  1. Two or three sentences on what the release is for (e.g., "X.Y.Z adds support for...", "This release fixes...", "A maintenance release that...").
+  2. A short bulleted list of highlights, with each item linking to the relevant section of the GitHub Release notes at `https://github.com/DigitalAbsurd/TabletopCardEngine/releases/tag/vX.Y.Z`.
+  3. An *Upgrading* line, if the release includes a migration: "See [Upgrading](link-to-upgrade-docs) for migration steps."
+- **Close with:** an invitation to questions, ideas and sharing: "Questions? Ideas? Show and tell? Join the conversation in [Ideas](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/ideas) and [Q&A](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/q-a)."
+- **Then:** link the Discussions post from the maintainer's social accounts (Twitter, Reddit, etc.), so replies collect in one place rather than scattered across platforms. A release goes to the channels used at launch only when it adds a user-visible feature, and never more often than the channel's rules allow.
+
+Do not add a workflow step that posts automatically. Announcements are written by a person; an automated post that repeats the changelog is what this section exists to avoid.
 
 ## Changelog
 
