@@ -216,8 +216,13 @@ of this applies.
    - Mapping from the branch type: `feature/` → `feat` (new behaviour) or `refactor` (no behaviour change);
      `fix/` → `fix`; `doc/` → `docs`.
    - Two examples: `feat(aspnetcore): add the schema health check`, `fix(engine): reject a raise below the minimum`.
+   - The message ends with the trailer `AI-Session: <session id>`, the id of the Claude Code session that
+     made the change. It links the commit to that session's transcript, which is stored outside the tree.
+     The `SessionStart` hook puts the id into the session's context and into `AI_SESSION_ID` for shell
+     commands; a commit made outside an AI session carries no trailer. The squash merge keeps commit
+     messages as the body of the commit on `main`, so the trailer survives it.
 3. Open the pull request against `main`. Its title follows step 2. Its body **must** contain `Closes #<number>`
-   so the merge closes the issue.
+   so the merge closes the issue, and ends with the same `AI-Session: <session id>` trailer as the commits.
 4. Merge it yourself right after opening the pull request — squash, and delete the branch. No workflow
    runs on a pull request or on `main` by design; CI runs only on release tags (see `release-process.md`).
    Merge with `gh pr merge <number> --squash --delete-branch`. Say in the pull request that the local
