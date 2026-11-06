@@ -71,6 +71,8 @@ internal static class GameDataMapper
                                 .SingleOrDefault())
                     {
                         HasLeft = player.HandNoEnd != null,
+                        PendingBuyIn = game.GetSeatPendingBuyIn(player.SeatNo)?.Amount ?? 0,
+                        Rebuys = game.CountPlayerRebuys(player),
                     })),
                     DealerSeatNo: currentHand.DealerSeatNo,
                     SmallBlindSeatNo: smallBlindSeatNo,

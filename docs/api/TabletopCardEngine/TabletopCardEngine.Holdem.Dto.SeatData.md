@@ -192,6 +192,32 @@ public string Name { get; init; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='TabletopCardEngine.Holdem.Dto.SeatData.PendingBuyIn'></a>
+
+## SeatData\.PendingBuyIn Property
+
+Chips added by [HoldemActionTopUp](TabletopCardEngine.Holdem.Dto.HoldemActionTopUp.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionTopUp') that go in at the start of the next hand; `0` when there are none\.
+
+```csharp
+public decimal PendingBuyIn { get; init; }
+```
+
+#### Property Value
+[System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')
+
+<a name='TabletopCardEngine.Holdem.Dto.SeatData.Rebuys'></a>
+
+## SeatData\.Rebuys Property
+
+Rebuys the seat's current player has made; [MaxRebuys](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.MaxRebuys 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.MaxRebuys') caps it\.
+
+```csharp
+public int Rebuys { get; init; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='TabletopCardEngine.Holdem.Dto.SeatData.SeatNo'></a>
 
 ## SeatData\.SeatNo Property
