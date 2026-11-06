@@ -7,6 +7,18 @@ internal class Hand
     public int No { get; set; }
     public byte DealerSeatNo { get; set; }
 
+    /// <summary>The small blind this hand was dealt at; <see langword="null"/> means the game's initial small blind, which is what every hand written before blind schedules has.</summary>
+    public decimal? SmallBlind { get; set; }
+
+    /// <summary>How many levels the blinds have risen by when this hand is dealt.</summary>
+    public int BlindLevel { get; set; }
+
+    /// <summary>The number of the hand at which the current blind level began.</summary>
+    public int BlindLevelStartHandNo { get; set; }
+
+    /// <summary>How many of the schedule's player thresholds have already fired.</summary>
+    public int BlindThresholdsPassed { get; set; }
+
     public List<HandPlayerStartState> PlayerStartStates { get; set; } = [];
     public List<HandPlayerEndState> PlayerEndStates { get; set; } = [];
     public List<HandDeckCard> DeckCards { get; set; } = [];

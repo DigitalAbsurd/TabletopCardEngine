@@ -66,6 +66,10 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
+                    b.Property<string>("BlindSchedule")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<string>("GameType")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -119,8 +123,21 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                     b.Property<int>("No")
                         .HasColumnType("integer");
 
+                    b.Property<int>("BlindLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BlindLevelStartHandNo")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BlindThresholdsPassed")
+                        .HasColumnType("integer");
+
                     b.Property<byte>("DealerSeatNo")
                         .HasColumnType("smallint");
+
+                    b.Property<decimal?>("SmallBlind")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("GameId", "No");
 
@@ -327,7 +344,7 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                         {
                             Id = 1,
                             EngineVersion = "1.2.0",
-                            SchemaVersion = 3
+                            SchemaVersion = 4
                         });
                 });
 

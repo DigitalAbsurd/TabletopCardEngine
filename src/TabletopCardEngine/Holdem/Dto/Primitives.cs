@@ -67,6 +67,12 @@ public sealed record GameOptionData
     /// two decimal places.
     /// </summary>
     public decimal? MaxBuyIn { get; init; }
+
+    /// <summary>
+    /// How the blinds rise during the game. <see langword="null"/> (the default) means they never change, so a
+    /// caller that never sets it gets the 1.1 game. Must be valid when set; see <see cref="BlindScheduleData"/>.
+    /// </summary>
+    public BlindScheduleData? BlindSchedule { get; init; }
 }
 
 /// <summary>A player taking a seat, together with the stack they bring to it.</summary>

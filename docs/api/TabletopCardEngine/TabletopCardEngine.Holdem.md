@@ -19,6 +19,7 @@
 | Enums | |
 | :--- | :--- |
 | [BettingStructure](TabletopCardEngine.Holdem.BettingStructure.md 'TabletopCardEngine\.Holdem\.BettingStructure') | How bets and raises are sized in a game\. |
+| [BlindIncreaseMode](TabletopCardEngine.Holdem.BlindIncreaseMode.md 'TabletopCardEngine\.Holdem\.BlindIncreaseMode') | How a game's small blind is worked out each time its blind schedule raises a level\. |
 | [GameType](TabletopCardEngine.Holdem.GameType.md 'TabletopCardEngine\.Holdem\.GameType') | The poker variant a game is played in\. |
 | [HandActionType](TabletopCardEngine.Holdem.HandActionType.md 'TabletopCardEngine\.Holdem\.HandActionType') | What the hand's ledger records for one action\. It is [PlayerActionType](TabletopCardEngine.Holdem.PlayerActionType.md 'TabletopCardEngine\.Holdem\.PlayerActionType') plus the two forced blind posts, which the engine places itself and a caller can never request\. The ledger stores the action the caller asked for, so a request that the rules turned into something else \(an unaffordable call, say\) is still recorded as requested\. |
 | [HandRankType](TabletopCardEngine.Holdem.HandRankType.md 'TabletopCardEngine\.Holdem\.HandRankType') | The display category of a made hand, ascending in strength\. This is for showing the result only — two hands of the same category are ranked against each other by their strength value, not by this\. |

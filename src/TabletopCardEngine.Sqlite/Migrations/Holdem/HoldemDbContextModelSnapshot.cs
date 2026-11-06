@@ -60,6 +60,10 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         .HasMaxLength(32)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("BlindSchedule")
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("GameType")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -113,8 +117,21 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                     b.Property<int>("No")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("BlindLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BlindLevelStartHandNo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BlindThresholdsPassed")
+                        .HasColumnType("INTEGER");
+
                     b.Property<byte>("DealerSeatNo")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("SmallBlind")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("GameId", "No");
 
@@ -321,7 +338,7 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         {
                             Id = 1,
                             EngineVersion = "1.2.0",
-                            SchemaVersion = 3
+                            SchemaVersion = 4
                         });
                 });
 
