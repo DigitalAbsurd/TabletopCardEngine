@@ -96,3 +96,9 @@ The action is not one the seat to act may take now, or its size is outside the w
 `NotEnoughPlayers` 14
 
 Fewer than two seats would have chips to play the hand: seat more players with `StartHand` and try again\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.InvalidBuyIn'></a>
+
+`InvalidBuyIn` 15
+
+A buy\-in, top\-up or rebuy amount is outside the game's buy\-in window \(`MinBuyIn`/`MaxBuyIn`\), or would take the stack above `MaxBuyIn`\.

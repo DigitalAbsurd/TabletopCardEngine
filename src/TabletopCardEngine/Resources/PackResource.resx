@@ -159,4 +159,7 @@
   <data name="HoldemValidation_NotEnoughPlayers" xml:space="preserve">
     <value>Fewer than two seats would have chips to play the hand: seat more players with StartHand and try again</value>
   </data>
+  <data name="HoldemValidation_InvalidBuyIn" xml:space="preserve">
+    <value>The buy-in amount is outside the game's buy-in window</value>
+  </data>
 </root>

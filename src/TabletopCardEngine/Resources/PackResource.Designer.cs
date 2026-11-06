@@ -185,5 +185,14 @@ namespace TabletopCardEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_NotEnoughPlayers", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The buy-in amount is outside the game's buy-in window.
+        /// </summary>
+        internal static string HoldemValidation_InvalidBuyIn {
+            get {
+                return ResourceManager.GetString("HoldemValidation_InvalidBuyIn", resourceCulture);
+            }
+        }
     }
 }

@@ -51,4 +51,7 @@ public enum HoldemErrorCode
 
     /// <summary>Fewer than two seats would have chips to play the hand: seat more players with <c>StartHand</c> and try again.</summary>
     NotEnoughPlayers = 14,
+
+    /// <summary>A buy-in, top-up or rebuy amount is outside the game's buy-in window (<c>MinBuyIn</c>/<c>MaxBuyIn</c>), or would take the stack above <c>MaxBuyIn</c>.</summary>
+    InvalidBuyIn = 15,
 }
