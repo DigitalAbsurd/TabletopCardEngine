@@ -42,6 +42,17 @@ public sealed class MultiHandSessionTests
     private const int MinBuyInBigBlinds = 50;
     private const int MaxBuyInBigBlinds = 200;
 
+    // The top-up policy: blinds 1/2, every join at 100 inside a 50 to 200 buy-in window, two rebuys a player.
+    private const decimal TopUpBlind = 1;
+    private const decimal TopUpBuyIn = 100;
+    private const decimal TopUpMinBuyIn = 50;
+    private const decimal TopUpMaxBuyIn = 200;
+    private const int MaxRebuys = 2;
+    private const double RebuyChance = 0.7;
+    private const double TopUpChance = 0.3;
+    private const double KickChance = 0.05;
+    private const int ShoveOdds = 10;
+
     /// <summary>Fixed so a failure is reproducible.</summary>
     private const int Seed = 20260825;
 
@@ -303,6 +314,289 @@ public sealed class MultiHandSessionTests
         pauseChecked.Should().BeTrue("the first pause was put to the engine");
     }
 
+    /// <summary>
+    /// The churn session with buy-ins on top: a busted seat rebuys (until its player has used up the rebuys,
+    /// then leaves), a short seat tops up, a shove now and then busts somebody, and seats are kicked both
+    /// between hands and at a random decision mid-hand. Chips bought in, topped up and rebought must always
+    /// equal chips on the table, pending, and taken away by whoever left or was kicked. The invariant is
+    /// computed from what the engine reports, so a pending buy-in the engine loses breaks it.
+    /// </summary>
+    [TestMethod]
+    [DataRow(6, TestDatabaseKind.Sqlite, DisplayName = "six-handed top-ups, Sqlite")]
+    [DataRow(10, TestDatabaseKind.Sqlite, DisplayName = "ten-handed top-ups, Sqlite")]
+    [DataRow(6, TestDatabaseKind.InMemory, DisplayName = "six-handed top-ups, InMemory")]
+    [DataRow(10, TestDatabaseKind.InMemory, DisplayName = "ten-handed top-ups, InMemory")]
+    [DataRow(6, TestDatabaseKind.PostgreSql, DisplayName = "six-handed top-ups, PostgreSql")]
+    [DataRow(10, TestDatabaseKind.PostgreSql, DisplayName = "ten-handed top-ups, PostgreSql")]
+    [DataRow(6, TestDatabaseKind.SqlServer, DisplayName = "six-handed top-ups, SqlServer")]
+    [DataRow(10, TestDatabaseKind.SqlServer, DisplayName = "ten-handed top-ups, SqlServer")]
+    public async Task MultiHandSession_WithTopUpsRebuysAndKicks_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database)
+    {
+        var gameId = Guid.Parse("{44444444-4444-4444-4444-444444444444}");
+        var random = new Random(Seed + 1000 + seatCount);
+        var cardsByHand = new Dictionary<int, (Dictionary<byte, Card[]> Hole, Card[] Board)>();
+
+        using var host = TestEngineHost.Setup(out var holdemEngine, out _,
+            shuffler: new TestCardShuffler(
+                getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
+                getDeckFunc: handNo => cardsByHand[handNo].Board),
+            database: database);
+
+        (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(
+            GameId: gameId,
+            Options: new GameOptionData
+            {
+                TableFormat = GetTableFormat(seatCount),
+                MaxPlayersCount = seatCount,
+                InitialSmallBlind = TopUpBlind,
+                InitialDealerSeatNo = FirstDealerSeatNo,
+                AllowTopUp = true,
+                AllowRebuy = true,
+                MaxRebuys = MaxRebuys,
+                MinBuyIn = TopUpMinBuyIn,
+                MaxBuyIn = TopUpMaxBuyIn
+            }))).IsSuccess.Should().BeTrue();
+
+        var allSeatNos = Enumerable.Range(1, seatCount).Select(seatNo => (byte)seatNo).ToArray();
+
+        // What the test believes about the table: one entry per seat with a player in it.
+        var occupants = new Dictionary<byte, Occupant>();
+        var kickedNames = new HashSet<string>();
+        var totalIn = 0M;
+        var totalTakenAway = 0M;
+        var playerCount = 0;
+        var topUps = 0;
+        var rebuys = 0;
+        var rebuysRefused = 0;
+        var kicksBetween = 0;
+        var kicksMid = 0;
+        var stoppedEarly = false;
+        byte? previousDealerSeatNo = null;
+
+        PlayerJoinData Join(byte seatNo)
+        {
+            var occupant = new Occupant { Name = $"Player {++playerCount}", Stack = TopUpBuyIn };
+            occupants[seatNo] = occupant;
+            totalIn += TopUpBuyIn;
+            return new PlayerJoinData(occupant.Name, seatNo, TopUpBuyIn);
+        }
+
+        async Task<GameData> ApplyOkAsync(HoldemAction action)
+        {
+            var result = await holdemEngine.ApplyAsync(action);
+            result.IsSuccess.Should().BeTrue(
+                $"{action.GetType().Name} should succeed: {string.Join("; ", result.Errors.Select(error => error.Message))}");
+            return result.Value;
+        }
+
+        // Σ buy-ins + Σ accepted top-ups and rebuys == Σ stacks of seated players + Σ pending + Σ taken away,
+        // all read from the engine's own report of the hand.
+        void AssertConserved(HandData handData, string when)
+        {
+            var onTheTable = handData.Seats.Where(seat => !seat.HasLeft)
+                .Sum(seat => seat.StartHandStack + (seat.HandResult?.Net ?? 0) + seat.PendingBuyIn);
+            (onTheTable + totalTakenAway).Should().Be(totalIn,
+                $"every chip put in is on the table, pending, or went away with a player {when}");
+        }
+
+        async Task RemoveAsync(HoldemAction action, byte seatNo)
+        {
+            var occupant = occupants[seatNo];
+            var handData = (await ApplyOkAsync(action)).HandData!;
+            var gone = handData.Seats.Single(seat => seat.SeatNo == seatNo);
+            gone.HasLeft.Should().BeTrue($"seat {seatNo} has left");
+            gone.PendingBuyIn.Should().Be(0, "a pending buy-in leaves with the player");
+            (gone.StartHandStack + gone.HandResult!.Net).Should().Be(occupant.Stack, "a leaver takes the stack its last hand ended on");
+
+            // A cancelled buy-in never went into play, so it goes back with the player as well.
+            totalTakenAway += occupant.Stack + occupant.Pending;
+            occupants.Remove(seatNo);
+            AssertConserved(handData, $"after seat {seatNo} was removed");
+        }
+
+        for (var handNo = 1; handNo <= HandCount; handNo++)
+        {
+            cardsByHand[handNo] = DealCards(random, seatCount);
+
+            using var scope = new AssertionScope($"{seatCount}-handed top-up session hand #{handNo}");
+
+            var toppedUpSeatNos = new HashSet<byte>();
+            HoldemAction startAction;
+            if (handNo == 1)
+            {
+                startAction = new HoldemActionStartGame(gameId, [.. allSeatNos.Select(Join)]);
+            }
+            else
+            {
+                foreach (var seatNo in allSeatNos.Where(occupants.ContainsKey).ToArray())
+                {
+                    var occupant = occupants[seatNo];
+                    if (occupant.Stack <= 0)
+                    {
+                        if (random.NextDouble() >= RebuyChance)
+                        {
+                            await RemoveAsync(HoldemAction.LeaveSeat(gameId, seatNo), seatNo);
+                        }
+                        else if (occupant.Rebuys < MaxRebuys)
+                        {
+                            var rebought = (await ApplyOkAsync(HoldemAction.TopUp(gameId, seatNo, TopUpBuyIn))).HandData!;
+                            occupant.Pending += TopUpBuyIn;
+                            occupant.Rebuys++;
+                            totalIn += TopUpBuyIn;
+                            rebuys++;
+                            toppedUpSeatNos.Add(seatNo);
+                            rebought.Seats.Single(seat => seat.SeatNo == seatNo).PendingBuyIn.Should().Be(occupant.Pending);
+                            AssertConserved(rebought, $"after seat {seatNo} rebought");
+                        }
+                        else
+                        {
+                            var refused = await holdemEngine.ApplyAsync(HoldemAction.TopUp(gameId, seatNo, TopUpBuyIn));
+                            refused.IsFailed.Should().BeTrue($"seat {seatNo}'s player has used up {MaxRebuys} rebuys");
+                            refused.Errors.Single().Code.Should().Be(HoldemErrorCode.RebuyNotAllowed);
+                            rebuysRefused++;
+                            await RemoveAsync(HoldemAction.LeaveSeat(gameId, seatNo), seatNo);
+                        }
+                    }
+                    else if (occupant.Stack < TopUpBuyIn && random.NextDouble() < TopUpChance)
+                    {
+                        var amount = TopUpMaxBuyIn - occupant.Stack;
+                        var toppedUp = (await ApplyOkAsync(HoldemAction.TopUp(gameId, seatNo, amount))).HandData!;
+                        occupant.Pending += amount;
+                        totalIn += amount;
+                        topUps++;
+                        toppedUpSeatNos.Add(seatNo);
+                        toppedUp.Seats.Single(seat => seat.SeatNo == seatNo).PendingBuyIn.Should().Be(occupant.Pending);
+                        AssertConserved(toppedUp, $"after seat {seatNo} topped up");
+                    }
+                }
+
+                if (occupants.Count > 0 && random.NextDouble() < KickChance)
+                {
+                    var seatNo = occupants.Keys.ElementAt(random.Next(occupants.Count));
+                    kickedNames.Add(occupants[seatNo].Name);
+                    await RemoveAsync(HoldemAction.KickSeat(gameId, seatNo), seatNo);
+                    kicksBetween++;
+                }
+
+                var emptySeatNos = allSeatNos.Where(seatNo => !occupants.ContainsKey(seatNo)).ToList();
+                var joiningSeatNos = emptySeatNos.Where(_ => random.Next(JoinOdds) == 0).ToList();
+                foreach (var seatNo in emptySeatNos.Except(joiningSeatNos).Take(Math.Max(0, 2 - occupants.Count - joiningSeatNos.Count)))
+                {
+                    joiningSeatNos.Add(seatNo);
+                }
+
+                if (occupants.Count + joiningSeatNos.Count < 2)
+                {
+                    var stalled = await holdemEngine.ApplyAsync(HoldemAction.StartHand(gameId));
+                    stalled.Errors.Single().Code.Should().Be(HoldemErrorCode.NotEnoughPlayers);
+                    stoppedEarly = true;
+                    break;
+                }
+
+                startAction = HoldemAction.StartHand(gameId, [.. joiningSeatNos.Select(Join)]);
+            }
+
+            var startResult = await holdemEngine.ApplyAsync(startAction);
+            startResult.IsSuccess.Should().BeTrue(
+                $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
+
+            var handData = startResult.Value.HandData!;
+            handData.No.Should().Be(handNo);
+
+            var dealtIn = allSeatNos.Where(seatNo => occupants.TryGetValue(seatNo, out var occupant) && occupant.Stack + occupant.Pending > 0).ToArray();
+            var startStacks = dealtIn.ToDictionary(seatNo => seatNo, seatNo => occupants[seatNo].Stack + occupants[seatNo].Pending);
+            var names = dealtIn.ToDictionary(seatNo => seatNo, seatNo => occupants[seatNo].Name);
+            AssertDealtInSeats(handData, dealtIn, startStacks, names);
+            AssertChurnButtonAndBlinds(handData, dealtIn, previousDealerSeatNo, seatCount);
+            handData.Seats.Select(seat => seat.Name).Should().NotIntersectWith(kickedNames, "a kicked player is never dealt in again");
+
+            foreach (var seatData in handData.Seats)
+            {
+                var occupant = occupants[seatData.SeatNo];
+                seatData.PendingBuyIn.Should().Be(0, "the pending buy-in went into the stack");
+                seatData.Rebuys.Should().Be(occupant.Rebuys).And.BeLessOrEqualTo(MaxRebuys);
+                if (toppedUpSeatNos.Contains(seatData.SeatNo))
+                {
+                    seatData.StartHandStack.Should().BeLessOrEqualTo(TopUpMaxBuyIn, "a top-up never takes a stack above the maximum buy-in");
+                }
+
+                occupant.Stack += occupant.Pending;
+                occupant.Pending = 0;
+            }
+
+            AssertConserved(handData, "at the start of the hand");
+
+            var kickDecisionNo = random.NextDouble() < KickChance ? random.Next(6) : -1;
+            var kickedMid = new Dictionary<byte, bool>();
+            var gameData = await PlayOutHandAsync(holdemEngine, gameId, startResult.Value, random, ShoveOdds,
+                async (current, decisionNo) =>
+                {
+                    if (decisionNo != kickDecisionNo)
+                    {
+                        return current;
+                    }
+
+                    var candidates = current.HandData!.Seats.Where(seat => !seat.HasLeft).ToArray();
+                    var victim = candidates[random.Next(candidates.Length)];
+                    var kicked = await ApplyOkAsync(HoldemAction.KickSeat(gameId, victim.SeatNo));
+                    kicked.HandData!.Seats.Single(seat => seat.SeatNo == victim.SeatNo).HasLeft.Should().BeTrue("a kicked seat has left");
+                    kickedMid[victim.SeatNo] = victim.IsAllIn;
+                    kickedNames.Add(victim.Name);
+                    kicksMid++;
+                    return kicked;
+                });
+            handData = gameData.HandData!;
+
+            handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
+                .Be(0, "a hand neither creates nor destroys chips");
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.HandResult.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
+                var stack = seatData.StartHandStack + (seatData.HandResult?.Net ?? 0);
+                stack.Should().BeGreaterOrEqualTo(0, $"seat {seatData.SeatNo} cannot end below nothing");
+                occupants[seatData.SeatNo].Stack = stack;
+                if (kickedMid.TryGetValue(seatData.SeatNo, out var wasAllIn))
+                {
+                    seatData.HasLeft.Should().BeTrue($"seat {seatData.SeatNo} was kicked");
+                    (wasAllIn || seatData.IsFolded).Should().BeTrue(
+                        $"kicked seat {seatData.SeatNo} ends the hand folded or, when it was all in, with its result");
+                }
+            }
+
+            foreach (var seatData in handData.Seats.Where(seat => seat.HasLeft))
+            {
+                totalTakenAway += occupants[seatData.SeatNo].Stack;
+                occupants.Remove(seatData.SeatNo);
+            }
+
+            AssertConserved(handData, "at the end of the hand");
+
+            previousDealerSeatNo = handData.DealerSeatNo;
+        }
+
+        using var counters = new AssertionScope("the session must actually have used every buy-in path");
+        stoppedEarly.Should().BeFalse("a free seat can always be filled, so the session plays all hands");
+        topUps.Should().BeGreaterThan(0, "somebody topped up");
+        rebuys.Should().BeGreaterThan(0, "somebody rebought");
+        rebuysRefused.Should().BeGreaterThan(0, "somebody asked for a third rebuy");
+        kicksBetween.Should().BeGreaterThan(0, "somebody was kicked between hands");
+        kicksMid.Should().BeGreaterThan(0, "somebody was kicked mid-hand");
+    }
+
+    private sealed class Occupant
+    {
+        public required string Name { get; init; }
+
+        /// <summary>What the seat's player has, as its last hand ended.</summary>
+        public decimal Stack { get; set; }
+
+        /// <summary>Chips added between hands that the next hand deals.</summary>
+        public decimal Pending { get; set; }
+
+        public int Rebuys { get; set; }
+    }
+
     private static void AssertDealtInSeats(HandData handData, byte[] dealtIn, Dictionary<byte, decimal> stacks, Dictionary<byte, string> names)
     {
         handData.Seats.Select(seat => seat.SeatNo).Should().Equal(dealtIn,
@@ -359,9 +653,11 @@ public sealed class MultiHandSessionTests
     /// on a raise is the "raise to" total the engine wants as the size, regardless of where in the
     /// street the decision falls.
     /// </summary>
-    private static async Task<GameData> PlayOutHandAsync(IHoldemTable holdemEngine, Guid gameId, GameData gameData, Random random)
+    private static async Task<GameData> PlayOutHandAsync(IHoldemTable holdemEngine, Guid gameId, GameData gameData, Random random,
+        int shoveOdds = 0, Func<GameData, int, Task<GameData>>? beforeDecision = null)
     {
         var decisionsLeft = MaxDecisionsPerHand;
+        var decisionNo = 0;
 
         // A hand is over once the engine has written results — the same test the engine itself makes
         // in IsCurrentHandEnded. Evaluations is not a reliable signal: a hand that ends on a fold
@@ -370,6 +666,15 @@ public sealed class MultiHandSessionTests
         {
             (--decisionsLeft).Should().BePositive(
                 $"hand #{gameData.HandData!.No} should end within {MaxDecisionsPerHand} decisions");
+
+            if (beforeDecision != null)
+            {
+                gameData = await beforeDecision(gameData, decisionNo++);
+                if (gameData.HandData!.Seats.Any(seat => seat.HandResult != null))
+                {
+                    break;
+                }
+            }
 
             var handData = gameData.HandData!;
             var check = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Check);
@@ -380,7 +685,11 @@ public sealed class MultiHandSessionTests
                 && action.ActionType is HandActionType.Raise or HandActionType.Bet or HandActionType.AllIn);
 
             HoldemActionPlay playerAction;
-            if (raise != null && !streetRaised && random.Next(4) == 0)
+            if (shoveOdds > 0 && random.Next(shoveOdds) == 0)
+            {
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.AllIn, 0);
+            }
+            else if (raise != null && !streetRaised && random.Next(4) == 0)
             {
                 playerAction = new HoldemActionPlay(gameId, PlayerActionType.Raise, raise.MinValue);
             }
