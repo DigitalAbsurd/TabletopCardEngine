@@ -22,7 +22,8 @@ Derived
 ↳ [HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat')  
 ↳ [HoldemActionPlay](TabletopCardEngine.Holdem.Dto.HoldemActionPlay.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionPlay')  
 ↳ [HoldemActionStartGame](TabletopCardEngine.Holdem.Dto.HoldemActionStartGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartGame')  
-↳ [HoldemActionStartHand](TabletopCardEngine.Holdem.Dto.HoldemActionStartHand.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartHand')
+↳ [HoldemActionStartHand](TabletopCardEngine.Holdem.Dto.HoldemActionStartHand.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartHand')  
+↳ [HoldemActionTopUp](TabletopCardEngine.Holdem.Dto.HoldemActionTopUp.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionTopUp')
 
 Implements [System\.IEquatable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')[HoldemAction](TabletopCardEngine.Holdem.Dto.HoldemAction.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemAction')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')
 ### Constructors
@@ -255,3 +256,35 @@ The seats to fill before dealing, for players who sit down between hands, or
 
 #### Returns
 [HoldemActionStartHand](TabletopCardEngine.Holdem.Dto.HoldemActionStartHand.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartHand')
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.TopUp(System.Guid,byte,decimal)'></a>
+
+## HoldemAction\.TopUp\(Guid, byte, decimal\) Method
+
+Adds chips to an occupied seat between hands: a top\-up while it still has chips, a rebuy once it has none\.
+
+```csharp
+public static TabletopCardEngine.Holdem.Dto.HoldemActionTopUp TopUp(System.Guid gameId, byte seatNo, decimal amount);
+```
+#### Parameters
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.TopUp(System.Guid,byte,decimal).gameId'></a>
+
+`gameId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The game to add chips in\.
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.TopUp(System.Guid,byte,decimal).seatNo'></a>
+
+`seatNo` [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')
+
+The seat whose player adds chips\. Seats are 1\-based\.
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.TopUp(System.Guid,byte,decimal).amount'></a>
+
+`amount` [System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')
+
+The chips to add, positive and with at most two decimal places\.
+
+#### Returns
+[HoldemActionTopUp](TabletopCardEngine.Holdem.Dto.HoldemActionTopUp.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionTopUp')

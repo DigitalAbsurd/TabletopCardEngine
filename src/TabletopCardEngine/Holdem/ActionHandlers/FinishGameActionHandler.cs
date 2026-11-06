@@ -15,6 +15,12 @@ internal sealed class FinishGameActionHandler : HoldemActionHandler<HoldemAction
 
         game.IsFinished = true;
 
+        // No next hand will deal them, so top-ups and rebuys still waiting were never in play.
+        foreach (var pending in game.GetPendingBuyIns())
+        {
+            game.BuyIns.Remove(pending);
+        }
+
         return Task.FromResult<HoldemError?>(null);
     }
 }

@@ -33,6 +33,8 @@ internal static class HoldemProblems
         HoldemErrorCode.IllegalAction => 422,
         HoldemErrorCode.NotEnoughPlayers => 409,
         HoldemErrorCode.InvalidBuyIn => 422,
+        HoldemErrorCode.TopUpNotAllowed => 409,
+        HoldemErrorCode.RebuyNotAllowed => 409,
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, null),
     };
 

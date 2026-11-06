@@ -121,6 +121,16 @@ internal static class HandDealer
                     startState.StartStack += joinData.BuyInAmount;
                 }
             }
+
+            // Top-ups and rebuys made between the hands. The join rows of this hand were just written by
+            // JoinPlayers and are already counted from joinSeats above, so only the other kinds are added here.
+            foreach (var startState in handStartStates)
+            {
+                if (game.GetSeatPendingBuyIn(startState.SeatNo) is { } pending)
+                {
+                    startState.StartStack += pending.Amount;
+                }
+            }
             return handStartStates;
         }
     }

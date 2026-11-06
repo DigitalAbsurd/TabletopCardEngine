@@ -110,6 +110,8 @@ public sealed class HoldemResultTests
             [HoldemErrorCode.IllegalAction] = 13,
             [HoldemErrorCode.NotEnoughPlayers] = 14,
             [HoldemErrorCode.InvalidBuyIn] = 15,
+            [HoldemErrorCode.TopUpNotAllowed] = 16,
+            [HoldemErrorCode.RebuyNotAllowed] = 17,
         };
 
         Enum.GetValues<HoldemErrorCode>().Should().BeEquivalentTo(expected.Keys, "a new code needs a row in this table");

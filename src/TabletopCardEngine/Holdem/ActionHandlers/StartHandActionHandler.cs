@@ -33,6 +33,12 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
             seatsWithChips.Add(joinData.SeatNo);
         }
 
+        // A busted seat that has rebought plays the next hand with the rebuy.
+        foreach (var pending in game.GetPendingBuyIns().Where(pending => game.IsSeatTaken(pending.SeatNo)))
+        {
+            seatsWithChips.Add(pending.SeatNo);
+        }
+
         if (seatsWithChips.Count < 2)
         {
             return new HoldemError(HoldemErrorCode.NotEnoughPlayers, PackResource.HoldemValidation_NotEnoughPlayers);

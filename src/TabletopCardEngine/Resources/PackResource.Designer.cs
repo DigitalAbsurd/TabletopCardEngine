@@ -194,5 +194,23 @@ namespace TabletopCardEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_InvalidBuyIn", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game does not allow a seat with chips to top up.
+        /// </summary>
+        internal static string HoldemValidation_TopUpNotAllowed {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TopUpNotAllowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game does not allow this player another rebuy.
+        /// </summary>
+        internal static string HoldemValidation_RebuyNotAllowed {
+            get {
+                return ResourceManager.GetString("HoldemValidation_RebuyNotAllowed", resourceCulture);
+            }
+        }
     }
 }

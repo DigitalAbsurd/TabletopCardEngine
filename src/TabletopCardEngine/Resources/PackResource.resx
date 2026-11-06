@@ -162,4 +162,10 @@
   <data name="HoldemValidation_InvalidBuyIn" xml:space="preserve">
     <value>The buy-in amount is outside the game's buy-in window</value>
   </data>
+  <data name="HoldemValidation_TopUpNotAllowed" xml:space="preserve">
+    <value>The game does not allow a seat with chips to top up</value>
+  </data>
+  <data name="HoldemValidation_RebuyNotAllowed" xml:space="preserve">
+    <value>The game does not allow this player another rebuy</value>
+  </data>
 </root>
