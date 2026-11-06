@@ -25,6 +25,12 @@ internal static class HoldemDbContextExtensions
             .Where(player => player.HandNoStart <= currentHand.No)
             .LoadAsync();
 
+        // All of them rather than only the pending ones and the current players' rebuys: there is one row per join,
+        // top-up or rebuy, so the set stays small, and one query answers both questions.
+        await context.Entry(game)
+            .Collection(game => game.BuyIns)
+            .LoadAsync();
+
         await context.Entry(currentHand)
             .Collection(hand => hand.PlayerStartStates)
             .LoadAsync();

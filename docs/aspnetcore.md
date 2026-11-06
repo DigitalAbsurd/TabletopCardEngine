@@ -384,6 +384,8 @@ Every error returned by the engine comes back as an HTTP problem response with a
 | `IllegalAction` | 13 | 422 |
 | `NotEnoughPlayers` | 14 | 409 |
 | `InvalidBuyIn` | 15 | 422 |
+| `TopUpNotAllowed` | 16 | 409 |
+| `RebuyNotAllowed` | 17 | 409 |
 
 **The logic.**
 

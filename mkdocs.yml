@@ -112,6 +112,7 @@ nav:
                   - 'HoldemActionPlay': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionPlay.md
                   - 'HoldemActionStartGame': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionStartGame.md
                   - 'HoldemActionStartHand': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionStartHand.md
+                  - 'HoldemActionTopUp': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HoldemActionTopUp.md
                   - 'PlayerActionData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.PlayerActionData.md
                   - 'PlayerActionEvaluationData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.PlayerActionEvaluationData.md
                   - 'PlayerJoinData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.PlayerJoinData.md

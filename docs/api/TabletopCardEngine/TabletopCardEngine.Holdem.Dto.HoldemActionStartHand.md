@@ -38,7 +38,7 @@ The game to deal in\.
 
 ## HoldemActionStartHand\.JoinSeats Property
 
-Players who sit down between hands, each into an empty seat: never occupied, or left with [HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat'); topping up an occupied seat is not supported\. Any read\-only list will do; the engine only reads it\.
+Players who sit down between hands, each into an empty seat: never occupied, or left with [HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat'); an occupied seat adds chips with [HoldemActionTopUp](TabletopCardEngine.Holdem.Dto.HoldemActionTopUp.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionTopUp') instead\. Any read\-only list will do; the engine only reads it\.
 
 ```csharp
 public System.Collections.Generic.IReadOnlyList<TabletopCardEngine.Holdem.Dto.PlayerJoinData> JoinSeats { get; init; }

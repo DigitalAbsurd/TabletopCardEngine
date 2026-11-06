@@ -63,6 +63,13 @@ public abstract record HoldemAction(Guid GameId)
     /// <param name="seatNo">The seat whose player leaves. Seats are 1-based.</param>
     public static HoldemActionLeaveSeat LeaveSeat(Guid gameId, byte seatNo)
         => new(gameId, seatNo);
+
+    /// <summary>Adds chips to an occupied seat between hands: a top-up while it still has chips, a rebuy once it has none.</summary>
+    /// <param name="gameId">The game to add chips in.</param>
+    /// <param name="seatNo">The seat whose player adds chips. Seats are 1-based.</param>
+    /// <param name="amount">The chips to add, positive and with at most two decimal places.</param>
+    public static HoldemActionTopUp TopUp(Guid gameId, byte seatNo, decimal amount)
+        => new(gameId, seatNo, amount);
 }
 
 /// <summary>Reads the game back without changing anything.</summary>
@@ -89,7 +96,7 @@ public record HoldemActionStartGame(Guid GameId, IReadOnlyList<PlayerJoinData> J
 /// <param name="GameId">The game to deal in.</param>
 public record HoldemActionStartHand(Guid GameId) : HoldemAction(GameId)
 {
-    /// <summary>Players who sit down between hands, each into an empty seat: never occupied, or left with <see cref="HoldemActionLeaveSeat"/>; topping up an occupied seat is not supported. Any read-only list will do; the engine only reads it.</summary>
+    /// <summary>Players who sit down between hands, each into an empty seat: never occupied, or left with <see cref="HoldemActionLeaveSeat"/>; an occupied seat adds chips with <see cref="HoldemActionTopUp"/> instead. Any read-only list will do; the engine only reads it.</summary>
     public IReadOnlyList<PlayerJoinData> JoinSeats { get; init; } = [];
 }
 
@@ -126,3 +133,23 @@ public record HoldemActionFinishGame(Guid GameId) : HoldemAction(GameId);
 /// <param name="GameId">The game to leave.</param>
 /// <param name="SeatNo">The seat whose player leaves. Seats are 1-based.</param>
 public record HoldemActionLeaveSeat(Guid GameId, byte SeatNo) : HoldemAction(GameId);
+
+/// <summary>
+/// Adds chips to an occupied seat between hands. The chips are not in play until the next
+/// <see cref="HoldemActionStartHand"/>, which deals the seat its finish stack plus every amount added since.
+/// What the call is depends on the stack the seat would start that hand with before it: with chips left it is a
+/// top-up, allowed by <see cref="GameOptionData.AllowTopUp"/> (otherwise <see cref="HoldemErrorCode.TopUpNotAllowed"/>)
+/// and only up to <see cref="GameOptionData.MaxBuyIn"/> in total; with none left it is a rebuy, allowed by
+/// <see cref="GameOptionData.AllowRebuy"/> at most <see cref="GameOptionData.MaxRebuys"/> times per player
+/// (otherwise <see cref="HoldemErrorCode.RebuyNotAllowed"/>) and inside the buy-in window. An amount outside those
+/// limits, not positive, or with more than two decimal places fails with <see cref="HoldemErrorCode.InvalidBuyIn"/>.
+/// It fails with <see cref="HoldemErrorCode.GameNotStarted"/> before hand 1, with
+/// <see cref="HoldemErrorCode.PreviousHandNotEnded"/> while a hand is in progress, and with
+/// <see cref="HoldemErrorCode.InvalidSeat"/> for a seat outside the table, an empty seat or a player who has left.
+/// A player who leaves before the next hand takes back nothing: the pending chips are cancelled, as they are when the
+/// game is finished.
+/// </summary>
+/// <param name="GameId">The game to add chips in.</param>
+/// <param name="SeatNo">The seat whose player adds chips. Seats are 1-based.</param>
+/// <param name="Amount">The chips to add, positive and with at most two decimal places.</param>
+public record HoldemActionTopUp(Guid GameId, byte SeatNo, decimal Amount) : HoldemAction(GameId);

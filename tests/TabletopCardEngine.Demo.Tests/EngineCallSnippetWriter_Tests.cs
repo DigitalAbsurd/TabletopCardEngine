@@ -57,6 +57,23 @@ public sealed class EngineCallSnippetWriter_Tests
     }
 
     [TestMethod]
+    public void GenerateSnippet_TopUp_ProducesValidCSharp()
+    {
+        var action = new HoldemActionTopUp(GameId: Guid.NewGuid(), SeatNo: 2, Amount: 150);
+        var entry = new EngineCallJournalEntry(
+            SequenceNumber: 1,
+            Action: action,
+            Succeeded: true,
+            ErrorMessages: []);
+
+        var snippet = EngineCallSnippetWriter.GenerateSnippet(entry);
+
+        snippet.Should().Contain("new HoldemActionTopUp(GameId: ");
+        snippet.Should().Contain("SeatNo: 2, Amount: 150m)");
+        snippet.Should().NotContain("UnknownAction");
+    }
+
+    [TestMethod]
     public void GenerateSnippet_StartHandWithJoinSeats_ListsTheJoiningPlayers()
     {
         // Arrange

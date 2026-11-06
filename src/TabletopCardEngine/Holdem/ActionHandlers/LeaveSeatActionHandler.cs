@@ -33,6 +33,12 @@ internal sealed class LeaveSeatActionHandler : HoldemActionHandler<HoldemActionL
         // The current hand is the player's last one, not the next.
         player.HandNoEnd = currentHand.No;
 
+        // Chips topped up for the next hand were never in play, so they leave with the player as if never added.
+        if (game.GetSeatPendingBuyIn(holdemAction.SeatNo) is { } pending)
+        {
+            game.BuyIns.Remove(pending);
+        }
+
         return Task.FromResult<HoldemError?>(null);
     }
 }

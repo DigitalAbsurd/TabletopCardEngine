@@ -416,12 +416,12 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Fifteen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Seventeen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6` (which also covers an undefined table
     format and a seat count outside the format's range), `InvalidSeat = 7`, and the four lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, `IllegalAction = 13` of fact 29, and `InvalidBuyIn = 15` of fact 23.
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, `IllegalAction = 13` of fact 29, `InvalidBuyIn = 15` of fact 23, and the two top-up codes of fact 23: `TopUpNotAllowed = 16` and `RebuyNotAllowed = 17`.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -487,6 +487,14 @@ renumber.
     `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat,
     has `BuyInAmount <= 0`, `BuyInAmount` has more than two decimal places, or `Name` is `null`, empty,
     whitespace-only, or longer than 64 characters (`SeatValidation`; the previous-hand check runs first). They return `InvalidBuyIn = 15` when `MinBuyIn` is set and `BuyInAmount < MinBuyIn`, or `MaxBuyIn` is set and `BuyInAmount > MaxBuyIn`.
+    `TopUp` (`TopUpActionHandler`) adds chips to an occupied seat between hands only: `GameNotStarted` before hand 1, `PreviousHandNotEnded` during a hand,
+    `InvalidSeat` for a seat outside `1..MaxPlayersCount`, an empty seat or a player who has left, and `InvalidBuyIn` for `Amount <= 0` or more than two
+    decimal places. It is a **top-up** when the stack the seat would start the next hand with (its finish stack plus any pending amount) is above zero,
+    and a **rebuy** when it is zero. A top-up needs `AllowTopUp` (`TopUpNotAllowed = 16` otherwise) and fails with `InvalidBuyIn` when `MaxBuyIn` is set
+    and that stack plus `Amount` exceeds it; it has no minimum. A rebuy needs `AllowRebuy` and fewer than `MaxRebuys` rebuys by the seat's current player
+    (`RebuyNotAllowed = 17` otherwise) and fails with `InvalidBuyIn` outside `[MinBuyIn, MaxBuyIn]`. The chips go into a `BuyIn` row for the next hand
+    (`Kind` `TopUp` or `Rebuy`; a second call between the same hands adds to it and keeps its `Kind`), which `StartHand` deals and counts as chips for
+    `NotEnoughPlayers`; `LeaveSeat` and `FinishGame` remove the pending rows, whose chips were never in play.
     `Play` returns `InvalidAction = 4` when `Size` has more than two decimal places. Amounts
     (`InitialSmallBlind`, `BuyInAmount`, `Size`) have at most two decimal places, and a player's `Name` is
     1 to 64 characters (`AmountRules`).

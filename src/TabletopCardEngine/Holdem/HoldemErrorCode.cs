@@ -54,4 +54,10 @@ public enum HoldemErrorCode
 
     /// <summary>A buy-in, top-up or rebuy amount is outside the game's buy-in window (<c>MinBuyIn</c>/<c>MaxBuyIn</c>), or would take the stack above <c>MaxBuyIn</c>.</summary>
     InvalidBuyIn = 15,
+
+    /// <summary>The seat still has chips and the game does not allow topping up (<c>AllowTopUp</c> is off), so nothing was added.</summary>
+    TopUpNotAllowed = 16,
+
+    /// <summary>The seat has no chips and the game does not allow a rebuy (<c>AllowRebuy</c> is off), or the player has used up <c>MaxRebuys</c>.</summary>
+    RebuyNotAllowed = 17,
 }

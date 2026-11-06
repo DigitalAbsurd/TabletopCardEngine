@@ -15,6 +15,7 @@ internal static class HoldemActionNames
         HoldemActionPlay => "Play",
         HoldemActionFinishGame => "FinishGame",
         HoldemActionLeaveSeat => "LeaveSeat",
+        HoldemActionTopUp => "TopUp",
         _ => "Unknown"
     };
 }

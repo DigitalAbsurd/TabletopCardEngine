@@ -132,6 +132,27 @@ internal static class EntityExtensions
             .OfType<Player>()
             .OrderBy(player => player.SeatNo);
 
+    /// <summary>
+    /// The seat's top-up or rebuy waiting for the next hand, or <see langword="null"/>. There is at most one, because
+    /// the key is per seat per hand and a second call between the same two hands adds to it.
+    /// </summary>
+    internal static BuyIn? GetSeatPendingBuyIn(this Game game, byte seatNo)
+        => game.BuyIns.SingleOrDefault(buyIn => buyIn.SeatNo == seatNo && buyIn.HandNo == game.GetNextHandNo() && buyIn.Kind != BuyInKind.Join);
+
+    /// <summary>
+    /// Every buy-in row for a hand not dealt yet. Those chips were never in play, so they may be cancelled; the rows of
+    /// hands already dealt are history and never change.
+    /// </summary>
+    internal static List<BuyIn> GetPendingBuyIns(this Game game)
+        => [.. game.BuyIns.Where(buyIn => buyIn.HandNo > game.GetCurrentHand().No)];
+
+    /// <summary>
+    /// How many rebuys <paramref name="player"/> has made, the pending one included. Counted per occupant, so a new
+    /// player in the same seat starts from zero: only rows after the hand the player joined at are theirs.
+    /// </summary>
+    internal static int CountPlayerRebuys(this Game game, Player player)
+        => game.BuyIns.Count(buyIn => buyIn.SeatNo == player.SeatNo && buyIn.Kind == BuyInKind.Rebuy && buyIn.HandNo > player.HandNoStart);
+
     internal static int GetPlayerIndex(this Player player)
         => player.SeatNo - 1;
 

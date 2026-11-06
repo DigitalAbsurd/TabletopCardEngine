@@ -29,6 +29,8 @@ public sealed class HoldemProblemsTests
     [DataRow(HoldemErrorCode.GameNotFound, 404)]
     [DataRow(HoldemErrorCode.IllegalAction, 422)]
     [DataRow(HoldemErrorCode.InvalidBuyIn, 422)]
+    [DataRow(HoldemErrorCode.TopUpNotAllowed, 409)]
+    [DataRow(HoldemErrorCode.RebuyNotAllowed, 409)]
     public void StatusCodeFor_EveryCode_MatchesTheTable(HoldemErrorCode code, int expectedStatus, bool ifMatchPresent = false)
     {
         var status = HoldemProblems.StatusCodeFor(code, ifMatchPresent);

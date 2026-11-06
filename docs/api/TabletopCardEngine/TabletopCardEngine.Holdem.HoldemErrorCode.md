@@ -102,3 +102,15 @@ Fewer than two seats would have chips to play the hand: seat more players with `
 `InvalidBuyIn` 15
 
 A buy\-in, top\-up or rebuy amount is outside the game's buy\-in window \(`MinBuyIn`/`MaxBuyIn`\), or would take the stack above `MaxBuyIn`\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TopUpNotAllowed'></a>
+
+`TopUpNotAllowed` 16
+
+The seat still has chips and the game does not allow topping up \(`AllowTopUp` is off\), so nothing was added\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.RebuyNotAllowed'></a>
+
+`RebuyNotAllowed` 17
+
+The seat has no chips and the game does not allow a rebuy \(`AllowRebuy` is off\), or the player has used up `MaxRebuys`\.
