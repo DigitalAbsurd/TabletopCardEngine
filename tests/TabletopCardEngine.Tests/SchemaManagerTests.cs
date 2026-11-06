@@ -49,8 +49,8 @@ public sealed class SchemaManagerTests
         status.State.Should().Be(HoldemSchemaState.UpToDate);
         status.ProviderName.Should().Be("Microsoft.EntityFrameworkCore.Sqlite");
         status.PendingMigrations.Should().BeEmpty();
-        status.EngineSchemaVersion.Should().Be(3);
-        status.DatabaseSchemaVersion.Should().Be(3);
+        status.EngineSchemaVersion.Should().Be(4);
+        status.DatabaseSchemaVersion.Should().Be(4);
         status.DatabaseEngineVersion.Should().Be("1.2.0");
         status.Should().Be(await manager.GetSchemaStatusAsync(), "two reads of the same database compare equal");
     }
@@ -63,7 +63,7 @@ public sealed class SchemaManagerTests
 
         var status = await manager.GetSchemaStatusAsync();
 
-        status.DatabaseSchemaVersion.Should().Be(3);
+        status.DatabaseSchemaVersion.Should().Be(4);
         status.DatabaseEngineVersion.Should().Be("1.2.0");
         status.State.Should().Be(HoldemSchemaState.UpToDate);
     }
@@ -122,10 +122,10 @@ public sealed class SchemaManagerTests
     [DataRow(null, true, HoldemSchemaState.MigrationRequired)]
     [DataRow(0, false, HoldemSchemaState.MigrationRequired)]
     [DataRow(0, true, HoldemSchemaState.MigrationRequired)]
-    [DataRow(3, false, HoldemSchemaState.UpToDate)]
-    [DataRow(3, true, HoldemSchemaState.MigrationRequired)]
-    [DataRow(4, false, HoldemSchemaState.NewerThanEngine)]
-    [DataRow(4, true, HoldemSchemaState.NewerThanEngine)]
+    [DataRow(4, false, HoldemSchemaState.UpToDate)]
+    [DataRow(4, true, HoldemSchemaState.MigrationRequired)]
+    [DataRow(5, false, HoldemSchemaState.NewerThanEngine)]
+    [DataRow(5, true, HoldemSchemaState.NewerThanEngine)]
     public void SchemaCompare_Table(int? databaseVersion, bool hasPendingMigrations, HoldemSchemaState expected)
     {
         var result = HoldemSchema.Compare(databaseVersion, hasPendingMigrations);

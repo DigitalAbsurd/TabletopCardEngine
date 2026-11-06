@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Holdem.Data;
 
@@ -18,6 +19,9 @@ internal class Game
     public int? MaxRebuys { get; set; }
     public decimal? MinBuyIn { get; set; }
     public decimal? MaxBuyIn { get; set; }
+
+    /// <summary>How the blinds rise; <see langword="null"/> means they never do. Stored as JSON in one column of at most <see cref="BlindScheduleJson.MaxLength"/> characters.</summary>
+    public BlindScheduleData? BlindSchedule { get; set; }
 
     public bool IsFinished { get; set; }
 

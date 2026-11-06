@@ -66,6 +66,10 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<string>("BlindSchedule")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
                     b.Property<string>("GameType")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -119,8 +123,21 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                     b.Property<int>("No")
                         .HasColumnType("int");
 
+                    b.Property<int>("BlindLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BlindLevelStartHandNo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BlindThresholdsPassed")
+                        .HasColumnType("int");
+
                     b.Property<byte>("DealerSeatNo")
                         .HasColumnType("tinyint");
+
+                    b.Property<decimal?>("SmallBlind")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("GameId", "No");
 
@@ -327,7 +344,7 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         {
                             Id = 1,
                             EngineVersion = "1.2.0",
-                            SchemaVersion = 3
+                            SchemaVersion = 4
                         });
                 });
 

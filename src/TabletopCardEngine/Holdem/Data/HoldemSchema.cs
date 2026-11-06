@@ -4,7 +4,7 @@
 internal static class HoldemSchema
 {
     /// <summary>Raised whenever a migration changes the schema; never lowered.</summary>
-    internal const int Version = 3;
+    internal const int Version = 4;
 
     /// <summary>The engine release that introduced this schema version; bumped together with <see cref="Version"/>.</summary>
     internal const string EngineVersion = "1.2.0";

@@ -58,6 +58,20 @@ public TabletopCardEngine.Holdem.BettingStructure BettingStructure { get; init; 
 #### Property Value
 [BettingStructure](TabletopCardEngine.Holdem.BettingStructure.md 'TabletopCardEngine\.Holdem\.BettingStructure')
 
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.BlindSchedule'></a>
+
+## GameOptionData\.BlindSchedule Property
+
+How the blinds rise during the game\. [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') \(the default\) means they never change, so a
+caller that never sets it gets the 1\.1 game\. Must be valid when set; see [BlindScheduleData](TabletopCardEngine.Holdem.Dto.BlindScheduleData.md 'TabletopCardEngine\.Holdem\.Dto\.BlindScheduleData')\.
+
+```csharp
+public TabletopCardEngine.Holdem.Dto.BlindScheduleData? BlindSchedule { get; init; }
+```
+
+#### Property Value
+[BlindScheduleData](TabletopCardEngine.Holdem.Dto.BlindScheduleData.md 'TabletopCardEngine\.Holdem\.Dto\.BlindScheduleData')
+
 <a name='TabletopCardEngine.Holdem.Dto.GameOptionData.GameType'></a>
 
 ## GameOptionData\.GameType Property

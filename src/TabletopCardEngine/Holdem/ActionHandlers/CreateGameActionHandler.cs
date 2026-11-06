@@ -33,6 +33,7 @@ internal sealed class CreateGameActionHandler(HoldemSettings settings) : HoldemA
         game.MaxRebuys = startGameActionData.Options.MaxRebuys;
         game.MinBuyIn = startGameActionData.Options.MinBuyIn;
         game.MaxBuyIn = startGameActionData.Options.MaxBuyIn;
+        game.BlindSchedule = startGameActionData.Options.BlindSchedule;
 
         return Task.FromResult<HoldemError?>(null);
     }

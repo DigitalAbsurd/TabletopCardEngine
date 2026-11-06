@@ -81,6 +81,7 @@ nav:
               - 'TabletopCardEngine.Holdem':
                   - 'Namespace': api/TabletopCardEngine/TabletopCardEngine.Holdem.md
                   - 'BettingStructure': api/TabletopCardEngine/TabletopCardEngine.Holdem.BettingStructure.md
+                  - 'BlindIncreaseMode': api/TabletopCardEngine/TabletopCardEngine.Holdem.BlindIncreaseMode.md
                   - 'GameType': api/TabletopCardEngine/TabletopCardEngine.Holdem.GameType.md
                   - 'HandActionType': api/TabletopCardEngine/TabletopCardEngine.Holdem.HandActionType.md
                   - 'HandRankType': api/TabletopCardEngine/TabletopCardEngine.Holdem.HandRankType.md
@@ -100,6 +101,7 @@ nav:
                   - 'Street': api/TabletopCardEngine/TabletopCardEngine.Holdem.Street.md
               - 'TabletopCardEngine.Holdem.Dto':
                   - 'Namespace': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.md
+                  - 'BlindScheduleData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.BlindScheduleData.md
                   - 'GameData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.GameData.md
                   - 'GameOptionData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.GameOptionData.md
                   - 'HandData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.HandData.md

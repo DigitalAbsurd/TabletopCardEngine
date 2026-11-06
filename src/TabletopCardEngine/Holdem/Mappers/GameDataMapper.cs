@@ -44,6 +44,13 @@ internal static class GameDataMapper
                 MaxRebuys = game.MaxRebuys,
                 MinBuyIn = game.MinBuyIn,
                 MaxBuyIn = game.MaxBuyIn,
+                BlindSchedule = game.BlindSchedule is { } schedule
+                    ? schedule with
+                    {
+                        PlayerThresholds = new EquatableList<int>(schedule.PlayerThresholds),
+                        SmallBlindLevels = new EquatableList<decimal>(schedule.SmallBlindLevels),
+                    }
+                    : null,
             },
             HandData: currentHand.No != default
                 ? new HandData(

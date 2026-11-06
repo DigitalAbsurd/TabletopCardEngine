@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TabletopCardEngine.Converters;
 using TabletopCardEngine.Holdem.ActionHandlers;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Holdem.Data;
 
@@ -67,6 +69,23 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
 
         modelBuilder.Entity<Game>()
             .Property(entity => entity.MaxBuyIn)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        // One JSON column: NULL is "no schedule". System.Text.Json writes a decimal exactly, so it round-trips.
+        // The comparer compares the JSON, since the lists inside the record compare by reference.
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.BlindSchedule)
+            .HasMaxLength(BlindScheduleJson.MaxLength)
+            .HasConversion(
+                schedule => BlindScheduleJson.Serialize(schedule),
+                json => BlindScheduleJson.Deserialize(json),
+                new ValueComparer<BlindScheduleData?>(
+                    (left, right) => BlindScheduleJson.Serialize(left) == BlindScheduleJson.Serialize(right),
+                    schedule => BlindScheduleJson.Serialize(schedule)!.GetHashCode(StringComparison.Ordinal),
+                    schedule => BlindScheduleJson.Deserialize(BlindScheduleJson.Serialize(schedule))));
+
+        modelBuilder.Entity<Hand>()
+            .Property(entity => entity.SmallBlind)
             .HasPrecision(18, AmountRules.MaxDecimalPlaces);
 
         modelBuilder.Entity<Hand>()
