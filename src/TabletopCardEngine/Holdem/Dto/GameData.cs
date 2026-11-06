@@ -42,6 +42,12 @@ public record SeatData(
     /// </summary>
     public bool HasLeft { get; init; }
 
+    /// <summary>Chips added by <see cref="HoldemActionTopUp"/> that go in at the start of the next hand; <c>0</c> when there are none.</summary>
+    public decimal PendingBuyIn { get; init; }
+
+    /// <summary>Rebuys the seat's current player has made; <see cref="GameOptionData.MaxRebuys"/> caps it.</summary>
+    public int Rebuys { get; init; }
+
     /// <summary>Whether the seat is still contesting the pot — it has chips and cards, or it is all in.</summary>
     public bool IsActive
         => (Stack > DecimalMinPrecision && Hole?.Count > 0 && LastAction?.ActionType != HandActionType.Fold)

@@ -337,6 +337,108 @@ public sealed class TopUpTests
     }
 
     [TestMethod]
+    public async Task GameData_AfterTopUp_ShowsPendingBuyInAndZeroRebuys()
+    {
+        using var session = await TopUpSession.CreateAsync(_threeSeats, _sixMaxTopUp);
+        await session.PlayHandToEndAsync();
+
+        var afterTopUp = await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 2, 100M));
+
+        afterTopUp.HandData!.Seats.Single(seat => seat.SeatNo == 2).Should().Match<SeatData>(seat =>
+            seat.PendingBuyIn == 100M && seat.Rebuys == 0);
+    }
+
+    [TestMethod]
+    public async Task GameData_AfterTwoTopUps_ShowsCombinedPendingBuyIn()
+    {
+        using var session = await TopUpSession.CreateAsync(_threeSeats, _sixMaxTopUp);
+        await session.PlayHandToEndAsync();
+        await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 2, 100M));
+
+        var afterSecond = await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 2, 50.5M));
+
+        afterSecond.HandData!.Seats.Single(seat => seat.SeatNo == 2).Should().Match<SeatData>(seat =>
+            seat.PendingBuyIn == 150.5M && seat.Rebuys == 0);
+    }
+
+    [TestMethod]
+    public async Task GameData_NextHandAfterTopUp_PendingBuyInGoesToZero()
+    {
+        using var session = await TopUpSession.CreateAsync(_threeSeats, _sixMaxTopUp);
+        var hand1 = await session.PlayHandToEndAsync();
+        await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 2, 100M));
+
+        var hand2 = await session.StartHandAsync();
+
+        hand2.Seats.Single(seat => seat.SeatNo == 2).Should().Match<SeatData>(seat =>
+            seat.PendingBuyIn == 0 && seat.Rebuys == 0);
+    }
+
+    [TestMethod]
+    public async Task GameData_AfterTopUpThenLeaveSeat_PendingBuyInGoesToZero()
+    {
+        using var session = await TopUpSession.CreateAsync(_threeSeats, _sixMaxTopUp);
+        await session.PlayHandToEndAsync();
+        await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 2, 100M));
+
+        var afterLeave = await session.ApplyOkAsync(HoldemAction.LeaveSeat(TopUpSession.GameId, 2));
+
+        // The seat still shows in the hand that ended, with HasLeft = true
+        afterLeave.HandData!.Seats.Single(seat => seat.SeatNo == 2).Should().Match<SeatData>(seat =>
+            seat.HasLeft && seat.PendingBuyIn == 0);
+    }
+
+    [TestMethod]
+    public async Task GameData_AfterRebuy_ShowsRebuyCount()
+    {
+        using var session = await TopUpSession.CreateAsync(_headsUpSeats, _headsUpRebuy);
+        await session.BustSeat1Async();
+
+        var afterRebuy = await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 1, 100M));
+
+        afterRebuy.HandData!.Seats.Single(seat => seat.SeatNo == 1).Should().Match<SeatData>(seat =>
+            seat.PendingBuyIn == 100M && seat.Rebuys == 1);
+    }
+
+    [TestMethod]
+    public async Task GameData_RebuysCountsRebuyRowsOnly()
+    {
+        using var session = await TopUpSession.CreateAsync(_headsUpSeats, _headsUpRebuy with { MaxRebuys = 2 });
+        await session.BustSeat1Async();
+        await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 1, 100M));
+        var hand2 = await session.StartHandAsync();
+
+        hand2.Seats.Single(seat => seat.SeatNo == 1).Rebuys.Should().Be(1);
+
+        // Hand 2: bust and rebuy again
+        await session.ApplyOkAsync(HoldemAction.Play(TopUpSession.GameId, PlayerActionType.AllIn));
+        await session.ApplyOkAsync(HoldemAction.Play(TopUpSession.GameId, PlayerActionType.Call));
+        await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 1, 100M));
+
+        var hand3 = await session.StartHandAsync();
+
+        hand3.Seats.Single(seat => seat.SeatNo == 1).Rebuys.Should().Be(2);
+    }
+
+    [TestMethod]
+    public async Task GameData_NewPlayerInSeat_RebuyCountRestarts()
+    {
+        using var session = await TopUpSession.CreateAsync(_headsUpSeats, _headsUpRebuy with { MaxRebuys = 2 });
+        await session.BustSeat1Async();
+        await session.ApplyOkAsync(HoldemAction.TopUp(TopUpSession.GameId, 1, 100M));
+        await session.StartHandAsync();
+        await session.PlayHandToEndAsync();
+
+        // Seat 1 leaves
+        await session.ApplyOkAsync(HoldemAction.LeaveSeat(TopUpSession.GameId, 1));
+
+        // New player sits at seat 1
+        var hand3 = await session.StartHandAsync([new("Player 9", 1, 100M)]);
+
+        hand3.Seats.Single(seat => seat.SeatNo == 1).Rebuys.Should().Be(0, "the new player has no rebuys yet");
+    }
+
+    [TestMethod]
     public void HoldemActionNames_TopUp_IsTopUp()
         => HoldemActionNames.Of(HoldemAction.TopUp(TopUpSession.GameId, 1, 100M)).Should().Be("TopUp");
 
