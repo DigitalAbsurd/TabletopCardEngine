@@ -72,6 +72,37 @@ internal static class HandRunner
     }
 
     /// <summary>
+    /// Folds <paramref name="seatNo"/> whether or not it is on the clock, for a seat removed from the
+    /// table mid-hand. On the clock it is exactly the fold <see cref="ApplyAction"/> records. Out of
+    /// turn the clock does not move — the seat to act still owes the same decision, and nothing about
+    /// the street can close on a seat that has not acted — unless the fold leaves one seat contesting
+    /// the pot, which then wins it through the same resolution as any fold-out.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The seat is not waiting to act: it has folded or is all in.</exception>
+    internal static AppliedAction FoldSeat(HandTable table, byte seatNo)
+    {
+        if (seatNo == table.NextSeatNo)
+        {
+            return ApplyAction(table, PlayerActionType.Fold, 0M);
+        }
+
+        var seat = table[seatNo];
+        if (!seat.IsWaiting)
+        {
+            throw new InvalidOperationException("Only a seat still owing decisions can be folded.");
+        }
+
+        var (recordedAmount, addAmount, paid) = Accept(seat, PlayerActionType.Fold, 0M, BettingRules.AgreeAmount(table));
+        var street = table.Street;
+
+        table.Prizes = null;
+        var board = table.ActiveCount <= 1 ? StartStreet(table) : [];
+
+        return new AppliedAction(seatNo, PlayerActionType.Fold, recordedAmount, addAmount, paid,
+            street, table.Street, table.NextSeatNo, board, table.Prizes);
+    }
+
+    /// <summary>
     /// The betting rules only distinguish Fold/Call/Raise (plus the blinds, posted separately).
     /// A check is a call for zero more chips; a bet, a raise, and an all-in raise are all "bring
     /// the street total up to this amount" — the caller's intent, not the rules' vocabulary.

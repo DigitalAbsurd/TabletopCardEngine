@@ -25,8 +25,7 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
             return new HoldemError(HoldemErrorCode.CurrentHandEnded, PackResource.HoldemValidation_CurrentHandEnded);
         }
 
-        var hand = game.GetCurrentHand();
-        var table = HandTableFactory.Build(game, await BuildDeckAsync());
+        var table = HandTableFactory.Build(game, await HandOutcomeRecorder.BuildDeckAsync(game, cardShuffler, cancellationToken));
 
         var seatNo = table.NextSeatNo;
         var seat = table[seatNo];
@@ -40,60 +39,7 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
         var (runnerAction, runnerAmount) = ToRunnerAction();
         var outcome = HandRunner.ApplyAction(table, runnerAction, runnerAmount);
 
-        game.AddAction(
-            seatNo: outcome.SeatNo,
-            street: outcome.Street,
-            handActionType: ToHandActionType(holdemAction.ActionType),
-            size: holdemAction.Size,
-            amount: outcome.Amount,
-            addAmount: outcome.AddAmount,
-            nextSeatNo: outcome.NextSeatNo,
-            nextStreet: outcome.NextStreet,
-            paid: outcome.Paid);
-
-        foreach (var card in outcome.Board)
-        {
-            game.AddDeckCard(card);
-        }
-
-        if (outcome.PrizeBySeatNo is { } prizes)
-        {
-            var board = game.GetCurrentHand().GetDeckCards();
-            var handEndStates = hand.PlayerStartStates.Select(startState =>
-            {
-                var hole = table.Find(startState.SeatNo)?.Hole ?? [];
-                var seatBet = hand.GetSeatBetAmount(startState.SeatNo);
-                var prize = prizes.GetValueOrDefault(startState.SeatNo);
-
-                // Computed directly as prize - bet, not as (StartStack - bet + prize) - StartStack:
-                // a deep stack (many integer digits) added to a prize with a long fractional tail
-                // (an uneven pot split can need most of decimal's ~28-29 significant digits) can force
-                // decimal to round the fraction away, and the two seats in a hand rarely have the same
-                // number of stack digits — so the rounding wouldn't even land the same way on both
-                // sides, and Sum(Net) across the hand would stop being exactly zero.
-                var winAmount = prize - seatBet;
-
-                var rankType = HandEvaluator.EvaluateRankType(hole, board);
-
-                // Only a seat that is still in when the hand is shown down has a hand to describe: a
-                // folded seat never showed its cards, and a pot won by everyone else folding is not shown.
-                var reachedShowdown = table.ActiveCount > 1 && table.Find(startState.SeatNo)?.IsActive == true;
-
-                return new HandPlayerEndState
-                {
-                    GameId = holdemAction.GameId,
-                    HandNo = hand.No,
-                    Hand = hand,
-                    SeatNo = startState.SeatNo,
-                    FinishStack = startState.StartStack + winAmount,
-                    WinAmount = winAmount,
-                    Strength = HandEvaluator.EvaluateStrength(hole, board),
-                    RankType = rankType,
-                    Description = reachedShowdown ? HandEvaluator.Describe(rankType) : null,
-                };
-            });
-            game.AddHandEndStates(handEndStates);
-        }
+        HandOutcomeRecorder.Record(game, table, outcome, ToHandActionType(holdemAction.ActionType), holdemAction.Size);
 
         return null;
 
@@ -158,15 +104,5 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
                 _ => throw new UnreachableException()
             };
 
-        async Task<CardDeck?> BuildDeckAsync()
-        {
-            if (cardShuffler == null || (byte)hand.GetStreet() >= 5)
-            {
-                return null;
-            }
-            var deckCards = await cardShuffler.GetDeckCardsAsync(holdemAction.GameId, hand.No, cancellationToken);
-            var remaining = deckCards.Except(hand.DeckCards.Select(deckCard => deckCard.Card));
-            return CardDeck.Predetermined(remaining);
-        }
     }
 }

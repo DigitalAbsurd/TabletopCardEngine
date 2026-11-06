@@ -70,6 +70,15 @@ public abstract record HoldemAction(Guid GameId)
     /// <param name="amount">The chips to add, positive and with at most two decimal places.</param>
     public static HoldemActionTopUp TopUp(Guid gameId, byte seatNo, decimal amount)
         => new(gameId, seatNo, amount);
+
+    /// <summary>
+    /// Removes the player in a seat at any time, folding their hand first if one is running. Who may do this is the
+    /// host application's decision; the engine does not check it.
+    /// </summary>
+    /// <param name="gameId">The game to remove the player from.</param>
+    /// <param name="seatNo">The seat whose player is removed. Seats are 1-based.</param>
+    public static HoldemActionKickSeat KickSeat(Guid gameId, byte seatNo)
+        => new(gameId, seatNo);
 }
 
 /// <summary>Reads the game back without changing anything.</summary>
@@ -153,3 +162,29 @@ public record HoldemActionLeaveSeat(Guid GameId, byte SeatNo) : HoldemAction(Gam
 /// <param name="SeatNo">The seat whose player adds chips. Seats are 1-based.</param>
 /// <param name="Amount">The chips to add, positive and with at most two decimal places.</param>
 public record HoldemActionTopUp(Guid GameId, byte SeatNo, decimal Amount) : HoldemAction(GameId);
+
+/// <summary>
+/// Removes the player in a seat, between hands or during one, for a host that has to take a disconnected or disruptive
+/// player off the table without waiting for them. The engine has no notion of who may send it: authorising the call is
+/// the host application's job.
+/// <para>
+/// Between hands it does exactly what <see cref="HoldemActionLeaveSeat"/> does: the stack leaves with the player, a
+/// pending top-up or rebuy is cancelled, and the seat is free for <see cref="HoldemActionStartHand.JoinSeats"/> from the
+/// next hand on.
+/// </para>
+/// <para>
+/// During a hand the player leaves after it. A seat that has folded already, or is all in, keeps its place: an all-in
+/// seat stays in the pot to showdown, and whatever it wins leaves with it. Any other seat folds at once, whether or not
+/// it is the seat to act; the ledger records an ordinary <see cref="HandActionType.Fold"/>. A seat folded out of turn
+/// does not move the turn: <see cref="HandData.NextPlayerSeatNo"/> stays where it was, unless the fold leaves a single
+/// seat contesting the pot, which then wins it and the hand ends as on any other fold.
+/// </para>
+/// <para>
+/// <see cref="SeatData.HasLeft"/> shows the departure. It fails with <see cref="HoldemErrorCode.GameNotStarted"/> before
+/// hand 1, and with <see cref="HoldemErrorCode.InvalidSeat"/> for a seat outside the table, an empty seat, or a player who
+/// has already left or been removed.
+/// </para>
+/// </summary>
+/// <param name="GameId">The game to remove the player from.</param>
+/// <param name="SeatNo">The seat whose player is removed. Seats are 1-based.</param>
+public record HoldemActionKickSeat(Guid GameId, byte SeatNo) : HoldemAction(GameId);

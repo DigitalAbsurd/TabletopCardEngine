@@ -19,6 +19,7 @@ Derived
 ↳ [HoldemActionCreateGame](TabletopCardEngine.Holdem.Dto.HoldemActionCreateGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionCreateGame')  
 ↳ [HoldemActionFinishGame](TabletopCardEngine.Holdem.Dto.HoldemActionFinishGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionFinishGame')  
 ↳ [HoldemActionGetGame](TabletopCardEngine.Holdem.Dto.HoldemActionGetGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionGetGame')  
+↳ [HoldemActionKickSeat](TabletopCardEngine.Holdem.Dto.HoldemActionKickSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionKickSeat')  
 ↳ [HoldemActionLeaveSeat](TabletopCardEngine.Holdem.Dto.HoldemActionLeaveSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionLeaveSeat')  
 ↳ [HoldemActionPlay](TabletopCardEngine.Holdem.Dto.HoldemActionPlay.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionPlay')  
 ↳ [HoldemActionStartGame](TabletopCardEngine.Holdem.Dto.HoldemActionStartGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionStartGame')  
@@ -145,6 +146,33 @@ The game to read\.
 
 #### Returns
 [HoldemActionGetGame](TabletopCardEngine.Holdem.Dto.HoldemActionGetGame.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionGetGame')
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.KickSeat(System.Guid,byte)'></a>
+
+## HoldemAction\.KickSeat\(Guid, byte\) Method
+
+Removes the player in a seat at any time, folding their hand first if one is running\. Who may do this is the
+host application's decision; the engine does not check it\.
+
+```csharp
+public static TabletopCardEngine.Holdem.Dto.HoldemActionKickSeat KickSeat(System.Guid gameId, byte seatNo);
+```
+#### Parameters
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.KickSeat(System.Guid,byte).gameId'></a>
+
+`gameId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The game to remove the player from\.
+
+<a name='TabletopCardEngine.Holdem.Dto.HoldemAction.KickSeat(System.Guid,byte).seatNo'></a>
+
+`seatNo` [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')
+
+The seat whose player is removed\. Seats are 1\-based\.
+
+#### Returns
+[HoldemActionKickSeat](TabletopCardEngine.Holdem.Dto.HoldemActionKickSeat.md 'TabletopCardEngine\.Holdem\.Dto\.HoldemActionKickSeat')
 
 <a name='TabletopCardEngine.Holdem.Dto.HoldemAction.LeaveSeat(System.Guid,byte)'></a>
 
