@@ -7,4 +7,5 @@ internal class BuyIn
     public byte SeatNo { get; set; }
     public int HandNo { get; set; }
     public decimal Amount { get; set; }
+    public BuyInKind Kind { get; set; } = BuyInKind.Join;
 }

@@ -483,7 +483,7 @@ renumber.
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
     and `InvalidGameOptions = 6` when `TableFormat` is not a defined `HoldemTableFormat`, `MaxPlayersCount` is
     outside the format's range or outside `[GamePlayersMinCount, GamePlayersMaxCount]` (2 to 10 by default), `InitialSmallBlind <= 0`, `InitialSmallBlind`
-    has more than two decimal places, or `InitialDealerSeatNo` is outside `1..MaxPlayersCount`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
+    has more than two decimal places, `InitialDealerSeatNo` is outside `1..MaxPlayersCount`, `MinBuyIn` or `MaxBuyIn` is `<= 0` or has more than two decimal places, `MinBuyIn > MaxBuyIn`, `MaxRebuys < 0`, or `MaxRebuys` is set while `AllowRebuy` is `false`. `StartGame` and `StartHand` return `InvalidSeat = 7` when a
     `JoinSeats` entry has a seat outside `1..MaxPlayersCount`, repeats a seat, takes an occupied seat,
     has `BuyInAmount <= 0`, `BuyInAmount` has more than two decimal places, or `Name` is `null`, empty,
     whitespace-only, or longer than 64 characters (`SeatValidation`; the previous-hand check runs first).

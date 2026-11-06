@@ -22,11 +22,22 @@ internal static class GameOptionsValidation
             || options.InitialSmallBlind <= 0
             || !AmountRules.HasValidScale(options.InitialSmallBlind)
             || options.InitialDealerSeatNo < 1
-            || options.InitialDealerSeatNo > options.MaxPlayersCount)
+            || options.InitialDealerSeatNo > options.MaxPlayersCount
+            || !AreBuyInOptionsValid(options))
         {
             return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_InvalidGameOptions);
         }
 
         return null;
     }
+
+    private static bool AreBuyInOptionsValid(GameOptionData options)
+        => IsValidBuyInLimit(options.MinBuyIn)
+            && IsValidBuyInLimit(options.MaxBuyIn)
+            && !(options.MinBuyIn > options.MaxBuyIn)
+            && !(options.MaxRebuys < 0)
+            && (options.MaxRebuys is null || options.AllowRebuy);
+
+    private static bool IsValidBuyInLimit(decimal? limit)
+        => limit is null || (limit > 0 && AmountRules.HasValidScale(limit.Value));
 }

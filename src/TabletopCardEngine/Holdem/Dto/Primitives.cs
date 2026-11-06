@@ -34,6 +34,39 @@ public sealed record GameOptionData
 
     /// <summary>Where the button sits for the first hand. Seats are 1-based.</summary>
     public byte InitialDealerSeatNo { get; init; } = 1;
+
+    /// <summary>
+    /// Whether a seat that still has chips may add chips between hands. Defaults to <see langword="false"/>,
+    /// so a caller that never sets it gets the 1.1 game.
+    /// </summary>
+    public bool AllowTopUp { get; init; }
+
+    /// <summary>
+    /// Whether a seat whose stack is zero may buy back in between hands. Defaults to <see langword="false"/>,
+    /// so a caller that never sets it gets the 1.1 game.
+    /// </summary>
+    public bool AllowRebuy { get; init; }
+
+    /// <summary>
+    /// How many rebuys each player gets, counted per occupant of a seat: a new player in the same seat starts
+    /// from zero. Top-ups are not counted. <see langword="null"/> (the default) means unlimited. Must not be
+    /// negative, and may be set only when <see cref="AllowRebuy"/> is <see langword="true"/>.
+    /// </summary>
+    public int? MaxRebuys { get; init; }
+
+    /// <summary>
+    /// The smallest amount a player may sit down with or rebuy for. <see langword="null"/> (the default) means
+    /// no minimum. When set it must be positive, have at most two decimal places and not exceed
+    /// <see cref="MaxBuyIn"/>.
+    /// </summary>
+    public decimal? MinBuyIn { get; init; }
+
+    /// <summary>
+    /// The largest amount a player may sit down with or rebuy for; a top-up may not take a stack above it.
+    /// <see langword="null"/> (the default) means no maximum. When set it must be positive and have at most
+    /// two decimal places.
+    /// </summary>
+    public decimal? MaxBuyIn { get; init; }
 }
 
 /// <summary>A player taking a seat, together with the stack they bring to it.</summary>
