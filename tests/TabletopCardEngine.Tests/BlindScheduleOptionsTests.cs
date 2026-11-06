@@ -80,6 +80,21 @@ public sealed class BlindScheduleOptionsTests
     }
 
     [TestMethod]
+    public async Task StartGame_NoBlindSchedule_HandHasInitialBlindLevel()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        var options = new GameOptionData { InitialSmallBlind = 2 };
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, options))).IsSuccess.Should().BeTrue();
+        var players = new[] { new PlayerJoinData("A", 1, 100), new PlayerJoinData("B", 2, 100) };
+
+        var hand = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, players));
+        hand.IsSuccess.Should().BeTrue();
+        hand.Value.HandData!.SmallBlind.Should().Be(2);
+        hand.Value.HandData.BigBlind.Should().Be(4);
+        hand.Value.HandData.BlindLevel.Should().Be(0);
+    }
+
+    [TestMethod]
     public async Task CreateGame_NoTrigger_FailsWithInvalidGameOptions()
         => await AssertFailsAsync(new GameOptionData { BlindSchedule = new BlindScheduleData() });
 

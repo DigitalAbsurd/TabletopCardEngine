@@ -131,6 +131,19 @@ public byte BigBlindSeatNo { get; init; }
 #### Property Value
 [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')
 
+<a name='TabletopCardEngine.Holdem.Dto.HandData.BlindLevel'></a>
+
+## HandData\.BlindLevel Property
+
+How many levels the blinds have risen by: `0` is the initial level\. Rises only under [BlindSchedule](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.BlindSchedule 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.BlindSchedule')\.
+
+```csharp
+public int BlindLevel { get; init; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='TabletopCardEngine.Holdem.Dto.HandData.CommunityCards'></a>
 
 ## HandData\.CommunityCards Property
@@ -226,7 +239,7 @@ public System.Collections.Generic.IReadOnlyList<TabletopCardEngine.Holdem.Dto.Se
 
 ## HandData\.SmallBlind Property
 
-The nominal small blind of this hand\. Read the blinds here rather than deriving them from [GameOptionData](TabletopCardEngine.Holdem.Dto.GameOptionData.md 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData'): a later release may vary them from hand to hand\.
+The nominal small blind of this hand\. Read the blinds here rather than deriving them from [GameOptionData](TabletopCardEngine.Holdem.Dto.GameOptionData.md 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData'): the blinds can rise from hand to hand under [BlindSchedule](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.BlindSchedule 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.BlindSchedule')\.
 
 ```csharp
 public decimal SmallBlind { get; init; }

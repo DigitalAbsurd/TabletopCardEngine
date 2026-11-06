@@ -93,8 +93,9 @@ internal static class GameDataMapper
                     CommunityCards: new EquatableList<Card>(currentHand.GetDeckCards()),
                     Evaluations: evaluations)
                 {
-                    SmallBlind = game.InitialSmallBlind,
-                    BigBlind = game.InitialSmallBlind * 2,
+                    SmallBlind = currentHand.SmallBlind ?? game.InitialSmallBlind,
+                    BigBlind = (currentHand.SmallBlind ?? game.InitialSmallBlind) * 2,
+                    BlindLevel = currentHand.BlindLevel,
                     Actions = actionsProjection,
                 }
                 : null);

@@ -208,12 +208,19 @@ internal static class EntityExtensions
     }
 
     internal static void CreateNewHand(this Game game, IEnumerable<HandPlayerStartState> startStacks)
-        => game.Hands.Add(new Hand
+    {
+        var handNo = game.GetNextHandNo();
+        game.Hands.Add(new Hand
         {
-            No = game.GetNextHandNo(),
+            No = handNo,
             GameId = game.Id,
             PlayerStartStates = [.. startStacks],
+            SmallBlind = game.InitialSmallBlind,
+            BlindLevel = 0,
+            BlindLevelStartHandNo = handNo,
+            BlindThresholdsPassed = 0,
         });
+    }
 
     internal static void AddHoleCards(this Game game, byte seatNo, IEnumerable<Card> hole)
         => hole.Select((card, index) => new { Card = card, Sequence = (byte)(index + 1) })
