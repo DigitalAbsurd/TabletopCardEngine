@@ -85,11 +85,14 @@ public record HandData(
     IReadOnlyList<Card> CommunityCards,
     IReadOnlyList<PlayerActionEvaluationData> Evaluations)
 {
-    /// <summary>The nominal small blind of this hand. Read the blinds here rather than deriving them from <see cref="GameOptionData"/>: a later release may vary them from hand to hand.</summary>
+    /// <summary>The nominal small blind of this hand. Read the blinds here rather than deriving them from <see cref="GameOptionData"/>: the blinds can rise from hand to hand under <see cref="GameOptionData.BlindSchedule"/>.</summary>
     public decimal SmallBlind { get; init; }
 
     /// <summary>The nominal big blind of this hand. A seat short of it posts what it has (see <see cref="SeatData.LastAction"/>), so this is the level, not the amount posted.</summary>
     public decimal BigBlind { get; init; }
+
+    /// <summary>How many levels the blinds have risen by: <c>0</c> is the initial level. Rises only under <see cref="GameOptionData.BlindSchedule"/>.</summary>
+    public int BlindLevel { get; init; }
 
     /// <summary>Every action of this hand in the order it was taken (ascending <c>No</c>), the engine's blind posts included. Record equality compares it element by element for values the engine returns.</summary>
     public IReadOnlyList<PlayerActionData> Actions { get; init; } = [];
