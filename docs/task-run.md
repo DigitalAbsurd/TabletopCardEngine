@@ -495,6 +495,16 @@ renumber.
     (`RebuyNotAllowed = 17` otherwise) and fails with `InvalidBuyIn` outside `[MinBuyIn, MaxBuyIn]`. The chips go into a `BuyIn` row for the next hand
     (`Kind` `TopUp` or `Rebuy`; a second call between the same hands adds to it and keeps its `Kind`), which `StartHand` deals and counts as chips for
     `NotEnoughPlayers`; `LeaveSeat` and `FinishGame` remove the pending rows, whose chips were never in play.
+    `KickSeat` (`KickSeatActionHandler`) removes a player at any time; who may call it is the host's business, not the
+    engine's. `GameNotStarted` before hand 1, `InvalidSeat` for a seat outside `1..MaxPlayersCount`, an empty seat, or a
+    player who has left or been kicked (so a second kick and a `LeaveSeat` after a kick fail too). Between hands it is
+    exactly `LeaveSeat` (`EntityExtensions.LeaveSeat`, shared). During a hand the player also leaves after it
+    (`HandNoEnd = currentHand.No`): a seat that has folded or is all in gets no ledger row, and an all-in seat stays in the
+    pot to showdown and takes its winnings along; any other seat gets a `HandActionType.Fold` row at once
+    (`HandRunner.FoldSeat`). On the clock that is exactly the fold `Play` records. Out of turn the seat on the clock stays
+    on it (the row's `NextSeatNo`/`NextStreet` repeat the previous row's), unless the fold leaves one seat contesting the
+    pot, which then wins it through the ordinary resolution. A seat folded out of turn can hold the most chips in the
+    pot, so `PotDistribution` makes the main pot eligible to the deepest seat *still in*, not to the deepest seat.
     `Play` returns `InvalidAction = 4` when `Size` has more than two decimal places. Amounts
     (`InitialSmallBlind`, `BuyInAmount`, `Size`) have at most two decimal places, and a player's `Name` is
     1 to 64 characters (`AmountRules`).

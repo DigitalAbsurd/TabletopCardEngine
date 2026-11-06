@@ -110,6 +110,7 @@ public sealed class EngineCallSnippetWriter
             HoldemActionPlay => GeneratePlayerActionAction((HoldemActionPlay)action, indent),
             HoldemActionLeaveSeat leaveSeat => $"new HoldemActionLeaveSeat(GameId: {FormatGuid(action.GameId)}, SeatNo: {leaveSeat.SeatNo})",
             HoldemActionTopUp topUp => $"new HoldemActionTopUp(GameId: {FormatGuid(action.GameId)}, SeatNo: {topUp.SeatNo}, Amount: {FormatDecimal(topUp.Amount)})",
+            HoldemActionKickSeat kickSeat => $"new HoldemActionKickSeat(GameId: {FormatGuid(action.GameId)}, SeatNo: {kickSeat.SeatNo})",
             _ => $"new UnknownAction(GameId: {FormatGuid(action.GameId)})",
         };
     }

@@ -5,9 +5,8 @@ using TabletopCardEngine.Resources;
 namespace TabletopCardEngine.Holdem.ActionHandlers;
 
 /// <summary>
-/// Stands a player up between hands. The <see cref="Player"/> row is kept and closed with the current
-/// hand as its last one, because past hands' start states and actions still refer to the seat; the next
-/// hand is then dealt without it, and the seat is free for a new <see cref="Player"/> row.
+/// Stands a player up between hands. The seat is vacated by <see cref="EntityExtensions.LeaveSeat"/>, shared with
+/// <c>KickSeat</c>, which may also run during a hand.
 /// </summary>
 internal sealed class LeaveSeatActionHandler : HoldemActionHandler<HoldemActionLeaveSeat>
 {
@@ -24,21 +23,12 @@ internal sealed class LeaveSeatActionHandler : HoldemActionHandler<HoldemActionL
             return Task.FromResult<HoldemError?>(new HoldemError(HoldemErrorCode.PreviousHandNotEnded, PackResource.HoldemValidation_PreviousHandNotEnded));
         }
 
-        var outOfRange = holdemAction.SeatNo < 1 || holdemAction.SeatNo > game.MaxPlayersCount;
-        if (outOfRange || game.GetSeatLatestPlayer(holdemAction.SeatNo) is not { HandNoEnd: null } player)
+        if (game.GetSeatedPlayer(holdemAction.SeatNo) is not { } player)
         {
             return Task.FromResult<HoldemError?>(new HoldemError(HoldemErrorCode.InvalidSeat, PackResource.HoldemValidation_InvalidSeat));
         }
 
-        // The current hand is the player's last one, not the next.
-        player.HandNoEnd = currentHand.No;
-
-        // Chips topped up for the next hand were never in play, so they leave with the player as if never added.
-        if (game.GetSeatPendingBuyIn(holdemAction.SeatNo) is { } pending)
-        {
-            game.BuyIns.Remove(pending);
-        }
-
+        game.LeaveSeat(player);
         return Task.FromResult<HoldemError?>(null);
     }
 }

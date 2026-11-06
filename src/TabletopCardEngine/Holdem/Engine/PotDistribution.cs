@@ -82,7 +82,11 @@ internal static class PotDistribution
 
     private static Pot CreateMainPot(IReadOnlyList<TableSeat> seats, List<Pot> sidePots)
     {
-        var maxCommitted = seats.Max(seat => seat.Committed);
+        // Measured over the seats still in. In turn, a seat never folds with more in than a seat still playing, so
+        // this is the plain maximum; a seat removed mid-hand can fold out of turn with the most in, and its chips are
+        // then dead money for the deepest seat still contesting, not a pot nobody can win.
+        var contesting = seats.Where(seat => seat.IsActive).ToList();
+        var maxCommitted = (contesting.Count > 0 ? contesting : seats).Max(seat => seat.Committed);
         var amount = seats.Sum(seat => seat.Committed) - sidePots.Sum(pot => pot.Amount);
         var eligible = seats.Where(seat => seat.Committed == maxCommitted).ToList();
         return new Pot(amount, eligible);

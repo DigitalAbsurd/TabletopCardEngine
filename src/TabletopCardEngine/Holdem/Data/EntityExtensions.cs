@@ -109,6 +109,32 @@ internal static class EntityExtensions
             .OrderByDescending(player => player.HandNoStart)
             .FirstOrDefault();
 
+    /// <summary>
+    /// The player seated at <paramref name="seatNo"/> who has not left, or <see langword="null"/> for a seat outside the
+    /// table, an empty seat, or one whose player has left already: the seats <c>LeaveSeat</c> and <c>KickSeat</c> may vacate.
+    /// </summary>
+    internal static Player? GetSeatedPlayer(this Game game, byte seatNo)
+        => seatNo >= 1 && seatNo <= game.MaxPlayersCount && game.GetSeatLatestPlayer(seatNo) is { HandNoEnd: null } player
+            ? player
+            : null;
+
+    /// <summary>
+    /// Vacates <paramref name="player"/>'s seat after the current hand, for <c>LeaveSeat</c> and <c>KickSeat</c> alike. The
+    /// <see cref="Player"/> row is kept and closed with the current hand as its last one, because past hands' start states
+    /// and actions still refer to the seat; the next hand is then dealt without it, and the seat is free for a new row.
+    /// </summary>
+    internal static void LeaveSeat(this Game game, Player player)
+    {
+        // The current hand is the player's last one, not the next.
+        player.HandNoEnd = game.GetCurrentHand().No;
+
+        // Chips topped up for the next hand were never in play, so they leave with the player as if never added.
+        if (game.GetSeatPendingBuyIn(player.SeatNo) is { } pending)
+        {
+            game.BuyIns.Remove(pending);
+        }
+    }
+
     /// <summary>Whether the seat has a player who has not left: the seat is taken for the next hand.</summary>
     internal static bool IsSeatTaken(this Game game, byte seatNo)
         => game.GetSeatLatestPlayer(seatNo) is { HandNoEnd: null };
