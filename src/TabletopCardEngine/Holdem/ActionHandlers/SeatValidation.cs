@@ -22,6 +22,11 @@ internal static class SeatValidation
             {
                 return new HoldemError(HoldemErrorCode.InvalidSeat, PackResource.HoldemValidation_InvalidSeat);
             }
+
+            if ((game.MinBuyIn is not null && join.BuyInAmount < game.MinBuyIn) || (game.MaxBuyIn is not null && join.BuyInAmount > game.MaxBuyIn))
+            {
+                return new HoldemError(HoldemErrorCode.InvalidBuyIn, PackResource.HoldemValidation_InvalidBuyIn);
+            }
         }
 
         return null;

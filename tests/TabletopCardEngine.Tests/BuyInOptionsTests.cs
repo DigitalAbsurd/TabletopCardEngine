@@ -119,6 +119,67 @@ public sealed class BuyInOptionsTests
     public async Task CreateGame_MaxRebuysWithoutAllowRebuy_FailsWithInvalidGameOptions()
         => await AssertFailsAsync(new GameOptionData { AllowRebuy = false, MaxRebuys = 2 });
 
+    [TestMethod]
+    public async Task StartGame_BelowMinBuyIn_FailsWithInvalidBuyIn()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MinBuyIn = 50M }))).IsSuccess.Should().BeTrue();
+
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("A", 1, 49M), new("B", 2, 100)]));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidBuyIn);
+        await using var context = await contextFactory.CreateDbContextAsync();
+        (await context.Set<Hand>().CountAsync()).Should().Be(0);
+    }
+
+    [TestMethod]
+    public async Task StartGame_AboveMaxBuyIn_FailsWithInvalidBuyIn()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxBuyIn = 200M }))).IsSuccess.Should().BeTrue();
+
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("A", 1, 100), new("B", 2, 201M)]));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Single().Code.Should().Be(HoldemErrorCode.InvalidBuyIn);
+        await using var context = await contextFactory.CreateDbContextAsync();
+        (await context.Set<Hand>().CountAsync()).Should().Be(0);
+    }
+
+    [TestMethod]
+    public async Task StartGame_AtMinBuyIn_Succeeds()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MinBuyIn = 50M }))).IsSuccess.Should().BeTrue();
+
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("A", 1, 50M), new("B", 2, 100)]));
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task StartGame_AtMaxBuyIn_Succeeds()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData { MaxBuyIn = 100M }))).IsSuccess.Should().BeTrue();
+
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("A", 1, 100), new("B", 2, 100)]));
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task StartGame_WithoutBuyInWindow_AcceptsAnyAmount()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData()))).IsSuccess.Should().BeTrue();
+
+        var result = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, [new("A", 1, 0.01M), new("B", 2, 1000000M)]));
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
     private static async Task<GameOptionData> RoundTripAsync(GameOptionData options)
     {
         using var host = TestEngineHost.Setup(out var engine, out _);
