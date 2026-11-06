@@ -28,6 +28,11 @@ internal sealed class CreateGameActionHandler(HoldemSettings settings) : HoldemA
         game.BettingStructure = startGameActionData.Options.BettingStructure;
         game.TableFormat = startGameActionData.Options.TableFormat;
         game.MaxPlayersCount = startGameActionData.Options.MaxPlayersCount;
+        game.AllowTopUp = startGameActionData.Options.AllowTopUp;
+        game.AllowRebuy = startGameActionData.Options.AllowRebuy;
+        game.MaxRebuys = startGameActionData.Options.MaxRebuys;
+        game.MinBuyIn = startGameActionData.Options.MinBuyIn;
+        game.MaxBuyIn = startGameActionData.Options.MaxBuyIn;
 
         return Task.FromResult<HoldemError?>(null);
     }

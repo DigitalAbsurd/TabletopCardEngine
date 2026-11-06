@@ -54,6 +54,21 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .Property(entity => entity.Amount)
             .HasPrecision(18, AmountRules.MaxDecimalPlaces);
 
+        // The default is what rows stored before the column existed are: every one was a join.
+        modelBuilder.Entity<BuyIn>()
+            .Property(entity => entity.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength)
+            .HasDefaultValue(BuyInKind.Join);
+
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.MinBuyIn)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.MaxBuyIn)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
         modelBuilder.Entity<Hand>()
             .HasKey(entity => new { entity.GameId, entity.No });
 

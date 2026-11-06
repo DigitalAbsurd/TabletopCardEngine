@@ -17,6 +17,34 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 Implements [System\.IEquatable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')[GameOptionData](TabletopCardEngine.Holdem.Dto.GameOptionData.md 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')
 ### Properties
 
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.AllowRebuy'></a>
+
+## GameOptionData\.AllowRebuy Property
+
+Whether a seat whose stack is zero may buy back in between hands\. Defaults to [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool'),
+so a caller that never sets it gets the 1\.1 game\.
+
+```csharp
+public bool AllowRebuy { get; init; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.AllowTopUp'></a>
+
+## GameOptionData\.AllowTopUp Property
+
+Whether a seat that still has chips may add chips between hands\. Defaults to [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool'),
+so a caller that never sets it gets the 1\.1 game\.
+
+```csharp
+public bool AllowTopUp { get; init; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
 <a name='TabletopCardEngine.Holdem.Dto.GameOptionData.BettingStructure'></a>
 
 ## GameOptionData\.BettingStructure Property
@@ -69,6 +97,21 @@ public decimal InitialSmallBlind { get; init; }
 #### Property Value
 [System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')
 
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.MaxBuyIn'></a>
+
+## GameOptionData\.MaxBuyIn Property
+
+The largest amount a player may sit down with or rebuy for; a top\-up may not take a stack above it\.
+[null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') \(the default\) means no maximum\. When set it must be positive and have at most
+two decimal places\.
+
+```csharp
+public System.Nullable<decimal> MaxBuyIn { get; init; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='TabletopCardEngine.Holdem.Dto.GameOptionData.MaxPlayersCount'></a>
 
 ## GameOptionData\.MaxPlayersCount Property
@@ -82,6 +125,36 @@ public int MaxPlayersCount { get; init; }
 
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.MaxRebuys'></a>
+
+## GameOptionData\.MaxRebuys Property
+
+How many rebuys each player gets, counted per occupant of a seat: a new player in the same seat starts
+from zero\. Top\-ups are not counted\. [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') \(the default\) means unlimited\. Must not be
+negative, and may be set only when [AllowRebuy](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.AllowRebuy 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.AllowRebuy') is [true](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool')\.
+
+```csharp
+public System.Nullable<int> MaxRebuys { get; init; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.MinBuyIn'></a>
+
+## GameOptionData\.MinBuyIn Property
+
+The smallest amount a player may sit down with or rebuy for\. [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') \(the default\) means
+no minimum\. When set it must be positive, have at most two decimal places and not exceed
+[MaxBuyIn](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.MaxBuyIn 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.MaxBuyIn')\.
+
+```csharp
+public System.Nullable<decimal> MinBuyIn { get; init; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='TabletopCardEngine.Holdem.Dto.GameOptionData.TableFormat'></a>
 

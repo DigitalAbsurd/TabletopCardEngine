@@ -155,7 +155,8 @@ internal static class EntityExtensions
             {
                 HandNo = nextHandNo,
                 SeatNo = join.SeatNo,
-                Amount = join.BuyInAmount
+                Amount = join.BuyInAmount,
+                Kind = BuyInKind.Join
             }));
     }
 

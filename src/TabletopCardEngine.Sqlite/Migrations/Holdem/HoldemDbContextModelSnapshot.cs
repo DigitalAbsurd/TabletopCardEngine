@@ -32,6 +32,13 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Join");
+
                     b.HasKey("GameId", "SeatNo", "HandNo");
 
                     b.ToTable("tce_holdem_BuyIn");
@@ -41,6 +48,12 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("AllowRebuy")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AllowTopUp")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("BettingStructure")
                         .IsRequired()
@@ -62,8 +75,19 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                     b.Property<bool>("IsFinished")
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal?>("MaxBuyIn")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("MaxPlayersCount")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MaxRebuys")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("MinBuyIn")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TableFormat")
                         .IsRequired()
@@ -296,8 +320,8 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.1.0",
-                            SchemaVersion = 2
+                            EngineVersion = "1.2.0",
+                            SchemaVersion = 3
                         });
                 });
 

@@ -13,6 +13,11 @@ internal class Game
     public GameType GameType { get; set; } = GameType.Holdem;
     public BettingStructure BettingStructure { get; set; } = BettingStructure.NoLimit;
     public HoldemTableFormat TableFormat { get; set; } = HoldemTableFormat.SixMax;
+    public bool AllowTopUp { get; set; }
+    public bool AllowRebuy { get; set; }
+    public int? MaxRebuys { get; set; }
+    public decimal? MinBuyIn { get; set; }
+    public decimal? MaxBuyIn { get; set; }
 
     public bool IsFinished { get; set; }
 

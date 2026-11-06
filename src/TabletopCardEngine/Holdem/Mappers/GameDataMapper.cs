@@ -39,6 +39,11 @@ internal static class GameDataMapper
                 MaxPlayersCount = game.MaxPlayersCount,
                 InitialSmallBlind = game.InitialSmallBlind,
                 InitialDealerSeatNo = game.InitialDealerSeatNo,
+                AllowTopUp = game.AllowTopUp,
+                AllowRebuy = game.AllowRebuy,
+                MaxRebuys = game.MaxRebuys,
+                MinBuyIn = game.MinBuyIn,
+                MaxBuyIn = game.MaxBuyIn,
             },
             HandData: currentHand.No != default
                 ? new HandData(
