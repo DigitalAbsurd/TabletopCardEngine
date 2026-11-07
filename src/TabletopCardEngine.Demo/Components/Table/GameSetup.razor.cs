@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using System.Globalization;
 using TabletopCardEngine.Demo.Services;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
@@ -25,6 +26,8 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     [Inject]
     public required DemoDatabase Database { get; set; }
 
+    private const decimal DefaultMultiplier = 2m;
+
     private HoldemTableFormat _tableFormat = DemoGameDefaults.TableFormat;
     private int _maxPlayers = DemoGameDefaults.MaxPlayers;
     private decimal _smallBlind = DemoGameDefaults.SmallBlind;
@@ -34,6 +37,15 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     private int? _maxRebuys;
     private decimal? _minBuyIn;
     private decimal? _maxBuyIn;
+    private bool _increaseBlinds;
+    private int? _increaseEveryHands;
+    private readonly HashSet<int> _playerThresholds = [];
+    private bool _increaseOnElimination;
+    private BlindIncreaseMode _blindMode = BlindIncreaseMode.Multiplier;
+    private decimal _multiplier = DefaultMultiplier;
+    private decimal? _maxSmallBlind;
+    private string _smallBlindLevels = string.Empty;
+    private string? _levelsMessage;
     private readonly List<PlayerSetup> _players = [];
     private string? _errorMessage;
     private bool _isLoading;
@@ -72,6 +84,15 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         _maxRebuys = null;
         _minBuyIn = null;
         _maxBuyIn = null;
+        _increaseBlinds = false;
+        _increaseEveryHands = null;
+        _playerThresholds.Clear();
+        _increaseOnElimination = false;
+        _blindMode = BlindIncreaseMode.Multiplier;
+        _multiplier = DefaultMultiplier;
+        _maxSmallBlind = null;
+        _smallBlindLevels = string.Empty;
+        _levelsMessage = null;
         _errorMessage = null;
         _isLoading = false;
         InitializeDefaultPlayers();
@@ -164,6 +185,9 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
 
         _maxPlayers = newMaxPlayers;
 
+        // A threshold is a player count below the table size, so a smaller table drops the ones that no longer fit.
+        _playerThresholds.RemoveWhere(t => t >= _maxPlayers);
+
         // The dealer seat is bounded by the table size, and shrinking the table can leave it outside.
         if (_dealerSeat > _maxPlayers)
         {
@@ -184,6 +208,60 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         HoldemTableFormat.FullRing => 10,
         _ => 6,
     };
+
+    private void OnThresholdChanged(int threshold, bool isChecked)
+    {
+        if (isChecked)
+        {
+            _playerThresholds.Add(threshold);
+        }
+        else
+        {
+            _playerThresholds.Remove(threshold);
+        }
+    }
+
+    /// <summary>
+    /// Builds the blind schedule from the form, or <c>null</c> when the switch is off. Only the levels text
+    /// can fail here, as a message on its field; every other value goes to the engine as typed.
+    /// </summary>
+    private bool TryBuildBlindSchedule(out BlindScheduleData? schedule)
+    {
+        schedule = null;
+        _levelsMessage = null;
+        if (!_increaseBlinds)
+        {
+            return true;
+        }
+
+        var levels = new List<decimal>();
+        if (_blindMode == BlindIncreaseMode.Levels)
+        {
+            foreach (var part in _smallBlindLevels.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (!decimal.TryParse(part, NumberStyles.Number, CultureInfo.InvariantCulture, out var level))
+                {
+                    _levelsMessage = $"\"{part}\" is not an amount. Write the levels as numbers separated by commas, e.g. 2, 3, 5, 10.";
+                    return false;
+                }
+
+                levels.Add(level);
+            }
+        }
+
+        var multiplierMode = _blindMode == BlindIncreaseMode.Multiplier;
+        schedule = new BlindScheduleData
+        {
+            IncreaseEveryHands = _increaseEveryHands,
+            PlayerThresholds = _playerThresholds.Order().ToArray(),
+            IncreaseOnElimination = _increaseOnElimination,
+            Mode = _blindMode,
+            Multiplier = _multiplier,
+            MaxSmallBlind = multiplierMode ? _maxSmallBlind : null,
+            SmallBlindLevels = multiplierMode ? [] : levels,
+        };
+        return true;
+    }
 
     private void OnEngineError(object? sender, EngineErrorEventArgs e)
     {
@@ -284,6 +362,12 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             return false;
         }
 
+        if (!TryBuildBlindSchedule(out var blindSchedule))
+        {
+            await InvokeAsync(StateHasChanged);
+            return false;
+        }
+
         _isLoading = true;
         _errorMessage = null;
 
@@ -308,6 +392,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
                 MaxRebuys = _allowRebuy ? _maxRebuys : null,
                 MinBuyIn = _minBuyIn,
                 MaxBuyIn = _maxBuyIn,
+                BlindSchedule = blindSchedule,
             };
 
             var createSuccess = await Session.CreateGameAsync(gameOptions, cancellationToken: cancellationToken);

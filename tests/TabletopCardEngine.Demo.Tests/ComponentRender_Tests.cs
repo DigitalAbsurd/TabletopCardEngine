@@ -493,6 +493,219 @@ public sealed class ComponentRender_Tests
         session.CurrentHand!.Seats.Should().HaveCount(seatCount);
     }
 
+    private static IRenderedComponent<GameSetup> RenderGameSetup(BunitContext ctx)
+    {
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+        return ctx.Render<GameSetup>();
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_SwitchOff_CreatesAGameWithoutABlindSchedule()
+    {
+        // Arrange - a value typed into the block while the switch is on must not survive turning it off
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-every-hands").Change("3");
+        component.Find("#setup-increase-blinds").Change(false);
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options.BlindSchedule.Should().BeNull();
+        component.FindAll("#setup-increase-every-hands").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_EveryNHands_BuildsAMultiplierScheduleWithTheDefaults()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-every-hands").Change("1");
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options.BlindSchedule!
+            .Should().BeEquivalentTo(new BlindScheduleData
+            {
+                IncreaseEveryHands = 1,
+                Mode = BlindIncreaseMode.Multiplier,
+                Multiplier = 2m,
+            });
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_ThresholdsAndElimination_BuildTheSchedule()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+        component.FindAll(".setup-threshold")[3].Change(true);
+        component.FindAll(".setup-threshold")[1].Change(true);
+        component.Find("#setup-increase-on-elimination").Change(true);
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options.BlindSchedule!
+            .Should().BeEquivalentTo(new BlindScheduleData
+            {
+                PlayerThresholds = [3, 5],
+                IncreaseOnElimination = true,
+            });
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_MultiplierWithACap_BuildsTheSchedule()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-every-hands").Change("2");
+        component.Find("#setup-multiplier").Change("1.5");
+        component.Find("#setup-max-small-blind").Change("20");
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options.BlindSchedule!
+            .Should().BeEquivalentTo(new BlindScheduleData
+            {
+                IncreaseEveryHands = 2,
+                Multiplier = 1.5m,
+                MaxSmallBlind = 20m,
+            });
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_LevelsMode_BuildsTheExplicitList()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-every-hands").Change("2");
+        component.Find("#setup-mode-levels").Change(true);
+        component.Find("#setup-small-blind-levels").Change("2, 3, 5, 10");
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options.BlindSchedule!
+            .Should().BeEquivalentTo(new BlindScheduleData
+            {
+                IncreaseEveryHands = 2,
+                Mode = BlindIncreaseMode.Levels,
+                SmallBlindLevels = [2m, 3m, 5m, 10m],
+            });
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_UnparsableLevels_ShowsAFieldMessageAndCallsNoEngine()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
+        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-every-hands").Change("2");
+        component.Find("#setup-mode-levels").Change(true);
+        component.Find("#setup-small-blind-levels").Change("2, three, 5");
+
+        // Act
+        var applied = await component.InvokeAsync(() => component.Instance.ApplyAsync());
+
+        // Assert
+        applied.Should().BeFalse();
+        session.CurrentGame.Should().BeNull();
+        component.Find(".field-message").TextContent.Should().Contain("three");
+        component.FindAll(".ant-alert").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_SwitchOnWithNoTrigger_ShowsTheEnginesRefusal()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+
+        // Act
+        var applied = await component.InvokeAsync(() => component.Instance.ApplyAsync());
+
+        // Assert
+        applied.Should().BeFalse();
+        component.FindAll(".ant-alert").Should().HaveCount(1);
+    }
+
+    [TestMethod]
+    public void GameSetup_Thresholds_FollowMaxPlayers_AndDropTheOnesThatNoLongerFit()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-increase-blinds").Change(true);
+
+        // Assert - Max Players 6 offers 2..5
+        component.FindAll(".setup-threshold").Should().HaveCount(4);
+        component.FindAll(".threshold-option label").Select(o => o.TextContent.Trim()).Take(4)
+            .Should().Equal("2", "3", "4", "5");
+
+        // Act - tick 4 and 5, then shrink the table to 4 seats
+        component.FindAll(".setup-threshold")[2].Change(true);
+        component.FindAll(".setup-threshold")[3].Change(true);
+        var onMaxPlayersChanged = typeof(GameSetup).GetMethod("OnMaxPlayersChangedAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+        component.InvokeAsync(() => (Task)onMaxPlayersChanged.Invoke(component.Instance, [4])!).GetAwaiter().GetResult();
+        component.Render();
+
+        // Assert
+        component.FindAll(".setup-threshold").Should().HaveCount(2);
+        component.FindAll(".setup-threshold").Count(i => i.HasAttribute("checked")).Should().Be(0);
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_EveryHand_DoublesTheSmallBlindForTheSecondHand()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
+        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-every-hands").Change("1");
+        (await component.Instance.ApplyAsync()).Should().BeTrue();
+        session.CurrentHand!.SmallBlind.Should().Be(DemoGameDefaults.SmallBlind);
+
+        // Act - fold the first hand out, then deal the second
+        while (session.CurrentHand!.NextPlayerSeatNo != 0)
+        {
+            (await session.ApplyPlayerActionAsync(PlayerActionType.Fold)).Should().BeTrue();
+        }
+
+        (await session.StartNextHandAsync()).Should().BeTrue();
+
+        // Assert
+        session.CurrentHand!.No.Should().Be(2);
+        session.CurrentHand.SmallBlind.Should().Be(DemoGameDefaults.SmallBlind * 2);
+    }
+
     [TestMethod]
     public async Task GameSetup_ApplyAsync_ClearsThePreviousGamesRowsAndCalls()
     {
