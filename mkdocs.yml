@@ -141,6 +141,7 @@ nav:
                   - 'HoldemPlayRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemPlayRequest.md
                   - 'HoldemStartGameRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemStartGameRequest.md
                   - 'HoldemStartHandRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemStartHandRequest.md
+                  - 'HoldemTopUpRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemTopUpRequest.md
           - TabletopCardEngine.Sqlite:
               - 'Assembly': api/TabletopCardEngine.Sqlite/index.md
               - 'TabletopCardEngine.Sqlite':

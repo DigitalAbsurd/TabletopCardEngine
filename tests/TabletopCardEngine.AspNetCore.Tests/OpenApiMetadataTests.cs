@@ -29,6 +29,8 @@ public sealed class OpenApiMetadataTests
             ("POST", "api/holdem/games/{gameId:guid}/actions"),
             ("POST", "api/holdem/games/{gameId:guid}/finish"),
             ("POST", "api/holdem/games/{gameId:guid}/seats/{seatNo:int}/leave"),
+            ("POST", "api/holdem/games/{gameId:guid}/seats/{seatNo:int}/top-up"),
+            ("POST", "api/holdem/games/{gameId:guid}/seats/{seatNo:int}/kick"),
         };
 
         var actualEndpoints = descriptions
@@ -36,7 +38,7 @@ public sealed class OpenApiMetadataTests
             .OrderBy(x => (x.Item1, x.Item2))
             .ToList();
 
-        actualEndpoints.Should().HaveCount(7);
+        actualEndpoints.Should().HaveCount(9);
         foreach (var expected in expectedEndpoints.OrderBy(x => (x.Item1, x.Item2)))
         {
             actualEndpoints.Should().Contain(expected);
@@ -80,6 +82,8 @@ public sealed class OpenApiMetadataTests
             { "POST:api/holdem/games/{gameId:guid}/actions", [400, 404, 409, 412, 422] },
             { "POST:api/holdem/games/{gameId:guid}/finish", [400, 404, 409, 412] },
             { "POST:api/holdem/games/{gameId:guid}/seats/{seatNo:int}/leave", [400, 404, 409, 412, 422] },
+            { "POST:api/holdem/games/{gameId:guid}/seats/{seatNo:int}/top-up", [400, 404, 409, 412, 422] },
+            { "POST:api/holdem/games/{gameId:guid}/seats/{seatNo:int}/kick", [400, 404, 409, 412, 422] },
         };
 
         foreach (var description in descriptions)
@@ -115,7 +119,7 @@ public sealed class OpenApiMetadataTests
         var descriptions = apiDescriptionProvider.ApiDescriptionGroups.Items.SelectMany(g => g.Items).ToList();
 
         var postRoutes = descriptions.Where(d => d.HttpMethod == "POST").ToList();
-        postRoutes.Should().HaveCount(6, "should have 6 POST endpoints");
+        postRoutes.Should().HaveCount(8, "should have 8 POST endpoints");
 
         var getRoutes = descriptions.Where(d => d.HttpMethod == "GET").ToList();
         getRoutes.Should().HaveCount(1, "should have 1 GET endpoint");
@@ -126,7 +130,8 @@ public sealed class OpenApiMetadataTests
                 .FirstOrDefault(p => p.Source == BindingSource.Body);
 
             if ((postRoute.RelativePath?.EndsWith("finish", StringComparison.Ordinal) ?? false)
-                || (postRoute.RelativePath?.EndsWith("leave", StringComparison.Ordinal) ?? false))
+                || (postRoute.RelativePath?.EndsWith("leave", StringComparison.Ordinal) ?? false)
+                || (postRoute.RelativePath?.EndsWith("kick", StringComparison.Ordinal) ?? false))
             {
                 bodyParam.Should().BeNull($"endpoint {postRoute.RelativePath} should not have a body parameter");
             }
@@ -144,9 +149,9 @@ public sealed class OpenApiMetadataTests
         var endpointDataSource = host.App.Services.GetRequiredService<EndpointDataSource>();
         var endpoints = endpointDataSource.Endpoints.OfType<RouteEndpoint>().Where(e => e.RoutePattern.RawText?.StartsWith("/api/holdem", StringComparison.Ordinal) ?? false).ToList();
 
-        endpoints.Should().HaveCount(7);
+        endpoints.Should().HaveCount(9);
 
-        var expectedNames = new[] { "HoldemGetGame", "HoldemCreateGame", "HoldemStartGame", "HoldemStartHand", "HoldemPlay", "HoldemFinishGame", "HoldemLeaveSeat" };
+        var expectedNames = new[] { "HoldemGetGame", "HoldemCreateGame", "HoldemStartGame", "HoldemStartHand", "HoldemPlay", "HoldemFinishGame", "HoldemLeaveSeat", "HoldemTopUpSeat", "HoldemKickSeat" };
 
         foreach (var endpoint in endpoints)
         {

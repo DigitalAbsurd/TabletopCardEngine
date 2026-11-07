@@ -186,6 +186,8 @@ engine with the request's abort token, answers a failure with the problem respon
 | `POST` | `/games/{gameId:guid}/actions` | `Play` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`, malformed JSON, numeric enum), 404 `GameNotFound`, 409 `GameFinished`, 412 `Conflict`, 422 `IllegalAction` |
 | `POST` | `/games/{gameId:guid}/finish` | `FinishGame` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `PreviousHandNotEnded`, 412 `Conflict` |
 | `POST` | `/games/{gameId:guid}/seats/{seatNo:int}/leave` | `LeaveSeat` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `PreviousHandNotEnded` \| `GameFinished`, 412 `Conflict`, 422 `InvalidSeat` |
+| `POST` | `/games/{gameId:guid}/seats/{seatNo:int}/top-up` | `TopUp` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`, malformed JSON), 404 `GameNotFound`, 409 `GameNotStarted` \| `PreviousHandNotEnded` \| `TopUpNotAllowed` \| `RebuyNotAllowed` \| `GameFinished`, 412 `Conflict`, 422 `InvalidSeat` \| `InvalidBuyIn` |
+| `POST` | `/games/{gameId:guid}/seats/{seatNo:int}/kick` | `KickSeat` | 200 with `GameData` and an `ETag` | 400 (bad `If-Match`), 404 `GameNotFound`, 409 `GameNotStarted` \| `GameFinished`, 412 `Conflict`, 422 `InvalidSeat` |
 
 A `gameId` that is not a GUID does not match the route and answers 404.
 
@@ -276,6 +278,20 @@ or
 ```
 
 `POST /games/{gameId}/seats/{seatNo}/leave` stands a player up between hands (no body):
+
+```json
+{}
+```
+
+`POST /games/{gameId}/seats/{seatNo}/top-up` adds chips to a seat for the next hand, between hands only; the amount is a JSON body, never part of the route or the query string:
+
+```json
+{
+  "amount": 100
+}
+```
+
+`POST /games/{gameId}/seats/{seatNo}/kick` removes a player at any time, between hands or during one, where the seat folds at once (no body). `kick` is a host-only operation: the package adds no authorization to it, so secure the route group as described in [Security](#security).
 
 ```json
 {}

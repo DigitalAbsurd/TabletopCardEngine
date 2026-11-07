@@ -117,6 +117,44 @@ public static class HoldemEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
+        group.MapPost("/games/{gameId:guid}/seats/{seatNo:int}/top-up", async (HoldemTopUpRequest request, Guid gameId, int seatNo, HttpContext context, IHoldemTable engine) =>
+        {
+            if (seatNo < 1 || seatNo > 255)
+            {
+                return TypedResults.Problem(
+                    statusCode: 422,
+                    detail: "Seat number must be between 1 and 255.");
+            }
+
+            return await HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.TopUp(gameId, (byte)seatNo, request.Amount),
+                data => TypedResults.Ok(data));
+        })
+            .WithName("HoldemTopUpSeat")
+            .WithOpenApiMetadata(
+                "Adds chips to a seat between hands.",
+                "Adds chips to an occupied seat for the next hand, or rebuys a seat with no chips left. Returns 200 with GameData. May return 400 (bad If-Match, malformed JSON), 404 (GameNotFound), 409 (GameNotStarted, PreviousHandNotEnded, TopUpNotAllowed, RebuyNotAllowed, GameFinished), 412 (Conflict), or 422 (InvalidSeat, InvalidBuyIn).",
+                StatusCodes.Status200OK,
+                [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
+
+        group.MapPost("/games/{gameId:guid}/seats/{seatNo:int}/kick", async (Guid gameId, int seatNo, HttpContext context, IHoldemTable engine) =>
+        {
+            if (seatNo < 1 || seatNo > 255)
+            {
+                return TypedResults.Problem(
+                    statusCode: 422,
+                    detail: "Seat number must be between 1 and 255.");
+            }
+
+            return await HoldemApiDispatcher.SendAsync(context, engine, HoldemAction.KickSeat(gameId, (byte)seatNo),
+                data => TypedResults.Ok(data));
+        })
+            .WithName("HoldemKickSeat")
+            .WithOpenApiMetadata(
+                "Removes a player at any time.",
+                "Removes a player between hands or during a hand, where the seat folds at once. Returns 200 with GameData. May return 400 (bad If-Match), 404 (GameNotFound), 409 (GameNotStarted, GameFinished), 412 (Conflict), or 422 (InvalidSeat).",
+                StatusCodes.Status200OK,
+                [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
+
         return group;
     }
 

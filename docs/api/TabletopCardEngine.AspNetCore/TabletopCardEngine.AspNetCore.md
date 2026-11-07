@@ -12,3 +12,4 @@
 | [HoldemPlayRequest](TabletopCardEngine.AspNetCore.HoldemPlayRequest.md 'TabletopCardEngine\.AspNetCore\.HoldemPlayRequest') | Carries the action for a `POST /games/{gameId}/actions` request\. |
 | [HoldemStartGameRequest](TabletopCardEngine.AspNetCore.HoldemStartGameRequest.md 'TabletopCardEngine\.AspNetCore\.HoldemStartGameRequest') | Carries the players for a `POST /games/{gameId}/start` request\. |
 | [HoldemStartHandRequest](TabletopCardEngine.AspNetCore.HoldemStartHandRequest.md 'TabletopCardEngine\.AspNetCore\.HoldemStartHandRequest') | Carries the optional parameters for a `POST /games/{gameId}/hands` request\. |
+| [HoldemTopUpRequest](TabletopCardEngine.AspNetCore.HoldemTopUpRequest.md 'TabletopCardEngine\.AspNetCore\.HoldemTopUpRequest') | Carries the chips for a `POST /games/{gameId}/seats/{seatNo}/top-up` request\. |
