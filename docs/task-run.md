@@ -75,9 +75,10 @@ reported as skipped and the run is green having checked nothing; that is not a r
 run only when it cannot be done here (the browser will not install, say), and say so in the pull
 request. The release workflow runs the gate once more on a release tag.
 
-The gate takes 5 to 11 minutes, and `dotnet test` about 3, longer than an agent's default 2-minute
-shell timeout. Run them in the foreground with a timeout long enough to finish, and if a run is moved
-to the background anyway, wait for its summary line before committing, opening the pull request or
+The gate takes about 10 to 15 minutes, and `dotnet test` about 3, longer than an agent's default 2-minute
+shell timeout. Run them in the foreground with a timeout long enough to finish. The gate usually runs
+past the 10-minute limit of a Claude Code shell call, so being moved to the background at that limit is
+the normal case, not something to report. If a run is moved to the background, wait for its summary line before committing, opening the pull request or
 merging. A run without a summary line has not passed. Never stop a run you think is stuck by
 filtering processes on a name or a command line (`Get-Process | Where-Object { $_.CommandLine -like
 "*BrowserTests*" } | Stop-Process`): the agent's own command line carries its prompt, so the filter
