@@ -17,6 +17,8 @@
                     SeatData="seat"
                     CanStandUp="@CanSeat"
                     OnStandUp="@OnStandUp"
+                    Options="@GameData?.Options"
+                    OnTopUp="@OnTopUp"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -94,6 +96,8 @@
                     SeatData="seat"
                     CanStandUp="@CanSeat"
                     OnStandUp="@OnStandUp"
+                    Options="@GameData?.Options"
+                    OnTopUp="@OnTopUp"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -138,6 +142,10 @@
     /// <summary>Raised with the seat number when the visitor stands a player up.</summary>
     [Parameter]
     public EventCallback<byte> OnStandUp { get; set; }
+
+    /// <summary>Raised with the seat number and the chips when the visitor tops a seat up or rebuys it.</summary>
+    [Parameter]
+    public EventCallback<(byte SeatNo, decimal Amount)> OnTopUp { get; set; }
 
     /// <summary>
     /// Whether players may sit down or stand up: only between hands, of a game that is not finished.

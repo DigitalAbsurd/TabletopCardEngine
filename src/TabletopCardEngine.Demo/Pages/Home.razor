@@ -82,6 +82,7 @@
                             OnQueueJoin="@OnQueueJoin"
                             OnUnqueueJoin="@OnUnqueueJoin"
                             OnStandUp="@OnStandUpAsync"
+                            OnTopUp="@OnTopUpAsync"
                             OnNextHand="@OnNextHandAsync" />
                     </div>
                 </ChildContent>
@@ -302,6 +303,11 @@
     private async Task OnStandUpAsync(byte seatNo)
     {
         await RunSeatingCallAsync(() => Session.LeaveSeatAsync(seatNo));
+    }
+
+    private async Task OnTopUpAsync((byte SeatNo, decimal Amount) buyIn)
+    {
+        await RunSeatingCallAsync(() => Session.TopUpAsync(buyIn.SeatNo, buyIn.Amount));
     }
 
     private void OnQueueJoin(PlayerJoinData join)

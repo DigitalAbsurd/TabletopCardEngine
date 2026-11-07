@@ -39,6 +39,7 @@
 /* Overlaid on the seat's top edge rather than a row of its own: the seat keeps the height the
    browser gate pins, and the control is there only between hands. */
 .seat-stand-up,
+.seat-buy-in,
 .badge-left {
     position: absolute;
     top: -10px;
@@ -51,7 +52,8 @@
     white-space: nowrap;
 }
 
-.seat-stand-up {
+.seat-stand-up,
+.seat-buy-in {
     border: 1px solid rgba(255, 255, 255, 0.5);
     background: rgba(0, 0, 0, 0.65);
     color: #fff;
@@ -61,6 +63,45 @@
 .seat-stand-up:hover {
     background: #cf1322;
     border-color: #cf1322;
+}
+
+/* Top up / Rebuy take the top edge's left corner, Stand up its right one. */
+.seat-buy-in {
+    right: auto;
+    left: 6px;
+}
+
+.seat-buy-in:hover {
+    background: #237804;
+    border-color: #237804;
+}
+
+/* Laid on the seat's bottom edge, the mirror of the buttons on its top edge: a full-ring table at
+   1366x768 has no height to spare, so a line in the seat's flow would push the table off the screen
+   (the browser gate pins it). */
+.seat-buy-in-info {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.4rem;
+    padding: 0 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.75);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.seat-pending {
+    color: #90ee90;
+}
+
+.seat-rebuys {
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .badge-left {

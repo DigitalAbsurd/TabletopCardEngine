@@ -126,6 +126,19 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The scrolling list of engine calls.</summary>
     public const string EngineCallListSelector = ".engine-calls-list";
 
+    /// <summary>The Top up or Rebuy button a seat offers between hands.</summary>
+    public const string SeatBuyInButtonSelector = ".seat-buy-in";
+
+    /// <summary>The amount form a seat opens when Top up or Rebuy is pressed.</summary>
+    public const string SeatAmountFormSelector = ".seat-amount-form";
+
+    /// <summary>The amount field, Confirm and Cancel of that form.</summary>
+    public static readonly string[] SeatAmountFormControlSelectors =
+        [".seat-amount-input", ".seat-amount-confirm", ".seat-amount-cancel"];
+
+    /// <summary>The "+amount next hand" label of a seat with chips pending.</summary>
+    public const string SeatPendingLabelSelector = ".seat-pending";
+
     /// <summary>A finished hand's result chip, one per seat.</summary>
     public const string HandResultChipSelector = ".hand-result";
 
@@ -503,12 +516,23 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     /// <param name="formatLabel">The format's caption in the form's dropdown, such as <c>Full Ring</c>.</param>
     /// <param name="seatCount">The Max Players value; every seat is filled with a player.</param>
-    public async Task CreateGameAsync(string formatLabel, int seatCount)
+    /// <param name="allowTopUp">Whether to tick Allow top-up, so the seats offer Top up between hands.</param>
+    /// <param name="allowRebuy">Whether to tick Allow rebuy, so a busted seat offers Rebuy.</param>
+    public async Task CreateGameAsync(string formatLabel, int seatCount, bool allowTopUp = false, bool allowRebuy = false)
     {
         await OpenNewGameModalAsync();
 
         await SelectOptionAsync(TableFormatFieldSelector, formatLabel);
         await SelectOptionAsync(MaxPlayersFieldSelector, seatCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        if (allowTopUp)
+        {
+            await _page.Locator("#setup-allow-top-up").CheckAsync();
+        }
+
+        if (allowRebuy)
+        {
+            await _page.Locator("#setup-allow-rebuy").CheckAsync();
+        }
 
         await _page.Locator(".ant-modal-footer .ant-btn-primary").ClickAsync();
         await WaitForGameSetupToCloseAsync();
@@ -650,6 +674,15 @@ internal sealed class DemoPage : IAsyncDisposable
     public async Task HoverAsync(string selector)
     {
         await _page.Locator(selector).First.HoverAsync();
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Replaces what the first element matching one selector holds by typing, then waits for the re-render.</summary>
+    public async Task FillAsync(string selector, string text)
+    {
+        ILocator input = _page.Locator(selector).First;
+        await input.FillAsync(string.Empty);
+        await input.PressSequentiallyAsync(text);
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 

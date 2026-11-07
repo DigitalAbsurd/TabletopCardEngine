@@ -23,6 +23,16 @@
                 @onclick="@(() => OnStandUp.InvokeAsync(SeatData.SeatNo))">
                 Stand up
             </button>
+            @if (BuyInLabel is { } buyInLabel)
+            {
+                <button type="button"
+                    class="seat-buy-in"
+                    data-seat-no="@SeatData.SeatNo"
+                    aria-label="@($"{buyInLabel} {SeatData.Name}")"
+                    @onclick="OpenForm">
+                    @buyInLabel
+                </button>
+            }
         }
 
         <div class="seat-stack">
@@ -46,6 +56,31 @@
                 <span class="@deltaClass">(@sign@AmountFormat.Format(StackDelta))</span>
             }
         </div>
+
+        @if (SeatData.PendingBuyIn > 0 || Options?.MaxRebuys is not null)
+        {
+            @* The engine adds the chips at the next hand, so the stack above stays as it is and this says what is coming. *@
+            <div class="seat-buy-in-info">
+                @if (SeatData.PendingBuyIn > 0)
+                {
+                    <span class="seat-pending">+@AmountFormat.Format(SeatData.PendingBuyIn) next hand</span>
+                }
+                @if (Options?.MaxRebuys is { } maxRebuys)
+                {
+                    <span class="seat-rebuys">Rebuys @SeatData.Rebuys/@maxRebuys</span>
+                }
+            </div>
+        }
+
+        @if (_form is { } form)
+        {
+            <SeatAmountForm
+                Title="@form"
+                SeatName="@SeatData.Name"
+                InitialAmount="@SuggestedAmount"
+                OnConfirm="ConfirmAsync"
+                OnCancel="CloseForm" />
+        }
 
         @if (SeatData.Hole?.Count > 0)
         {
@@ -103,7 +138,86 @@
     [Parameter]
     public EventCallback<byte> OnStandUp { get; set; }
 
+    /// <summary>The game's options, which say whether the seat may top up or rebuy and how far; null before a game exists.</summary>
+    [Parameter]
+    public GameOptionData? Options { get; set; }
+
+    /// <summary>Raised with the seat number and the chips when a top-up or rebuy is confirmed.</summary>
+    [Parameter]
+    public EventCallback<(byte SeatNo, decimal Amount)> OnTopUp { get; set; }
+
+    private const string TopUpLabel = "Top up";
+
+    private const string RebuyLabel = "Rebuy";
+
+    /// <summary>Below this a stack is empty, the demo's reading of a busted seat (the engine's own constant is private).</summary>
+    private const decimal DecimalMinPrecision = 0.0001M;
+
+    /// <summary>The form that is open, <c>Top up</c> or <c>Rebuy</c>, or null for none.</summary>
+    private string? _form;
+
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
+
+    /// <summary>
+    /// What the seat holds once the hand is over. <c>SeatData.Stack</c> is what is left after the
+    /// wagers, before the pot is paid, so an all-in winner reads zero there: the engine's own figure,
+    /// which decides top-up against rebuy, is the start stack plus the hand's net.
+    /// </summary>
+    private decimal FinishedStack => SeatData.HandResult is { } result ? SeatData.StartHandStack + result.Net : SeatData.Stack;
+
+    /// <summary>
+    /// The button the seat offers, or null for none. It follows the engine's own rule: a seat that
+    /// would start the next hand with chips tops up, one that would not rebuys, so a busted seat that
+    /// already has chips pending tops up again.
+    /// </summary>
+    private string? BuyInLabel
+    {
+        get
+        {
+            if (!CanStandUp || SeatData.HasLeft || Options is null)
+            {
+                return null;
+            }
+
+            if (FinishedStack + SeatData.PendingBuyIn >= DecimalMinPrecision)
+            {
+                return Options.AllowTopUp ? TopUpLabel : null;
+            }
+
+            var hasRebuysLeft = Options.MaxRebuys is not { } max || SeatData.Rebuys < max;
+            return Options.AllowRebuy && hasRebuysLeft ? RebuyLabel : null;
+        }
+    }
+
+    /// <summary>
+    /// What the form starts with: the room left under the maximum buy-in when there is one, else the
+    /// demo's default buy-in.
+    /// </summary>
+    private decimal SuggestedAmount
+        => Options?.MaxBuyIn is { } maxBuyIn
+            ? Math.Max(0m, maxBuyIn - FinishedStack - SeatData.PendingBuyIn)
+            : DemoGameDefaults.BuyIn;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        // The table decides when it is between hands; once it is not, or the seat no longer offers the
+        // button that opened it, the form goes with it.
+        if (_form != BuyInLabel)
+        {
+            _form = null;
+        }
+    }
+
+    private void OpenForm() => _form = BuyInLabel;
+
+    private void CloseForm() => _form = null;
+
+    private async Task ConfirmAsync(decimal amount)
+    {
+        _form = null;
+        await OnTopUp.InvokeAsync((SeatData.SeatNo, amount));
+    }
 
     private string GetSeatClasses()
     {

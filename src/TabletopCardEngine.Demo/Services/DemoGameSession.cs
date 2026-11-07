@@ -154,6 +154,26 @@ public sealed class DemoGameSession
     }
 
     /// <summary>
+    /// Adds chips to an occupied seat between hands. The engine decides whether it is a top-up or a
+    /// rebuy by whether the seat still has chips, and deals the amount at the start of the next hand.
+    /// </summary>
+    /// <param name="seatNo">The seat that buys chips.</param>
+    /// <param name="amount">The chips to add.</param>
+    /// <param name="cancellationToken">Cancellation token for the database operation.</param>
+    /// <returns><c>true</c> if the chips were queued for the next hand, <c>false</c> on validation error.</returns>
+    public async Task<bool> TopUpAsync(byte seatNo, decimal amount, CancellationToken cancellationToken = default)
+    {
+        if (CurrentGameId == Guid.Empty)
+        {
+            RaiseEngineError("No game has been created yet.");
+            return false;
+        }
+
+        var action = HoldemAction.TopUp(CurrentGameId, seatNo, amount);
+        return await ApplyActionInternalAsync(action, cancellationToken);
+    }
+
+    /// <summary>
     /// Applies a player action in the current hand.
     /// </summary>
     /// <param name="actionType">The type of action (fold, check, call, or raise).</param>
