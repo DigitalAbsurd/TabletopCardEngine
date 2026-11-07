@@ -1217,6 +1217,176 @@ public sealed class ComponentRender_Tests
         stoodUp.Should().Equal((byte)2);
     }
 
+    private static GameData BuildBuyInGameData(
+        Func<GameOptionData, GameOptionData> options,
+        Street street = Street.Finished,
+        Func<SeatData, SeatData>? seat = null)
+    {
+        var game = BuildSeatingGameData(3, street, seat: seat);
+        return game with { Options = options(game.Options) };
+    }
+
+    [TestMethod]
+    public void PokerTable_TopUpAllowed_OffersTopUpOnSeatsWithChipsAndRebuyOnBustedOnes()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var game = BuildBuyInGameData(
+            o => o with { AllowTopUp = true, AllowRebuy = true },
+            seat: s => s.SeatNo == 3 ? s with { Stack = 0m } : s);
+
+        // Act
+        var component = RenderSeatingTable(ctx, game);
+
+        // Assert
+        component.FindAll(".seat-buy-in").Select(b => b.GetAttribute("aria-label"))
+            .Should().BeEquivalentTo("Top up Player 1", "Top up Player 2", "Rebuy Player 3");
+        component.Find(".seat-buy-in[data-seat-no='3']").TextContent.Trim().Should().Be("Rebuy");
+    }
+
+    [TestMethod]
+    public void PokerTable_AllInWinner_TopsUpAndTheAllInLoserRebuys()
+    {
+        // Arrange - Stack is what is left before the pot is paid, so both read zero
+        using var ctx = new BunitContext();
+        var game = BuildBuyInGameData(
+            o => o with { AllowTopUp = true, AllowRebuy = true },
+            seat: s => s.SeatNo switch
+            {
+                1 => s with { StartHandStack = 100m, Stack = 0m, HandResult = new HandResultData(100m, 1, HandRankType.Pair) },
+                2 => s with { StartHandStack = 100m, Stack = 0m, HandResult = new HandResultData(-100m, 1, HandRankType.HighCard) },
+                _ => s,
+            });
+
+        // Act
+        var component = RenderSeatingTable(ctx, game);
+
+        // Assert
+        component.Find(".seat-buy-in[data-seat-no='1']").TextContent.Trim().Should().Be("Top up");
+        component.Find(".seat-buy-in[data-seat-no='2']").TextContent.Trim().Should().Be("Rebuy");
+    }
+
+    [TestMethod]
+    public void PokerTable_TopUpAndRebuyNotAllowed_OffersNeither()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var game = BuildBuyInGameData(o => o, seat: s => s.SeatNo == 3 ? s with { Stack = 0m } : s);
+
+        // Act
+        var component = RenderSeatingTable(ctx, game);
+
+        // Assert
+        component.FindAll(".seat-buy-in").Should().BeEmpty();
+        component.FindAll(".seat-stand-up").Should().HaveCount(3);
+    }
+
+    [TestMethod]
+    public void PokerTable_HandInProgress_HidesTopUpAndRebuy()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var game = BuildBuyInGameData(o => o with { AllowTopUp = true, AllowRebuy = true }, street: Street.Flop);
+
+        // Act
+        var component = RenderSeatingTable(ctx, game);
+
+        // Assert
+        component.FindAll(".seat-buy-in").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_RebuyLimitReached_HidesRebuy()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var game = BuildBuyInGameData(
+            o => o with { AllowRebuy = true, MaxRebuys = 2 },
+            seat: s => s.SeatNo switch
+            {
+                1 => s with { Stack = 0m, Rebuys = 2 },
+                2 => s with { Stack = 0m, Rebuys = 1 },
+                _ => s,
+            });
+
+        // Act
+        var component = RenderSeatingTable(ctx, game);
+
+        // Assert
+        component.FindAll(".seat-buy-in").Should().ContainSingle()
+            .Which.GetAttribute("aria-label").Should().Be("Rebuy Player 2");
+        component.FindAll(".seat-rebuys").Select(r => r.TextContent).Should().Equal("Rebuys 2/2", "Rebuys 1/2", "Rebuys 0/2");
+    }
+
+    [TestMethod]
+    public void PokerTable_PendingBuyIn_ShowsTheLabelAndLeavesTheStackAlone()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var game = BuildBuyInGameData(
+            o => o with { AllowTopUp = true },
+            seat: s => s.SeatNo == 2 ? s with { Stack = 80m, PendingBuyIn = 25m } : s);
+
+        // Act
+        var component = RenderSeatingTable(ctx, game);
+
+        // Assert
+        var seat = component.FindAll(".seat").Single(s => s.TextContent.Contains("Player 2", StringComparison.Ordinal));
+        seat.QuerySelector(".seat-pending")!.TextContent.Should().Be($"+{AmountFormat.Format(25m)} next hand");
+        seat.QuerySelector(".stack-amount")!.TextContent.Should().Be(AmountFormat.Format(80m));
+        component.FindAll(".seat-pending").Should().ContainSingle();
+        component.FindAll(".seat-rebuys").Should().BeEmpty("the game sets no rebuy limit");
+    }
+
+    [TestMethod]
+    public void PokerTable_TopUp_OpensTheFormWithTheRoomUnderTheMaximumAndRaisesTheAmount()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var raised = new List<(byte SeatNo, decimal Amount)>();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var game = BuildBuyInGameData(
+            o => o with { AllowTopUp = true, MaxBuyIn = 150m },
+            seat: s => s.SeatNo == 1 ? s with { Stack = 100m, PendingBuyIn = 20m } : s);
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, game)
+            .Add(p => p.OnTopUp, raised.Add));
+
+        // Act
+        component.Find(".seat-buy-in[data-seat-no='1']").Click();
+
+        // Assert - 150 - 100 - 20
+        component.Find(".seat-amount-input").GetAttribute("value").Should().Be("30");
+        component.FindAll(".seat-amount-form").Should().ContainSingle();
+
+        component.Find(".seat-amount-input").Input("12.5");
+        component.Find(".seat-amount-confirm").Click();
+        raised.Should().Equal(((byte)1, 12.5m));
+        component.FindAll(".seat-amount-form").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_TopUpWithoutMaximum_StartsFromTheDefaultBuyInAndCancelClosesTheForm()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var raised = new List<(byte SeatNo, decimal Amount)>();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildBuyInGameData(o => o with { AllowTopUp = true }))
+            .Add(p => p.OnTopUp, raised.Add));
+        component.Find(".seat-buy-in[data-seat-no='2']").Click();
+
+        // Act / Assert
+        component.Find(".seat-amount-input").GetAttribute("value").Should().Be(DemoGameDefaults.BuyIn.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        component.Find(".seat-amount-form").GetAttribute("aria-label").Should().Be("Top up Player 2");
+        component.Find(".seat-amount-cancel").Click();
+        component.FindAll(".seat-amount-form").Should().BeEmpty();
+        raised.Should().BeEmpty();
+    }
+
     [TestMethod]
     [DataRow(Street.PreFlop, 0)]
     [DataRow(Street.Flop, 1)]

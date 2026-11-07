@@ -601,6 +601,55 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
+    /// Between hands a seat can top up. With a seat showing "+amount next hand" and the amount form
+    /// open on another, the full-ring table must still be one line per row, inside the viewport's width
+    /// and height, with the form's controls hit-testable (issue #594).
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth, ViewportHeight)]
+    [DataRow(NarrowViewportWidth, ViewportHeight)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight)]
+    public async Task DemoLayout_FullRingTable_PendingTopUpAndOpenAmountFormFit(int viewportWidth, int viewportHeight)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight);
+        await page.CreateGameAsync("Full Ring", FullRingSeatCount, allowTopUp: true);
+        int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
+        actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
+
+        (await page.CountAsync(DemoPage.SeatBuyInButtonSelector)).Should().Be(FullRingSeatCount, "every seat has chips and the game allows a top-up");
+        await page.ClickAsync(DemoPage.SeatBuyInButtonSelector);
+        await page.FillAsync(".seat-amount-input", "25");
+        await page.ClickAsync(".seat-amount-confirm");
+        (await page.CountAsync(DemoPage.SeatPendingLabelSelector)).Should().Be(1, "the confirmed top-up shows as pending on its seat");
+        (await page.ReadTextAsync(DemoPage.SeatPendingLabelSelector)).Should().Contain("next hand");
+
+        await page.ClickAsync(".seat-buy-in[data-seat-no='2']");
+        (await page.CountAsync(DemoPage.SeatAmountFormSelector)).Should().Be(1, "the amount form is open on the second seat");
+
+        IReadOnlyList<HitProbe> controls = await page.ProbeHitTargetsAsync(DemoPage.SeatAmountFormControlSelectors);
+        controls.Should().HaveCount(DemoPage.SeatAmountFormControlSelectors.Length);
+        AssertOwnHitTargets(controls);
+
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        layoutContent.ScrollWidth.Should().Be(
+            layoutContent.ClientWidth,
+            $"the pending label and the open form must not overflow the page horizontally at {viewportWidth}px ({layoutContent})");
+
+        IReadOnlyList<IReadOnlyList<double>> rows = await page.ReadSeatRowTopsAsync();
+        foreach (IReadOnlyList<double> tops in rows)
+        {
+            tops.Distinct().Should().ContainSingle($"a row of seats must not wrap at {viewportWidth}px (tops: {string.Join(", ", tops)})");
+        }
+
+        double tableBottom = await page.ReadElementBottomAsync(DemoPage.PokerTableSelector);
+        double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
+        double contentBottom = await page.ReadElementBottomAsync(DemoPage.LayoutContentSelector);
+        tableBottom.Should().BeLessOrEqualTo(contentBottom, $"the table must fit at {viewportWidth}x{viewportHeight} (table bottom: {tableBottom}px; content bottom: {contentBottom}px)");
+        barBottom.Should().BeLessOrEqualTo(contentBottom, $"the action bar must stay on screen (bar bottom: {barBottom}px; content bottom: {contentBottom}px)");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
     /// A hand that reaches showdown lists one result chip per seat in the middle of the table, so a
     /// full table is at its tallest once the hand is over. At 1366x768 ten chips took a third line
     /// and the action bar ended 20px below the screen (issue #504).

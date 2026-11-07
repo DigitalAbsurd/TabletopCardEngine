@@ -386,6 +386,114 @@ public sealed class DemoGameSession_Tests
         errorMessage.Should().NotBeNullOrEmpty();
     }
 
+    private static async Task<DemoGameSession> StartSessionAsync(GameOptionData options, int players, decimal buyIn)
+    {
+        var session = new DemoGameSession(CreateTestEngine());
+        (await session.CreateGameAsync(options)).Should().BeTrue();
+        (await session.StartFirstHandAsync(DemoGameDefaults.CreateJoinSeats(players, buyIn))).Should().BeTrue();
+        await FoldToTheEndAsync(session);
+        return session;
+    }
+
+    [TestMethod]
+    public async Task TopUp_BetweenHands_ShowsThePendingAmountAndTheNextHandStartsWithTheLargerStack()
+    {
+        // Arrange
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6, InitialSmallBlind = 5m, InitialDealerSeatNo = 1, AllowTopUp = true };
+        var session = await StartSessionAsync(options, players: 3, buyIn: 100m);
+        var stackBefore = session.CurrentHand!.Seats.Single(s => s.SeatNo == 2).Stack;
+
+        // Act
+        var toppedUp = await session.TopUpAsync(2, 50m);
+
+        // Assert - the stack is untouched until the next hand, and the call is journalled
+        toppedUp.Should().BeTrue();
+        var pending = session.CurrentHand.Seats.Single(s => s.SeatNo == 2);
+        pending.Stack.Should().Be(stackBefore);
+        pending.PendingBuyIn.Should().Be(50m);
+        session.Journal.Entries[^1].Action.Should().BeOfType<HoldemActionTopUp>()
+            .Which.Should().Be(new HoldemActionTopUp(session.CurrentGameId, 2, 50m));
+
+        (await session.StartNextHandAsync()).Should().BeTrue();
+        var next = session.CurrentHand.Seats.Single(s => s.SeatNo == 2);
+        next.StartHandStack.Should().Be(stackBefore + 50m);
+        next.PendingBuyIn.Should().Be(0m);
+    }
+
+    [TestMethod]
+    public async Task TopUp_NotAllowedByTheGame_RaisesTheEngineMessage()
+    {
+        // Arrange
+        var session = await StartSixMaxSessionAsync(players: 3);
+        string? errorMessage = null;
+        session.EngineError += (s, e) => errorMessage = e.Message;
+
+        // Act
+        var toppedUp = await session.TopUpAsync(1, 50m);
+
+        // Assert
+        toppedUp.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+        session.Journal.Entries[^1].Succeeded.Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task TopUp_WithoutAGame_RaisesAnEngineError()
+    {
+        // Arrange
+        var session = new DemoGameSession(CreateTestEngine());
+        string? errorMessage = null;
+        session.EngineError += (s, e) => errorMessage = e.Message;
+
+        // Act
+        var toppedUp = await session.TopUpAsync(1, 50m);
+
+        // Assert
+        toppedUp.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+    }
+
+    [TestMethod]
+    public async Task TopUp_RebuyOfABustedHeadsUpSeat_LetsStartHandSucceed()
+    {
+        // Arrange - both seats go all in until one busts (a chopped pot just deals again)
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.HeadsUp, MaxPlayersCount = 2, InitialSmallBlind = 5m, InitialDealerSeatNo = 1, AllowRebuy = true };
+        var session = new DemoGameSession(CreateTestEngine());
+        (await session.CreateGameAsync(options)).Should().BeTrue();
+        (await session.StartFirstHandAsync(DemoGameDefaults.CreateJoinSeats(2, 100m))).Should().BeTrue();
+        SeatData? busted = null;
+        for (var hand = 0; hand < 50 && busted is null; hand++)
+        {
+            while (session.CurrentHand!.Street != Street.Finished)
+            {
+                var type = session.CurrentHand.Evaluations.Any(e => e.PlayerActionType == PlayerActionType.Call) ? PlayerActionType.Call : PlayerActionType.AllIn;
+                (await session.ApplyPlayerActionAsync(type)).Should().BeTrue();
+            }
+
+            // Stack is what is left before the pot is paid, so the loser is the seat whose start stack plus net is nothing.
+            busted = session.CurrentHand.Seats.FirstOrDefault(s => s.StartHandStack + s.HandResult!.Net < 0.0001m);
+            if (busted is null)
+            {
+                (await session.StartNextHandAsync()).Should().BeTrue();
+            }
+        }
+
+        busted.Should().NotBeNull("an all-in hand eventually leaves one seat without chips");
+
+        string? errorMessage = null;
+        session.EngineError += (s, e) => errorMessage = e.Message;
+
+        // Act
+        var toppedUp = await session.TopUpAsync(busted!.SeatNo, 100m);
+
+        // Assert
+        toppedUp.Should().BeTrue(errorMessage);
+        session.CurrentHand!.Seats.Single(s => s.SeatNo == busted.SeatNo).PendingBuyIn.Should().Be(100m);
+        (await session.StartNextHandAsync()).Should().BeTrue();
+        session.CurrentHand.Seats.Should().HaveCount(2);
+        session.CurrentHand.Seats.Single(s => s.SeatNo == busted.SeatNo).Rebuys.Should().Be(1);
+    }
+
     [TestMethod]
     public async Task StateChanged_NotRaised_OnFailedCall()
     {
