@@ -1028,6 +1028,60 @@ public sealed class ComponentRender_Tests
             .Should().Equal("Player 5", "Player 4");
     }
 
+    private static GameData WithBlinds(GameData game, int handNo, decimal smallBlind, int level, bool schedule)
+        => game with
+        {
+            Options = game.Options with { BlindSchedule = schedule ? new BlindScheduleData { IncreaseEveryHands = 1 } : null },
+            HandData = game.HandData! with { No = handNo, SmallBlind = smallBlind, BigBlind = smallBlind * 2, BlindLevel = level },
+        };
+
+    private static IRenderedComponent<PokerTable> RenderTable(BunitContext ctx, GameData game)
+    {
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        return ctx.Render<PokerTable>(parameters => parameters.Add(p => p.GameData, game));
+    }
+
+    [TestMethod]
+    public void PokerTable_WithoutSchedule_ShowsBlindsAndNoLevel()
+    {
+        using var ctx = new BunitContext();
+        var game = WithBlinds(BuildGameData(BuildHandDataWithSeats(3)), 1, 5m, 0, schedule: false);
+
+        var component = RenderTable(ctx, game);
+
+        var text = component.Find(".blinds-value").TextContent;
+        text.Should().Contain("Blinds").And.Contain("5").And.Contain("10").And.NotContain("Level");
+        component.FindAll(".blind-raised").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_WithSchedule_ShowsOneBasedLevel()
+    {
+        using var ctx = new BunitContext();
+        var game = WithBlinds(BuildGameData(BuildHandDataWithSeats(3)), 1, 1m, 0, schedule: true);
+
+        var component = RenderTable(ctx, game);
+
+        component.Find(".blinds-value").TextContent.Should().Contain("Level 1");
+        component.FindAll(".blind-raised").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_FirstHandOfNewLevel_MarksTheRiseAndTheNextHandDoesNot()
+    {
+        using var ctx = new BunitContext();
+        var first = WithBlinds(BuildGameData(BuildHandDataWithSeats(3)), 1, 1m, 0, schedule: true);
+        var component = RenderTable(ctx, first);
+
+        component.Render(parameters => parameters.Add(p => p.GameData, WithBlinds(first, 2, 2m, 1, schedule: true)));
+        component.Find(".blinds-value").TextContent.Should().Contain("Level 2");
+        component.FindAll(".blind-raised").Should().HaveCount(1);
+
+        component.Render(parameters => parameters.Add(p => p.GameData, WithBlinds(first, 3, 2m, 1, schedule: true)));
+        component.FindAll(".blind-raised").Should().BeEmpty();
+    }
+
     private static HandData BuildHandDataWithSeats(int seatCount)
     {
         var seats = Enumerable.Range(1, seatCount)
