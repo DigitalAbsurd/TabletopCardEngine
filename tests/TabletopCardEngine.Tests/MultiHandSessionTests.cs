@@ -53,6 +53,12 @@ public sealed class MultiHandSessionTests
     private const double KickChance = 0.05;
     private const int ShoveOdds = 10;
 
+    // The blind schedule policy: blinds 1/2 doubling every 20 hands up to a small blind of 16, buy-ins of 1000.
+    private const decimal ScheduleInitialSmallBlind = 1;
+    private const decimal ScheduleMaxSmallBlind = 16;
+    private const decimal ScheduleBuyIn = 1000;
+    private const int ScheduleIncreaseEveryHands = 20; // the invariant side; the game options below spell the 20 out so a probe can change one without the other
+
     /// <summary>Fixed so a failure is reproducible.</summary>
     private const int Seed = 20260825;
 
@@ -147,6 +153,176 @@ public sealed class MultiHandSessionTests
 
             previousDealerSeatNo = handData.DealerSeatNo;
         }
+    }
+
+    /// <summary>
+    /// The first session again with blinds that double every 20 hands from 1/2, capped at a small blind of 16.
+    /// Rising blinds change who can afford them and how fast stacks bust, so a seat that runs dry sits out
+    /// and the session ends once fewer than two seats have chips. The invariants are the first test's, plus the
+    /// schedule's: the blinds of every hand follow the level, which follows the hand number, and never fall.
+    /// </summary>
+    [TestMethod]
+    [DataRow(6, TestDatabaseKind.Sqlite, DisplayName = "six-handed blind schedule, Sqlite")]
+    [DataRow(2, TestDatabaseKind.Sqlite, DisplayName = "heads-up blind schedule, Sqlite")]
+    [DataRow(6, TestDatabaseKind.InMemory, DisplayName = "six-handed blind schedule, InMemory")]
+    [DataRow(2, TestDatabaseKind.InMemory, DisplayName = "heads-up blind schedule, InMemory")]
+    [DataRow(6, TestDatabaseKind.PostgreSql, DisplayName = "six-handed blind schedule, PostgreSql")]
+    [DataRow(2, TestDatabaseKind.PostgreSql, DisplayName = "heads-up blind schedule, PostgreSql")]
+    [DataRow(6, TestDatabaseKind.SqlServer, DisplayName = "six-handed blind schedule, SqlServer")]
+    [DataRow(2, TestDatabaseKind.SqlServer, DisplayName = "heads-up blind schedule, SqlServer")]
+    public async Task MultiHandSession_WithBlindSchedule_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database)
+    {
+        var gameId = Guid.Parse("{55555555-5555-5555-5555-555555555555}");
+        var random = new Random(Seed + 2000 + seatCount);
+        var cardsByHand = new Dictionary<int, (Dictionary<byte, Card[]> Hole, Card[] Board)>();
+
+        using var host = TestEngineHost.Setup(out var holdemEngine, out _,
+            shuffler: new TestCardShuffler(
+                getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
+                getDeckFunc: handNo => cardsByHand[handNo].Board),
+            database: database);
+
+        (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(
+            GameId: gameId,
+            Options: new GameOptionData
+            {
+                TableFormat = GetTableFormat(seatCount),
+                MaxPlayersCount = seatCount,
+                InitialSmallBlind = ScheduleInitialSmallBlind,
+                InitialDealerSeatNo = FirstDealerSeatNo,
+                BlindSchedule = new BlindScheduleData
+                {
+                    IncreaseEveryHands = 20,
+                    Mode = BlindIncreaseMode.Multiplier,
+                    Multiplier = 2,
+                    MaxSmallBlind = ScheduleMaxSmallBlind
+                }
+            }))).IsSuccess.Should().BeTrue();
+
+        var joinSeats = Enumerable.Range(1, seatCount)
+            .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, ScheduleBuyIn))
+            .ToArray();
+
+        var stacks = joinSeats.ToDictionary(seat => seat.SeatNo, seat => seat.BuyInAmount);
+        byte? previousDealerSeatNo = null;
+        var previousSmallBlind = 0M;
+        var handsPlayed = 0;
+
+        for (var handNo = 1; handNo <= HandCount; handNo++)
+        {
+            var dealtIn = stacks.Where(stack => stack.Value > 0).Select(stack => stack.Key).Order().ToArray();
+            if (dealtIn.Length < 2)
+            {
+                break;
+            }
+
+            cardsByHand[handNo] = DealCards(random, seatCount);
+
+            using var scope = new AssertionScope($"{seatCount}-handed blind schedule session hand #{handNo}");
+
+            HoldemAction startAction = handNo == 1
+                ? new HoldemActionStartGame(gameId, joinSeats)
+                : new HoldemActionStartHand(gameId);
+            var startResult = await holdemEngine.ApplyAsync(startAction);
+            startResult.IsSuccess.Should().BeTrue(
+                $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
+
+            var gameData = startResult.Value;
+            var handData = gameData.HandData!;
+            handsPlayed++;
+
+            handData.No.Should().Be(handNo);
+            AssertScheduleButtonAndBlindSeats(handData, dealtIn, stacks, previousDealerSeatNo, seatCount);
+            AssertBlindSchedule(handData, previousSmallBlind);
+            previousSmallBlind = handData.SmallBlind;
+
+            handData.Seats.Select(seat => seat.SeatNo).Should().Contain(dealtIn, "every seat with chips is at the table; a busted one may still sit there out");
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.StartHandStack.Should().Be(stacks[seatData.SeatNo],
+                    $"seat {seatData.SeatNo} should start on what it finished the previous hand with");
+            }
+
+            gameData = await PlayOutHandAsync(holdemEngine, gameId, gameData, random);
+            handData = gameData.HandData!;
+
+            handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
+                .Be(0, "a hand neither creates nor destroys chips");
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.HandResult.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
+                stacks[seatData.SeatNo] = seatData.StartHandStack + (seatData.HandResult?.Net ?? 0);
+                stacks[seatData.SeatNo].Should().BeGreaterOrEqualTo(0, $"seat {seatData.SeatNo} cannot end below nothing");
+            }
+
+            stacks.Values.Sum().Should().Be(seatCount * ScheduleBuyIn, "nobody buys in again, so the chips on the table never change");
+
+            previousDealerSeatNo = handData.DealerSeatNo;
+        }
+
+        handsPlayed.Should().BeGreaterThan(ScheduleIncreaseEveryHands, "the session must outlive the first level");
+    }
+
+    /// <summary>
+    /// The button moves to the next seat with chips. Who posts is walked from the stacks: a seat that cannot
+    /// cover the small blind, or the big blind, is stepped over and sits the hand out, and with only two seats
+    /// funded the button posts the small blind.
+    /// </summary>
+    private static void AssertScheduleButtonAndBlindSeats(HandData handData, byte[] dealtIn, Dictionary<byte, decimal> stacks, byte? previousDealerSeatNo, int seatCount)
+    {
+        var expectedDealerSeatNo = previousDealerSeatNo == null
+            ? FirstDealerSeatNo
+            : NextDealtInSeatNo(dealtIn, previousDealerSeatNo.Value, seatCount);
+        handData.DealerSeatNo.Should().Be(expectedDealerSeatNo, "the button moves to the next seat with chips");
+
+        byte expectedSmallBlindSeatNo;
+        byte expectedBigBlindSeatNo;
+        if (dealtIn.Length == 2)
+        {
+            expectedSmallBlindSeatNo = handData.DealerSeatNo;
+            expectedBigBlindSeatNo = NextDealtInSeatNo(dealtIn, handData.DealerSeatNo, seatCount);
+        }
+        else
+        {
+            expectedSmallBlindSeatNo = NextSeatNoWithAtLeast(stacks, handData.DealerSeatNo, seatCount, handData.SmallBlind);
+            expectedBigBlindSeatNo = NextSeatNoWithAtLeast(stacks, expectedSmallBlindSeatNo, seatCount, handData.BigBlind, fallback: expectedSmallBlindSeatNo);
+        }
+
+        handData.SmallBlindSeatNo.Should().Be(expectedSmallBlindSeatNo, "where the small blind sits");
+        handData.BigBlindSeatNo.Should().Be(expectedBigBlindSeatNo, "where the big blind sits");
+    }
+
+    private static byte NextSeatNoWithAtLeast(Dictionary<byte, decimal> stacks, byte afterSeatNo, int seatCount, decimal amount, byte fallback = 0)
+    {
+        for (var step = 1; step < seatCount; step++)
+        {
+            var seatNo = (byte)((afterSeatNo - 1 + step) % seatCount + 1);
+            if (stacks[seatNo] >= amount)
+            {
+                return seatNo;
+            }
+        }
+
+        return fallback;
+    }
+
+    private static void AssertBlindSchedule(HandData handData, decimal previousSmallBlind)
+    {
+        var expectedLevel = (handData.No - 1) / ScheduleIncreaseEveryHands;
+        handData.BlindLevel.Should().Be(expectedLevel, "the only trigger is every set number of hands");
+        handData.BigBlind.Should().Be(2 * handData.SmallBlind, "the big blind is twice the small one");
+        handData.SmallBlind.Should().Be((decimal)Math.Min(Math.Pow(2, handData.BlindLevel), (double)ScheduleMaxSmallBlind),
+            "the small blind doubles with every level up to the cap");
+        handData.SmallBlind.Should().BeGreaterOrEqualTo(previousSmallBlind, "the blinds never fall");
+
+        var smallBlindRow = handData.Actions.Single(action => action.ActionType == HandActionType.SmallBlind);
+        smallBlindRow.Size.Should().Be(handData.SmallBlind, "the ledger keeps the nominal small blind");
+        smallBlindRow.Amount.Should().BeLessOrEqualTo(handData.SmallBlind, "a blind post is capped at the stack");
+
+        var bigBlindRow = handData.Actions.Single(action => action.ActionType == HandActionType.BigBlind);
+        bigBlindRow.Size.Should().Be(handData.BigBlind, "the ledger keeps the nominal big blind");
+        bigBlindRow.Amount.Should().BeLessOrEqualTo(handData.BigBlind, "a blind post is capped at the stack");
     }
 
     /// <summary>
