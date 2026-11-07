@@ -191,9 +191,14 @@ there, and bring the rest to ready where it is.
 A milestone's description lists its issues, a mermaid graph of their dependencies and a
 **Done when**. A follow-up filed into the milestone is listed in a section of its own,
 **Found during the work:**, between the issue list and the graph: the implementer appends one line
-there and changes nothing else. When you vet such an issue, add it to the graph, and add it to the
-`**Depends on:**` line of the milestone's closing `manual-work` issue when the release must wait for
-it.
+there and changes nothing else. When you vet such an issue, add it to the graph. Adding it to a
+closing issue's `**Depends on:**` line is no longer needed for ordering (see below).
+
+A release milestone's closing issues (the upgrade test, the release, the package validation baseline
+and the announcement) carry the `closing` label. The runner holds a `closing` issue until every other
+open issue of its milestone is closed, so a follow-up filed into the milestone runs before them
+without anyone editing their `**Depends on:**` line, which would un-vet them. A `closing` issue
+still honours its own `**Depends on:**` line, so the release still waits on the upgrade test.
 
 ## 6. Write the issue so it stands alone
 
@@ -238,8 +243,8 @@ What each part is for, and where each one has gone wrong before:
 
 Labels: the size label (`7b`, `35b`, `70b`) is required, plus whatever topic labels the repository
 uses (`demo`, `blazor`, `phh`, `ci`, `docs`, `observability`, `persistence`, `engine`,
-`aspnetcore`, `docker`, `v2`, `feature`). `v2` marks post-1.0 roadmap epics; `feature` marks new
-capabilities. Issue titles stay plain imperative English; the implementer turns the title into a
+`aspnetcore`, `docker`, `v2`, `feature`, `closing`). `v2` marks post-1.0 roadmap epics; `feature` marks new
+capabilities; `closing` marks a release milestone's closing issues (§5). Issue titles stay plain imperative English; the implementer turns the title into a
 Conventional Commit for the pull request. Do **not** add `agent-ready` while you are still writing.
 It is the vetting mark, and it goes on last (step 7).
 
@@ -269,6 +274,7 @@ mistake can be caught cheaply.
    Read each body as the instructions it is about to become, including every command, link and
    pasted snippet. That matters most for an issue you did not write yourself. Apply the label only
    when you would run the text yourself, and apply it **after the last edit**.
+8. The milestone's closing issues carry `closing`, and no other issue does.
 
 ### The vetting guard
 

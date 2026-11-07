@@ -183,7 +183,9 @@ For the implementer this means:
     the milestone's description (add the heading after the issue list and before the mermaid
     block when it is missing) with `gh api -X PATCH repos/<repo>/milestones/<number>`, and change
     nothing else there. The mermaid graph and the closing issue's `**Depends on:**` line are the
-    maintainer's, updated when they vet the issue. Do not edit any other issue.
+    maintainer's, updated when they vet the issue; the runner already holds `closing` issues
+    until every other open issue of the milestone, a follow-up included, is closed. Do not edit
+    any other issue.
   - **`Backlog`** for everything else: what the milestone does not need, and every follow-up of a
     task that has no milestone or is itself in `Backlog`. Pass `--milestone Backlog`.
 
