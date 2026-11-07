@@ -33,13 +33,13 @@ public sealed class ContainerImageTests
 
     private static readonly string[] _targets = ["sqlite", "postgres", "mssql"];
 
-    // The previous stable release, pulled from Docker Hub by digest: a tag can be re-pushed, a digest
+    // The previous stable release (1.1.0), pulled from Docker Hub by digest: a tag can be re-pushed, a digest
     // cannot. Raised together with the package validation baseline after each stable minor.
     private static readonly Dictionary<string, string> _previousStableImages = new()
     {
-        ["sqlite"] = "digitalabsurd/tabletopcardengine:1.0.0-sqlite@sha256:adf9e76f50bef50aa17096e78b1a29270e2442f1fbcf4ef1cc47706353e0d1f5",
-        ["postgres"] = "digitalabsurd/tabletopcardengine:1.0.0-postgres@sha256:681f828605b923ac5fc003f9bde647d9e67f8180a4e89ff4cf4fbdd594c3f39d",
-        ["mssql"] = "digitalabsurd/tabletopcardengine:1.0.0-mssql@sha256:b3fa5f256bb5177531bf2e49e24a04a3f391982d4d0d25570a991c72d18c6e6f",
+        ["sqlite"] = "digitalabsurd/tabletopcardengine:1.1.0-sqlite@sha256:3ac333cf57fbcde078261e6ca706c1bdc456f7ebb27954d598609ad0a3508f06",
+        ["postgres"] = "digitalabsurd/tabletopcardengine:1.1.0-postgres@sha256:84c4e4a27bc270a18becad7293eb9d7ee97ea99a0465c7059c1ec6d2c6395972",
+        ["mssql"] = "digitalabsurd/tabletopcardengine:1.1.0-mssql@sha256:a844cdc29741062aacbc03379720ebf28217dfe5e671a950d2c7c015f0c94d30",
     };
 
     // Built one after another in one task: the targets share the builder stage, and three builds
@@ -221,10 +221,12 @@ public sealed class ContainerImageTests
             "HoldemCreateGame",
             "HoldemFinishGame",
             "HoldemGetGame",
+            "HoldemKickSeat",
             "HoldemLeaveSeat",
             "HoldemPlay",
             "HoldemStartGame",
-            "HoldemStartHand");
+            "HoldemStartHand",
+            "HoldemTopUpSeat");
     });
 
     [TestMethod]
@@ -329,7 +331,7 @@ public sealed class ContainerImageTests
                 read.StatusCode.Should().Be(HttpStatusCode.OK);
                 etag = read.Headers.ETag!.Tag;
                 before = await GameScenario.ReadJsonAsync(read);
-                before.GetProperty("options").TryGetProperty("tableFormat", out _).Should().BeFalse("1.0.0 has no table format");
+                before.GetProperty("options").TryGetProperty("allowTopUp", out _).Should().BeFalse("1.1.0 has no top-up option");
             }
 
             await using var upgraded = await StartServerAsync(current, network, environment, dataVolume);
@@ -341,7 +343,8 @@ public sealed class ContainerImageTests
             after.Headers.ETag!.Tag.Should().Be(etag, "the migration does not bump Game.Version");
             var afterBody = await GameScenario.ReadJsonAsync(after);
             afterBody.GetProperty("options").GetProperty("tableFormat").GetString().Should().Be("SixMax");
-            WithoutTableFormat(afterBody).Should().Be(JsonNode.Parse(before.GetRawText())!.ToJsonString(), "the rest of the game survives the upgrade");
+            afterBody.GetProperty("options").GetProperty("allowTopUp").GetBoolean().Should().BeFalse();
+            WithoutFieldsAddedIn12(afterBody).Should().Be(JsonNode.Parse(before.GetRawText())!.ToJsonString(), "the rest of the game survives the upgrade");
 
             var version = GameScenario.VersionOf(after);
             var played = await PlayOneActionAsync(upgradedClient, gameUrl, afterBody);
@@ -440,6 +443,130 @@ public sealed class ContainerImageTests
         }
     }
 
+    [TestMethod]
+    [DataRow("sqlite")]
+    [DataRow("postgres")]
+    [DataRow("mssql")]
+    public async Task Image_UpgradedGameTopsUpKicksAndRaisesBlinds(string target)
+    {
+        var current = await ImageAsync(target);
+        var previous = new DockerImage(_previousStableImages[target]);
+
+        await using var network = new NetworkBuilder().Build();
+        await network.CreateAsync();
+
+        // A named volume is filled from the image's /data on first mount, so the old image must mount it first.
+        await using var volume = new VolumeBuilder().Build();
+        await volume.CreateAsync();
+
+        IContainer? database = null;
+        try
+        {
+            Dictionary<string, string> environment;
+            (database, environment) = await StartDatabaseAsync(target, network);
+            var dataVolume = target == "sqlite" ? volume : null;
+
+            string gameUrl;
+            string etag;
+            await using (var old = await StartServerAsync(previous, network, environment, dataVolume))
+            {
+                using var client = ClientFor(old);
+                (await HealthDataAsync(client)).GetProperty("state").GetString().Should().Be("UpToDate");
+
+                var created = await client.PostAsync("/api/holdem/games", GameScenario.Json("{\"options\":{\"maxPlayersCount\":3}}"));
+                created.StatusCode.Should().Be(HttpStatusCode.Created);
+                gameUrl = $"/api/holdem/games/{(await GameScenario.ReadJsonAsync(created)).GetProperty("gameId").GetGuid()}";
+                var started = await client.SendAsync(GameScenario.Post($"{gameUrl}/start", GameScenario.HeadsUpStartBody));
+                started.StatusCode.Should().Be(HttpStatusCode.OK);
+                await FoldToTheEndAsync(client, gameUrl, started);
+
+                var read = await client.GetAsync(gameUrl);
+                read.StatusCode.Should().Be(HttpStatusCode.OK);
+                etag = read.Headers.ETag!.Tag;
+            }
+
+            // Only the server container goes: the database container and the volume keep the game.
+            await using var upgraded = await StartServerAsync(current, network, environment, dataVolume);
+            using var upgradedClient = ClientFor(upgraded);
+            (await HealthDataAsync(upgradedClient)).GetProperty("state").GetString().Should().Be("UpToDate");
+
+            var after = await upgradedClient.GetAsync(gameUrl);
+            after.StatusCode.Should().Be(HttpStatusCode.OK);
+            after.Headers.ETag!.Tag.Should().Be(etag, "the migrations do not bump Game.Version");
+            var body = await GameScenario.ReadJsonAsync(after);
+            var options = body.GetProperty("options");
+            options.GetProperty("allowTopUp").GetBoolean().Should().BeFalse();
+            options.GetProperty("allowRebuy").GetBoolean().Should().BeFalse();
+            options.GetProperty("blindSchedule").ValueKind.Should().Be(JsonValueKind.Null);
+            var hand = body.GetProperty("handData");
+            hand.GetProperty("smallBlind").GetDecimal().Should().Be(options.GetProperty("initialSmallBlind").GetDecimal());
+            hand.GetProperty("blindLevel").GetInt32().Should().Be(0);
+            var version = GameScenario.VersionOf(after);
+
+            // The old game's options are off, and fixed.
+            var refusedTopUp = await upgradedClient.SendAsync(GameScenario.Post($"{gameUrl}/seats/1/top-up", "{\"amount\":10}"));
+            refusedTopUp.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            (await GameScenario.ReadJsonAsync(refusedTopUp)).GetProperty("code").GetString().Should().Be("TopUpNotAllowed");
+
+            version = await KickAsync(upgradedClient, gameUrl, 2, version);
+            var newcomer = "{\"joinSeats\":[{\"name\":\"c\",\"seatNo\":2,\"buyInAmount\":100}]}";
+            var next = await upgradedClient.SendAsync(GameScenario.Post($"{gameUrl}/hands", newcomer));
+            next.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(next).Should().Be(version + 1);
+            (await SeatNumbersAsync(next)).Should().Equal(1, 2);
+            await FoldToTheEndAsync(upgradedClient, gameUrl, next);
+
+            // A new game on the upgraded server plays the 1.2 features.
+            var newOptions = "{\"options\":{\"maxPlayersCount\":3,\"allowTopUp\":true,\"allowRebuy\":true,\"blindSchedule\":{\"increaseEveryHands\":1}}}";
+            var createdNew = await upgradedClient.PostAsync("/api/holdem/games", GameScenario.Json(newOptions));
+            createdNew.StatusCode.Should().Be(HttpStatusCode.Created);
+            var newUrl = $"/api/holdem/games/{(await GameScenario.ReadJsonAsync(createdNew)).GetProperty("gameId").GetGuid()}";
+            var startedNew = await upgradedClient.SendAsync(GameScenario.Post($"{newUrl}/start", GameScenario.HeadsUpStartBody));
+            startedNew.StatusCode.Should().Be(HttpStatusCode.OK);
+            var initialSmallBlind = (await GameScenario.ReadJsonAsync(startedNew)).GetProperty("options").GetProperty("initialSmallBlind").GetDecimal();
+            version = await FoldToTheEndAsync(upgradedClient, newUrl, startedNew);
+
+            var ended = await GameScenario.ReadJsonAsync(await upgradedClient.GetAsync(newUrl));
+            var seat1Stack = SeatOf(ended, 1).GetProperty("stack").GetDecimal();
+
+            var toppedUp = await upgradedClient.SendAsync(GameScenario.Post($"{newUrl}/seats/1/top-up", "{\"amount\":10}"));
+            toppedUp.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(toppedUp).Should().Be(version + 1);
+            version = GameScenario.VersionOf(toppedUp);
+            SeatOf(await GameScenario.ReadJsonAsync(toppedUp), 1).GetProperty("pendingBuyIn").GetDecimal().Should().Be(10);
+
+            var dealt = await upgradedClient.SendAsync(GameScenario.Post($"{newUrl}/hands", null));
+            dealt.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(dealt).Should().Be(version + 1);
+            version = GameScenario.VersionOf(dealt);
+            var dealtBody = await GameScenario.ReadJsonAsync(dealt);
+            SeatOf(dealtBody, 1).GetProperty("startHandStack").GetDecimal().Should().Be(seat1Stack + 10);
+            var dealtHand = dealtBody.GetProperty("handData");
+            dealtHand.GetProperty("smallBlind").GetDecimal().Should().Be(initialSmallBlind * 2);
+            dealtHand.GetProperty("blindLevel").GetInt32().Should().Be(1);
+
+            // The seat not on the clock is kicked; heads-up, that ends the hand.
+            var offClock = dealtHand.GetProperty("nextPlayerSeatNo").GetInt32() == 1 ? 2 : 1;
+            var kicked = await upgradedClient.SendAsync(GameScenario.Post($"{newUrl}/seats/{offClock}/kick", null));
+            kicked.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(kicked).Should().Be(version + 1);
+            var kickedHand = (await GameScenario.ReadJsonAsync(kicked)).GetProperty("handData");
+            kickedHand.GetProperty("evaluations").GetArrayLength().Should().Be(0, "the kick left one seat in the pot");
+            kickedHand.GetProperty("seats").EnumerateArray()
+                .Sum(seat => seat.GetProperty("handResult").GetProperty("net").GetDecimal()).Should().Be(0);
+        }
+        finally
+        {
+            if (database is not null)
+            {
+                await database.DisposeAsync();
+            }
+        }
+    }
+
+    private static JsonElement SeatOf(JsonElement game, int seatNo)
+        => game.GetProperty("handData").GetProperty("seats").EnumerateArray().Single(seat => seat.GetProperty("seatNo").GetInt32() == seatNo);
+
     private static async Task<List<int>> SeatNumbersAsync(HttpResponseMessage response)
         => (await GameScenario.ReadJsonAsync(response)).GetProperty("handData").GetProperty("seats").EnumerateArray()
             .Select(seat => seat.GetProperty("seatNo").GetInt32()).ToList();
@@ -470,16 +597,34 @@ public sealed class ContainerImageTests
         return GameScenario.VersionOf(left);
     }
 
-    private static string WithoutTableFormat(JsonElement game)
+    /// <summary>
+    /// The game as 1.1.0 returns it: without the fields 1.2 adds to the options, the hand and its seats. What is
+    /// left must equal the body the old image returned.
+    /// </summary>
+    private static string WithoutFieldsAddedIn12(JsonElement game)
     {
         var node = JsonNode.Parse(game.GetRawText())!;
-        node["options"]!.AsObject().Remove("tableFormat");
-        // 1.1 adds hasLeft to every seat, as it adds the table format to the options.
-        foreach (var seat in node["handData"]!["seats"]!.AsArray())
+        var options = node["options"]!.AsObject();
+        foreach (var name in new[] { "allowTopUp", "allowRebuy", "maxRebuys", "minBuyIn", "maxBuyIn", "blindSchedule" })
         {
-            seat!.AsObject().Remove("hasLeft");
+            options.Remove(name);
+        }
+        var hand = node["handData"]!.AsObject();
+        hand.Remove("blindLevel");
+        foreach (var seat in hand["seats"]!.AsArray())
+        {
+            seat!.AsObject().Remove("pendingBuyIn");
+            seat.AsObject().Remove("rebuys");
         }
         return node.ToJsonString();
+    }
+
+    private static async Task<int> KickAsync(HttpClient client, string gameUrl, int seatNo, int version)
+    {
+        var kicked = await client.SendAsync(GameScenario.Post($"{gameUrl}/seats/{seatNo}/kick", null));
+        kicked.StatusCode.Should().Be(HttpStatusCode.OK);
+        GameScenario.VersionOf(kicked).Should().Be(version + 1);
+        return GameScenario.VersionOf(kicked);
     }
 
     private static async Task<HttpResponseMessage> PlayOneActionAsync(HttpClient client, string gameUrl, JsonElement game)

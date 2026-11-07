@@ -175,13 +175,13 @@ image itself. For every target the gate checks that:
 - a game can be played from creation to finish over HTTP, the same scenario as the in-process
   `Server_PlaysAGameFromCreationToFinish`;
 - `/health` returns 200, with the schema `UpToDate` and the expected EF Core provider;
-- `/openapi/v1.json` lists the six `Holdem*` operations;
+- `/openapi/v1.json` lists the nine `Holdem*` operations;
 - the process runs as the non-root user (`id -u` prints `1654`).
 
 It also checks that the `postgres` and `mssql` images without a connection string exit with a non-zero
 code and a log naming `ConnectionStrings__TabletopCardEngine`, and that a `sqlite` container keeps a game in its
 `/data` volume across a stop and a start.
-It also checks the upgrade: a game created on the previous stable release's image (`1.0.0`) is still there, with its
+It also checks the upgrade: a game created on the previous stable release's image (`1.1.0`) is still there, with its
 `ETag` unchanged, after the current image starts on the same database or volume, and the game can be played on. The upgrade test pulls the previous stable images from Docker Hub by digest, so it needs network access to Docker Hub.
 
 The gate needs Docker and runs only with `TCE_TEST_CONTAINERS=1`. Without it every test reports
