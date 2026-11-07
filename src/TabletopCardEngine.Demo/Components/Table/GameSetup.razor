@@ -85,6 +85,61 @@
             </div>
 
             <div class="form-group">
+                <label for="setup-allow-top-up">Allow top-up</label>
+                <input
+                    id="setup-allow-top-up"
+                    type="checkbox"
+                    disabled="@_isLoading"
+                    @bind="_allowTopUp" />
+            </div>
+
+            <div class="form-group">
+                <label for="setup-allow-rebuy">Allow rebuy</label>
+                <input
+                    id="setup-allow-rebuy"
+                    type="checkbox"
+                    disabled="@_isLoading"
+                    @bind="_allowRebuy" />
+            </div>
+
+            <div class="form-group">
+                <label for="setup-max-rebuys">Max rebuys</label>
+                <input
+                    id="setup-max-rebuys"
+                    type="number"
+                    step="1"
+                    min="0"
+                    disabled="@(_isLoading || !_allowRebuy)"
+                    placeholder="Unlimited"
+                    @bind="_maxRebuys"
+                    class="setup-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="setup-min-buy-in">Min buy-in</label>
+                <input
+                    id="setup-min-buy-in"
+                    type="number"
+                    step="0.01"
+                    disabled="@_isLoading"
+                    placeholder="No limit"
+                    @bind="_minBuyIn"
+                    class="setup-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="setup-max-buy-in">Max buy-in</label>
+                <input
+                    id="setup-max-buy-in"
+                    type="number"
+                    step="0.01"
+                    disabled="@_isLoading"
+                    placeholder="No limit"
+                    @bind="_maxBuyIn"
+                    class="setup-input" />
+            </div>
+
+            <div class="form-group">
                 <label>Big Blind</label>
                 <div class="big-blind-value">
                     <span class="big-blind-display">@(_smallBlind * 2)</span>

@@ -369,6 +369,101 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void GameSetup_Renders_TheFiveBuyInOptionFields_WithTheDefaultsOfAOneDotOneGame()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+
+        // Act
+        var component = ctx.Render<GameSetup>();
+
+        // Assert
+        component.Find("label[for=setup-allow-top-up]").TextContent.Should().Be("Allow top-up");
+        component.Find("label[for=setup-allow-rebuy]").TextContent.Should().Be("Allow rebuy");
+        component.Find("label[for=setup-max-rebuys]").TextContent.Should().Be("Max rebuys");
+        component.Find("label[for=setup-min-buy-in]").TextContent.Should().Be("Min buy-in");
+        component.Find("label[for=setup-max-buy-in]").TextContent.Should().Be("Max buy-in");
+        component.Find("#setup-allow-top-up").HasAttribute("checked").Should().BeFalse();
+        component.Find("#setup-allow-rebuy").HasAttribute("checked").Should().BeFalse();
+        component.Find("#setup-max-rebuys").GetAttribute("value").Should().BeNullOrEmpty();
+        component.Find("#setup-min-buy-in").GetAttribute("value").Should().BeNullOrEmpty();
+        component.Find("#setup-max-buy-in").GetAttribute("value").Should().BeNullOrEmpty();
+    }
+
+    [TestMethod]
+    public void GameSetup_CheckingAllowRebuy_EnablesMaxRebuys()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        var component = ctx.Render<GameSetup>();
+        component.Find("#setup-max-rebuys").HasAttribute("disabled").Should().BeTrue();
+
+        // Act
+        component.Find("#setup-allow-rebuy").Change(true);
+
+        // Assert
+        component.Find("#setup-max-rebuys").HasAttribute("disabled").Should().BeFalse();
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_CarriesTheBuyInOptionsIntoTheCreatedGame()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        var component = ctx.Render<GameSetup>();
+        var session = ctx.Services.GetRequiredService<DemoGameSession>();
+        component.Find("#setup-allow-top-up").Change(true);
+        component.Find("#setup-allow-rebuy").Change(true);
+        component.Find("#setup-max-rebuys").Change("2");
+        component.Find("#setup-min-buy-in").Change("50");
+        component.Find("#setup-max-buy-in").Change("2000");
+
+        // Act
+        var applied = await component.Instance.ApplyAsync();
+
+        // Assert
+        applied.Should().BeTrue();
+        var options = session.CurrentGame!.Options;
+        options.AllowTopUp.Should().BeTrue();
+        options.AllowRebuy.Should().BeTrue();
+        options.MaxRebuys.Should().Be(2);
+        options.MinBuyIn.Should().Be(50m);
+        options.MaxBuyIn.Should().Be(2000m);
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_ShowsTheEnginesRefusalOfABuyInOutsideTheWindow()
+    {
+        // Arrange - the default buy-in is below this minimum, and the demo must not correct it
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+        CreateAndInitializeEngine(ctx.Services);
+
+        var component = ctx.Render<GameSetup>();
+        component.Find("#setup-min-buy-in").Change((DemoGameDefaults.BuyIn + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        // Act
+        var applied = await component.InvokeAsync(() => component.Instance.ApplyAsync());
+
+        // Assert
+        applied.Should().BeFalse();
+        component.FindAll(".ant-alert").Should().HaveCount(1);
+    }
+
+    [TestMethod]
     [DataRow(9)]
     [DataRow(10)]
     public async Task GameSetup_ApplyAsync_DealsAFullRingGameAfterTheFormatChanges(int seatCount)
