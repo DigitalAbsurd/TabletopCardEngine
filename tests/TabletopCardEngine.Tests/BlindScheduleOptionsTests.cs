@@ -80,7 +80,7 @@ public sealed class BlindScheduleOptionsTests
     }
 
     [TestMethod]
-    public async Task StartGame_NoBlindSchedule_HandHasInitialBlindLevel()
+    public async Task ThreeHands_NoBlindSchedule_KeepTheInitialBlinds()
     {
         using var host = TestEngineHost.Setup(out var engine, out _);
         var options = new GameOptionData { InitialSmallBlind = 2 };
@@ -88,10 +88,20 @@ public sealed class BlindScheduleOptionsTests
         var players = new[] { new PlayerJoinData("A", 1, 100), new PlayerJoinData("B", 2, 100) };
 
         var hand = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, players));
-        hand.IsSuccess.Should().BeTrue();
-        hand.Value.HandData!.SmallBlind.Should().Be(2);
-        hand.Value.HandData.BigBlind.Should().Be(4);
-        hand.Value.HandData.BlindLevel.Should().Be(0);
+        for (var handNo = 1; handNo <= 3; handNo++)
+        {
+            hand.IsSuccess.Should().BeTrue($"hand {handNo} should be dealt");
+            hand.Value.HandData!.SmallBlind.Should().Be(2, $"hand {handNo}");
+            hand.Value.HandData.BigBlind.Should().Be(4, $"hand {handNo}");
+            hand.Value.HandData.BlindLevel.Should().Be(0, $"hand {handNo}");
+
+            if (handNo < 3)
+            {
+                var fold = await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Fold, 0));
+                fold.IsSuccess.Should().BeTrue($"hand {handNo} should end on one fold");
+                hand = await engine.ApplyAsync(new HoldemActionStartHand(_gameId));
+            }
+        }
     }
 
     [TestMethod]
