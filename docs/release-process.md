@@ -109,7 +109,7 @@ A release is announced to the community after it is published to nuget.org and D
 - **Format:** the post has three parts:
   1. Two or three sentences on what the release is for (e.g., "X.Y.Z adds support for...", "This release fixes...", "A maintenance release that...").
   2. A short bulleted list of highlights, with each item linking to the relevant section of the GitHub Release notes at `https://github.com/DigitalAbsurd/TabletopCardEngine/releases/tag/vX.Y.Z`.
-  3. An *Upgrading* line, if the release includes a migration: "See [Upgrading](link-to-upgrade-docs) for migration steps."
+  3. An *Upgrading* line, if the release includes a migration: "See [Upgrading](https://tabletopcardengine.readthedocs.io/en/stable/migrations/#upgrading-the-package) for migration steps."
 - **Close with:** an invitation to questions, ideas and sharing: "Questions? Ideas? Show and tell? Join the conversation in [Ideas](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/ideas) and [Q&A](https://github.com/DigitalAbsurd/TabletopCardEngine/discussions/categories/q-a)."
 - **Then:** link the Discussions post from the maintainer's social accounts (Twitter, Reddit, etc.), so replies collect in one place rather than scattered across platforms. A release goes to the channels used at launch only when it adds a user-visible feature, and never more often than the channel's rules allow.
 
