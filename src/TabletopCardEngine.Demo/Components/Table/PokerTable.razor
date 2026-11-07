@@ -54,6 +54,11 @@
                     <span class="pot-value">@AmountFormat.Format(Hand.Pot + Hand.StreetPot)</span>
                 </div>
                 <div class="pot-breakdown">
+                    <span class="pot-small blinds-value">Blinds @AmountFormat.Format(Hand.SmallBlind)/@AmountFormat.Format(Hand.BigBlind)@(HasBlindSchedule ? $" · Level {Hand.BlindLevel + 1}" : "")</span>
+                    @if (BlindLevelRaised)
+                    {
+                        <span class="blind-raised" title="The blinds rose for this hand">Blinds up</span>
+                    }
                     <span class="pot-small">Prior: @AmountFormat.Format(Hand.Pot)</span>
                     <span class="pot-small">Street: @AmountFormat.Format(Hand.StreetPot)</span>
                     <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Count</span>
@@ -167,6 +172,24 @@
     /// <summary>The smallest chip on the table, and so one step of the raise amount.</summary>
     private decimal SmallBlind => GameData?.Options.InitialSmallBlind ?? 0m;
 
+    /// <summary>Whether the game has a blind schedule: only then does the level mean anything to show.</summary>
+    private bool HasBlindSchedule => GameData?.Options.BlindSchedule is not null;
+
+    /// <summary>The game the blind level was last tracked for, so a new game starts with no previous level.</summary>
+    private Guid _levelGameId;
+
+    /// <summary>The hand whose level is held in <see cref="_shownLevel"/>.</summary>
+    private int _levelHandNo;
+
+    /// <summary>The level of the hand the table shows now (0-based, as the engine has it).</summary>
+    private int _shownLevel;
+
+    /// <summary>The level of the hand the table showed before it, or null when this is the first hand shown.</summary>
+    private int? _previousLevel;
+
+    /// <summary>True on the first hand of a higher level than the hand shown before it, and only there.</summary>
+    private bool BlindLevelRaised => Hand is not null && _previousLevel is { } previous && Hand.BlindLevel > previous;
+
     private bool IsHandFinished => Hand?.Street == Street.Finished;
 
     /// <summary>
@@ -209,11 +232,39 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        TrackBlindLevel();
         if (!IsHandFinished || Hand!.No != _pinnedHandNo)
         {
             _hoveredSeatNo = 0;
             _pinnedSeatNo = 0;
             _pinnedHandNo = Hand?.No ?? 0;
+        }
+    }
+
+    /// <summary>
+    /// Remembers the level of the hand shown before the current one. It moves on only when the hand
+    /// number changes, so a re-render within one hand keeps the marker and the next hand clears it.
+    /// </summary>
+    private void TrackBlindLevel()
+    {
+        if (Hand is null)
+        {
+            return;
+        }
+
+        var gameId = GameData!.GameId;
+        if (gameId != _levelGameId)
+        {
+            _levelGameId = gameId;
+            _previousLevel = null;
+            _levelHandNo = 0;
+        }
+
+        if (Hand.No != _levelHandNo)
+        {
+            _previousLevel = _levelHandNo == 0 ? null : _shownLevel;
+            _levelHandNo = Hand.No;
+            _shownLevel = Hand.BlindLevel;
         }
     }
 
