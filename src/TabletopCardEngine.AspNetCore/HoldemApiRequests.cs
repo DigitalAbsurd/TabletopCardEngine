@@ -36,3 +36,10 @@ public sealed record HoldemPlayRequest(PlayerActionType ActionType)
     /// </summary>
     public decimal Size { get; init; }
 }
+
+/// <summary>Carries the chips for a <c>POST /games/{gameId}/seats/{seatNo}/top-up</c> request.</summary>
+public sealed record HoldemTopUpRequest
+{
+    /// <summary>The chips to add to the seat for the next hand, with at most two decimal places.</summary>
+    public decimal Amount { get; init; }
+}

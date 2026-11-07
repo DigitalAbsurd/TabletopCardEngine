@@ -2,6 +2,8 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
 
@@ -307,5 +309,145 @@ public sealed class GamePlayEndpointTests
 
         leaveResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await ReadJsonAsync(leaveResponse)).GetProperty("code").GetString().Should().Be("GameNotFound");
+    }
+
+    private static async Task<HttpResponseMessage> PostAsync(TestApiHost host, string path, string? json = null, string? ifMatch = null)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
+        if (json is not null)
+        {
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        }
+
+        if (ifMatch is not null)
+        {
+            request.Headers.TryAddWithoutValidation("If-Match", ifMatch);
+        }
+
+        return await host.Client.SendAsync(request);
+    }
+
+    private static async Task<Guid> SeedGameWithOptionsAsync(TestApiHost host, GameOptionData options, bool endHand)
+    {
+        var gameId = (await host.Engine.ApplyAsync(HoldemAction.CreateGame(options))).Value.GameId;
+        await host.Engine.ApplyAsync(HoldemAction.StartGame(gameId,
+            [new PlayerJoinData("a", 1, 100), new PlayerJoinData("b", 2, 100)]));
+        if (endHand)
+        {
+            await host.Engine.ApplyAsync(HoldemAction.Play(gameId, PlayerActionType.Fold));
+        }
+
+        return gameId;
+    }
+
+    private static GameOptionData HeadsUpOptions(bool allowTopUp, decimal? maxBuyIn = null) => new()
+    {
+        GameType = GameType.Holdem,
+        BettingStructure = BettingStructure.NoLimit,
+        MaxPlayersCount = 2,
+        InitialSmallBlind = 1,
+        InitialDealerSeatNo = 1,
+        AllowTopUp = allowTopUp,
+        MaxBuyIn = maxBuyIn,
+    };
+
+    [TestMethod]
+    public async Task TopUp_BetweenHands_Returns200WithThePendingBuyIn()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await SeedGameWithOptionsAsync(host, HeadsUpOptions(allowTopUp: true), endHand: true);
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/top-up", "{\"amount\":50}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var seat = (await ReadJsonAsync(response)).GetProperty("handData").GetProperty("seats").EnumerateArray()
+            .First(s => s.GetProperty("seatNo").GetInt32() == 1);
+        seat.GetProperty("pendingBuyIn").GetDecimal().Should().Be(50);
+    }
+
+    [TestMethod]
+    public async Task TopUp_DuringAHand_Returns409()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await SeedGameWithOptionsAsync(host, HeadsUpOptions(allowTopUp: true), endHand: false);
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/top-up", "{\"amount\":50}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("PreviousHandNotEnded");
+    }
+
+    [TestMethod]
+    public async Task TopUp_NotAllowed_Returns409()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await SeedGameWithOptionsAsync(host, HeadsUpOptions(allowTopUp: false), endHand: true);
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/top-up", "{\"amount\":50}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("TopUpNotAllowed");
+    }
+
+    [TestMethod]
+    public async Task TopUp_AboveMaxBuyIn_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await SeedGameWithOptionsAsync(host, HeadsUpOptions(allowTopUp: true, maxBuyIn: 150), endHand: true);
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/top-up", "{\"amount\":100}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("InvalidBuyIn");
+    }
+
+    [TestMethod]
+    public async Task TopUp_StaleIfMatch_Returns412()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await SeedGameWithOptionsAsync(host, HeadsUpOptions(allowTopUp: true), endHand: true);
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/top-up", "{\"amount\":50}", "\"1\"");
+
+        response.StatusCode.Should().Be(HttpStatusCode.PreconditionFailed);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("Conflict");
+    }
+
+    [TestMethod]
+    public async Task KickSeat_MidHand_Returns200AndTheSeatFolds()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await host.SeedHeadsUpGameAsync();
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/kick");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var seat = (await ReadJsonAsync(response)).GetProperty("handData").GetProperty("seats").EnumerateArray()
+            .First(s => s.GetProperty("seatNo").GetInt32() == 1);
+        seat.GetProperty("lastAction").GetProperty("actionType").GetString().Should().Be("Fold");
+    }
+
+    [TestMethod]
+    public async Task KickSeat_EmptySeat_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await host.SeedHeadsUpGameAsync();
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/3/kick");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("InvalidSeat");
+    }
+
+    [TestMethod]
+    public async Task KickSeat_StaleIfMatch_Returns412()
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var gameId = await host.SeedHeadsUpGameAsync();
+
+        var response = await PostAsync(host, $"/api/holdem/games/{gameId}/seats/1/kick", ifMatch: "\"1\"");
+
+        response.StatusCode.Should().Be(HttpStatusCode.PreconditionFailed);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("Conflict");
     }
 }
