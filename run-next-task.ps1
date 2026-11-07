@@ -249,9 +249,46 @@ function Save-UnfinishedWork([int]$IssueNumber, [string]$BranchPrefix) {
 }
 
 function Sync-Main {
-    git fetch origin --quiet
+    git fetch origin --prune --quiet
     git checkout main --quiet
     git reset --hard origin/main --quiet
+}
+
+# The squash merge deletes the task branch on the remote but leaves the agent's local copy,
+# which git branch -d refuses to delete because its commits are not on main. Only a branch
+# of this issue whose upstream is gone is deleted: a branch that was never pushed (such as
+# the one Save-UnfinishedWork creates) has no upstream and is kept.
+function Remove-MergedTaskBranch([int]$IssueNumber, [string]$BranchPrefix) {
+    $pattern = "^[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
+    foreach ($line in @(git for-each-ref --format='%(refname:short)|%(upstream:track)' refs/heads/)) {
+        $name, $track = $line -split '\|', 2
+        if ($name -match $pattern -and $track -eq '[gone]') {
+            git branch -D $name --quiet
+            Write-Host "Deleted local branch '$name': its pull request merged and the remote branch is gone."
+        }
+    }
+}
+
+# A non-zero exit says nothing about where the task stopped: an agent can fail after its
+# pull request merged (as the run on issue #587 did), and then the work has landed and only
+# the end of the session is missing. Say which case it is before the run stops.
+function Write-AgentFailureReport([int]$IssueNumber, [string]$BranchPrefix, [datetime]$StartedAt) {
+    $pattern = "^[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
+    $issue = (gh issue view $IssueNumber -R $Repo --json state) | ConvertFrom-Json
+    $prs = @((gh pr list -R $Repo --state all --limit 100 --json number,state,headRefName,url) | ConvertFrom-Json |
+            Where-Object { $_.headRefName -match $pattern })
+
+    Write-Host "Issue #$IssueNumber state: $($issue.state)."
+    if ($prs.Count -eq 0) {
+        Write-Host '  No pull request was opened for it.'
+    }
+    foreach ($pr in $prs) {
+        Write-Host "  PR #$($pr.number) ($($pr.state)) $($pr.url)"
+    }
+    if ($issue.state -eq 'CLOSED' -and @($prs | Where-Object { $_.state -eq 'MERGED' }).Count -gt 0) {
+        Write-Host '  The work merged before the agent failed: check what the agent did after the merge, and whether its pull request reports every gate.'
+    }
+    Write-Host "  The agent's session started at $($StartedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')); its transcript is the session that started then."
 }
 
 # The branch name without its leading "<type>/", which the agent picks (see docs/task-run.md).
@@ -539,7 +576,7 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 3. Branch off the current main, naming the branch "<type>/$BranchPrefix$IssueNumber-<short-slug>", where <type> is feature, fix or doc according to the task, as docs/task-run.md defines them.
 4. Implement the task strictly as the issue states it: Scope, Files, Definition of done, Notes for the implementer and Context for an AI assistant are acceptance criteria, not suggestions. Do not widen the scope: if you find something else broken nearby, file a separate issue rather than a second commit.
 5. Run from the repository root: dotnet build, dotnet format TabletopCardEngine.sln --verify-no-changes, dotnet test, dotnet pack TabletopCardEngine.Packages.slnf -c Release - all four must finish without errors. This is a precondition for every step below; do not move on if any of them failed.
-6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it runs the gate that matters most. Skip it only if it cannot run here, and then say so in the pull request. Quote the summary line of that run (total, passed, failed, skipped), whose tests must have passed rather than been skipped. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
+6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it runs the gate that matters most. Skip it only if it cannot run here, and then say so in the pull request. Quote the summary line of that run (total, passed, failed, skipped), whose tests must have passed rather than been skipped. The browser gate takes 5 to 11 minutes and dotnet test about 3: run each in the foreground with the longest timeout your shell tool allows (10 minutes for Claude Code), not in the background. If a gate run is moved to the background anyway, wait for it to finish, reading its output until the summary line appears, before you commit, open a pull request or merge. A gate run without its summary line has not passed: never report it as passed or as "running", and never merge without that line. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
 7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
 8. Commit with a meaningful message in English, as a Conventional Commit (see docs/task-run.md, Git and pull request protocol, step 2), and push the branch.
 9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The title is a Conventional Commit, <type>(<scope>)?: <summary>, because the squash merge turns it into the commit on main that CHANGELOG.md is generated from. The body must contain "Closes #$IssueNumber".
@@ -549,6 +586,7 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 13. $readyLabelRule
 14. You run non-interactively, and the run ends the moment your reply ends. Nothing will resume you later, so never schedule a later check, a wakeup or a background watcher, and never end with "I'll check again later". Do not end your reply until the pull request is merged and issue #$IssueNumber is closed, or until you have stopped as step 7 describes.
 15. Measure the wall-clock duration of every gate run in steps 5 and 6 (dotnet build, dotnet format, dotnet test, dotnet pack, the browser gate), for example by reading the clock before and after each command. In your final reply, list each gate with its result and duration in hh:mm:ss (for example "dotnet test - passed - 00:03:12"). When a gate ran more than once, give the duration of its last run.
+16. Never stop, kill or restart a process that you find by its name or command line (Stop-Process, taskkill, kill, pkill, or Get-Process or Get-CimInstance filtered by a name, a path or a word). This prompt is on your own command line, so a filter on any word or path in it (BrowserTests, dotnet, TabletopCardEngine, claude) also matches your own process and your shell, and ends your run with exit code -1 in the middle of the task. Stop only a process you started yourself, by the process id it reported when it started. If a gate run looks stuck, do not kill it: wait for it, or stop as step 7 describes and say what you saw.
 "@
 }
 
@@ -640,6 +678,7 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
     $taskFile = Write-TaskFile -Issue $readyIssue
     $prompt = New-TaskPrompt -IssueNumber $issueNumber -BranchPrefix $branchPrefix -ContextFiles $agentSettings.ContextFiles -TaskFile $taskFile -IssueMilestone $readyIssue.milestone
 
+    $taskStartedAt = Get-Date
     $taskClock = [Diagnostics.Stopwatch]::StartNew()
     Write-Host "Handing issue #$issueNumber to $($agentSettings.Command) ($modelId), task text in $taskFile..."
     # The settings file is expected to run the agent non-interactively and without
@@ -653,11 +692,13 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
 
     Save-UnfinishedWork -IssueNumber $issueNumber -BranchPrefix $branchPrefix
     Sync-Main
+    Remove-MergedTaskBranch -IssueNumber $issueNumber -BranchPrefix $branchPrefix
 
     # Printed before any of the checks below can stop the run, so a failed task is timed too.
     Write-Host "Task on issue #$issueNumber took $(Format-Duration $taskClock.Elapsed)."
 
     if ($agentExitCode -ne 0) {
+        Write-AgentFailureReport -IssueNumber $issueNumber -BranchPrefix $branchPrefix -StartedAt $taskStartedAt
         Fail "$($agentSettings.Command) exited with code $agentExitCode while working on issue #$issueNumber. Not continuing to further tasks."
     }
 
