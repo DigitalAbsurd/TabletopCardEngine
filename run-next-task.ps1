@@ -20,7 +20,8 @@
     whole repository when that is not given - in ascending issue number order, and picks the
     first one that a maintainer has vetted (see "Vetting" under .NOTES) and whose
     "**Depends on:** #N, #M" references are all already closed. An issue with no such line
-    has no dependencies. When nothing is ready, it prints why each open issue was skipped,
+    has no dependencies. An issue that carries -ClosingLabel is also held until every other
+    open issue of its milestone, closing or not, is closed. When nothing is ready, it prints why each open issue was skipped,
     because a missing label or a wrong number in a Depends-on line is otherwise invisible.
 
     It then writes the vetted title and body to a temporary file and invokes the agent with
@@ -58,6 +59,13 @@
 .PARAMETER ReadyLabel
     The label that marks an issue as vetted by a maintainer. Defaults to "agent-ready". It
     cannot be empty: there is deliberately no way to run without the vetting check.
+
+.PARAMETER ClosingLabel
+    The label that marks a milestone's closing issues (the upgrade test, the release, the
+    baseline, the announcement). Defaults to "closing". An issue that carries it is not
+    picked while another open issue of its milestone does not carry it, so a follow-up filed
+    into the milestone runs first without anyone editing a Depends-on line. It cannot be
+    empty.
 
 .PARAMETER TrustedAuthors
     Optional. GitHub logins whose issues may be picked. When given, an issue opened by
@@ -125,6 +133,8 @@ param(
     [int]$TaskCount = 1,
     [ValidateNotNullOrEmpty()]
     [string]$ReadyLabel = 'agent-ready',
+    [ValidateNotNullOrEmpty()]
+    [string]$ClosingLabel = 'closing',
     [string[]]$TrustedAuthors = @(),
     [switch]$AllowAgentVetting
 )
@@ -414,6 +424,23 @@ query($owner: String!, $name: String!, $number: Int!) {
     }
 }
 
+function Get-UnfinishedMilestoneWork($Issue, $AllIssues, [string]$ClosingLabel = 'closing') {
+    # Pure: reads its parameters only, so it can be loaded from the file's AST and probed.
+    $issueLabels = @($Issue.labels | ForEach-Object { $_.name })
+    if ($null -eq $Issue.milestone -or $issueLabels -notcontains $ClosingLabel) {
+        return @()
+    }
+
+    $unfinished = @($AllIssues | Where-Object {
+            $_.state -eq 'OPEN' -and
+            $null -ne $_.milestone -and
+            $_.milestone.number -eq $Issue.milestone.number -and
+            $_.number -ne $Issue.number -and
+            (@($_.labels | ForEach-Object { $_.name }) -notcontains $ClosingLabel)
+        } | ForEach-Object { [int]$_.number } | Sort-Object)
+    return $unfinished
+}
+
 function Get-ReadyIssue {
     # Open and closed alike, so "Depends on #N" can be resolved against issues that have
     # already been done. A dependency outside this set is fetched one by one below.
@@ -443,6 +470,12 @@ function Get-ReadyIssue {
         $labelNames = @($issue.labels | ForEach-Object { $_.name })
         if ($labelNames -notcontains $ReadyLabel) {
             $skipped += "  #$($issue.number) is not vetted: it has no '$ReadyLabel' label"
+            continue
+        }
+
+        $unfinishedWork = @(Get-UnfinishedMilestoneWork -Issue $issue -AllIssues $allIssues -ClosingLabel $ClosingLabel)
+        if ($unfinishedWork.Count -gt 0) {
+            $skipped += "  #$($issue.number) is closing work and waits on the rest of its milestone: $((($unfinishedWork | ForEach-Object { "#$_" }) -join ', '))"
             continue
         }
 
