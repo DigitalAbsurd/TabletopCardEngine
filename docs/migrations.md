@@ -95,6 +95,22 @@ When you upgrade from 1.0 to 1.1:
 
 No data is lost and no manual steps are required. Existing games are read back as `SixMax`. Version 1.1 adds no migration for joining and leaving seats, because the column that records when a player leaves exists since 1.0: games created by 1.0 can take and lose players after the upgrade. The migration is applied by `MigrateAsync` automatically when it runs.
 
+### 1.1 to 1.2
+
+Version 1.2 applies two migrations, one after the other, and `MigrateAsync` applies both by itself. No data is lost and no manual steps are required. Like every migration they are one-way: [Upgrading the package](#upgrading-the-package) above says what that means for old instances and for going back.
+
+- **`AddBuyInOptions`** adds the buy-in options. `Game` gets `AllowTopUp` and `AllowRebuy`, both `false`, and `MaxRebuys`, `MinBuyIn` and `MaxBuyIn`, all `NULL`. `BuyIn` gets `Kind`, which is `Join` for every row that exists. The schema version is incremented from 2 to 3, and the engine version is updated to `1.2.0`.
+- **`AddBlindSchedule`** adds the blind schedule. `Game` gets `BlindSchedule`, `NULL` for no schedule. `Hand` gets `SmallBlind`, `NULL`, which is read as the game's initial small blind, and `BlindLevel`, `BlindLevelStartHandNo` and `BlindThresholdsPassed`, all `0`. The schema version is incremented from 3 to 4.
+
+When you upgrade from 1.1 to 1.2:
+
+1. Back up your database.
+2. Stop every instance of the 1.1 engine.
+3. Deploy the 1.2 package.
+4. Run `MigrateAsync` or restart your application (if `MigrateDatabaseOnStartup` is enabled).
+
+Existing games keep playing exactly as before: no top-up, no rebuy, no buy-in window and fixed blinds. A game's options cannot be changed after it is created, so a game that should use the new features needs a new game. Kicking a player with `KickSeat` needs no migration.
+
 ## `EnsureCreated` is not supported
 
 Do not use `EnsureCreated()` on a relational provider (SQLite, PostgreSQL, SQL Server). A database created that way has no migration history and cannot be upgraded: `MigrateAsync` will fail with `HoldemSchemaFailure.MigrationsNotFound`, and you will have to drop the database and start over. Use `MigrateAsync` instead.
