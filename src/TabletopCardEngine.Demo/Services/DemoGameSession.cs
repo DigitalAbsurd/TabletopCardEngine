@@ -154,6 +154,25 @@ public sealed class DemoGameSession
     }
 
     /// <summary>
+    /// Removes a player at any time. Between hands the seat is freed; during a hand the engine folds
+    /// it at once (unless it has folded or is all in) and frees it after the hand.
+    /// </summary>
+    /// <param name="seatNo">The seat of the player who is kicked.</param>
+    /// <param name="cancellationToken">Cancellation token for the database operation.</param>
+    /// <returns><c>true</c> if the player was kicked, <c>false</c> on validation error.</returns>
+    public async Task<bool> KickSeatAsync(byte seatNo, CancellationToken cancellationToken = default)
+    {
+        if (CurrentGameId == Guid.Empty)
+        {
+            RaiseEngineError("No game has been created yet.");
+            return false;
+        }
+
+        var action = HoldemAction.KickSeat(CurrentGameId, seatNo);
+        return await ApplyActionInternalAsync(action, cancellationToken);
+    }
+
+    /// <summary>
     /// Adds chips to an occupied seat between hands. The engine decides whether it is a top-up or a
     /// rebuy by whether the seat still has chips, and deals the amount at the start of the next hand.
     /// </summary>

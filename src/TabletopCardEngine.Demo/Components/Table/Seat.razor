@@ -35,6 +35,18 @@
             }
         }
 
+        @if (!SeatData.HasLeft)
+        {
+            @* Kick is the host's action and works mid-hand too, so it is outside the between-hands group above. *@
+            <button type="button"
+                class="seat-kick"
+                data-seat-no="@SeatData.SeatNo"
+                aria-label="@($"Kick {SeatData.Name}")"
+                @onclick="AskKick">
+                Kick
+            </button>
+        }
+
         <div class="seat-stack">
             @if (IsDealer)
             {
@@ -80,6 +92,17 @@
                 InitialAmount="@SuggestedAmount"
                 OnConfirm="ConfirmAsync"
                 OnCancel="CloseForm" />
+        }
+
+        @if (_confirmingKick && !SeatData.HasLeft)
+        {
+            <div class="seat-kick-confirm" role="group" aria-label="@($"Confirm kick {SeatData.Name}")">
+                <span class="seat-kick-question">Kick @SeatData.Name?</span>
+                <div class="seat-kick-buttons">
+                    <button type="button" class="seat-kick-yes" @onclick="ConfirmKickAsync">Kick</button>
+                    <button type="button" class="seat-kick-no" @onclick="CancelKick">Cancel</button>
+                </div>
+            </div>
         }
 
         @if (SeatData.Hole?.Count > 0)
@@ -138,6 +161,10 @@
     [Parameter]
     public EventCallback<byte> OnStandUp { get; set; }
 
+    /// <summary>Raised with the seat number when a kick is confirmed.</summary>
+    [Parameter]
+    public EventCallback<byte> OnKick { get; set; }
+
     /// <summary>The game's options, which say whether the seat may top up or rebuy and how far; null before a game exists.</summary>
     [Parameter]
     public GameOptionData? Options { get; set; }
@@ -155,6 +182,9 @@
 
     /// <summary>The form that is open, <c>Top up</c> or <c>Rebuy</c>, or null for none.</summary>
     private string? _form;
+
+    /// <summary>Whether the seat is asking for the kick to be confirmed.</summary>
+    private bool _confirmingKick;
 
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
 
@@ -207,6 +237,16 @@
         {
             _form = null;
         }
+    }
+
+    private void AskKick() => _confirmingKick = true;
+
+    private void CancelKick() => _confirmingKick = false;
+
+    private async Task ConfirmKickAsync()
+    {
+        _confirmingKick = false;
+        await OnKick.InvokeAsync(SeatData.SeatNo);
     }
 
     private void OpenForm() => _form = BuyInLabel;

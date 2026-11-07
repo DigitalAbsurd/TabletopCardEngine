@@ -40,6 +40,7 @@
    browser gate pins, and the control is there only between hands. */
 .seat-stand-up,
 .seat-buy-in,
+.seat-kick,
 .badge-left {
     position: absolute;
     top: -10px;
@@ -60,9 +61,47 @@
     cursor: pointer;
 }
 
-.seat-stand-up:hover {
+.seat-stand-up:hover,
+.seat-kick:hover {
     background: #cf1322;
     border-color: #cf1322;
+}
+
+/* Kick is on the bottom edge's right corner: the top edge has no room for a third button, and the
+   buy-in note, centred there, is pushed to the left corner to make room. */
+.seat-kick {
+    top: auto;
+    bottom: -10px;
+}
+
+.seat-kick-confirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 11px;
+}
+
+.seat-kick-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.seat-kick-yes,
+.seat-kick-no {
+    height: 24px;
+    padding: 0 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.seat-kick-yes {
+    border-color: #cf1322;
+    background: #cf1322;
 }
 
 /* Top up / Rebuy take the top edge's left corner, Stand up its right one. */
