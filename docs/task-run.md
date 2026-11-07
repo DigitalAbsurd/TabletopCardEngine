@@ -486,7 +486,7 @@ renumber.
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
 23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 10
-    seats, no antes, no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
+    seats, with optional buy-in limits, top-up, rebuy and kick, and optional blind schedules; no antes, no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
     `FullRing` 7 to 10 (`Holdem/ActionHandlers/HoldemTableFormatExtensions.cs`). `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
     and `InvalidGameOptions = 6` when `TableFormat` is not a defined `HoldemTableFormat`, `MaxPlayersCount` is
