@@ -19,6 +19,7 @@
                     OnStandUp="@OnStandUp"
                     Options="@GameData?.Options"
                     OnTopUp="@OnTopUp"
+                    OnKick="@OnKick"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -98,6 +99,7 @@
                     OnStandUp="@OnStandUp"
                     Options="@GameData?.Options"
                     OnTopUp="@OnTopUp"
+                    OnKick="@OnKick"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -142,6 +144,10 @@
     /// <summary>Raised with the seat number when the visitor stands a player up.</summary>
     [Parameter]
     public EventCallback<byte> OnStandUp { get; set; }
+
+    /// <summary>Raised with the seat number when the visitor kicks a player, during a hand or between hands.</summary>
+    [Parameter]
+    public EventCallback<byte> OnKick { get; set; }
 
     /// <summary>Raised with the seat number and the chips when the visitor tops a seat up or rebuys it.</summary>
     [Parameter]

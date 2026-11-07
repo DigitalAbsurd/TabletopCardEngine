@@ -1151,6 +1151,49 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void PokerTable_KickButton_RendersMidHandAndBetweenHandsButNotForASeatThatLeft()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+
+        using var ctx2 = new BunitContext();
+
+        // Act
+        var midHand = RenderSeatingTable(ctx, BuildSeatingGameData(3, street: Street.Flop));
+        var betweenHands = RenderSeatingTable(ctx2, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s));
+
+        // Assert
+        midHand.FindAll(".seat-kick").Should().HaveCount(3);
+        midHand.Find(".seat-kick[data-seat-no='1']").GetAttribute("aria-label").Should().Be("Kick Player 1");
+        betweenHands.FindAll(".seat-kick").Should().HaveCount(2);
+        betweenHands.FindAll(".seat-kick[data-seat-no='2']").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_KickButton_AsksForConfirmationBeforeRaisingTheSeat()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var kicked = new List<byte>();
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildSeatingGameData(3, street: Street.Flop))
+            .Add(p => p.OnKick, kicked.Add));
+
+        // Act
+        component.Find(".seat-kick[data-seat-no='2']").Click();
+
+        // Assert - nothing happens until the confirmation
+        kicked.Should().BeEmpty();
+        component.Find(".seat-kick-no").Click();
+        component.FindAll(".seat-kick-yes").Should().BeEmpty();
+        component.Find(".seat-kick[data-seat-no='2']").Click();
+        component.Find(".seat-kick-yes").Click();
+        kicked.Should().Equal((byte)2);
+    }
+
+    [TestMethod]
     public void PokerTable_BustedSeat_StillOffersStandUp()
     {
         // Arrange

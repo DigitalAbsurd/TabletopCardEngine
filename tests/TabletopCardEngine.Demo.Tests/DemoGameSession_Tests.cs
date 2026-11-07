@@ -386,6 +386,65 @@ public sealed class DemoGameSession_Tests
         errorMessage.Should().NotBeNullOrEmpty();
     }
 
+    [TestMethod]
+    public async Task KickSeat_MidHand_FoldsTheSeatAndTheNextHandDealsWithoutIt()
+    {
+        // Arrange - a hand in progress, four players
+        var session = new DemoGameSession(CreateTestEngine());
+        var options = new GameOptionData { TableFormat = HoldemTableFormat.SixMax, MaxPlayersCount = 6, InitialSmallBlind = 5m, InitialDealerSeatNo = 1 };
+        (await session.CreateGameAsync(options)).Should().BeTrue();
+        (await session.StartFirstHandAsync(DemoGameDefaults.CreateJoinSeats(4))).Should().BeTrue();
+        var seatNo = session.CurrentHand!.Seats.First(s => s.SeatNo != session.CurrentHand.NextPlayerSeatNo).SeatNo;
+
+        // Act
+        var kicked = await session.KickSeatAsync(seatNo);
+
+        // Assert - folded at once, in the same call, and journalled
+        kicked.Should().BeTrue();
+        session.CurrentHand!.Seats.Single(s => s.SeatNo == seatNo).IsFolded.Should().BeTrue();
+        session.Journal.Entries[^1].Action.Should().BeOfType<HoldemActionKickSeat>()
+            .Which.SeatNo.Should().Be(seatNo);
+
+        await FoldToTheEndAsync(session);
+        (await session.StartNextHandAsync()).Should().BeTrue();
+        session.CurrentHand!.Seats.Select(s => s.SeatNo).Should().NotContain(seatNo).And.HaveCount(3);
+    }
+
+    [TestMethod]
+    public async Task KickSeat_BetweenHands_FreesTheSeat()
+    {
+        // Arrange
+        var session = await StartSixMaxSessionAsync(players: 4);
+
+        // Act
+        var kicked = await session.KickSeatAsync(2);
+
+        // Assert - flagged like a stood-up seat, and the next hand deals one fewer
+        kicked.Should().BeTrue();
+        session.CurrentHand!.Seats.Single(s => s.SeatNo == 2).HasLeft.Should().BeTrue();
+        session.Journal.Entries[^1].Action.Should().BeOfType<HoldemActionKickSeat>()
+            .Which.SeatNo.Should().Be(2);
+
+        (await session.StartNextHandAsync()).Should().BeTrue();
+        session.CurrentHand.Seats.Select(s => s.SeatNo).Should().Equal((byte)1, (byte)3, (byte)4);
+    }
+
+    [TestMethod]
+    public async Task KickSeat_WithoutAGame_RaisesAnEngineError()
+    {
+        // Arrange
+        var session = new DemoGameSession(CreateTestEngine());
+        string? errorMessage = null;
+        session.EngineError += (s, e) => errorMessage = e.Message;
+
+        // Act
+        var kicked = await session.KickSeatAsync(1);
+
+        // Assert
+        kicked.Should().BeFalse();
+        errorMessage.Should().NotBeNullOrEmpty();
+    }
+
     private static async Task<DemoGameSession> StartSessionAsync(GameOptionData options, int players, decimal buyIn)
     {
         var session = new DemoGameSession(CreateTestEngine());
