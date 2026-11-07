@@ -21,7 +21,9 @@ internal static class HandDealer
     internal static async Task DealAsync(Game game, IReadOnlyList<PlayerJoinData> joinSeats, ICardShuffler? cardShuffler, CancellationToken cancellationToken)
     {
         game.JoinPlayers(joinSeats);
+        var previousHand = game.GetCurrentHand();
         game.CreateNewHand(CalculateStartStacks());
+        SetBlindLevel(game.GetCurrentHand());
 
         var table = HandTableFactory.Build(game, await BuildDeckAsync());
         table.DealerSeatNo = ResolvePreviousDealerSeatNo();
@@ -58,6 +60,21 @@ internal static class HandDealer
             addAmount: Math.Min(table.SmallBlind, bigBlindPost),
             nextSeatNo: table.NextSeatNo,
             nextStreet: Street.PreFlop);
+
+        // The blinds are fixed here, once the start stacks are known and before the table is built, because
+        // ExcludeShortOfMoneySeats decides who can afford them. They never change after the deal.
+        void SetBlindLevel(Hand hand)
+        {
+            var previous = new BlindLevelState(previousHand.SmallBlind ?? game.InitialSmallBlind,
+                previousHand.BlindLevel, previousHand.BlindLevelStartHandNo, previousHand.BlindThresholdsPassed);
+            var state = BlindSchedule.Next(game.BlindSchedule, game.InitialSmallBlind, previous,
+                previousHand.PlayerStartStates.CountDealtSeats(), hand.No, hand.PlayerStartStates.CountDealtSeats());
+
+            hand.SmallBlind = state.SmallBlind;
+            hand.BlindLevel = state.BlindLevel;
+            hand.BlindLevelStartHandNo = state.BlindLevelStartHandNo;
+            hand.BlindThresholdsPassed = state.BlindThresholdsPassed;
+        }
 
         byte ResolvePreviousDealerSeatNo()
         {

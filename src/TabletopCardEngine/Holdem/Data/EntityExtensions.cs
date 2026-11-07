@@ -1,4 +1,5 @@
 ﻿using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Engine;
 
 namespace TabletopCardEngine.Holdem.Data;
 
@@ -221,6 +222,10 @@ internal static class EntityExtensions
             BlindThresholdsPassed = 0,
         });
     }
+
+    /// <summary>The seats a hand is dealt into: those that start it with chips, so a seat sitting out at zero does not count.</summary>
+    internal static int CountDealtSeats(this IEnumerable<HandPlayerStartState> startStates)
+        => startStates.Count(startState => startState.StartStack >= BlindSchedule.DecimalMinPrecision);
 
     internal static void AddHoleCards(this Game game, byte seatNo, IEnumerable<Card> hole)
         => hole.Select((card, index) => new { Card = card, Sequence = (byte)(index + 1) })

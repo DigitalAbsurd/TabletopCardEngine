@@ -74,6 +74,7 @@ The engine logs nothing at Error or Critical: exceptions propagate to the host, 
 | 1011 | `HandStarted` | Information | `Hand {HandNo} of game {GameId} started with {SeatCount} seats` | A hand was started |
 | 1012 | `HandFinished` | Information | `Hand {HandNo} of game {GameId} finished` | A hand was completed |
 | 1013 | `GameFinished` | Information | `Game {GameId} finished` | A game was finished |
+| 1014 | `BlindLevelRaised` | Information | `Hand {HandNo} of game {GameId} raised the blinds to level {BlindLevel}: small blind {SmallBlind}` | A hand was dealt at a higher blind level under the game's blind schedule |
 | 1020 | `StreetDealt` | Debug | `Hand {HandNo} of game {GameId} moved to {Street}` | The hand moved to a new street |
 | 1100 | `HoleCardsDealt` | Trace | `Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}` | Hole cards were dealt (when `EnableSensitiveCardLogging` is on) |
 | 1101 | `BoardDealt` | Trace | `Hand {HandNo} of game {GameId}: {Street} dealt {Cards}` | Community cards were dealt (when `EnableSensitiveCardLogging` is on) |
