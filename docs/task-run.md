@@ -75,6 +75,14 @@ reported as skipped and the run is green having checked nothing; that is not a r
 run only when it cannot be done here (the browser will not install, say), and say so in the pull
 request. The release workflow runs the gate once more on a release tag.
 
+The gate takes 5 to 11 minutes, and `dotnet test` about 3, longer than an agent's default 2-minute
+shell timeout. Run them in the foreground with a timeout long enough to finish, and if a run is moved
+to the background anyway, wait for its summary line before committing, opening the pull request or
+merging. A run without a summary line has not passed. Never stop a run you think is stuck by
+filtering processes on a name or a command line (`Get-Process | Where-Object { $_.CommandLine -like
+"*BrowserTests*" } | Stop-Process`): the agent's own command line carries its prompt, so the filter
+matches the agent too, and the run on issue #587 ended that way with exit code -1.
+
 **Provider tests.** A task that touches `src/TabletopCardEngine/Holdem/Data/`, a relational provider package
 (`TabletopCardEngine.Sqlite`, `.PostgreSql`, `.SqlServer`), `tests/TabletopCardEngine.Tests/Persistence/`,
 `src/TabletopCardEngine.Server/`, `tests/TabletopCardEngine.Server.Tests/`,
