@@ -87,12 +87,14 @@ Also shipped in 1.1.0: seat lifecycle management — players can join empty seat
 - `LeaveSeat` action to stand a player up between hands, freeing the seat
 - `StartHand.JoinSeats` to seat new players into empty seats
 
-**Comes with the feature (after 1.1.0):**
+**Shipped in 1.2.0:**
 
-- Top-up and rebuy actions
-- Relaxed `SeatValidation` to allow re-seating an occupied seat
-- `HandTableFactory` honouring `HandNoEnd`
-- Removed from v1.0 in #140 on purpose: `BuyIns`, `KickOffSeats`, `AllowRebuy`
+- `TopUp` action for both top-up and rebuy: which one it is follows from the seat's stack, and the chips go in at the next hand
+- `KickSeat` action: between hands it is `LeaveSeat`, during a hand an immediate fold
+- `GameOptionData.AllowTopUp`, `AllowRebuy` and `MaxRebuys`, with `SeatData.PendingBuyIn` and `SeatData.Rebuys`
+- The buy-in window, `MinBuyIn` and `MaxBuyIn`, enforced on joins, top-ups and rebuys
+
+See [Buy-ins, top-ups and blind schedules](concepts/buy-ins-and-blinds.md).
 
 **Oracle:**
 
@@ -128,6 +130,8 @@ Also shipped in 1.1.0: seat lifecycle management — players can join empty seat
 **Already in v1.0:**
 
 - `HandData.SmallBlind`/`BigBlind` (#323), so clients read the hand's blinds instead of deriving them from `GameOptionData`
+
+**Shipped in 1.2.0:** blind levels for cash games: `GameOptionData.BlindSchedule` (`BlindScheduleData`) and the per-hand blinds on `Hand`, read as `HandData.SmallBlind`, `BigBlind` and `BlindLevel`. Antes, SNG and MTT are still to come.
 
 **Comes with the feature:**
 

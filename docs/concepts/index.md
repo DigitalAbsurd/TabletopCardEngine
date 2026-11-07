@@ -129,6 +129,10 @@ var afterLeave = (await engine.ApplyAsync(
 
 The lifecycle remains: `CreateGame` → `StartGame` → (`StartHand` | `LeaveSeat` | player actions)* → `FinishGame`.
 
+## Buy-ins, top-ups and blind schedules
+
+A game can limit what players sit down with (`MinBuyIn`, `MaxBuyIn`), let them add chips between hands (`TopUp`, which is a top-up or a rebuy depending on the seat's stack), remove a player at any time (`KickSeat`), and raise the blinds by levels with a `BlindScheduleData`. All of it is optional, and a game that sets none of it plays as in 1.1. See [Buy-ins, top-ups and blind schedules](buy-ins-and-blinds.md).
+
 ## The database is the state
 
 The engine has no in-memory game object. Every call to `ApplyAsync` does this:
@@ -207,3 +211,4 @@ The engine never retries and takes no locks. It is the caller's job to reload an
 - **[The hand ledger](hand-ledger.md)** — Every action recorded, how `Amount` accumulates, and how pots are calculated from the ledger.
 - **[Legal actions and bet sizing](evaluations.md)** — Understanding the evaluations offered at each decision, and why `Call` and `Raise` windows are on different bases.
 - **[Heads-up play](heads-up.md)** — Two-player poker: position rules, the big blind's option, and how stacks below a blind are handled.
+- **[Buy-ins, top-ups and blind schedules](buy-ins-and-blinds.md)** — The buy-in window, top-up and rebuy, kicking a player, and blinds that rise by level.
