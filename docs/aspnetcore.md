@@ -209,6 +209,28 @@ A `gameId` that is not a GUID does not match the route and answers 404.
 }
 ```
 
+`POST /games` with rebuys and a blind schedule. The blinds double every 10 hands, capped at 8; a rebuy must bring the stack to between 50 and 200:
+
+```json
+{
+  "options": {
+    "initialSmallBlind": 1,
+    "allowRebuy": true,
+    "maxRebuys": 2,
+    "minBuyIn": 50,
+    "maxBuyIn": 200,
+    "blindSchedule": {
+      "increaseEveryHands": 10,
+      "mode": "Multiplier",
+      "multiplier": 2,
+      "maxSmallBlind": 8
+    }
+  }
+}
+```
+
+The options are the engine's `GameOptionData`, so a value the engine rejects (`minBuyIn` above `maxBuyIn`, a `Levels` schedule with no levels) answers 422 `InvalidGameOptions`. Enums such as `mode` are strings (`"Multiplier"`, `"Levels"`); a number answers 400.
+
 `POST /games/{gameId}/start` joins players to a game:
 
 ```json
@@ -264,7 +286,7 @@ or
 The engine's enums and `Card` values have type-specific JSON converters registered in the host's
 `Microsoft.AspNetCore.Http.Json.JsonOptions`, so no other type of the host is affected.
 
-**Enum serialization.** Engine enums (`GameType`, `BettingStructure`, `CardType`, `CardSuit`,
+**Enum serialization.** Engine enums (`GameType`, `BettingStructure`, `BlindIncreaseMode`, `CardType`, `CardSuit`,
 `HandActionType`, `HandRankType`, `PlayerActionType`, `Street`) are serialized by name — e.g.
 `"Holdem"`, `"NoLimit"`, `"Raise"` — not as numbers. Numbers are rejected on input, so an
 undefined value cannot slip in as a number.

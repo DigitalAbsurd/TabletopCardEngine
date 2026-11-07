@@ -89,6 +89,87 @@ public sealed class GameSetupEndpointTests
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    private static async Task<HttpResponseMessage> PostGameAsync(TestApiHost host, string json)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/holdem/games");
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        return await host.Client.SendAsync(request);
+    }
+
+    [TestMethod]
+    [DataRow("{\"increaseEveryHands\":10,\"mode\":\"Multiplier\",\"multiplier\":1.5,\"maxSmallBlind\":8}")]
+    [DataRow("{\"playerThresholds\":[4,3],\"increaseOnElimination\":true,\"mode\":\"Levels\",\"smallBlindLevels\":[2,4,8]}")]
+    public async Task CreateGame_WithBuyInOptionsAndBlindSchedule_EchoesTheOptions(string schedule)
+    {
+        await using var host = await TestApiHost.StartAsync();
+        var options = "{\"allowTopUp\":true,\"allowRebuy\":true,\"maxRebuys\":2,\"minBuyIn\":50,\"maxBuyIn\":200,"
+            + "\"blindSchedule\":" + schedule + "}";
+
+        var response = await PostGameAsync(host, "{\"options\":" + options + "}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var echoed = (await ReadJsonAsync(response)).GetProperty("options");
+        echoed.GetProperty("allowTopUp").GetBoolean().Should().BeTrue();
+        echoed.GetProperty("allowRebuy").GetBoolean().Should().BeTrue();
+        echoed.GetProperty("maxRebuys").GetInt32().Should().Be(2);
+        echoed.GetProperty("minBuyIn").GetDecimal().Should().Be(50);
+        echoed.GetProperty("maxBuyIn").GetDecimal().Should().Be(200);
+        var sent = JsonDocument.Parse(schedule).RootElement;
+        var got = echoed.GetProperty("blindSchedule");
+        got.GetProperty("mode").GetString().Should().Be(sent.GetProperty("mode").GetString());
+        got.GetProperty("increaseOnElimination").GetBoolean().Should().Be(sent.TryGetProperty("increaseOnElimination", out var elimination) && elimination.GetBoolean());
+        foreach (var property in sent.EnumerateObject().Where(p => p.Name != "mode"))
+        {
+            got.GetProperty(property.Name).GetRawText().Should().Be(property.Value.GetRawText());
+        }
+    }
+
+    [TestMethod]
+    public async Task CreateGame_BlindScheduleModeAsNumber_Returns400()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"blindSchedule\":{\"increaseEveryHands\":10,\"mode\":2}}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_LevelsModeWithoutLevels_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"blindSchedule\":{\"increaseEveryHands\":10,\"mode\":\"Levels\",\"smallBlindLevels\":[]}}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("InvalidGameOptions");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_MinBuyInAboveMaxBuyIn_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"minBuyIn\":300,\"maxBuyIn\":100}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("InvalidGameOptions");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_WithoutTheNewOptions_CreatesAVersion11Game()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"maxPlayersCount\":4}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var echoed = (await ReadJsonAsync(response)).GetProperty("options");
+        echoed.GetProperty("allowTopUp").GetBoolean().Should().BeFalse();
+        echoed.GetProperty("allowRebuy").GetBoolean().Should().BeFalse();
+        echoed.GetProperty("blindSchedule").ValueKind.Should().Be(JsonValueKind.Null);
+    }
+
     [TestMethod]
     public async Task CreateGame_MalformedJson_Returns400()
     {

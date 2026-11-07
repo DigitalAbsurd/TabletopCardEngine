@@ -9,6 +9,7 @@ internal static class HoldemJson
     {
         converters.Add(new CardJsonConverter());
         converters.Add(new JsonStringEnumConverter<BettingStructure>(namingPolicy: null, allowIntegerValues: false));
+        converters.Add(new JsonStringEnumConverter<BlindIncreaseMode>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<CardSuit>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<CardType>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<GameType>(namingPolicy: null, allowIntegerValues: false));
