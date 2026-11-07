@@ -547,6 +547,31 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
+    /// The "Blind increase" block of the New Game form, expanded in each of its two modes, must neither
+    /// overlap a caption with a field nor push the form sideways, at the gate's narrowest width too.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth, "#setup-mode-multiplier")]
+    [DataRow(NarrowViewportWidth, "#setup-mode-multiplier")]
+    [DataRow(WideViewportWidth, "#setup-mode-levels")]
+    [DataRow(NarrowViewportWidth, "#setup-mode-levels")]
+    public async Task DemoLayout_NewGameModal_BlindIncreaseBlock_FitsTheFormWhenExpanded(int viewportWidth, string modeSelector)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+
+        await page.OpenNewGameModalAsync();
+        await page.ClickAsync("#setup-increase-blinds");
+        await page.ClickAsync(modeSelector);
+
+        IReadOnlyList<string> overlaps = await page.ReadFieldTextOverlapsAsync(DemoPage.GameSetupSelector);
+        overlaps.Should().BeEmpty("no caption may sit on a field in the expanded Blind increase block");
+
+        ScrollMetrics form = await page.ReadScrollMetricsAsync(DemoPage.GameSetupSelector);
+        form.ScrollWidth.Should().Be(form.ClientWidth, $"the expanded block must not overflow the form horizontally ({form})");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
     /// A row of seats stays on one line: every seat in it has the same top. A row that wraps pushes
     /// its last seats onto a second line, which breaks the table's height budget and the clockwise
     /// reading order, and no other assertion notices it (issue #504).

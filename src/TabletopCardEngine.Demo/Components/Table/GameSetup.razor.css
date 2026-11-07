@@ -66,3 +66,34 @@
     font-size: 12px;
     color: #8c8c8c;
 }
+
+.blind-caption {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.threshold-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    min-height: 32px;
+    align-items: center;
+}
+
+.threshold-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0;
+}
+
+.threshold-option label {
+    margin-bottom: 0;
+}
+
+.field-message {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ant-error-color, #ff4d4f);
+}

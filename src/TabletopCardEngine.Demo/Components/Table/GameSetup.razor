@@ -160,6 +160,131 @@
                     @onchange="OnDealerSeatChangedAsync"
                     class="setup-input" />
             </div>
+
+            @* The blind schedule's inputs sit in this grid. The demo only builds the options; the
+               engine works the levels out and answers for a schedule it refuses. *@
+            <div class="form-group">
+                <label for="setup-increase-blinds">Increase blinds</label>
+                <input
+                    id="setup-increase-blinds"
+                    type="checkbox"
+                    disabled="@_isLoading"
+                    @bind="_increaseBlinds" />
+            </div>
+
+            @if (_increaseBlinds)
+            {
+                <div class="form-group">
+                    <label for="setup-increase-every-hands">Every N hands</label>
+                    <input
+                        id="setup-increase-every-hands"
+                        type="number"
+                        step="1"
+                        min="1"
+                        disabled="@_isLoading"
+                        placeholder="Off"
+                        @bind="_increaseEveryHands"
+                        class="setup-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="setup-increase-on-elimination">On each elimination</label>
+                    <input
+                        id="setup-increase-on-elimination"
+                        type="checkbox"
+                        disabled="@_isLoading"
+                        @bind="_increaseOnElimination" />
+                </div>
+
+                <div class="form-group">
+                    <span class="blind-caption">Player thresholds</span>
+                    <div class="threshold-list">
+                        @for (var threshold = 2; threshold < _maxPlayers; threshold++)
+                        {
+                            var value = threshold;
+                            <span class="threshold-option">
+                                <input
+                                    id="setup-threshold-@value"
+                                    type="checkbox"
+                                    class="setup-threshold"
+                                    disabled="@_isLoading"
+                                    checked="@_playerThresholds.Contains(value)"
+                                    @onchange="@(e => OnThresholdChanged(value, e.Value is true))" />
+                                <label for="setup-threshold-@value">@value</label>
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <span class="blind-caption">Mode</span>
+                    <div class="threshold-list">
+                        <span class="threshold-option">
+                            <input
+                                id="setup-mode-multiplier"
+                                type="radio"
+                                name="setup-blind-mode"
+                                disabled="@_isLoading"
+                                checked="@(_blindMode == BlindIncreaseMode.Multiplier)"
+                                @onchange="@(() => _blindMode = BlindIncreaseMode.Multiplier)" />
+                            <label for="setup-mode-multiplier">Multiplier</label>
+                        </span>
+                        <span class="threshold-option">
+                            <input
+                                id="setup-mode-levels"
+                                type="radio"
+                                name="setup-blind-mode"
+                                disabled="@_isLoading"
+                                checked="@(_blindMode == BlindIncreaseMode.Levels)"
+                                @onchange="@(() => _blindMode = BlindIncreaseMode.Levels)" />
+                            <label for="setup-mode-levels">Levels</label>
+                        </span>
+                    </div>
+                </div>
+
+                @if (_blindMode == BlindIncreaseMode.Multiplier)
+                {
+                    <div class="form-group">
+                        <label for="setup-multiplier">Multiplier</label>
+                        <input
+                            id="setup-multiplier"
+                            type="number"
+                            step="0.01"
+                            disabled="@_isLoading"
+                            @bind="_multiplier"
+                            class="setup-input" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="setup-max-small-blind">Max small blind</label>
+                        <input
+                            id="setup-max-small-blind"
+                            type="number"
+                            step="0.01"
+                            disabled="@_isLoading"
+                            placeholder="No cap"
+                            @bind="_maxSmallBlind"
+                            class="setup-input" />
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group">
+                        <label for="setup-small-blind-levels">Small blind levels</label>
+                        <input
+                            id="setup-small-blind-levels"
+                            type="text"
+                            disabled="@_isLoading"
+                            placeholder="2, 3, 5, 10"
+                            @bind="_smallBlindLevels"
+                            class="setup-input" />
+                        @if (!string.IsNullOrEmpty(_levelsMessage))
+                        {
+                            <span class="field-message" role="alert">@_levelsMessage</span>
+                        }
+                    </div>
+                }
+            }
         </div>
 
         <!-- Players List -->
