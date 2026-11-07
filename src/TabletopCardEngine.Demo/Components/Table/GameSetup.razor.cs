@@ -29,6 +29,11 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     private int _maxPlayers = DemoGameDefaults.MaxPlayers;
     private decimal _smallBlind = DemoGameDefaults.SmallBlind;
     private byte _dealerSeat = DemoGameDefaults.DealerSeatNo;
+    private bool _allowTopUp;
+    private bool _allowRebuy;
+    private int? _maxRebuys;
+    private decimal? _minBuyIn;
+    private decimal? _maxBuyIn;
     private readonly List<PlayerSetup> _players = [];
     private string? _errorMessage;
     private bool _isLoading;
@@ -62,6 +67,11 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         _maxPlayers = DemoGameDefaults.MaxPlayers;
         _smallBlind = DemoGameDefaults.SmallBlind;
         _dealerSeat = DemoGameDefaults.DealerSeatNo;
+        _allowTopUp = false;
+        _allowRebuy = false;
+        _maxRebuys = null;
+        _minBuyIn = null;
+        _maxBuyIn = null;
         _errorMessage = null;
         _isLoading = false;
         InitializeDefaultPlayers();
@@ -285,7 +295,20 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             Session.Reset();
             Database.ClearAllData();
 
-            var gameOptions = new GameOptionData { TableFormat = _tableFormat, MaxPlayersCount = _maxPlayers, InitialSmallBlind = _smallBlind, InitialDealerSeatNo = _dealerSeat };
+            // The engine answers for the limits: nothing is clamped or corrected here. A Max rebuys
+            // left in the disabled box is not sent, because the engine rejects it without Allow rebuy.
+            var gameOptions = new GameOptionData
+            {
+                TableFormat = _tableFormat,
+                MaxPlayersCount = _maxPlayers,
+                InitialSmallBlind = _smallBlind,
+                InitialDealerSeatNo = _dealerSeat,
+                AllowTopUp = _allowTopUp,
+                AllowRebuy = _allowRebuy,
+                MaxRebuys = _allowRebuy ? _maxRebuys : null,
+                MinBuyIn = _minBuyIn,
+                MaxBuyIn = _maxBuyIn,
+            };
 
             var createSuccess = await Session.CreateGameAsync(gameOptions, cancellationToken: cancellationToken);
             if (!createSuccess)
