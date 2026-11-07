@@ -300,6 +300,12 @@ internal sealed class HoldemTable : IHoldemTable
         {
             _logger.HandStarted(hand.No, gameId, hand.PlayerStartStates.Count);
             _metrics.RecordHandStarted();
+
+            // A level begins at the hand that raised it; level 0 begins at hand 1 without a raise.
+            if (hand.BlindLevel > 0 && hand.BlindLevelStartHandNo == hand.No)
+            {
+                _logger.BlindLevelRaised(hand.No, gameId, hand.BlindLevel, hand.SmallBlind ?? game.InitialSmallBlind);
+            }
         }
 
         var ended = game.IsCurrentHandEnded();

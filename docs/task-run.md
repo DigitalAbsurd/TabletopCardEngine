@@ -567,6 +567,20 @@ renumber.
     `Evaluations` never lists `Bet`: when nothing is bet, the `Raise` window is the bet window. The ledger
     still records `HandActionType.Bet`, and `BettingRules` counts it as a raise kind when the table is rebuilt.
 30. **Versions come from git tags through MinVer.** `Directory.Build.props` references `MinVer` with tag prefix `v`. A build on a tagged commit gets that version. A build after it gets the next patch with `-preview.0.<height>`. A build with no tag in its history gets `0.0.0-preview.0.<height>`. A global `-p:Version=...` does not set the package version under MinVer; `-p:MinVerVersionOverride=...` does, which is what the baseline re-pack in fact 25 uses. CI must check out with full history (`fetch-depth: 0`), or MinVer finds no tag. The Docker build has no `.git`, so the version is the `VERSION` build argument (`docker build --build-arg VERSION=1.0.0 ...`), passed to MinVer as `MinVerVersionOverride` and stamped as the `org.opencontainers.image.version` label. Without it the image reports `0.0.0-local`.
+31. **The blinds rise only when a hand is dealt, by `Holdem/Engine/BlindSchedule.cs` from the previous hand's columns.**
+    A game without `GameOptionData.BlindSchedule` deals every hand at `InitialSmallBlind`, level `0`. With one,
+    `HandDealer.DealAsync` calls `BlindSchedule.Next` once the new hand's start stacks are known and before
+    `HandTableFactory.Build`, and stores `SmallBlind`, `BlindLevel`, `BlindLevelStartHandNo` and
+    `BlindThresholdsPassed` on the new `Hand`; a hand's blinds never change after the deal. `P(n)`, the seats dealt
+    into hand `n`, counts start stacks of at least `0.0001` (`EntityExtensions.CountDealtSeats`), so a seat sitting
+    out at zero does not count. Hand 1 is level `0` and marks every threshold `>= P(1)` passed without raising. For
+    hand `n > 1` three triggers can fire: `n - BlindLevelStartHandNo >= IncreaseEveryHands`; a threshold not yet
+    passed (walking `PlayerThresholds` sorted descending from `BlindThresholdsPassed`) that is `>= P(n)`; and
+    `IncreaseOnElimination` with `P(n) < P(n - 1)`. However many fire, the level rises by exactly one and the level
+    starts at `n`; a join never fires, and levels never fall. `Multiplier` mode rounds the new small blind to the cent
+    away from zero and caps it at `MaxSmallBlind`; `Levels` mode takes `SmallBlindLevels[min(L, count) - 1]`. The state
+    comes from the previous hand's columns, never from the hand number or the history, because only the latest hand
+    is loaded. A raise logs `BlindLevelRaised` (1014).
 
 ## A known, deliberate duplication
 

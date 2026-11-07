@@ -54,6 +54,9 @@ internal static partial class HoldemLog
     [LoggerMessage(EventId = 1013, Level = LogLevel.Information, Message = "Game {GameId} finished")]
     internal static partial void GameFinished(this ILogger logger, Guid gameId);
 
+    [LoggerMessage(EventId = 1014, Level = LogLevel.Information, Message = "Hand {HandNo} of game {GameId} raised the blinds to level {BlindLevel}: small blind {SmallBlind}")]
+    internal static partial void BlindLevelRaised(this ILogger logger, int handNo, Guid gameId, int blindLevel, decimal smallBlind);
+
     [LoggerMessage(EventId = 1020, Level = LogLevel.Debug, Message = "Hand {HandNo} of game {GameId} moved to {Street}")]
     internal static partial void StreetDealt(this ILogger logger, int handNo, Guid gameId, Street street);
 
