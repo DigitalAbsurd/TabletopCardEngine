@@ -77,6 +77,8 @@ internal sealed class AddBlindScheduleUpgradeFixture : IUpgradeFixture
 
             // The same game played from scratch on the current schema, dealt the same cards, is the oracle.
             var expected = await PlayOnCurrentSchemaAsync(game);
+            // A game stored before 1.3 has no raise cap, while one created now defaults to four.
+            expected = expected with { Options = expected.Options with { RaiseCap = null } };
             migrated.Value.ShouldAsJToken().BeEquivalentToAsJToken(expected);
 
             // A game stored before the schedule existed never changes its blinds, and its hand reads the initial small blind.

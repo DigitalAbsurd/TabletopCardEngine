@@ -78,6 +78,8 @@ internal sealed class AddGameTableFormatUpgradeFixture : IUpgradeFixture
 
             // The same game played from scratch on the current schema, dealt the same cards, is the oracle.
             var expected = await PlayOnCurrentSchemaAsync(game);
+            // A game stored before 1.3 has no raise cap, while one created now defaults to four.
+            expected = expected with { Options = expected.Options with { RaiseCap = null } };
             migrated.Value.ShouldAsJToken().BeEquivalentToAsJToken(expected);
 
             // The migration wrote the database default to the column, so verify it is there and matches the mapped value.

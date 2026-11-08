@@ -34,6 +34,7 @@ internal sealed class CreateGameActionHandler(HoldemSettings settings) : HoldemA
         game.MinBuyIn = startGameActionData.Options.MinBuyIn;
         game.MaxBuyIn = startGameActionData.Options.MaxBuyIn;
         game.BlindSchedule = startGameActionData.Options.BlindSchedule;
+        game.RaiseCap = startGameActionData.Options.RaiseCap;
 
         return Task.FromResult<HoldemError?>(null);
     }

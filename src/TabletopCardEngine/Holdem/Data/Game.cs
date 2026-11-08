@@ -23,6 +23,9 @@ internal class Game
     /// <summary>How the blinds rise; <see langword="null"/> means they never do. Stored as JSON in one column of at most <see cref="BlindScheduleJson.MaxLength"/> characters.</summary>
     public BlindScheduleData? BlindSchedule { get; set; }
 
+    /// <summary>The most bets a Fixed-Limit street may hold; <see langword="null"/> means no cap, which is what every game created before 1.3 has.</summary>
+    public int? RaiseCap { get; set; }
+
     public bool IsFinished { get; set; }
 
     /// <summary>Optimistic concurrency token. Application-incremented on every saving call, since SQLite has no rowversion.</summary>

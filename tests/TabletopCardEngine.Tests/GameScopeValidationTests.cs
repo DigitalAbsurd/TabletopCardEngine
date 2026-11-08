@@ -33,6 +33,47 @@ public sealed class GameScopeValidationTests
         => await AssertCreateGameFailsAsync(new GameOptionData { BettingStructure = (BettingStructure)99 }, HoldemErrorCode.UnsupportedGameOptions);
 
     [TestMethod]
+    public async Task CreateGame_PotLimit_FailsWithUnsupportedGameOptions()
+        => await AssertCreateGameFailsAsync(new GameOptionData { BettingStructure = BettingStructure.PotLimit }, HoldemErrorCode.UnsupportedGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_FixedLimit_FailsWithUnsupportedGameOptions()
+        => await AssertCreateGameFailsAsync(new GameOptionData { BettingStructure = BettingStructure.FixedLimit }, HoldemErrorCode.UnsupportedGameOptions);
+
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(-1)]
+    public async Task CreateGame_RaiseCapBelowOne_FailsWithInvalidGameOptions(int raiseCap)
+        => await AssertCreateGameFailsAsync(new GameOptionData { RaiseCap = raiseCap }, HoldemErrorCode.InvalidGameOptions);
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow(1)]
+    [DataRow(7)]
+    public async Task CreateGame_NoLimit_RoundTripsRaiseCap(int? requested)
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        var options = new GameOptionData { RaiseCap = requested };
+
+        var created = await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, options));
+        var loaded = await engine.ApplyAsync(new HoldemActionGetGame(_gameId));
+
+        created.IsSuccess.Should().BeTrue();
+        loaded.Value.Options.RaiseCap.Should().Be(requested);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_DefaultOptions_RaiseCapIsFour()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+
+        await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData()));
+        var loaded = await engine.ApplyAsync(new HoldemActionGetGame(_gameId));
+
+        loaded.Value.Options.RaiseCap.Should().Be(4);
+    }
+
+    [TestMethod]
     public async Task CreateGame_EveryDefinedVariant_AcceptedOnlyWhenSupported()
     {
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);

@@ -115,6 +115,15 @@ namespace TabletopCardEngine.Resources {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The raise cap must be at least 1, or null for no cap.
+        /// </summary>
+        internal static string HoldemValidation_RaiseCapBelowOne {
+            get {
+                return ResourceManager.GetString("HoldemValidation_RaiseCapBelowOne", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to A seat to join is invalid.
         /// </summary>
         internal static string HoldemValidation_InvalidSeat {

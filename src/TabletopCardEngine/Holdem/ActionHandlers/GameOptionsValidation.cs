@@ -30,6 +30,11 @@ internal static class GameOptionsValidation
             return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_InvalidGameOptions);
         }
 
+        if (options.RaiseCap < 1)
+        {
+            return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_RaiseCapBelowOne);
+        }
+
         return null;
     }
 

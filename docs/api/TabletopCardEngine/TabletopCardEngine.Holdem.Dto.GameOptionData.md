@@ -49,7 +49,7 @@ public bool AllowTopUp { get; init; }
 
 ## GameOptionData\.BettingStructure Property
 
-How bets are sized\. Only [NoLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.NoLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.NoLimit') exists in v1\.
+How bets are sized\. [NoLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.NoLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.NoLimit') is the only structure a game can be created with yet; [PotLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.PotLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.PotLimit') and [FixedLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.FixedLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.FixedLimit') are defined but their rules are still to come\.
 
 ```csharp
 public TabletopCardEngine.Holdem.BettingStructure BettingStructure { get; init; }
@@ -169,6 +169,22 @@ public System.Nullable<decimal> MinBuyIn { get; init; }
 
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.RaiseCap'></a>
+
+## GameOptionData\.RaiseCap Property
+
+The most bets a street may hold in a [FixedLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.FixedLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.FixedLimit') game: a bet
+and three raises by default; pre\-flop the big blind counts as the bet\. [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') means no cap\.
+Ignored by [NoLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.NoLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.NoLimit') and [PotLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.PotLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.PotLimit')\.
+Must be at least 1 when set\. Games created before 1\.3 read back [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.
+
+```csharp
+public System.Nullable<int> RaiseCap { get; init; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='TabletopCardEngine.Holdem.Dto.GameOptionData.TableFormat'></a>
 
