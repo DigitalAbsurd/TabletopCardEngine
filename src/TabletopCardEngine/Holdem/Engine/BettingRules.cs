@@ -29,10 +29,46 @@ internal static class BettingRules
     /// </summary>
     internal static decimal MinRaiseAmount(HandTable table)
     {
+        var (standing, increment) = StandingAndIncrement(table, int.MaxValue);
+        return standing + increment;
+    }
+
+    /// <summary>
+    /// The full-raise increment of <see cref="MinRaiseAmount"/>: the rise in the standing wager a
+    /// No-Limit raise has to make, and so the rise that reopens the betting in <see cref="CanRaise"/>.
+    /// </summary>
+    internal static decimal FullRaiseIncrement(HandTable table) => StandingAndIncrement(table, int.MaxValue).Increment;
+
+    /// <summary>
+    /// Whether a seat may raise, an all-in raise included. A seat that has taken no voluntary action
+    /// this street may (a blind post is not one, so the big blind keeps its option). A seat that has
+    /// may raise only once the standing wager has risen by at least <paramref name="reopenThreshold"/>
+    /// since its last voluntary action: an all-in for less than a full raise does not reopen the
+    /// betting to a seat that has already acted (TDA Rule 47). The rise is counted cumulatively, so
+    /// two short all-ins that together make a full raise do reopen it.
+    /// </summary>
+    internal static bool CanRaise(HandTable table, byte seatNo, decimal reopenThreshold)
+    {
+        var lastVoluntary = table[seatNo].StreetBets
+            .Where(bet => bet.Action is not (HandActionType.SmallBlind or HandActionType.BigBlind))
+            .Select(bet => (int?)bet.Order)
+            .LastOrDefault();
+        if (lastVoluntary is not { } order)
+        {
+            return true;
+        }
+        var standingThen = StandingAndIncrement(table, order).Standing;
+        var standingNow = StandingAndIncrement(table, int.MaxValue).Standing;
+        return standingNow - standingThen >= reopenThreshold;
+    }
+
+    // Replays this street's raise-kind wagers in order, up to and including the bet at maxOrder.
+    private static (decimal Standing, decimal Increment) StandingAndIncrement(HandTable table, int maxOrder)
+    {
         var bigBlind = table.SmallBlind * 2;
         var standing = 0M;
         var increment = bigBlind;
-        foreach (var bet in table.Seats.SelectMany(seat => seat.StreetBets).OrderBy(bet => bet.Order))
+        foreach (var bet in table.Seats.SelectMany(seat => seat.StreetBets).Where(bet => bet.Order <= maxOrder).OrderBy(bet => bet.Order))
         {
             if (!IsRaiseKind(bet) || bet.Amount <= standing)
             {
@@ -44,7 +80,7 @@ internal static class BettingRules
             }
             standing = bet.Amount;
         }
-        return (table.Street == Street.PreFlop ? Math.Max(standing, bigBlind) : standing) + increment;
+        return (table.Street == Street.PreFlop ? Math.Max(standing, bigBlind) : standing, increment);
     }
 
     // An all-in call is recorded as AllIn with AddAmount 0; only an all-in raise counts.
@@ -89,7 +125,8 @@ internal static class BettingRules
         {
             PlayerActionType.Fold => false,
             PlayerActionType.Call => IsShortOfMoney(seat, amount) || amount != AgreeAmount(table),
-            PlayerActionType.Raise => IsShortOfMoney(seat, amount) || MinRaiseAmount(table) > amount,
+            PlayerActionType.Raise => IsShortOfMoney(seat, amount) || MinRaiseAmount(table) > amount
+                || !CanRaise(table, seatNo, FullRaiseIncrement(table)),
             _ => false
         };
     }
@@ -129,6 +166,12 @@ internal static class BettingRules
             ? new PlayerActionEvaluationData(PlayerActionType.Call, callValue, callValue)
             : new PlayerActionEvaluationData(PlayerActionType.Check));
 
+        // The betting is closed to this seat: no raise window and no all-in raise either.
+        if (!CanRaise(table, seatNo, FullRaiseIncrement(table)))
+        {
+            return evaluations;
+        }
+
         if (window.MinRaiseTo is { } minRaiseTo && window.MaxRaiseTo is { } maxRaiseTo)
         {
             var minRaiseIncrement = minRaiseTo - seat.StreetWager;
@@ -139,9 +182,9 @@ internal static class BettingRules
             }
         }
 
-        // All-in is always allowed, even when the raise window above is degenerate. The bound is a
-        // "raise to" total like every other raise bound, so it has to include what the seat already
-        // has on the street — otherwise a seat that has posted a blind would be handed a size the
+        // All-in is allowed wherever raising is, even when the raise window above is degenerate. The
+        // bound is a "raise to" total like every other raise bound, so it has to include what the seat
+        // already has on the street — otherwise a seat that has posted a blind would be handed a size the
         // rules read as an under-raise.
         var allInRaiseTo = seat.Stack + seat.StreetWager;
         evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInRaiseTo, allInRaiseTo));

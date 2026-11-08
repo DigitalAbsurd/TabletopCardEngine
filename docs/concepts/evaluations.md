@@ -47,7 +47,13 @@ A "call" button in a UI wants to know "put this many more chips in". A "raise to
 - **`Call`**: Offered when there is something to call and the stack can cover it. Window is an increment.
 - **`Raise`**: Window is both an absolute total (min and max street total to raise to). The minimum is the standing wager plus the last full raise, and a full raise is never less than one big blind (so the first raise pre-flop is to two big blinds). See [The hand ledger](hand-ledger.md) for how the engine calculates the minimum.
 - **`Bet`**: Offered only as the opening wager on a street where nothing has been bet. Window is an increment.
-- **`AllIn`**: Always legal and commits the whole stack. It is a call (if the stack does not exceed the amount to call) or a raise (if it does). Window is empty because the amount is fixed.
+- **`AllIn`**: Commits the whole stack. It is a call (if the stack does not exceed the amount to call), which is always legal, or a raise (if it does), which is legal only where raising is (see below). Window is empty because the amount is fixed.
+
+## When the betting is not reopened
+
+An all-in for less than a full raise does not reopen the betting to a seat that has already acted on the street (TDA Rule 47). Such a seat is offered `Fold` and `Call` only: no `Raise` window and no all-in raise, and a `Raise`, or an `AllIn` that would be more than a call, fails with `IllegalAction`. The betting reopens for it once the standing wager has risen by at least a full raise since its last action, counted cumulatively, so two short all-ins that add up to a full raise do reopen it. Posting a blind is not acting, so the big blind keeps its option to raise when everyone limps.
+
+Example at blinds 1/2: seat 1 raises to 10, seat 2 calls, seat 3 goes all in for 13, three more than 10 and short of the full raise of 8. Seat 1 is offered `Fold` and `Call 3` only. Had seat 3 gone all in for 30, seat 1 could raise again.
 
 ## Rejecting illegal actions
 
@@ -116,6 +122,6 @@ When you read `GameData.Evaluations`:
 2. All seats can fold. `Fold` may not appear in the list, but it is always an option.
 3. For `Call`, add `MinValue` to the seat's current `BetSize` to get the absolute amount.
 4. For `Raise`, the window is already absolute; use it directly.
-5. `AllIn` is always legal and requires no additional checks; it commits the whole stack.
+5. `AllIn` commits the whole stack. As a call it is always legal; as a raise it is legal only when `Evaluations` offers a `Raise`.
 
 See also: [The hand ledger](hand-ledger.md)
