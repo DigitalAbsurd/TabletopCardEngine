@@ -219,7 +219,6 @@ public sealed class TracingTests
 
         public ValueTask<IReadOnlyList<Card>> GetHoleCardsAsync(Guid gameId, int handNo, byte seatNo, CancellationToken cancellationToken)
         {
-            _callCount++;
             return ValueTask.FromResult<IReadOnlyList<Card>>(
                 seatNo == 1 ? new[] { Card.Parse("ac"), Card.Parse("kc") } : new[] { Card.Parse("7d"), Card.Parse("2h") });
         }
