@@ -45,14 +45,16 @@ internal sealed class PlayActionHandler(ICardShuffler? cardShuffler) : HoldemAct
 
         // Validated against the list the caller was offered, never against the window's own
         // arithmetic: that list has its special cases (Check versus Call, the synthetic all-in raise).
-        // AllIn is always legal for the seat to act, so it is never rejected here.
+        // AllIn is legal as a call (possibly for less) whenever the seat is to act; as a raise it is
+        // legal only where raising is, which a short all-in may have closed to this seat.
         // A Bet is the opening wager of a street: legal only while nothing is wagered, and then only
         // inside the window the Raise is offered with, which is therefore the bet window.
         bool IsOffered(IReadOnlyList<PlayerActionEvaluationData> offered)
         {
             if (holdemAction.ActionType is PlayerActionType.AllIn)
             {
-                return true;
+                return seat.Stack + seat.StreetWager <= window.CallTo
+                    || BettingRules.CanRaise(table, seatNo, BettingRules.FullRaiseIncrement(table));
             }
             if (holdemAction.ActionType is PlayerActionType.Bet && BettingRules.AgreeAmount(table) != 0)
             {

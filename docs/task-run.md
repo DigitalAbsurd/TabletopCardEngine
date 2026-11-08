@@ -555,9 +555,14 @@ renumber.
 29. **An action is legal only when `HandData.Evaluations` offers it, and a Raise only inside its window.**
     Anything else is rejected with `IllegalAction = 13` and nothing is saved. The engine never corrects an
     action into a fold (`BettingRules.CorrectAction` throws on an illegal one, which would be a defect);
-    `Evaluations` and the validation share `BettingRules.Evaluate`. `AllIn` is always legal and is
-    resolved in `PlayActionHandler`: with `allInTo = Stack + StreetWager`, it is a call (possibly for
-    less) when `allInTo <= CallTo`, otherwise a raise to `allInTo`, and the ledger records `AllIn`.
+    `Evaluations` and the validation share `BettingRules.Evaluate`. `AllIn` is resolved in
+    `PlayActionHandler`: with `allInTo = Stack + StreetWager`, it is a call (possibly for less) when
+    `allInTo <= CallTo`, which is always legal, otherwise a raise to `allInTo`, which is legal only where
+    raising is, and the ledger records `AllIn`. Raising is closed to a seat that has already acted
+    voluntarily this street until the standing wager has risen by at least a full raise since its last
+    voluntary action, counted cumulatively (`BettingRules.CanRaise`, TDA Rule 47): an all-in for less
+    than a full raise does not reopen the betting, and `Evaluate` then offers `Fold` and `Call`/`Check`
+    only, with no all-in raise. A blind post is not voluntary, so the big blind keeps its option.
     A recorded `AllIn` row counts as a raise kind in `BettingRules.LastRaise` only when its
     `AddAmount > 0`, so an all-in call never lowers the minimum raise. A `Bet` is legal only while nothing is wagered on the street
     (`BettingRules.AgreeAmount(table) == 0`, never true pre-flop), only where `Evaluations` offers a `Raise`,

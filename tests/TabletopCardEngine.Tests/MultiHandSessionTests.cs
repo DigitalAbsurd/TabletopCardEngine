@@ -860,8 +860,13 @@ public sealed class MultiHandSessionTests
             var streetRaised = handData.Actions.Any(action => action.Street == handData.Street
                 && action.ActionType is HandActionType.Raise or HandActionType.Bet or HandActionType.AllIn);
 
+            // An all-in is legal as a call, or as a raise where raising is offered: a short all-in
+            // does not reopen the betting to a seat that has already acted.
+            var actor = handData.Seats.Single(seat => seat.SeatNo == handData.NextPlayerSeatNo);
+            var canShove = raise != null || (call != null && actor.Stack <= call.MaxValue);
+
             HoldemActionPlay playerAction;
-            if (shoveOdds > 0 && random.Next(shoveOdds) == 0)
+            if (shoveOdds > 0 && random.Next(shoveOdds) == 0 && canShove)
             {
                 playerAction = new HoldemActionPlay(gameId, PlayerActionType.AllIn, 0);
             }
