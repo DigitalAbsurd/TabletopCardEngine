@@ -19,8 +19,9 @@ public interface ICardShuffler
 
 ## ICardShuffler\.GetDeckCardsAsync\(Guid, int, CancellationToken\) Method
 
-The board cards for the hand, in dealt order\. Called again before each street change, so it
-must return the same sequence every time it is asked about the same hand\.
+The board cards for the hand, in dealt order\. Called when the hand is dealt, because a hand decided
+at the deal runs the board out at once, and again before each street change, so it must return
+the same sequence every time it is asked about the same hand\.
 
 ```csharp
 System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<TabletopCardEngine.Card>> GetDeckCardsAsync(System.Guid gameId, int handNo, System.Threading.CancellationToken cancellationToken);

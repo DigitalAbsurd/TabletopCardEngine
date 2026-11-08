@@ -26,14 +26,16 @@ public sealed class CardShufflerCancellationTests
             .IsSuccess.Should().BeTrue();
 
         shuffler.HoleTokens.Should().NotBeEmpty().And.OnlyContain(seen => seen == token);
-        shuffler.DeckTokens.Should().BeEmpty();
+        shuffler.DeckTokens.Should().NotBeEmpty().And.OnlyContain(seen => seen == token, "the board is fetched when the hand is dealt");
+        var dealtDeckTokens = shuffler.DeckTokens.Count;
 
         (await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Call, 0), token)).IsSuccess.Should().BeTrue();
         var flop = await engine.ApplyAsync(new HoldemActionPlay(_gameId, PlayerActionType.Check, 0), token);
         flop.IsSuccess.Should().BeTrue();
         flop.Value.HandData!.Street.Should().Be(Street.Flop);
 
-        shuffler.DeckTokens.Should().NotBeEmpty().And.OnlyContain(seen => seen == token);
+        shuffler.DeckTokens.Should().HaveCountGreaterThan(dealtDeckTokens, "the board is fetched again before the street change")
+            .And.OnlyContain(seen => seen == token);
     }
 
     private sealed class RecordingShuffler : ICardShuffler

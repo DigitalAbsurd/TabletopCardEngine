@@ -113,6 +113,10 @@ internal static class HandDealer
             {
                 cards.AddRange(await cardShuffler.GetHoleCardsAsync(game.Id, handNo, seatNo, cancellationToken));
             }
+
+            // The board follows the hole cards, because a hand decided at the deal runs it out inside
+            // StartHand; StartHand draws only what it needs and the rest of the deck is discarded.
+            cards.AddRange(await cardShuffler.GetDeckCardsAsync(game.Id, handNo, cancellationToken));
             return CardDeck.Predetermined(cards);
         }
 

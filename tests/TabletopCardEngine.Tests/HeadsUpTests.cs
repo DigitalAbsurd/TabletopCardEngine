@@ -398,6 +398,29 @@ public sealed class HeadsUpTests
     }
 
     /// <summary>
+    /// The same deal as above with the scripted shuffler: the board it supplies has to be there when the
+    /// deal runs it out, not only before a street change that a hand decided at the deal never reaches.
+    /// </summary>
+    [TestMethod]
+    public async Task HeadsUp_BlindsPutTheButtonAllIn_RunsTheScriptedBoardOutAtTheDeal()
+    {
+        const decimal shortStack = 30M;
+        using var session = await HeadsUpSession.CreateAsync(buttonStack: shortStack);
+
+        var handData = (await session.StartHandAsync()).HandData!;
+
+        handData.CommunityCards.Should().Equal(_board);
+        handData.Street.Should().Be(Street.Finished);
+        handData.NextPlayerSeatNo.Should().Be(0);
+        NetOf(handData, ButtonSeatNo).Should().Be(shortStack, "ace high wins, and only the button's 30 was at risk");
+        NetOf(handData, BigBlindSeatNo).Should().Be(-shortStack, "the big blind's uncalled 70 comes back");
+
+        handData = (await session.StartHandAsync()).HandData!;
+
+        handData.No.Should().Be(2);
+    }
+
+    /// <summary>
     /// A fold row carries <c>Amount = 0</c>, so a stack built from the last row of each street would
     /// forget what the folder had already put in on the street it folded on.
     /// </summary>

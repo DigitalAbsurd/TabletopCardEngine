@@ -7,7 +7,7 @@ namespace TabletopCardEngine.Demo.Phh;
 /// so the engine deals the exact cards recorded in the hand.
 ///
 /// Stores a deck per hand so multiple hands can be replayed in sequence, each with its own cards.
-/// <see cref="GetDeckCardsAsync"/> is called again before every street change and must return
+/// <see cref="GetDeckCardsAsync"/> is called when a hand is dealt and again before every street change, and must return
 /// the same board every time for the same hand.
 ///
 /// This is modelled on <c>TabletopCardEngine.Tests.TestCardShuffler</c> but keyed by PHH hand
