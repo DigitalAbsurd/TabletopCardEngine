@@ -59,7 +59,19 @@ internal static class HandDealer
             amount: bigBlindPost,
             addAmount: Math.Min(table.SmallBlind, bigBlindPost),
             nextSeatNo: table.NextSeatNo,
-            nextStreet: Street.PreFlop);
+            nextStreet: table.Street);
+
+        // A hand decided at the deal (the blinds leave nobody to ask) was already run out and awarded by
+        // HandRunner.StartHand, so its board and end states are recorded now; otherwise both are empty.
+        foreach (var card in table.Board)
+        {
+            game.AddDeckCard(card);
+        }
+
+        if (table.Prizes is { } prizes)
+        {
+            HandOutcomeRecorder.RecordResult(game, table, prizes);
+        }
 
         // The blinds are fixed here, once the start stacks are known and before the table is built, because
         // ExcludeShortOfMoneySeats decides who can afford them. They never change after the deal.

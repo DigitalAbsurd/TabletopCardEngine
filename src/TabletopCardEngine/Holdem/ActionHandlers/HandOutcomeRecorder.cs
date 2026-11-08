@@ -35,8 +35,6 @@ internal static class HandOutcomeRecorder
     /// <param name="size">The size the caller asked for.</param>
     internal static void Record(Game game, HandTable table, AppliedAction outcome, HandActionType handActionType, decimal size)
     {
-        var hand = game.GetCurrentHand();
-
         game.AddAction(
             seatNo: outcome.SeatNo,
             street: outcome.Street,
@@ -55,41 +53,47 @@ internal static class HandOutcomeRecorder
 
         if (outcome.PrizeBySeatNo is { } prizes)
         {
-            var board = hand.GetDeckCards();
-            var handEndStates = hand.PlayerStartStates.Select(startState =>
-            {
-                var hole = table.Find(startState.SeatNo)?.Hole ?? [];
-                var seatBet = hand.GetSeatBetAmount(startState.SeatNo);
-                var prize = prizes.GetValueOrDefault(startState.SeatNo);
-
-                // Computed directly as prize - bet, not as (StartStack - bet + prize) - StartStack:
-                // a deep stack (many integer digits) added to a prize with a long fractional tail
-                // (an uneven pot split can need most of decimal's ~28-29 significant digits) can force
-                // decimal to round the fraction away, and the two seats in a hand rarely have the same
-                // number of stack digits — so the rounding wouldn't even land the same way on both
-                // sides, and Sum(Net) across the hand would stop being exactly zero.
-                var winAmount = prize - seatBet;
-
-                var rankType = HandEvaluator.EvaluateRankType(hole, board);
-
-                // Only a seat that is still in when the hand is shown down has a hand to describe: a
-                // folded seat never showed its cards, and a pot won by everyone else folding is not shown.
-                var reachedShowdown = table.ActiveCount > 1 && table.Find(startState.SeatNo)?.IsActive == true;
-
-                return new HandPlayerEndState
-                {
-                    GameId = game.Id,
-                    HandNo = hand.No,
-                    Hand = hand,
-                    SeatNo = startState.SeatNo,
-                    FinishStack = startState.StartStack + winAmount,
-                    WinAmount = winAmount,
-                    Strength = HandEvaluator.EvaluateStrength(hole, board),
-                    RankType = rankType,
-                    Description = reachedShowdown ? HandEvaluator.Describe(rankType) : null,
-                };
-            });
-            game.AddHandEndStates(handEndStates);
+            RecordResult(game, table, prizes);
         }
+    }
+
+    /// <summary>Writes the end states of the current hand once the pot is awarded, for a hand ended by an action or decided at the deal.</summary>
+    /// <param name="game">The game whose current hand has ended.</param>
+    /// <param name="table">The table the hand was run on, read for the hole cards and who reached showdown.</param>
+    /// <param name="prizes">What each seat was awarded, by seat number.</param>
+    internal static void RecordResult(Game game, HandTable table, IReadOnlyDictionary<byte, decimal> prizes)
+    {
+        var hand = game.GetCurrentHand();
+        var board = hand.GetDeckCards();
+        var handEndStates = hand.PlayerStartStates.Select(startState =>
+        {
+            var hole = table.Find(startState.SeatNo)?.Hole ?? [];
+            var seatBet = hand.GetSeatBetAmount(startState.SeatNo);
+            var prize = prizes.GetValueOrDefault(startState.SeatNo);
+            // Computed directly as prize - bet, not as (StartStack - bet + prize) - StartStack:
+            // a deep stack (many integer digits) added to a prize with a long fractional tail
+            // (an uneven pot split can need most of decimal's ~28-29 significant digits) can force
+            // decimal to round the fraction away, and the two seats in a hand rarely have the same
+            // number of stack digits — so the rounding wouldn't even land the same way on both
+            // sides, and Sum(Net) across the hand would stop being exactly zero.
+            var winAmount = prize - seatBet;
+            var rankType = HandEvaluator.EvaluateRankType(hole, board);
+            // Only a seat that is still in when the hand is shown down has a hand to describe: a
+            // folded seat never showed its cards, and a pot won by everyone else folding is not shown.
+            var reachedShowdown = table.ActiveCount > 1 && table.Find(startState.SeatNo)?.IsActive == true;
+            return new HandPlayerEndState
+            {
+                GameId = game.Id,
+                HandNo = hand.No,
+                Hand = hand,
+                SeatNo = startState.SeatNo,
+                FinishStack = startState.StartStack + winAmount,
+                WinAmount = winAmount,
+                Strength = HandEvaluator.EvaluateStrength(hole, board),
+                RankType = rankType,
+                Description = reachedShowdown ? HandEvaluator.Describe(rankType) : null,
+            };
+        });
+        game.AddHandEndStates(handEndStates);
     }
 }

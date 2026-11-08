@@ -351,6 +351,53 @@ public sealed class HeadsUpTests
     }
 
     /// <summary>
+    /// The button is all in for 30 by its own small blind and the big blind covers it, so nobody is left to
+    /// act: the deal runs the board out and awards the pot. That hand has to be recorded as finished, or the
+    /// game is wedged on <c>PreviousHandNotEnded</c>. No shuffler, so the random board decides who wins.
+    /// </summary>
+    [TestMethod]
+    public async Task HeadsUp_BlindsPutTheButtonAllIn_HandIsDecidedAtTheDeal_WithoutAShuffler()
+    {
+        const decimal shortStack = 30M;
+        using var host = TestEngineHost.Setup(out var engine, out _);
+        var gameId = Guid.NewGuid();
+        (await engine.ApplyAsync(new HoldemActionCreateGame(gameId, HeadsUpSession.Options))).IsSuccess.Should().BeTrue();
+
+        var started = await engine.ApplyAsync(new HoldemActionStartGame(gameId,
+        [
+            new("Button", ButtonSeatNo, shortStack),
+            new("BigBlind", BigBlindSeatNo, DeepStack)
+        ]));
+
+        started.IsSuccess.Should().BeTrue(string.Join("; ", started.Errors.Select(error => error.Message)));
+        var handData = started.Value.HandData!;
+        var holeCards = handData.Seats.SelectMany(seat => seat.Hole ?? []).ToList();
+        handData.CommunityCards.Should().HaveCount(5);
+        handData.CommunityCards.Should().OnlyHaveUniqueItems();
+        handData.CommunityCards.Should().NotContain(holeCards);
+        handData.Street.Should().Be(Street.Finished);
+        handData.NextPlayerSeatNo.Should().Be(0);
+        handData.Seats.Should().OnlyContain(seat => seat.HandResult != null);
+        handData.Seats.Sum(seat => seat.HandResult!.Net).Should().Be(0);
+
+        var buttonNet = NetOf(handData, ButtonSeatNo);
+        buttonNet.Should().BeOneOf(new[] { shortStack, -shortStack, 0M }, "only the button's 30 was at risk; the big blind's uncalled 70 comes back");
+        NetOf(handData, BigBlindSeatNo).Should().Be(-buttonNet);
+
+        var next = await engine.ApplyAsync(new HoldemActionStartHand(gameId));
+        if (buttonNet == -shortStack)
+        {
+            next.IsSuccess.Should().BeFalse("the busted button leaves one funded seat");
+            next.Errors.Single().Code.Should().Be(HoldemErrorCode.NotEnoughPlayers);
+        }
+        else
+        {
+            next.IsSuccess.Should().BeTrue(string.Join("; ", next.Errors.Select(error => error.Message)));
+            next.Value.HandData!.No.Should().Be(2);
+        }
+    }
+
+    /// <summary>
     /// A fold row carries <c>Amount = 0</c>, so a stack built from the last row of each street would
     /// forget what the folder had already put in on the street it folded on.
     /// </summary>
