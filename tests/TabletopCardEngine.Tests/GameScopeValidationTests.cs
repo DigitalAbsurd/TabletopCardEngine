@@ -33,10 +33,6 @@ public sealed class GameScopeValidationTests
         => await AssertCreateGameFailsAsync(new GameOptionData { BettingStructure = (BettingStructure)99 }, HoldemErrorCode.UnsupportedGameOptions);
 
     [TestMethod]
-    public async Task CreateGame_FixedLimit_FailsWithUnsupportedGameOptions()
-        => await AssertCreateGameFailsAsync(new GameOptionData { BettingStructure = BettingStructure.FixedLimit }, HoldemErrorCode.UnsupportedGameOptions);
-
-    [TestMethod]
     [DataRow(0)]
     [DataRow(-1)]
     public async Task CreateGame_RaiseCapBelowOne_FailsWithInvalidGameOptions(int raiseCap)
@@ -75,7 +71,8 @@ public sealed class GameScopeValidationTests
         using var host = TestEngineHost.Setup(out var engine, out var contextFactory);
 
         var supportedVariants = SupportedGameVariants.All.ToList();
-        supportedVariants.Should().Equal([(GameType.Holdem, BettingStructure.NoLimit), (GameType.Holdem, BettingStructure.PotLimit)]);
+        supportedVariants.Should().Equal(
+            [(GameType.Holdem, BettingStructure.NoLimit), (GameType.Holdem, BettingStructure.PotLimit), (GameType.Holdem, BettingStructure.FixedLimit)]);
 
         foreach (var gameType in Enum.GetValues<GameType>())
         {
