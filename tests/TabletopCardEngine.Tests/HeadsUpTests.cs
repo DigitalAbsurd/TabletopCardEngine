@@ -73,9 +73,8 @@ public sealed class HeadsUpTests
                     new(PlayerActionType.Fold),
                     new(PlayerActionType.Call, SmallBlind, SmallBlind),
 
-                    // The big blind's post counts as a bet of 2·sb raised by sb, so the smallest
-                    // legal re-raise brings the street total to 3·sb.
-                    new(PlayerActionType.Raise, SmallBlind * 3, DeepStack)
+                    // The minimum raise is two big blinds: the standing wager plus one big blind.
+                    new(PlayerActionType.Raise, SmallBlind * 4, DeepStack)
                 ])
             {
                 SmallBlind = SmallBlind,
@@ -171,12 +170,12 @@ public sealed class HeadsUpTests
         await session.StartHandAsync();
         await session.ActAsync(PlayerActionType.Call);
 
-        var handData = (await session.ActAsync(PlayerActionType.Raise, SmallBlind * 3)).HandData!;
+        var handData = (await session.ActAsync(PlayerActionType.Raise, SmallBlind * 4)).HandData!;
 
         handData.Street.Should().Be(Street.PreFlop);
         handData.NextPlayerSeatNo.Should().Be(ButtonSeatNo, "a raise puts the button back on the clock");
-        handData.GetEvalMinValue(PlayerActionType.Call).Should().Be(SmallBlind,
-            "the button has 2·sb in and owes the difference up to 3·sb");
+        handData.GetEvalMinValue(PlayerActionType.Call).Should().Be(SmallBlind * 2,
+            "the button has 2·sb in and owes the difference up to 4·sb");
     }
 
     [TestMethod]

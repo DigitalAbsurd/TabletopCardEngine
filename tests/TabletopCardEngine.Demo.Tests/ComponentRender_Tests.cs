@@ -1595,17 +1595,16 @@ public sealed class ComponentRender_Tests
         component.FindAll(".raise-slider .raise-mark").Select(mark => mark.TextContent.Trim())
             .Should().Equal("Min", "All-in");
         component.FindAll(".raise-slider .raise-mark").Select(mark => mark.GetAttribute("title"))
-            .Should().Equal("150", "1000");
+            .Should().Equal("200", "1000");
 
-        // The button owes 50 to call 100: ½ Pot is 100 + (150 + 50) / 2 = 200 and Pot is
-        // 100 + 200 = 300, both strictly inside the engine's 150..1000 window, stacked beside the box
-        // and each showing its amount, with the sum behind it spelt out for a screen reader too
+        // The button owes 50 to call 100: ½ Pot is 100 + (150 + 50) / 2 = 200, which is the engine's
+        // minimum raise and so not strictly inside its 200..1000 window, and Pot is 100 + 200 = 300,
+        // which is: only that one is stacked beside the box, showing its amount, with the sum behind it
+        // spelt out for a screen reader too
         component.FindAll(".raise-presets .raise-preset-btn").Select(button => button.TextContent.Trim())
-            .Should().Equal("½ Pot · 200", "Pot · 300");
+            .Should().Equal("Pot · 300");
         component.FindAll(".raise-presets .raise-preset-btn").Select(button => button.GetAttribute("aria-label"))
-            .Should().Equal(
-                "½ Pot: raise to 200. Current bet 100 + ½ × (pot 150 + call 50) = 200",
-                "Pot: raise to 300. Current bet 100 + (pot 150 + call 50) = 300");
+            .Should().Equal("Pot: raise to 300. Current bet 100 + (pot 150 + call 50) = 300");
     }
 
     [TestMethod]
@@ -1670,7 +1669,7 @@ public sealed class ComponentRender_Tests
     [TestMethod]
     public async Task ActionPanel_IllegalAmount_DisablesRaiseUntilTheFixButtonCorrectsIt()
     {
-        // Arrange - the window is 150..1000 in steps of 50
+        // Arrange - the window is 200..1000 in steps of 50
         using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);

@@ -12,7 +12,7 @@ namespace TabletopCardEngine.Tests;
 /// fold the seat silently instead, while the ledger recorded the requested type, so the returned
 /// <see cref="GameData"/> contradicted itself. Every case runs on a fresh heads-up 1/2 game with
 /// stacks of 100: the button (seat 1) posts the small blind and is offered
-/// <c>[Fold, Call(1..1), Raise(3..100)]</c> pre-flop.
+/// <c>[Fold, Call(1..1), Raise(4..100)]</c> pre-flop.
 /// </summary>
 [TestClass]
 public sealed class ActionLegalityTests
@@ -52,7 +52,7 @@ public sealed class ActionLegalityTests
     }
 
     [TestMethod]
-    [DataRow(PlayerActionType.Raise, 3)]
+    [DataRow(PlayerActionType.Raise, 4)]
     [DataRow(PlayerActionType.Raise, 100)]
     [DataRow(PlayerActionType.Call, 0)]
     [DataRow(PlayerActionType.Fold, 0)]

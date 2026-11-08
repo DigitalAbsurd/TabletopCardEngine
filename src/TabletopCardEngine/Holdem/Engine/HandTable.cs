@@ -23,6 +23,9 @@ internal sealed class HandTable
     /// <summary>1-based seat on the clock; 0 means nobody is (hand over, or nobody seated).</summary>
     public byte NextSeatNo { get; set; }
 
+    /// <summary>The <see cref="SeatBet.Order"/> the next recorded action takes: one past the last one in the ledger.</summary>
+    public int NextBetOrder { get; set; }
+
     public List<Card> Board { get; } = [];
 
     /// <summary>Set once the pot has been awarded; null while the hand is still being played.</summary>

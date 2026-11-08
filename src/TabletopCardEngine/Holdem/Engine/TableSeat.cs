@@ -48,8 +48,8 @@ internal sealed class TableSeat
     /// </summary>
     public bool BigBlindOptionPending => StreetBets is [{ Action: HandActionType.BigBlind }];
 
-    internal void Record(HandActionType action, decimal amount, decimal addAmount, decimal paid)
-        => StreetBets.Add(new SeatBet(action, amount, addAmount, paid));
+    internal void Record(HandActionType action, decimal amount, decimal addAmount, decimal paid, int order)
+        => StreetBets.Add(new SeatBet(action, amount, addAmount, paid, order));
 
     internal void ClearStreet() => StreetBets.Clear();
 }

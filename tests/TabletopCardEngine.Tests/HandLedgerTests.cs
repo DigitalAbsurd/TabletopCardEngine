@@ -63,9 +63,9 @@ public sealed class HandLedgerTests
                 new HoldemActionPlay(gameId, PlayerActionType.Fold, 0));
             AssertActionsIntegrity(gameData.Value);
 
-            // Third action: Player 2 raises to 15
+            // Third action: Player 2 raises to 20
             gameData = await holdemEngine.ApplyAsync(
-                new HoldemActionPlay(gameId, PlayerActionType.Raise, 15));
+                new HoldemActionPlay(gameId, PlayerActionType.Raise, 20));
             AssertActionsIntegrity(gameData.Value);
 
             // Fourth action: Player 3 calls

@@ -18,19 +18,38 @@ internal static class BettingRules
     internal static decimal AgreeAmount(HandTable table) => LastRaise(table)?.Amount ?? 0M;
 
     /// <summary>
-    /// The smallest legal "raise to" total: the last raise's total plus its own increment (so the
-    /// big blind's post — amount 2·sb, increment sb — makes the preflop minimum raise 3·sb, not
-    /// the 4·sb a naive "double the bet" rule would give). Never less than one big blind, whether or
-    /// not a raise has been made: a blind posted by a stack too short to cover it is a raise-kind
-    /// entry below a full blind, and a raise can never bring the street total under one.
+    /// The smallest legal "raise to" total: the standing wager plus the full-raise increment. The
+    /// increment is the largest one among this street's full bets and raises, and never less than one
+    /// big blind. A bet or raise, an all-in raise included, is full when its increment reaches the
+    /// increment standing when it was made; an incomplete all-in raise lifts the standing wager and
+    /// leaves the increment where it was. Blinds set no increment, so pre-flop it starts at one big
+    /// blind and the first minimum raise is to two. Pre-flop the standing wager is never counted
+    /// below the nominal big blind, so a blind posted by a stack too short to cover it does not lower
+    /// the minimum.
     /// </summary>
     internal static decimal MinRaiseAmount(HandTable table)
     {
-        var lastRaise = LastRaise(table);
-        return lastRaise is { } raise
-            ? Math.Max(raise.Amount + raise.AddAmount, table.SmallBlind * 2)
-            : table.SmallBlind * 2;
+        var bigBlind = table.SmallBlind * 2;
+        var standing = 0M;
+        var increment = bigBlind;
+        foreach (var bet in table.Seats.SelectMany(seat => seat.StreetBets).OrderBy(bet => bet.Order))
+        {
+            if (!IsRaiseKind(bet) || bet.Amount <= standing)
+            {
+                continue;
+            }
+            if (bet.Action is not (HandActionType.SmallBlind or HandActionType.BigBlind) && bet.Amount - standing >= increment)
+            {
+                increment = bet.Amount - standing;
+            }
+            standing = bet.Amount;
+        }
+        return (table.Street == Street.PreFlop ? Math.Max(standing, bigBlind) : standing) + increment;
     }
+
+    // An all-in call is recorded as AllIn with AddAmount 0; only an all-in raise counts.
+    private static bool IsRaiseKind(SeatBet bet)
+        => Array.IndexOf(_raiseKinds, bet.Action) >= 0 || (bet.Action == HandActionType.AllIn && bet.AddAmount > 0);
 
     internal static bool IsAllIn(TableSeat seat, PlayerActionType action, decimal betAmount)
         => action switch
@@ -143,10 +162,7 @@ internal static class BettingRules
         {
             foreach (var bet in seat.StreetBets)
             {
-                // An all-in call is recorded as AllIn with AddAmount 0; only an all-in raise counts.
-                var isRaiseKind = Array.IndexOf(_raiseKinds, bet.Action) >= 0
-                    || (bet.Action == HandActionType.AllIn && bet.AddAmount > 0);
-                if (!isRaiseKind)
+                if (!IsRaiseKind(bet))
                 {
                     continue;
                 }

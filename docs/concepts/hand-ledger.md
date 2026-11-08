@@ -78,7 +78,7 @@ After this sequence:
 - **Seat 2 Stack** = 94 (wagered 6)
 - **Seat 3 Stack** = 94 (wagered 6)
 
-**Note on raises and bet sizing**: A raise's `Size` is the **street total to raise to**, not the increment. So action 4 (`Size = 6`) means "raise the street wager to 6", not "raise by 6". The engine's `BettingRules.MinRaiseAmount` calculates minimums based on the last raise's increment, so the minimum might not be a power of 2; follow what the engine offers in `HandData.Evaluations`.
+**Note on raises and bet sizing**: A raise's `Size` is the **street total to raise to**, not the increment. So action 4 (`Size = 6`) means "raise the street wager to 6", not "raise by 6". The engine's `BettingRules.MinRaiseAmount` calculates the minimum as the standing wager plus the last full raise (an incomplete all-in raise lifts the standing wager but not the increment, and the increment is never less than one big blind), so the minimum might not be a power of 2; follow what the engine offers in `HandData.Evaluations`.
 
 ## Reading GameData correctly
 
