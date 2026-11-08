@@ -10,6 +10,7 @@ internal static class SupportedGameVariants
     [
         (GameType.Holdem, BettingStructure.NoLimit),
         (GameType.Holdem, BettingStructure.PotLimit),
+        (GameType.Holdem, BettingStructure.FixedLimit),
     ];
 
     /// <summary>

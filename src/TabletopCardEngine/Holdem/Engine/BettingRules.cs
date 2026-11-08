@@ -30,7 +30,18 @@ internal static class BettingRules
     internal static decimal MinRaiseAmount(HandTable table)
     {
         var (standing, increment) = StandingAndIncrement(table, int.MaxValue);
-        return standing + increment;
+        return table.BettingStructure == BettingStructure.FixedLimit ? standing + FixedBetSize(table) : standing + increment;
+    }
+
+    /// <summary>
+    /// The one Fixed-Limit bet: the small bet, the hand's big blind, pre-flop and on the flop; the big bet,
+    /// twice that, on the turn and river. It is read from the hand, so a blind schedule raises the bets with
+    /// the blinds, and a big blind posted short by a small stack does not lower it.
+    /// </summary>
+    internal static decimal FixedBetSize(HandTable table)
+    {
+        var smallBet = table.SmallBlind * 2;
+        return table.Street.BoardSize() >= Street.Turn.BoardSize() ? smallBet * 2 : smallBet;
     }
 
     /// <summary>
@@ -41,7 +52,8 @@ internal static class BettingRules
 
     /// <summary>
     /// The largest legal "raise to" total for a seat. No-Limit lets a seat raise its whole stack;
-    /// Pot-Limit caps the raise at the pot after the seat calls, and then at the stack.
+    /// Pot-Limit caps the raise at the pot after the seat calls, and then at the stack; Fixed-Limit
+    /// allows exactly one bet over the standing wager, and then no more than the stack.
     /// </summary>
     internal static decimal MaxRaiseAmount(HandTable table, byte seatNo)
     {
@@ -50,6 +62,7 @@ internal static class BettingRules
         return table.BettingStructure switch
         {
             BettingStructure.PotLimit => Math.Min(PotLimitRaiseTo(table, seat), allInTo),
+            BettingStructure.FixedLimit => Math.Min(MinRaiseAmount(table), allInTo),
             _ => allInTo,
         };
     }
@@ -88,6 +101,50 @@ internal static class BettingRules
         var standingThen = StandingAndIncrement(table, order).Standing;
         var standingNow = StandingAndIncrement(table, int.MaxValue).Standing;
         return standingNow - standingThen >= reopenThreshold;
+    }
+
+    /// <summary>
+    /// Whether the seat on the clock may raise at all, an all-in raise included: the betting has to be
+    /// open to it (<see cref="CanRaise"/>), and under Fixed-Limit the street must not yet hold
+    /// <see cref="HandTable.RaiseCap"/> bets. A No-Limit or Pot-Limit raise reopens the betting when it is
+    /// a full raise; a Fixed-Limit one when it is at least half a bet, the limit reading of TDA Rule 47.
+    /// </summary>
+    internal static bool IsRaisingOpen(HandTable table, byte seatNo)
+    {
+        if (table.BettingStructure != BettingStructure.FixedLimit)
+        {
+            return CanRaise(table, seatNo, FullRaiseIncrement(table));
+        }
+        return CanRaise(table, seatNo, FixedBetSize(table) / 2)
+            && (table.RaiseCap is not { } cap || FixedLimitBetCount(table) < cap);
+    }
+
+    /// <summary>
+    /// The bets this street holds, counted against the Fixed-Limit cap. Pre-flop the big blind is the
+    /// first, whatever was actually posted. Every bet and raise counts, and so does an all-in raise that
+    /// lifts the standing wager by at least half a bet; a smaller all-in raise does not.
+    /// </summary>
+    private static int FixedLimitBetCount(HandTable table)
+    {
+        var halfBet = FixedBetSize(table) / 2;
+        var preFlop = table.Street == Street.PreFlop;
+        var standing = preFlop ? table.SmallBlind * 2 : 0M;
+        var count = preFlop ? 1 : 0;
+        foreach (var bet in table.Seats.SelectMany(seat => seat.StreetBets).OrderBy(bet => bet.Order))
+        {
+            if (!IsRaiseKind(bet) || bet.Action is (HandActionType.SmallBlind or HandActionType.BigBlind) || bet.Amount <= standing)
+            {
+                continue;
+            }
+            // Only an all-in can rise by less than a bet, whether it was requested as AllIn or as the
+            // offered all-in Raise, so the size alone tells a full bet from a short one.
+            if (bet.Amount - standing >= halfBet)
+            {
+                count++;
+            }
+            standing = bet.Amount;
+        }
+        return count;
     }
 
     // Replays this street's raise-kind wagers in order, up to and including the bet at maxOrder.
@@ -155,7 +212,7 @@ internal static class BettingRules
             PlayerActionType.Call => IsShortOfMoney(seat, amount) || amount != AgreeAmount(table),
             PlayerActionType.Raise => IsShortOfMoney(seat, amount) || MinRaiseAmount(table) > amount
                 || amount > MaxRaiseAmount(table, seatNo)
-                || !CanRaise(table, seatNo, FullRaiseIncrement(table)),
+                || !IsRaisingOpen(table, seatNo),
             _ => false
         };
     }
@@ -194,8 +251,9 @@ internal static class BettingRules
             ? new PlayerActionEvaluationData(PlayerActionType.Call, callValue, callValue)
             : new PlayerActionEvaluationData(PlayerActionType.Check));
 
-        // The betting is closed to this seat: no raise window and no all-in raise either.
-        if (!CanRaise(table, seatNo, FullRaiseIncrement(table)))
+        // The betting is closed to this seat, or the Fixed-Limit cap is reached: no raise window and no
+        // all-in raise either.
+        if (!IsRaisingOpen(table, seatNo))
         {
             return evaluations;
         }
@@ -213,7 +271,8 @@ internal static class BettingRules
         // All-in is allowed wherever raising is, even when the raise window above is degenerate. The
         // bound is a "raise to" total like every other raise bound, so it has to include what the seat
         // already has on the street — otherwise a seat that has posted a blind would be handed a size the
-        // rules read as an under-raise. It is never offered above the Pot-Limit maximum.
+        // rules read as an under-raise. It is never offered above the Pot-Limit maximum, and under
+        // Fixed-Limit it is offered only when the stack falls short of the one raise-to total.
         var allInRaiseTo = seat.Stack + seat.StreetWager;
         if (allInRaiseTo > MaxRaiseAmount(table, seatNo))
         {

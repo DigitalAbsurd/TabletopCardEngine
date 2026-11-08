@@ -483,7 +483,7 @@ renumber.
     than to a default one. Define custom properties in the global `wwwroot/css/app.css`, never in a
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
-23. **The v1 scope is enforced, and each rule has its own code.** No-Limit and Pot-Limit Hold'em cash games (Fixed-Limit is defined but not yet supported, #653) at 2 to 10
+23. **The v1 scope is enforced, and each rule has its own code.** No-Limit, Pot-Limit and Fixed-Limit Hold'em cash games at 2 to 10
     seats, with optional buy-in limits, top-up, rebuy and kick, and optional blind schedules; no antes, no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
     `FullRing` 7 to 10 (`Holdem/ActionHandlers/HoldemTableFormatExtensions.cs`). `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
@@ -563,7 +563,14 @@ renumber.
     Pot-Limit `AgreeAmount + Σ Committed + (AgreeAmount − StreetWager)`, the standing wager plus the pot
     after the seat calls (blinds, dead money and folded seats' wagers count), capped at the stack. Under
     Pot-Limit the synthetic all-in raise is offered only when the stack cannot reach the minimum, never
-    above the pot limit, so an `AllIn` over the pot fails with `IllegalAction`. Raising is closed to a seat that has already acted
+    above the pot limit, so an `AllIn` over the pot fails with `IllegalAction`. Under Fixed-Limit the window is
+    fixed, `MinRaiseAmount == MaxRaiseAmount ==` the standing wager plus one bet (`BettingRules.FixedBetSize`: the
+    hand's `SmallBlind * 2` pre-flop and on the flop, twice that on the turn and river, never `InitialSmallBlind`),
+    or the all-in total when the stack falls short of it; an `AllIn` is legal up to that total only. Once the street
+    holds `GameOptionData.RaiseCap` bets (`null` is no cap) raising is closed (`BettingRules.IsRaisingOpen`): the
+    big blind is the first bet pre-flop, every bet and raise counts, and an all-in raise counts only when it lifts
+    the standing wager by at least half a bet. The reopening threshold below is half a bet under Fixed-Limit
+    rather than a full raise, so an all-in raise of exactly half a bet reopens the betting. Raising is closed to a seat that has already acted
     voluntarily this street until the standing wager has risen by at least a full raise since its last
     voluntary action, counted cumulatively (`BettingRules.CanRaise`, TDA Rule 47): an all-in for less
     than a full raise does not reopen the betting, and `Evaluate` then offers `Fold` and `Call`/`Check`

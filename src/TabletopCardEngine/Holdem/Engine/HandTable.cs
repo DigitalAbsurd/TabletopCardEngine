@@ -14,6 +14,9 @@ internal sealed class HandTable
     /// <summary>The game's betting structure, which decides the largest raise <see cref="BettingRules"/> allows.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 
+    /// <summary>The most bets a Fixed-Limit street may hold; null means no cap. Ignored by the other structures.</summary>
+    public int? RaiseCap { get; init; }
+
     public required CardDeck Deck { get; init; }
 
     /// <summary>Occupied seats only, ascending by <see cref="TableSeat.SeatNo"/>. No empty-seat padding.</summary>

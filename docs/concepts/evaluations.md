@@ -48,6 +48,16 @@ MaxValue = StandingWager + (Pot + StreetPot + MoreToCall)   // then capped at Be
 
 Under Pot-Limit an all-in raise is offered on its own (`[stack-stack]`) only when the stack cannot reach the minimum raise. An `AllIn` whose total is above `MaxValue` fails with `IllegalAction`, as does a `Raise` above it.
 
+### Raise under Fixed-Limit: one fixed total
+
+In a Fixed-Limit game (`BettingStructure.FixedLimit`) every bet and raise is one fixed size, so the `Raise` window is a single value: `MinValue == MaxValue ==` the standing wager plus one bet. The bet is the hand's big blind pre-flop and on the flop (the small bet) and twice that on the turn and river (the big bet). It follows the hand's blinds, so a blind schedule raises the bets with them, and a big blind posted short by a small stack does not lower it.
+
+At blinds 1/2 the first raise pre-flop is to 4 and the next to 6; the first bet on the flop is 2; on the turn a bet is 4 and a raise over it goes to 8. A seat whose stack falls short of the total but covers more than the call is offered the all-in raise instead (`[stack-stack]`, the street bet included).
+
+A street holds at most `GameOptionData.RaiseCap` bets (4 by default, `null` for no cap). Pre-flop the big blind is the first. Every bet and raise counts, and so does an all-in raise that lifts the standing wager by at least half a bet; a smaller all-in raise does not. Once the cap is reached there is no `Raise` entry, and an `AllIn` worth more than the call fails with `IllegalAction`, as does any `Raise` or `AllIn` past the window.
+
+An all-in raise of at least half a bet also reopens the betting (see below): on the turn at blinds 1/2, after a bet of 4, an all-in to 6 reopens it for the bettor and the next raise goes to 10, while an all-in to 5 does neither and the next raise goes to 9.
+
 ### Why the difference?
 
 A "call" button in a UI wants to know "put this many more chips in". A "raise to" slider wants to know "drag to this value". The engine provides exactly that, so your UI does not need to translate.
@@ -59,11 +69,11 @@ A "call" button in a UI wants to know "put this many more chips in". A "raise to
 - **`Call`**: Offered when there is something to call and the stack can cover it. Window is an increment.
 - **`Raise`**: Window is both an absolute total (min and max street total to raise to). The minimum is the standing wager plus the last full raise, and a full raise is never less than one big blind (so the first raise pre-flop is to two big blinds). See [The hand ledger](hand-ledger.md) for how the engine calculates the minimum.
 - **`Bet`**: Offered only as the opening wager on a street where nothing has been bet. Window is an increment.
-- **`AllIn`**: Commits the whole stack. It is a call (if the stack does not exceed the amount to call), which is always legal, or a raise (if it does), which is legal only where raising is (see below) and, under Pot-Limit, only when the stack is within the pot limit. Window is empty because the amount is fixed.
+- **`AllIn`**: Commits the whole stack. It is a call (if the stack does not exceed the amount to call), which is always legal, or a raise (if it does), which is legal only where raising is (see below) and, under Pot-Limit, only when the stack is within the pot limit, or, under Fixed-Limit, only when the stack is at most the one raise-to total. Window is empty because the amount is fixed.
 
 ## When the betting is not reopened
 
-An all-in for less than a full raise does not reopen the betting to a seat that has already acted on the street (TDA Rule 47). Such a seat is offered `Fold` and `Call` only: no `Raise` window and no all-in raise, and a `Raise`, or an `AllIn` that would be more than a call, fails with `IllegalAction`. The betting reopens for it once the standing wager has risen by at least a full raise since its last action, counted cumulatively, so two short all-ins that add up to a full raise do reopen it. Posting a blind is not acting, so the big blind keeps its option to raise when everyone limps.
+An all-in for less than a full raise does not reopen the betting to a seat that has already acted on the street (TDA Rule 47). Such a seat is offered `Fold` and `Call` only: no `Raise` window and no all-in raise, and a `Raise`, or an `AllIn` that would be more than a call, fails with `IllegalAction`. The betting reopens for it once the standing wager has risen by at least a full raise since its last action, counted cumulatively, so two short all-ins that add up to a full raise do reopen it. Posting a blind is not acting, so the big blind keeps its option to raise when everyone limps. Under Fixed-Limit the threshold is half a bet instead of a full raise (TDA Rule 47 for limit games).
 
 Example at blinds 1/2: seat 1 raises to 10, seat 2 calls, seat 3 goes all in for 13, three more than 10 and short of the full raise of 8. Seat 1 is offered `Fold` and `Call 3` only. Had seat 3 gone all in for 30, seat 1 could raise again.
 
