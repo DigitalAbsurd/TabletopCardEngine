@@ -99,6 +99,9 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("RaiseCap")
+                        .HasColumnType("int");
+
                     b.Property<string>("TableFormat")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -343,8 +346,8 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.2.0",
-                            SchemaVersion = 4
+                            EngineVersion = "1.3.0",
+                            SchemaVersion = 5
                         });
                 });
 

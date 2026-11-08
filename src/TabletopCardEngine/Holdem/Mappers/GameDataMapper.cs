@@ -44,6 +44,7 @@ internal static class GameDataMapper
                 MaxRebuys = game.MaxRebuys,
                 MinBuyIn = game.MinBuyIn,
                 MaxBuyIn = game.MaxBuyIn,
+                RaiseCap = game.RaiseCap,
                 BlindSchedule = game.BlindSchedule is { } schedule
                     ? schedule with
                     {

@@ -93,6 +93,9 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("RaiseCap")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("TableFormat")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -337,8 +340,8 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.2.0",
-                            SchemaVersion = 4
+                            EngineVersion = "1.3.0",
+                            SchemaVersion = 5
                         });
                 });
 

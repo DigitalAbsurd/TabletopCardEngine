@@ -99,6 +99,9 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<int?>("RaiseCap")
+                        .HasColumnType("integer");
+
                     b.Property<string>("TableFormat")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -343,8 +346,8 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.2.0",
-                            SchemaVersion = 4
+                            EngineVersion = "1.3.0",
+                            SchemaVersion = 5
                         });
                 });
 

@@ -12,7 +12,7 @@ public sealed record GameOptionData
     /// <summary>The poker variant. Only <see cref="TabletopCardEngine.Holdem.GameType.Holdem"/> exists in v1.</summary>
     public GameType GameType { get; init; } = GameType.Holdem;
 
-    /// <summary>How bets are sized. Only <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> exists in v1.</summary>
+    /// <summary>How bets are sized. <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> is the only structure a game can be created with yet; <see cref="TabletopCardEngine.Holdem.BettingStructure.PotLimit"/> and <see cref="TabletopCardEngine.Holdem.BettingStructure.FixedLimit"/> are defined but their rules are still to come.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 
     /// <summary>
@@ -73,6 +73,14 @@ public sealed record GameOptionData
     /// caller that never sets it gets the 1.1 game. Must be valid when set; see <see cref="BlindScheduleData"/>.
     /// </summary>
     public BlindScheduleData? BlindSchedule { get; init; }
+
+    /// <summary>
+    /// The most bets a street may hold in a <see cref="TabletopCardEngine.Holdem.BettingStructure.FixedLimit"/> game: a bet
+    /// and three raises by default; pre-flop the big blind counts as the bet. <see langword="null"/> means no cap.
+    /// Ignored by <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> and <see cref="TabletopCardEngine.Holdem.BettingStructure.PotLimit"/>.
+    /// Must be at least 1 when set. Games created before 1.3 read back <see langword="null"/>.
+    /// </summary>
+    public int? RaiseCap { get; init; } = 4;
 }
 
 /// <summary>A player taking a seat, together with the stack they bring to it.</summary>
