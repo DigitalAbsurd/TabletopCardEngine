@@ -12,7 +12,7 @@ public sealed record GameOptionData
     /// <summary>The poker variant. Only <see cref="TabletopCardEngine.Holdem.GameType.Holdem"/> exists in v1.</summary>
     public GameType GameType { get; init; } = GameType.Holdem;
 
-    /// <summary>How bets are sized. <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> is the only structure a game can be created with yet; <see cref="TabletopCardEngine.Holdem.BettingStructure.PotLimit"/> and <see cref="TabletopCardEngine.Holdem.BettingStructure.FixedLimit"/> are defined but their rules are still to come.</summary>
+    /// <summary>How bets are sized. A game can be created with <see cref="TabletopCardEngine.Holdem.BettingStructure.NoLimit"/> or <see cref="TabletopCardEngine.Holdem.BettingStructure.PotLimit"/>; <see cref="TabletopCardEngine.Holdem.BettingStructure.FixedLimit"/> is defined but its rules are still to come.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 
     /// <summary>

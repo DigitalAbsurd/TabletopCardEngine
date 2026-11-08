@@ -9,6 +9,7 @@ internal static class SupportedGameVariants
     private static readonly (GameType GameType, BettingStructure BettingStructure)[] _supportedVariants =
     [
         (GameType.Holdem, BettingStructure.NoLimit),
+        (GameType.Holdem, BettingStructure.PotLimit),
     ];
 
     /// <summary>

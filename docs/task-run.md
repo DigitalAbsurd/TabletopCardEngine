@@ -483,7 +483,7 @@ renumber.
     than to a default one. Define custom properties in the global `wwwroot/css/app.css`, never in a
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
-23. **The v1 scope is enforced, and each rule has its own code.** No-Limit Hold'em cash games at 2 to 10
+23. **The v1 scope is enforced, and each rule has its own code.** No-Limit and Pot-Limit Hold'em cash games (Fixed-Limit is defined but not yet supported, #653) at 2 to 10
     seats, with optional buy-in limits, top-up, rebuy and kick, and optional blind schedules; no antes, no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
     `FullRing` 7 to 10 (`Holdem/ActionHandlers/HoldemTableFormatExtensions.cs`). `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
@@ -558,7 +558,12 @@ renumber.
     `Evaluations` and the validation share `BettingRules.Evaluate`. `AllIn` is resolved in
     `PlayActionHandler`: with `allInTo = Stack + StreetWager`, it is a call (possibly for less) when
     `allInTo <= CallTo`, which is always legal, otherwise a raise to `allInTo`, which is legal only where
-    raising is, and the ledger records `AllIn`. Raising is closed to a seat that has already acted
+    raising is and only up to `BettingRules.MaxRaiseAmount`, and the ledger records `AllIn`. The top of
+    the `Raise` window is `MaxRaiseAmount`: the stack (`Stack + StreetWager`) under No-Limit; under
+    Pot-Limit `AgreeAmount + Σ Committed + (AgreeAmount − StreetWager)`, the standing wager plus the pot
+    after the seat calls (blinds, dead money and folded seats' wagers count), capped at the stack. Under
+    Pot-Limit the synthetic all-in raise is offered only when the stack cannot reach the minimum, never
+    above the pot limit, so an `AllIn` over the pot fails with `IllegalAction`. Raising is closed to a seat that has already acted
     voluntarily this street until the standing wager has risen by at least a full raise since its last
     voluntary action, counted cumulatively (`BettingRules.CanRaise`, TDA Rule 47): an all-in for less
     than a full raise does not reopen the betting, and `Evaluate` then offers `Fold` and `Call`/`Check`
