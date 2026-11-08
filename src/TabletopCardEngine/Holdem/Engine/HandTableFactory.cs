@@ -23,6 +23,7 @@ internal static class HandTableFactory
         var table = new HandTable
         {
             SmallBlind = hand.SmallBlind ?? game.InitialSmallBlind,
+            BettingStructure = game.BettingStructure,
             Deck = deck ?? CardDeck.Shuffled(exclude: hand.GetDeckCards().Concat(seats.SelectMany(seat => seat.Hole))),
             Seats = seats,
             Street = hand.GetStreet(),

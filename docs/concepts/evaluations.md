@@ -36,6 +36,18 @@ RaiseToThis = eval.MinValue  // Raise the street wager to this amount
 
 If a `Raise` evaluation shows `[3-100]`, the seat may raise the street wager to any value from 3 to 100. The increment the seat puts in is not in the window — calculate it by subtracting its current bet from the chosen total.
 
+### Raise under Pot-Limit: the maximum is the pot
+
+In a No-Limit game (`BettingStructure.NoLimit`) the `Raise`'s `MaxValue` is the seat's whole stack: its street bet plus what it has left. In a Pot-Limit game (`BettingStructure.PotLimit`) `MaxValue` is the standing wager plus the pot as it would be once the seat has called, and never more than the stack:
+
+```
+MaxValue = StandingWager + (Pot + StreetPot + MoreToCall)   // then capped at BetSize + Stack
+```
+
+`Pot + StreetPot` is every chip committed this hand, blinds and the wagers of seats that have since folded included. At blinds 1/2 with three seats of 200, the first seat to act may raise to `2 + (3 + 2) = 7`; after it raises to 7, the small blind may raise to `7 + (10 + 6) = 23`. The minimum is the same as in No-Limit.
+
+Under Pot-Limit an all-in raise is offered on its own (`[stack-stack]`) only when the stack cannot reach the minimum raise. An `AllIn` whose total is above `MaxValue` fails with `IllegalAction`, as does a `Raise` above it.
+
 ### Why the difference?
 
 A "call" button in a UI wants to know "put this many more chips in". A "raise to" slider wants to know "drag to this value". The engine provides exactly that, so your UI does not need to translate.
@@ -47,7 +59,7 @@ A "call" button in a UI wants to know "put this many more chips in". A "raise to
 - **`Call`**: Offered when there is something to call and the stack can cover it. Window is an increment.
 - **`Raise`**: Window is both an absolute total (min and max street total to raise to). The minimum is the standing wager plus the last full raise, and a full raise is never less than one big blind (so the first raise pre-flop is to two big blinds). See [The hand ledger](hand-ledger.md) for how the engine calculates the minimum.
 - **`Bet`**: Offered only as the opening wager on a street where nothing has been bet. Window is an increment.
-- **`AllIn`**: Commits the whole stack. It is a call (if the stack does not exceed the amount to call), which is always legal, or a raise (if it does), which is legal only where raising is (see below). Window is empty because the amount is fixed.
+- **`AllIn`**: Commits the whole stack. It is a call (if the stack does not exceed the amount to call), which is always legal, or a raise (if it does), which is legal only where raising is (see below) and, under Pot-Limit, only when the stack is within the pot limit. Window is empty because the amount is fixed.
 
 ## When the betting is not reopened
 

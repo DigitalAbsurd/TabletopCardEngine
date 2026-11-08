@@ -49,7 +49,7 @@ public bool AllowTopUp { get; init; }
 
 ## GameOptionData\.BettingStructure Property
 
-How bets are sized\. [NoLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.NoLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.NoLimit') is the only structure a game can be created with yet; [PotLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.PotLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.PotLimit') and [FixedLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.FixedLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.FixedLimit') are defined but their rules are still to come\.
+How bets are sized\. A game can be created with [NoLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.NoLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.NoLimit') or [PotLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.PotLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.PotLimit'); [FixedLimit](TabletopCardEngine.Holdem.BettingStructure.md#TabletopCardEngine.Holdem.BettingStructure.FixedLimit 'TabletopCardEngine\.Holdem\.BettingStructure\.FixedLimit') is defined but its rules are still to come\.
 
 ```csharp
 public TabletopCardEngine.Holdem.BettingStructure BettingStructure { get; init; }

@@ -40,6 +40,34 @@ internal static class BettingRules
     internal static decimal FullRaiseIncrement(HandTable table) => StandingAndIncrement(table, int.MaxValue).Increment;
 
     /// <summary>
+    /// The largest legal "raise to" total for a seat. No-Limit lets a seat raise its whole stack;
+    /// Pot-Limit caps the raise at the pot after the seat calls, and then at the stack.
+    /// </summary>
+    internal static decimal MaxRaiseAmount(HandTable table, byte seatNo)
+    {
+        var seat = table[seatNo];
+        var allInTo = seat.Stack + seat.StreetWager;
+        return table.BettingStructure switch
+        {
+            BettingStructure.PotLimit => Math.Min(PotLimitRaiseTo(table, seat), allInTo),
+            _ => allInTo,
+        };
+    }
+
+    /// <summary>
+    /// The Pot-Limit maximum before the stack cap: the standing wager plus the pot as it would be once
+    /// the seat has called. The pot is every chip committed this hand, blinds, dead money and folded
+    /// seats' wagers included, which is what <see cref="TableSeat.Committed"/> sums across the seats.
+    /// No rounding: amounts have at most two decimal places, and so does their sum.
+    /// </summary>
+    private static decimal PotLimitRaiseTo(HandTable table, TableSeat seat)
+    {
+        var agreeAmount = AgreeAmount(table);
+        var pot = table.Seats.Sum(other => other.Committed);
+        return agreeAmount + pot + (agreeAmount - seat.StreetWager);
+    }
+
+    /// <summary>
     /// Whether a seat may raise, an all-in raise included. A seat that has taken no voluntary action
     /// this street may (a blind post is not one, so the big blind keeps its option). A seat that has
     /// may raise only once the standing wager has risen by at least <paramref name="reopenThreshold"/>
@@ -126,6 +154,7 @@ internal static class BettingRules
             PlayerActionType.Fold => false,
             PlayerActionType.Call => IsShortOfMoney(seat, amount) || amount != AgreeAmount(table),
             PlayerActionType.Raise => IsShortOfMoney(seat, amount) || MinRaiseAmount(table) > amount
+                || amount > MaxRaiseAmount(table, seatNo)
                 || !CanRaise(table, seatNo, FullRaiseIncrement(table)),
             _ => false
         };
@@ -137,10 +166,9 @@ internal static class BettingRules
     {
         var seat = table[seatNo];
         var minRaise = MinRaiseAmount(table);
-        var maxRaise = seat.Stack + seat.StreetWager;
-        return maxRaise < minRaise
+        return seat.Stack + seat.StreetWager < minRaise
             ? new ActionEvaluations(AgreeAmount(table), null, null)
-            : new ActionEvaluations(AgreeAmount(table), minRaise, maxRaise);
+            : new ActionEvaluations(AgreeAmount(table), minRaise, MaxRaiseAmount(table, seatNo));
     }
 
     /// <summary>
@@ -185,8 +213,12 @@ internal static class BettingRules
         // All-in is allowed wherever raising is, even when the raise window above is degenerate. The
         // bound is a "raise to" total like every other raise bound, so it has to include what the seat
         // already has on the street — otherwise a seat that has posted a blind would be handed a size the
-        // rules read as an under-raise.
+        // rules read as an under-raise. It is never offered above the Pot-Limit maximum.
         var allInRaiseTo = seat.Stack + seat.StreetWager;
+        if (allInRaiseTo > MaxRaiseAmount(table, seatNo))
+        {
+            return evaluations;
+        }
         evaluations.Add(new PlayerActionEvaluationData(PlayerActionType.Raise, allInRaiseTo, allInRaiseTo));
         return evaluations;
     }

@@ -10,6 +10,10 @@
 internal sealed class HandTable
 {
     public required decimal SmallBlind { get; init; }
+
+    /// <summary>The game's betting structure, which decides the largest raise <see cref="BettingRules"/> allows.</summary>
+    public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
+
     public required CardDeck Deck { get; init; }
 
     /// <summary>Occupied seats only, ascending by <see cref="TableSeat.SeatNo"/>. No empty-seat padding.</summary>
