@@ -45,7 +45,7 @@ A "call" button in a UI wants to know "put this many more chips in". A "raise to
 - **`Fold`**: Always offered (it is always legal). Window is empty (`[0-0]`), because no size applies.
 - **`Check`**: Offered only when there is nothing to call (standing wager is 0 or equals the seat's current bet). Window is empty.
 - **`Call`**: Offered when there is something to call and the stack can cover it. Window is an increment.
-- **`Raise`**: Window is both an absolute total (min and max street total to raise to). Minimum is at least 1 more than the standing wager. See [The hand ledger](hand-ledger.md) for how the engine calculates the minimum.
+- **`Raise`**: Window is both an absolute total (min and max street total to raise to). The minimum is the standing wager plus the last full raise, and a full raise is never less than one big blind (so the first raise pre-flop is to two big blinds). See [The hand ledger](hand-ledger.md) for how the engine calculates the minimum.
 - **`Bet`**: Offered only as the opening wager on a street where nothing has been bet. Window is an increment.
 - **`AllIn`**: Always legal and commits the whole stack. It is a call (if the stack does not exceed the amount to call) or a raise (if it does). Window is empty because the amount is fixed.
 

@@ -84,7 +84,7 @@ public sealed class HoldemTableTests
                 [
                     new(PlayerActionType.Fold),
                     new(PlayerActionType.Call, 10, 10),
-                    new(PlayerActionType.Raise, 15, 100)
+                    new(PlayerActionType.Raise, 20, 100)
                 ])
             {
                 SmallBlind = 5M,

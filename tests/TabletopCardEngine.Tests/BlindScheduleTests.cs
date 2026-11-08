@@ -155,7 +155,7 @@ public sealed class BlindScheduleTests
             hand.Actions.Single(action => action.ActionType == HandActionType.BigBlind).Size.Should().Be(hand.BigBlind);
         }
         hands.Select(hand => hand.GetEvalMinValue(PlayerActionType.Raise))
-            .Should().Equal([3M, 3M, 6M, 6M], "the pre-flop minimum raise is the big blind plus its own increment, the small blind");
+            .Should().Equal([4M, 4M, 8M, 8M], "the pre-flop minimum raise is two big blinds");
     }
 
     [TestMethod]

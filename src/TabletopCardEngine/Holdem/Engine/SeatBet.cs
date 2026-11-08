@@ -11,4 +11,8 @@
 /// <param name="Amount">The seat's cumulative wager for the street after this action, not the increment.</param>
 /// <param name="AddAmount">How much this action raised the street wager by; 0 for anything but a raise or a blind.</param>
 /// <param name="Paid">Chips this action actually took out of the stack.</param>
-internal readonly record struct SeatBet(HandActionType Action, decimal Amount, decimal AddAmount, decimal Paid);
+/// <param name="Order">
+/// Position in the street's chronological order across all seats (the ledger's <c>HandAction.No</c> once
+/// persisted), which the per-seat lists alone cannot tell.
+/// </param>
+internal readonly record struct SeatBet(HandActionType Action, decimal Amount, decimal AddAmount, decimal Paid, int Order);

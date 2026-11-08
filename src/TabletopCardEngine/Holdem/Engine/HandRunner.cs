@@ -47,7 +47,7 @@ internal static class HandRunner
             seat.Status = SeatStatus.AllIn;
         }
 
-        var (recordedAmount, addAmount, paid) = Accept(seat, action, amount, agreeAmountBeforeAction);
+        var (recordedAmount, addAmount, paid) = Accept(table, seat, action, amount, agreeAmountBeforeAction);
         var street = table.Street;
 
         table.Prizes = null;
@@ -92,7 +92,7 @@ internal static class HandRunner
             throw new InvalidOperationException("Only a seat still owing decisions can be folded.");
         }
 
-        var (recordedAmount, addAmount, paid) = Accept(seat, PlayerActionType.Fold, 0M, BettingRules.AgreeAmount(table));
+        var (recordedAmount, addAmount, paid) = Accept(table, seat, PlayerActionType.Fold, 0M, BettingRules.AgreeAmount(table));
         var street = table.Street;
 
         table.Prizes = null;
@@ -115,26 +115,26 @@ internal static class HandRunner
     };
 
     private static (decimal Amount, decimal AddAmount, decimal Paid) Accept(
-        TableSeat seat, PlayerActionType action, decimal amount, decimal agreeAmountBeforeAction)
+        HandTable table, TableSeat seat, PlayerActionType action, decimal amount, decimal agreeAmountBeforeAction)
     {
         switch (action)
         {
             case PlayerActionType.Call:
                 {
                     var paid = CollectDelta(seat, amount);
-                    seat.Record(HandActionType.Call, amount, 0M, paid);
+                    seat.Record(HandActionType.Call, amount, 0M, paid, table.NextBetOrder++);
                     return (amount, 0M, paid);
                 }
             case PlayerActionType.Raise:
                 {
                     var addAmount = amount - agreeAmountBeforeAction;
                     var paid = CollectDelta(seat, amount);
-                    seat.Record(HandActionType.Raise, amount, addAmount, paid);
+                    seat.Record(HandActionType.Raise, amount, addAmount, paid, table.NextBetOrder++);
                     return (amount, addAmount, paid);
                 }
             case PlayerActionType.Fold:
                 {
-                    seat.Record(HandActionType.Fold, 0M, 0M, 0M);
+                    seat.Record(HandActionType.Fold, 0M, 0M, 0M, table.NextBetOrder++);
                     seat.Status = SeatStatus.Folded;
                     return (0M, 0M, 0M);
                 }
@@ -247,8 +247,8 @@ internal static class HandRunner
 
     private static void PostBlinds(HandTable table)
     {
-        PostBlind(table[table.SmallBlindSeatNo], HandActionType.SmallBlind, table.SmallBlind, table.SmallBlind);
-        PostBlind(table[table.BigBlindSeatNo], HandActionType.BigBlind, table.SmallBlind * 2, table.SmallBlind);
+        PostBlind(table, table[table.SmallBlindSeatNo], HandActionType.SmallBlind, table.SmallBlind, table.SmallBlind);
+        PostBlind(table, table[table.BigBlindSeatNo], HandActionType.BigBlind, table.SmallBlind * 2, table.SmallBlind);
     }
 
     /// <summary>
@@ -257,12 +257,12 @@ internal static class HandRunner
     /// actually wagered, so the pot maths, the side-pot levels and the callers' view of the street
     /// all agree with the stack that was taken.
     /// </summary>
-    private static void PostBlind(TableSeat seat, HandActionType kind, decimal amount, decimal addAmount)
+    private static void PostBlind(HandTable table, TableSeat seat, HandActionType kind, decimal amount, decimal addAmount)
     {
         var posted = Math.Min(amount, seat.Stack);
         seat.Stack -= posted;
         seat.Committed += posted;
-        seat.Record(kind, posted, Math.Min(addAmount, posted), paid: posted);
+        seat.Record(kind, posted, Math.Min(addAmount, posted), paid: posted, order: table.NextBetOrder++);
 
         if (seat.Stack == 0)
         {

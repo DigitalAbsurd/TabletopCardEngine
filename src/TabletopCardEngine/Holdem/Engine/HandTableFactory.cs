@@ -30,6 +30,7 @@ internal static class HandTableFactory
             SmallBlindSeatNo = smallBlindSeatNo,
             BigBlindSeatNo = bigBlindSeatNo,
             NextSeatNo = hand.GetLastAction().NextSeatNo,
+            NextBetOrder = hand.Actions.Select(action => action.No + 1).DefaultIfEmpty(0).Max(),
         };
         table.Board.AddRange(hand.GetDeckCards());
 
@@ -58,7 +59,7 @@ internal static class HandTableFactory
         {
             foreach (var action in streetActions)
             {
-                seat.Record(action.ActionType, action.Amount, action.AddAmount, action.Paid);
+                seat.Record(action.ActionType, action.Amount, action.AddAmount, action.Paid, action.No);
             }
         }
 
