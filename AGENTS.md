@@ -232,6 +232,8 @@ A second corpus, `handhq-headsup.phhs.gz`, covers heads-up: 2 351 real \$0.25/\$
 
 A third corpus, `handhq-fullring.phhs.gz`, covers full-ring: 1 505 real online hands with 7 to 10 seated players, all of them replayable — \$0.25/\$0.50 PokerStars hands and \$2/\$4 PartyPoker hands from July 2009. It is a **structural** oracle only, same as heads-up: handhq records no `finishing_stacks` and rakes its pots. `PhhFullRingCorpus_ParsesAndIsMostlySupported` pins the supported count instead of asserting nothing is filtered.
 
+The fixed-limit corpora go through the same runner, which maps the PHH `variant` to a `BettingStructure` in `PhhReplayRunner.BettingStructureFor` (`FT` → `FixedLimit` with `RaiseCap = 4`): so far `wsop-fixedlimit.phhs.gz`, the seven five-handed WSOP hands of the 2023 $50,000 Poker Players Championship, an exact oracle with `finishing_stacks` (`PhhWsopFixedLimitReplay_Test`); the ACPC and pokerkit corpora extend this sentence.
+
 - `PhhReplayRunner` throws away and rebuilds its database every 250 hands. Every hand is its own game, so rows only pile up, and an unbounded run slows down badly as the in-memory database grows.
 
 [MultiHandSessionTests.cs](tests/TabletopCardEngine.Tests/MultiHandSessionTests.cs) covers what per-hand replay cannot: one 200-hand game with stacks carrying over, a seeded action policy, and invariants as the oracle (chip conservation, button rotation, blind placement, no negative stacks, `Sum(Net) == 0`). It runs twice, `[DataRow(6)]` and `[DataRow(2)]`, so the heads-up positions get the same 200 hands.

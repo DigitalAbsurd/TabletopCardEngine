@@ -9,6 +9,7 @@ Two vendored corpora, both from the [PHH dataset](https://github.com/uoftcprg/ph
 | `pluribus.phhs.gz` | 10 000, all replayable | Bot play, six-handed. Exact oracle. |
 | `handhq-headsup.phhs.gz` | 2 351, of which 2 145 replayable | Real online play, heads-up. Structural oracle. |
 | `handhq-fullring.phhs.gz` | 1 505, of which 1 505 replayable | Real online play, full-ring (7–10 seated). Structural oracle. |
+| `wsop-fixedlimit.phhs.gz` | 7, all replayable | Real tournament play, fixed-limit, five-handed. Exact oracle. |
 
 ## `pluribus.phhs.gz`
 
@@ -109,6 +110,22 @@ is not the last, so this layout always holds: `p1` is the small blind, `p2` is t
 in order down to the dealer button (the last player). The engine reaches the same layout from `InitialDealerSeatNo = PlayerCount`
 directly.
 
+## `wsop-fixedlimit.phhs.gz`
+
+The seven hands with `variant = 'FT'` of **`data/wsop/2023/43/5`**, the final table (day 5) of the 2023 WSOP
+\$50,000 Poker Players Championship: `01-39-18`, `01-42-31`, `01-44-49`, `01-45-43`, `01-46-42`, `01-47-38` and
+`01-51-27`, ordered by file name and renumbered `[1]`…`[7]`, each preceded by a `# wsop/2023/43/5/<file>` comment.
+Records are copied verbatim apart from the `[N]` header.
+
+- **Why this subset:** it is the smallest real fixed-limit corpus, and it is an exact oracle: every hand is
+  five-handed with antes all 0, blinds 100 000/200 000, `small_bet = 200000`, `big_bet = 400000` and
+  `finishing_stacks` recorded. Fixed-limit hands carry no `min_bet`, which the specification forbids.
+- **What it verifies:** positions, start stacks, hole cards, the seat on the clock at every decision, street
+  progression, every board card and, unlike the handhq corpora, the finishing stacks exactly. The runner creates
+  the game as `FixedLimit` with `RaiseCap = 4` and replays `cbr X` as a raise *to* `X`. Players who folded unseen have `????` hole cards, which `PhhHandDeck` fills in.
+- **Seating:** five-handed, so it is seated as in full ring: `p1` is the small blind, `p2` the big blind and the
+  last player is on the button (`InitialDealerSeatNo = PlayerCount`).
+
 ## Format
 
 See the [PHH specification](https://phh.readthedocs.io/en/stable/spec.html). The action grammar used
@@ -124,7 +141,10 @@ writes only what was shown, as `sm`, and `PhhHandDeck` reads both.
 pwsh ./scripts/pack-phh-fixture.ps1
 pwsh ./scripts/pack-phh-headsup-fixture.ps1
 pwsh ./scripts/pack-phh-fullring-fixture.ps1
+pwsh ./scripts/pack-phh-wsop-fixedlimit-fixture.ps1
 ```
+
+The fourth packs `wsop-fixedlimit.phhs.gz` from the pinned commit, reading the files with `git cat-file`.
 
 The first sparse-clones the upstream repository (a full clone is ~1.7 GB; a blobless sparse checkout
 of `data/pluribus` is ~12 MB), repacks `pluribus.phhs.gz` and refreshes `LICENSE-phh-dataset.txt`.
