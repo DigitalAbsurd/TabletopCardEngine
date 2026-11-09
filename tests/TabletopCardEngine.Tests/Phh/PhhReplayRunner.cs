@@ -221,6 +221,11 @@ internal sealed class PhhReplayRunner : IDisposable
             gameData.HandData!.NextPlayerSeatNo.Should().Be(expectedSeatNo,
                 $"'{action.Raw}' should be the turn of {hand.Players[decision.PlayerIndex]} in seat {expectedSeatNo}");
 
+            if (hand.Variant == FixedLimitVariant && decision is PhhCompleteBetRaiseAction fixedLimitRaise)
+            {
+                AssertFixedLimitRaiseWindow(gameData.HandData!, fixedLimitRaise);
+            }
+
             var (actionType, size) = MapDecision(decision, gameData.HandData!);
             gameData = await ApplyAsync(new HoldemActionPlay(gameId, actionType, size), hand, action);
 
@@ -271,6 +276,27 @@ internal sealed class PhhReplayRunner : IDisposable
         {
             communityCards.Should().HaveCount((int)gameData.HandData!.Street,
                 $"Street.{gameData.HandData!.Street} means that many board cards after '{action.Raw}'");
+        }
+    }
+
+    /// <summary>
+    /// In fixed-limit a bet or raise has exactly one size, so the engine must offer exactly the one
+    /// the history recorded: a <c>Raise</c> window whose minimum and maximum are both that total. A
+    /// replay that only applies the recorded actions could not tell the structures apart, because
+    /// every fixed-limit raise is also a legal no-limit one and the pots come out the same. The check
+    /// keys on the PHH variant, not on the structure the game was created with, so a game created
+    /// with the wrong structure fails here.
+    /// </summary>
+    private static void AssertFixedLimitRaiseWindow(HandData handData, PhhCompleteBetRaiseAction raise)
+    {
+        var window = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
+
+        window.Should().NotBeNull($"'{raise.Raw}' is a fixed-limit raise, so the engine should offer one");
+
+        if (window != null)
+        {
+            (window.MinValue, window.MaxValue).Should().Be((raise.Amount, raise.Amount),
+                $"in fixed-limit the only raise before '{raise.Raw}' is the recorded total");
         }
     }
 
