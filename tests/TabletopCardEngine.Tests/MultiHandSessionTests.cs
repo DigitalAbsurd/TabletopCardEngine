@@ -760,6 +760,304 @@ public sealed class MultiHandSessionTests
         kicksMid.Should().BeGreaterThan(0, "somebody was kicked mid-hand");
     }
 
+    /// <summary>
+    /// The first session again under Pot-Limit and Fixed-Limit, with a policy that re-raises and sometimes
+    /// raises to the maximum, so the Fixed-Limit cap and the Pot-Limit maximum are reached. Some buy-ins are 5 to 20
+    /// big blinds, and a seat that falls below one big blind is topped up or rebought, so short stacks and
+    /// all-ins keep happening while every seat is still dealt in. Besides the first test's invariants, every
+    /// hand's ledger is checked against the structure's own limits, computed here from the ledger alone.
+    /// </summary>
+    [TestMethod]
+    [DataRow(BettingStructure.PotLimit, 6, TestDatabaseKind.Sqlite, DisplayName = "Pot-Limit six-handed, Sqlite")]
+    [DataRow(BettingStructure.PotLimit, 2, TestDatabaseKind.Sqlite, DisplayName = "Pot-Limit heads-up, Sqlite")]
+    [DataRow(BettingStructure.PotLimit, 10, TestDatabaseKind.Sqlite, DisplayName = "Pot-Limit ten-handed, Sqlite")]
+    [DataRow(BettingStructure.PotLimit, 6, TestDatabaseKind.InMemory, DisplayName = "Pot-Limit six-handed, InMemory")]
+    [DataRow(BettingStructure.PotLimit, 2, TestDatabaseKind.InMemory, DisplayName = "Pot-Limit heads-up, InMemory")]
+    [DataRow(BettingStructure.PotLimit, 6, TestDatabaseKind.PostgreSql, DisplayName = "Pot-Limit six-handed, PostgreSql")]
+    [DataRow(BettingStructure.PotLimit, 6, TestDatabaseKind.SqlServer, DisplayName = "Pot-Limit six-handed, SqlServer")]
+    [DataRow(BettingStructure.FixedLimit, 6, TestDatabaseKind.Sqlite, DisplayName = "Fixed-Limit six-handed, Sqlite")]
+    [DataRow(BettingStructure.FixedLimit, 2, TestDatabaseKind.Sqlite, DisplayName = "Fixed-Limit heads-up, Sqlite")]
+    [DataRow(BettingStructure.FixedLimit, 10, TestDatabaseKind.Sqlite, DisplayName = "Fixed-Limit ten-handed, Sqlite")]
+    [DataRow(BettingStructure.FixedLimit, 6, TestDatabaseKind.InMemory, DisplayName = "Fixed-Limit six-handed, InMemory")]
+    [DataRow(BettingStructure.FixedLimit, 2, TestDatabaseKind.InMemory, DisplayName = "Fixed-Limit heads-up, InMemory")]
+    [DataRow(BettingStructure.FixedLimit, 6, TestDatabaseKind.PostgreSql, DisplayName = "Fixed-Limit six-handed, PostgreSql")]
+    [DataRow(BettingStructure.FixedLimit, 6, TestDatabaseKind.SqlServer, DisplayName = "Fixed-Limit six-handed, SqlServer")]
+    public async Task MultiHandSession_LimitStructures_KeepTheLedgerBalanced(BettingStructure structure, int seatCount, TestDatabaseKind database)
+    {
+        var gameId = Guid.Parse("{66666666-6666-6666-6666-666666666666}");
+        var random = new Random(Seed + 3000 + seatCount + (int)structure);
+        var cardsByHand = new Dictionary<int, (Dictionary<byte, Card[]> Hole, Card[] Board)>();
+
+        using var host = TestEngineHost.Setup(out var holdemEngine, out _,
+            shuffler: new TestCardShuffler(
+                getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
+                getDeckFunc: handNo => cardsByHand[handNo].Board),
+            database: database);
+
+        var options = new GameOptionData
+        {
+            TableFormat = GetTableFormat(seatCount),
+            MaxPlayersCount = seatCount,
+            InitialSmallBlind = SmallBlind,
+            InitialDealerSeatNo = FirstDealerSeatNo,
+            BettingStructure = structure,
+            AllowTopUp = true,
+            AllowRebuy = true
+        };
+        (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(GameId: gameId, Options: options))).IsSuccess.Should().BeTrue();
+
+        var joinSeats = Enumerable.Range(1, seatCount)
+            .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, seatNo % 3 == 1 ? random.Next(5, 21) * BigBlind : 100 * BigBlind))
+            .ToArray();
+
+        var stacks = joinSeats.ToDictionary(seat => seat.SeatNo, seat => seat.BuyInAmount);
+        var totalIn = stacks.Values.Sum();
+        var counters = new LimitCounters();
+        byte? previousDealerSeatNo = null;
+
+        for (var handNo = 1; handNo <= HandCount; handNo++)
+        {
+            cardsByHand[handNo] = DealCards(random, seatCount);
+
+            using var scope = new AssertionScope($"{structure} {seatCount}-handed session hand #{handNo}");
+
+            HoldemAction startAction;
+            if (handNo == 1)
+            {
+                startAction = new HoldemActionStartGame(gameId, joinSeats);
+            }
+            else
+            {
+                // A seat below one big blind is stepped over by the blind posts, so it is topped up (or rebought
+                // when it has nothing) to a fresh short or deep stack, which keeps every seat dealt in.
+                foreach (var seatNo in stacks.Where(stack => stack.Value < BigBlind).Select(stack => stack.Key).Order().ToArray())
+                {
+                    var amount = NextLimitBuyIn(random);
+                    var refill = await holdemEngine.ApplyAsync(HoldemAction.TopUp(gameId, seatNo, amount));
+                    refill.IsSuccess.Should().BeTrue(
+                        $"seat {seatNo} should be able to refill: {string.Join("; ", refill.Errors.Select(error => error.Message))}");
+                    stacks[seatNo] += amount;
+                    totalIn += amount;
+                }
+
+                startAction = new HoldemActionStartHand(gameId);
+            }
+
+            var startResult = await holdemEngine.ApplyAsync(startAction);
+            startResult.IsSuccess.Should().BeTrue(
+                $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
+
+            var gameData = startResult.Value;
+            var handData = gameData.HandData!;
+
+            handData.No.Should().Be(handNo);
+            AssertButtonWalksRound(handData, previousDealerSeatNo, seatCount);
+            AssertBlindSeats(handData, seatCount);
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.StartHandStack.Should().Be(stacks[seatData.SeatNo],
+                    $"seat {seatData.SeatNo} should start on what it finished the previous hand with, plus what it was refilled with");
+            }
+
+            handData.Seats.Sum(seat => seat.StartHandStack).Should().Be(totalIn, "the chips on the table are the chips bought in");
+
+            gameData = await PlayOutLimitHandAsync(holdemEngine, gameId, gameData, random);
+            handData = gameData.HandData!;
+
+            handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
+                .Be(0, "a hand neither creates nor destroys chips");
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.HandResult.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
+                stacks[seatData.SeatNo] = seatData.StartHandStack + (seatData.HandResult?.Net ?? 0);
+                stacks[seatData.SeatNo].Should().BeGreaterOrEqualTo(0, $"seat {seatData.SeatNo} cannot end below nothing");
+            }
+
+            stacks.Values.Sum().Should().Be(totalIn, "every chip bought in is on the table");
+
+            AssertLimitLedger(handData, structure, options.RaiseCap, counters);
+
+            previousDealerSeatNo = handData.DealerSeatNo;
+        }
+
+        Console.WriteLine($"{structure} {seatCount}-handed {database}: {counters.CappedStreets} capped streets, " +
+            $"{counters.HandsWithAllIn} hands with an all-in, {counters.RaisesAtMaximum} raises exactly at the pot limit, {counters.Raises} raises");
+
+        using var reached = new AssertionScope("the policy must actually reach the structure's limits");
+        counters.HandsWithAllIn.Should().BeGreaterThan(0, "short stacks and shoves put somebody all in");
+        counters.Raises.Should().BeGreaterThan(0, "somebody raised");
+        if (structure == BettingStructure.FixedLimit)
+        {
+            counters.CappedStreets.Should().BeGreaterThan(0, "a street reached the raise cap");
+        }
+        else
+        {
+            counters.RaisesAtMaximum.Should().BeGreaterThan(0, "somebody raised exactly the pot");
+        }
+    }
+
+    private sealed class LimitCounters
+    {
+        public int CappedStreets { get; set; }
+
+        public int HandsWithAllIn { get; set; }
+
+        public int RaisesAtMaximum { get; set; }
+
+        public int Raises { get; set; }
+    }
+
+    /// <summary>One time in three a short stack of 5 to 20 big blinds, otherwise a deep one of 100.</summary>
+    private static decimal NextLimitBuyIn(Random random)
+        => random.Next(3) == 0 ? random.Next(5, 21) * BigBlind : 100 * BigBlind;
+
+    /// <summary>
+    /// Walks one hand's ledger in order and checks it against the structure's limits, which it works out from the
+    /// ledger alone. Fixed-Limit: a street holds at most <paramref name="raiseCap"/> bets, the big blind counting
+    /// pre-flop, and a bet or raise that leaves its seat with chips lifts the street total by exactly one bet.
+    /// Pot-Limit: no raise-to is above the standing wager plus the pot after the raiser calls.
+    /// </summary>
+    private static void AssertLimitLedger(HandData handData, BettingStructure structure, int? raiseCap, LimitCounters counters)
+    {
+        var startStacks = handData.Seats.ToDictionary(seat => seat.SeatNo, seat => seat.StartHandStack);
+        var wagers = new Dictionary<(byte SeatNo, Street Street), decimal>();
+        var betCounts = new Dictionary<Street, int>();
+        var anyAllIn = false;
+
+        foreach (var action in handData.Actions)
+        {
+            var standing = wagers.Where(wager => wager.Key.Street == action.Street).Select(wager => wager.Value).DefaultIfEmpty(0M).Max();
+            if (action.Street == Street.PreFlop)
+            {
+                standing = Math.Max(standing, handData.BigBlind);
+            }
+
+            var ownWager = wagers.GetValueOrDefault((action.SeatNo, action.Street));
+            var pot = wagers.Values.Sum();
+            wagers[(action.SeatNo, action.Street)] = Math.Max(ownWager, action.Amount);
+
+            var committed = wagers.Where(wager => wager.Key.SeatNo == action.SeatNo).Sum(wager => wager.Value);
+            var isAllIn = committed >= startStacks[action.SeatNo];
+            anyAllIn |= isAllIn && action.ActionType is not (HandActionType.SmallBlind or HandActionType.BigBlind or HandActionType.Fold);
+
+            var isRaiseKind = action.ActionType is HandActionType.Raise or HandActionType.Bet or HandActionType.AllIn;
+            if (!isRaiseKind || action.Amount <= standing)
+            {
+                continue;
+            }
+
+            counters.Raises++;
+            var where = $"{action.ActionType} to {action.Amount} by seat {action.SeatNo} on {action.Street} (action #{action.No}, standing {standing})";
+
+            if (structure == BettingStructure.FixedLimit)
+            {
+                var bet = action.Street is Street.Turn or Street.River ? 2 * handData.BigBlind : handData.BigBlind;
+                if (!isAllIn)
+                {
+                    (action.Amount - standing).Should().Be(bet, $"a Fixed-Limit raise that is not all in lifts the street by one bet: {where}");
+                }
+                else
+                {
+                    (action.Amount - standing).Should().BeLessOrEqualTo(bet, $"an all-in cannot lift the street by more than one bet: {where}");
+                }
+
+                var counted = betCounts.GetValueOrDefault(action.Street, action.Street == Street.PreFlop ? 1 : 0);
+                if (action.Amount - standing >= bet / 2)
+                {
+                    counted++;
+                }
+
+                betCounts[action.Street] = counted;
+                if (raiseCap is { } cap)
+                {
+                    counted.Should().BeLessOrEqualTo(cap, $"a street holds at most {cap} bets: {where}");
+                    if (counted == cap && action.Amount - standing >= bet / 2)
+                    {
+                        counters.CappedStreets++;
+                    }
+                }
+            }
+            else
+            {
+                var potLimit = standing + pot + (standing - ownWager);
+                action.Amount.Should().BeLessOrEqualTo(potLimit, $"a Pot-Limit raise stays within the pot after the call: {where}");
+                if (action.Amount == potLimit)
+                {
+                    counters.RaisesAtMaximum++;
+                }
+            }
+        }
+
+        if (anyAllIn)
+        {
+            counters.HandsWithAllIn++;
+        }
+    }
+
+    /// <summary>
+    /// The limit policy: checks when it can, otherwise calls or folds, shoves now and then, and raises about one
+    /// decision in three wherever a raise is offered, re-raises included, to the minimum or to the maximum of the window.
+    /// </summary>
+    private static async Task<GameData> PlayOutLimitHandAsync(IHoldemTable holdemEngine, Guid gameId, GameData gameData, Random random)
+    {
+        var decisionsLeft = MaxDecisionsPerHand;
+
+        while (!gameData.HandData!.Seats.Any(seat => seat.HandResult != null))
+        {
+            (--decisionsLeft).Should().BePositive(
+                $"hand #{gameData.HandData!.No} should end within {MaxDecisionsPerHand} decisions");
+
+            var handData = gameData.HandData!;
+            var check = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Check);
+            var call = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Call);
+            var raise = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
+
+            var actor = handData.Seats.Single(seat => seat.SeatNo == handData.NextPlayerSeatNo);
+            // An all-in is legal as a call, or as a raise only when the whole stack fits the window.
+            var canShove = (raise != null && actor.Stack + (actor.BetSize ?? 0) <= raise.MaxValue)
+                || (call != null && actor.Stack <= call.MaxValue);
+
+            HoldemActionPlay playerAction;
+            if (canShove && random.Next(10) == 0)
+            {
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.AllIn, 0);
+            }
+            else if (raise != null && random.Next(3) == 0)
+            {
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Raise, random.Next(2) == 0 ? raise.MinValue : raise.MaxValue);
+            }
+            else if (check != null)
+            {
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Check, 0);
+            }
+            else if (call != null && random.Next(5) > 0)
+            {
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Call, 0);
+            }
+            else
+            {
+                playerAction = new HoldemActionPlay(gameId, PlayerActionType.Fold, 0);
+            }
+
+            var result = await holdemEngine.ApplyAsync(playerAction);
+            result.IsSuccess.Should().BeTrue(
+                $"{playerAction.ActionType} of {playerAction.Size} by seat {handData.NextPlayerSeatNo} on {handData.Street} " +
+                $"should be legal: {string.Join("; ", result.Errors.Select(error => error.Message))}");
+
+            gameData = result.Value;
+
+            foreach (var seatData in gameData.HandData!.Seats)
+            {
+                seatData.Stack.Should().BeGreaterOrEqualTo(0,
+                    $"seat {seatData.SeatNo} cannot wager more than it has");
+            }
+        }
+
+        return gameData;
+    }
+
     private sealed class Occupant
     {
         public required string Name { get; init; }
