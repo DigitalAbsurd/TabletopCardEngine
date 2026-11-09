@@ -27,6 +27,13 @@ public partial class ActionPanel : ComponentBase
     [Parameter]
     public decimal RaiseStep { get; set; }
 
+    /// <summary>
+    /// The game's betting structure. Fixed-Limit offers one raise button instead of the sizing
+    /// controls, and Pot-Limit caps the raise at the engine's own maximum.
+    /// </summary>
+    [Parameter]
+    public BettingStructure BettingStructure { get; set; } = BettingStructure.NoLimit;
+
     /// <summary>Raised by Next Hand once the hand is finished.</summary>
     [Parameter]
     public EventCallback OnNextHand { get; set; }
@@ -162,6 +169,33 @@ public partial class ActionPanel : ComponentBase
         return min == max && min > 0;
     }
 
+    private bool IsFixedLimit => BettingStructure == BettingStructure.FixedLimit;
+
+    /// <summary>
+    /// Whether the offered raise is the seat's whole stack. Under Fixed-Limit the window is always
+    /// one amount, so it is an all-in only when that amount is everything the seat has.
+    /// </summary>
+    private bool IsAllInRaise()
+    {
+        if (!IsFixedLimit)
+        {
+            return IsAllInOnly();
+        }
+
+        var seat = HandData?.Seats.FirstOrDefault(s => s.SeatNo == HandData.NextPlayerSeatNo);
+        return seat is not null && GetRaiseWindow().Min == seat.Stack + (seat.BetSize ?? 0);
+    }
+
+    /// <summary>
+    /// "Bet X" when nothing has been bet on the street, "Raise to X" otherwise. Pre-flop the blinds
+    /// are a bet, and a street with a Check on offer has none.
+    /// </summary>
+    private string GetFixedLimitRaiseLabel()
+    {
+        var verb = HandData!.Street != Street.PreFlop && HasAction(PlayerActionType.Check) ? "Bet" : "Raise to";
+        return $"{verb} {AmountFormat.Format(GetRaiseWindow().Min)}";
+    }
+
     /// <summary>
     /// Gets the all-in amount when the window is degenerate.
     /// </summary>
@@ -179,8 +213,8 @@ public partial class ActionPanel : ComponentBase
     {
         base.OnParametersSet();
 
-        _marks = RaiseSizing.Marks(HandData);
-        _presets = RaiseSizing.Presets(HandData, RaiseStep);
+        _marks = RaiseSizing.Marks(HandData, BettingStructure);
+        _presets = RaiseSizing.Presets(HandData, RaiseStep, BettingStructure);
         if (ReferenceEquals(HandData, _raiseAmountResetFor))
         {
             return;

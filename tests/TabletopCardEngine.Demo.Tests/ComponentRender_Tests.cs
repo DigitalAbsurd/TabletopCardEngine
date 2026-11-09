@@ -1601,6 +1601,47 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public async Task ActionPanel_FixedLimit_OffersOneRaiseButtonAndNoSizingControls()
+    {
+        // Arrange - three seats at 1/2: the first to act owes 2 and a raise is to 4
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var serviceProvider = ctx.Services.BuildServiceProvider();
+        CreateAndInitializeEngine(serviceProvider);
+        var session = serviceProvider.GetRequiredService<DemoGameSession>();
+        await session.CreateGameAsync(new GameOptionData
+        {
+            BettingStructure = BettingStructure.FixedLimit,
+            RaiseCap = 4,
+            TableFormat = HoldemTableFormat.SixMax,
+            MaxPlayersCount = 3,
+            InitialSmallBlind = 1m,
+            InitialDealerSeatNo = 1,
+        });
+        await session.StartFirstHandAsync(
+        [
+            new(SeatNo: 1, Name: "Player 1", BuyInAmount: 200m),
+            new(SeatNo: 2, Name: "Player 2", BuyInAmount: 200m),
+            new(SeatNo: 3, Name: "Player 3", BuyInAmount: 200m),
+        ]);
+
+        // Act
+        var component = ctx.Render<ActionPanel>(parameters => parameters
+            .Add(p => p.HandData, session.CurrentHand!)
+            .Add(p => p.RaiseStep, 1m)
+            .Add(p => p.BettingStructure, BettingStructure.FixedLimit));
+
+        // Assert
+        component.FindAll(".action-bar .raise-btn").Select(b => b.TextContent.Trim()).Should().Equal("Raise to 4");
+        component.FindAll(".action-bar .raise-slider").Should().BeEmpty();
+        component.FindAll(".action-bar .raise-presets").Should().BeEmpty();
+        component.FindAll(".action-bar .raise-step-btn").Should().BeEmpty();
+        component.FindAll(".action-bar .raise-input").Should().BeEmpty();
+    }
+
+    [TestMethod]
     public async Task ActionPanel_RaiseSlider_CarriesMinAndAllInWithThePotPresetsBeside()
     {
         // Arrange - heads-up at 50/100 with 1000 behind: the button acts first with 950 left and 50 in

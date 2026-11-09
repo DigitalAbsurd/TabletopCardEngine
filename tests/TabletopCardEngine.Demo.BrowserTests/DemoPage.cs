@@ -454,6 +454,23 @@ internal sealed class DemoPage : IAsyncDisposable
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 
+    /// <summary>
+    /// Presses the Raise button and reports whether the engine accepted the call it made, read from
+    /// the call log's new entry; the log is mounted while its tab is hidden.
+    /// </summary>
+    public async Task<bool> SubmitRaiseAsync()
+    {
+        ILocator entries = _page.Locator(EngineCallEntrySelector);
+        int before = await entries.CountAsync();
+
+        await _page.Locator(RaiseButtonSelector).First.ClickAsync();
+
+        ILocator entry = entries.Nth(before);
+        await entry.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
+        string? succeeded = await entry.Locator(".entry-status").GetAttributeAsync("data-succeeded");
+        return succeeded == "True";
+    }
+
     /// <summary>Replaces what the raise amount box holds by typing, the way a visitor would.</summary>
     public async Task TypeRaiseAmountAsync(string text)
     {
@@ -525,12 +542,24 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <param name="seatCount">The Max Players value; every seat is filled with a player.</param>
     /// <param name="allowTopUp">Whether to tick Allow top-up, so the seats offer Top up between hands.</param>
     /// <param name="allowRebuy">Whether to tick Allow rebuy, so a busted seat offers Rebuy.</param>
-    public async Task CreateGameAsync(string formatLabel, int seatCount, bool allowTopUp = false, bool allowRebuy = false)
+    /// <param name="bettingStructureLabel">The structure's caption in the dropdown, such as <c>Pot-Limit</c>; the form's default when <see langword="null"/>.</param>
+    /// <param name="smallBlind">The Small Blind field's text; the form's default when <see langword="null"/>.</param>
+    public async Task CreateGameAsync(string formatLabel, int seatCount, bool allowTopUp = false, bool allowRebuy = false, string? bettingStructureLabel = null, string? smallBlind = null)
     {
         await OpenNewGameModalAsync();
 
         await SelectOptionAsync(TableFormatFieldSelector, formatLabel);
         await SelectOptionAsync(MaxPlayersFieldSelector, seatCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        if (bettingStructureLabel is not null)
+        {
+            await ChooseBettingStructureAsync(bettingStructureLabel);
+        }
+
+        if (smallBlind is not null)
+        {
+            await _page.Locator("#setup-small-blind").FillAsync(smallBlind);
+        }
+
         if (allowTopUp)
         {
             await _page.Locator("#setup-allow-top-up").CheckAsync();

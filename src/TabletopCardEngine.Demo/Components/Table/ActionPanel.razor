@@ -75,7 +75,7 @@
 
                 @if (HasAction(PlayerActionType.Raise))
                 {
-                    @if (IsAllInOnly())
+                    @if (IsAllInRaise())
                     {
                         <Button
                             Type="primary"
@@ -84,6 +84,18 @@
                             Loading="_isSubmitting"
                             Class="action-btn allin-btn">
                             All-in @AmountFormat.Format(GetAllInAmount())
+                        </Button>
+                    }
+                    else if (IsFixedLimit)
+                    {
+                        @* The window is one amount, so there is nothing to size: one button, no slider. *@
+                        <Button
+                            Type="primary"
+                            Size="large"
+                            OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
+                            Loading="_isSubmitting"
+                            Class="action-btn raise-btn">
+                            @GetFixedLimitRaiseLabel()
                         </Button>
                     }
                     else
@@ -101,7 +113,7 @@
                 }
             </div>
 
-            @if (HasAction(PlayerActionType.Raise) && !IsAllInOnly())
+            @if (HasAction(PlayerActionType.Raise) && !IsAllInRaise() && !IsFixedLimit)
             {
                 @* One row: the slider with its Min / All-in marks, the −/+ steps of one small blind,
                    the amount box, and ½ Pot over Pot. Marks, steps and presets only size the raise;

@@ -61,15 +61,16 @@ public static class RaiseSizing
     /// are buttons of their own (<see cref="Presets"/>): as marks they crowded the slider's left end.
     /// </summary>
     /// <param name="hand">The current hand, or <see langword="null"/> before the first one.</param>
+    /// <param name="structure">The game's betting structure; Fixed-Limit has no marks, and Pot-Limit's upper end is the pot limit, so it is "Max".</param>
     /// <returns>The marks; empty when no raise is offered or the window is a single all-in amount.</returns>
-    public static IReadOnlyList<RaiseMark> Marks(HandData? hand)
+    public static IReadOnlyList<RaiseMark> Marks(HandData? hand, BettingStructure structure = BettingStructure.NoLimit)
     {
-        if (hand is null || RaiseWindow(hand) is not (decimal min, decimal max) || min >= max)
+        if (structure == BettingStructure.FixedLimit || hand is null || RaiseWindow(hand) is not (decimal min, decimal max) || min >= max)
         {
             return [];
         }
 
-        return [new RaiseMark(min, "Min"), new RaiseMark(max, "All-in")];
+        return [new RaiseMark(min, "Min"), new RaiseMark(max, structure == BettingStructure.PotLimit ? "Max" : "All-in")];
     }
 
     /// <summary>
@@ -80,10 +81,15 @@ public static class RaiseSizing
     /// </summary>
     /// <param name="hand">The current hand, or <see langword="null"/> before the first one.</param>
     /// <param name="step">The amount's step, the small blind.</param>
+    /// <param name="structure">
+    /// The game's betting structure. Fixed-Limit has no presets, because its one legal amount is the
+    /// only button. Under Pot-Limit "Pot" is exactly the engine's maximum raise, never a sum of the
+    /// demo's own.
+    /// </param>
     /// <returns>The presets; empty when no raise is offered or the window is a single all-in amount.</returns>
-    public static IReadOnlyList<RaiseMark> Presets(HandData? hand, decimal step)
+    public static IReadOnlyList<RaiseMark> Presets(HandData? hand, decimal step, BettingStructure structure = BettingStructure.NoLimit)
     {
-        if (hand is null || RaiseWindow(hand) is not (decimal min, decimal max) || min >= max)
+        if (structure == BettingStructure.FixedLimit || hand is null || RaiseWindow(hand) is not (decimal min, decimal max) || min >= max)
         {
             return [];
         }
@@ -92,6 +98,12 @@ public static class RaiseSizing
         var floor = min;
         foreach (var (fraction, label) in new[] { (0.5m, "½ Pot"), (1m, "Pot") })
         {
+            if (structure == BettingStructure.PotLimit && fraction == 1m)
+            {
+                presets.Add(new RaiseMark(max, label, "The pot limit, as the engine works it out"));
+                continue;
+            }
+
             if (PotFractionRaise(hand, fraction, step) is not PotRaiseSum sum)
             {
                 continue;
