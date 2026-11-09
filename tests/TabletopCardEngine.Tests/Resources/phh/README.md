@@ -2,7 +2,8 @@
 
 Vendored corpora, all but the last from the [PHH dataset](https://github.com/uoftcprg/phh-dataset) at commit
 `e47fbd5816372360bade4de5d712346fe1bb70f6` (MIT — see
-[LICENSE-phh-dataset.txt](LICENSE-phh-dataset.txt)); `acpc-fixedlimit.phhs.gz` is from the Zenodo edition, under CC-BY-4.0:
+[LICENSE-phh-dataset.txt](LICENSE-phh-dataset.txt)); `acpc-fixedlimit.phhs.gz` is from the Zenodo edition, under CC-BY-4.0.
+The two `pokerkit-*` files are not vendored: this project generates them with pokerkit (see below).
 
 | File | Hands | What it is |
 | --- | --- | --- |
@@ -11,6 +12,8 @@ Vendored corpora, all but the last from the [PHH dataset](https://github.com/uof
 | `handhq-fullring.phhs.gz` | 1 505, of which 1 505 replayable | Real online play, full-ring (7–10 seated). Structural oracle. |
 | `wsop-fixedlimit.phhs.gz` | 7, all replayable | Real tournament play, fixed-limit, five-handed. Exact oracle. |
 | `acpc-fixedlimit.phhs.gz` | 6 000, all replayable | Bot play, fixed-limit, heads-up and three-player. Exact oracle through `_results`. From the Zenodo edition, CC-BY-4.0. |
+| `pokerkit-potlimit.phhs.gz` | 2 000, synthetic | pokerkit play, pot-limit, 2 to 10 seats, all-ins and side pots. Exact oracle. |
+| `pokerkit-fixedlimit.phhs.gz` | 2 000, synthetic, 177 tagged | pokerkit play, fixed-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
 
 ## `pluribus.phhs.gz`
 
@@ -157,6 +160,61 @@ The heads-up hands come first, then the three-player ones, renumbered `[1]`…`[
 - **Sampling:** `PhhAcpcFixedLimitReplay_Test` replays an evenly spaced sample of `TCE_TEST_PHH_HAND_LIMIT` hands
   (default 500), so both files are reached; `0` replays all 6 000.
 
+## `pokerkit-potlimit.phhs.gz` and `pokerkit-fixedlimit.phhs.gz`
+
+Two synthetic corpora of 2 000 hands each, played by [pokerkit](https://github.com/uoftcprg/pokerkit) 0.7.7, an
+independent MIT implementation of the rules, through `scripts/phh-synthetic/generate.py`. The game is a pokerkit
+`State` built from four hold'em `Street`s for both structures, never pokerkit's predefined `FixedLimitTexasHoldem`
+(see the divergences below).
+
+- **Why synthetic:** pot-limit Texas hold'em has no PHH data at all. The specification's 11 variant codes have none
+  for it (`PO` is pot-limit **Omaha**), and neither the GitHub nor the Zenodo copy of the dataset holds such hands.
+  The real fixed-limit corpora above never go all in (ACPC stacks are 200 big blinds and a hand loses at most 240
+  chips; the WSOP hands are five-handed), so nothing real covers side pots, incomplete all-in raises or 4 to 10
+  seats in fixed-limit.
+- **How they are generated:** in `docker run --rm` on `python:3.12-slim@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b`
+  with `pokerkit==0.7.7`, nothing installed on the host. One `random.Random(seed)` drives every draw, so a seed gives
+  byte-identical output: seed **657** for pot-limit and **658** for fixed-limit. Seat counts run 2 to 10 in turn
+  (223 hands of 2 and of 3 seats, 222 of every other count). Blinds are 50/100 in whole chips; fixed-limit has
+  `small_bet = 100` and `big_bet = 200`, pot-limit `min_bet = 100`. Each seat's stack is drawn from one of three
+  bands, deep 100–300, medium 20–60 or short 1–10 big blinds; about a third of the hands hold at least one short
+  seat. The policy picks among the actions pokerkit allows with weights fold 0.15, check/call 0.5 and bet/raise
+  0.35; a pot-limit raise is a uniform whole-chip size inside pokerkit's window, a fixed-limit raise the one size
+  offered. 1 608 pot-limit hands and 504 fixed-limit hands contain an all-in.
+- **What is in a hand:** every hole card is dealt as `d dh`, every board card as `d db`, and every hand reaching a
+  showdown shows all its hole cards as `pN sm <cards>`. `cbr X` is a raise *to* `X`. Each table carries `variant`,
+  `antes` (zeros), `blinds_or_straddles` (as passed to pokerkit), `small_bet`/`big_bet` or `min_bet`,
+  `starting_stacks`, `actions`, `finishing_stacks` and the custom fields `_generator = 'pokerkit 0.7.7'` and `_seed`.
+  The generator checks `Σ finishing_stacks == Σ starting_stacks` for every hand and, for fixed-limit, loads 200
+  evenly spaced written hands back with `pokerkit.HandHistory.loads` and replays them to the same finishing stacks.
+- **The non-standard `PT` code:** the pot-limit hands carry `variant = 'PT'`, a code this project made up for
+  pot-limit Texas hold'em by analogy with `NT` and `FT`. It is not in the PHH specification, so pokerkit's own
+  reader and other PHH tools reject these hands. The fixed-limit hands carry the standard `FT`.
+- **Seating:** `p1` is the small blind and the last player is on the button, except heads-up, where pokerkit
+  reverses the blinds exactly as the handhq and ACPC histories do (`p1` is the big blind, the last player posts the
+  small blind and acts first pre-flop).
+
+### Where pokerkit and this engine differ
+
+- **The pre-flop cap.** pokerkit's predefined `FixedLimitTexasHoldem` allows four raises over the big blind
+  pre-flop; the engine allows a bet and three raises, the big blind being the bet. The generator avoids it by
+  capping its `Street`s at three raises pre-flop and four on every later street.
+- **Incomplete all-in raises in fixed-limit.** pokerkit counts every all-in raise toward the cap and never reopens
+  the betting for less than a full bet. The engine follows TDA: an all-in raise of at least half a bet reopens the
+  betting and counts toward the cap, one of less than half does neither. This cannot be configured away, so a
+  fixed-limit hand where it can matter carries `_tce_divergence = 'incomplete-all-in'`: on some street an all-in
+  raise of less than a full bet was followed by an action of a seat that had already acted on that street, or by
+  the street reaching the cap. 177 of the 2 000 fixed-limit hands are tagged. The policy does not avoid these
+  spots, because hiding them would hide the difference.
+- **Odd chips of a split pot.** pokerkit splits a pot in whole chips and gives the remainder to one winner; the
+  engine rounds each share to the cent. A hand where a split pot does not divide evenly therefore ends with
+  different stacks: 78 of the pot-limit hands and 14 of the fixed-limit hands, untagged.
+
+### Licence
+
+pokerkit is a tool that was run to produce these files; it is not redistributed, and no part of it is in the
+repository. The generated hands are this project's own work, so `THIRD-PARTY-NOTICES.md` has no row for them.
+
 ## Format
 
 See the [PHH specification](https://phh.readthedocs.io/en/stable/spec.html). The action grammar used
@@ -174,7 +232,12 @@ pwsh ./scripts/pack-phh-headsup-fixture.ps1
 pwsh ./scripts/pack-phh-fullring-fixture.ps1
 pwsh ./scripts/pack-phh-wsop-fixedlimit-fixture.ps1
 pwsh ./scripts/pack-phh-acpc-fixture.ps1
+pwsh ./scripts/generate-phh-synthetic-fixture.ps1
 ```
+
+The sixth regenerates both `pokerkit-*` files with the pinned image, pokerkit version and seeds above, and prints the
+hand counts per seat count, the hands with an all-in and the tagged fixed-limit hands. It needs PowerShell 7 and
+Docker, and reproduces the committed files byte for byte.
 
 The fourth packs `wsop-fixedlimit.phhs.gz` from the pinned commit, reading the files with `git cat-file`.
 The fifth packs `acpc-fixedlimit.phhs.gz` from the Zenodo archive without downloading it: it reads the ZIP64 central
