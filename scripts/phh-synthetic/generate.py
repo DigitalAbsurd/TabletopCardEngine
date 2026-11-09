@@ -46,14 +46,14 @@ CHECK_OR_CALL_WEIGHT = 0.5
 BET_OR_RAISE_WEIGHT = 0.35
 
 # Hole cards, the board and the showdown are dealt by the generator so every card is written
-# into the history; everything else pokerkit does by itself.
+# into the history, and so are the chips pushed to the winners, which lets the generator see an
+# odd-chip split; everything else pokerkit does by itself.
 AUTOMATIONS = (
     Automation.ANTE_POSTING,
     Automation.BET_COLLECTION,
     Automation.BLIND_OR_STRADDLE_POSTING,
     Automation.CARD_BURNING,
     Automation.HAND_KILLING,
-    Automation.CHIPS_PUSHING,
     Automation.CHIPS_PULLING,
 )
 
@@ -110,12 +110,14 @@ def play_hand(rng, structure, seat_count):
     actions = []
     all_in = False
 
-    # Per-street bookkeeping for the divergence tag (fixed-limit only).
+    # Per-street bookkeeping for the divergence tags. The tagging only observes the hand.
     street_index = None
     acted = set()
     raise_count = 0
+    last_full_raise = BIG_BLIND
     incomplete_all_in = False
     divergent = False
+    odd_chip = False
 
     def mark_all_in():
         nonlocal all_in
@@ -134,6 +136,7 @@ def play_hand(rng, structure, seat_count):
                 street_index = state.street_index
                 acted = set()
                 raise_count = 0
+                last_full_raise = BIG_BLIND
                 incomplete_all_in = False
             actor = state.actor_index
             if incomplete_all_in and actor in acted:
@@ -162,18 +165,27 @@ def play_hand(rng, structure, seat_count):
                 state.complete_bet_or_raise_to(amount)
                 actions.append(f'p{actor + 1} cbr {amount}')
                 raise_count += 1
-                bet = SMALL_BET if street_index < 2 else BIG_BET
-                if state.stacks[actor] == 0 and amount - standing < bet:
+                if structure == 'fixed-limit':
+                    bet = SMALL_BET if street_index < 2 else BIG_BET
+                    if state.stacks[actor] == 0 and amount - standing < bet:
+                        incomplete_all_in = True
+                    cap = state.streets[street_index].max_completion_betting_or_raising_count
+                    if incomplete_all_in and cap is not None and raise_count >= cap:
+                        divergent = True
+                elif amount - standing >= last_full_raise:
+                    last_full_raise = amount - standing
+                elif state.stacks[actor] == 0:
                     incomplete_all_in = True
-                cap = state.streets[street_index].max_completion_betting_or_raising_count
-                if incomplete_all_in and cap is not None and raise_count >= cap:
-                    divergent = True
             acted.add(actor)
             mark_all_in()
         elif state.can_show_or_muck_hole_cards():
             shown = state.show_or_muck_hole_cards(True)
             cards = ''.join(card_text(card) for card in shown.hole_cards)
             actions.append(f'p{shown.player_index + 1} sm {cards}')
+        elif state.can_push_chips():
+            amounts = [amount for amount in state.push_chips().amounts if amount]
+            if len(set(amounts)) > 1:
+                odd_chip = True
         elif state.can_deal_board():
             count = state.board_dealing_count
             cards = ''.join(deck.pop() for _ in range(count))
@@ -191,7 +203,8 @@ def play_hand(rng, structure, seat_count):
         'actions': actions,
         'finishing_stacks': finishing,
         'all_in': all_in or any(stack == 0 for stack in finishing),
-        'divergent': structure == 'fixed-limit' and divergent,
+        'incomplete_all_in': divergent,
+        'odd_chip': odd_chip,
     }
 
 
@@ -219,8 +232,9 @@ def hand_toml(structure, seed, number, hand):
         f"_generator = '{GENERATOR}'",
         f'_seed = {seed}',
     ]
-    if hand['divergent']:
-        lines.append("_tce_divergence = 'incomplete-all-in'")
+    tags = [tag for tag, applies in (('incomplete-all-in', hand['incomplete_all_in']), ('odd-chip', hand['odd_chip'])) if applies]
+    if tags:
+        lines.append(f"_tce_divergence = '{', '.join(tags)}'")
     return '\n'.join(lines) + '\n'
 
 
@@ -250,7 +264,9 @@ def main():
     rng = random.Random(args.seed)
     seat_counts = collections.Counter()
     all_in_hands = 0
-    tagged = 0
+    incomplete_hands = 0
+    odd_chip_hands = 0
+    both_hands = 0
     texts = []
     finishings = []
     for index in range(args.hands):
@@ -258,7 +274,9 @@ def main():
         hand = play_hand(rng, args.structure, seat_count)
         seat_counts[seat_count] += 1
         all_in_hands += hand['all_in']
-        tagged += hand['divergent']
+        incomplete_hands += hand['incomplete_all_in']
+        odd_chip_hands += hand['odd_chip']
+        both_hands += hand['incomplete_all_in'] and hand['odd_chip']
         texts.append(hand_toml(args.structure, args.seed, index + 1, hand))
         finishings.append(hand['finishing_stacks'])
 
@@ -279,8 +297,9 @@ def main():
     for seat_count in range(MIN_SEATS, MAX_SEATS + 1):
         print(f'  {seat_count:2} seats: {seat_counts[seat_count]} hands')
     print(f'  hands with an all-in: {all_in_hands}')
-    if args.structure == 'fixed-limit':
-        print(f"  hands tagged _tce_divergence = 'incomplete-all-in': {tagged}")
+    print(f"  hands tagged 'incomplete-all-in': {incomplete_hands}")
+    print(f"  hands tagged 'odd-chip': {odd_chip_hands}")
+    print(f"  hands tagged with both: {both_hands}")
     return 0
 
 

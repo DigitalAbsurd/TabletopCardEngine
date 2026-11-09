@@ -55,6 +55,7 @@ internal static partial class PhhReader
             SmallBet = table.ContainsKey("small_bet") ? ReadDecimal(table, "small_bet", source) : null,
             BigBet = table.ContainsKey("big_bet") ? ReadDecimal(table, "big_bet", source) : null,
             Results = table.ContainsKey("_results") ? ReadDecimals(table, "_results", source) : null,
+            Divergence = table.ContainsKey("_tce_divergence") ? ReadString(table, "_tce_divergence", source) : null,
             StartingStacks = startingStacks,
             Players = players,
             FinishingStacks = table.ContainsKey("finishing_stacks") ? ReadDecimals(table, "finishing_stacks", source) : null,

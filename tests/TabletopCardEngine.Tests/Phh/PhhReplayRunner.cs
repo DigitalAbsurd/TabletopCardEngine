@@ -120,6 +120,10 @@ internal sealed class PhhReplayRunner : IDisposable
         {
             reason = $"bets {hand.SmallBet}/{hand.BigBet} — the engine's fixed-limit bets are the big blind and twice it";
         }
+        else if (hand.Divergence is not null)
+        {
+            reason = $"pokerkit and the engine follow different rules here: {hand.Divergence}";
+        }
         else if (hand.PlayerCount < 2)
         {
             reason = $"{hand.PlayerCount} players — a hand needs at least two";
