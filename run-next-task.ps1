@@ -31,7 +31,9 @@
     repository, so the agent merges after the local gates.
 
     After each task, the script switches to main and pulls, so the next task (and the
-    dependency check that picks it) sees the merged result. It prints how long each task
+    dependency check that picks it) sees the merged result. It then deletes the task's local
+    branch when nothing would be lost (merged, fully pushed, or empty), and names any stash
+    entry the agent added. It prints how long each task
     took, and the whole run, in hh:mm:ss; the agent is asked to report each gate's duration
     the same way.
 
@@ -264,17 +266,52 @@ function Sync-Main {
     git reset --hard origin/main --quiet
 }
 
-# The squash merge deletes the task branch on the remote but leaves the agent's local copy,
-# which git branch -d refuses to delete because its commits are not on main. Only a branch
-# of this issue whose upstream is gone is deleted: a branch that was never pushed (such as
-# the one Save-UnfinishedWork creates) has no upstream and is kept.
-function Remove-MergedTaskBranch([int]$IssueNumber, [string]$BranchPrefix) {
+# A local branch of this issue that stays behind makes the next attempt's "git checkout -b"
+# of the same name fail (as after the stopped run on issue #657). It is deleted when nothing
+# would be lost: the squash merge deleted it on the remote (its upstream is gone, and git
+# branch -d would refuse because its commits are not on main), every commit of it is on its
+# remote copy (a stopped task pushes its branch, docs/task-run.md), or it has no commit
+# beyond main at all. A branch with unpushed commits, such as the one Save-UnfinishedWork
+# creates, is kept. Runs after Sync-Main, so main and the remote refs are current.
+function Remove-SettledTaskBranch([int]$IssueNumber, [string]$BranchPrefix) {
     $pattern = "^[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
     foreach ($line in @(git for-each-ref --format='%(refname:short)|%(upstream:track)' refs/heads/)) {
         $name, $track = $line -split '\|', 2
-        if ($name -match $pattern -and $track -eq '[gone]') {
+        if ($name -notmatch $pattern) {
+            continue
+        }
+
+        $reason = $null
+        if ($track -eq '[gone]') {
+            $reason = 'its pull request merged and the remote branch is gone'
+        } elseif (git for-each-ref --format='%(refname)' "refs/remotes/origin/$name") {
+            if ([int](git rev-list --count "origin/$name..$name") -eq 0) {
+                $reason = "every commit of it is on 'origin/$name'"
+            }
+        } elseif ([int](git rev-list --count "main..$name") -eq 0) {
+            $reason = 'it has no commit beyond main'
+        }
+
+        if ($reason) {
             git branch -D $name --quiet
-            Write-Host "Deleted local branch '$name': its pull request merged and the remote branch is gone."
+            Write-Host "Deleted local branch '$name': $reason."
+        } else {
+            Write-Host "Kept local branch '$name': it has commits that are on no remote branch."
+        }
+    }
+}
+
+# An agent that stashes its work leaves a clean tree, so Save-UnfinishedWork has nothing to
+# save and the work is visible nowhere else. Name every stash entry the run added.
+function Get-StashIds {
+    return @(git stash list --format='%H')
+}
+
+function Write-NewStashReport([string[]]$Before) {
+    foreach ($line in @(git stash list --format='%H|%gd|%s')) {
+        $id, $ref, $subject = $line -split '\|', 3
+        if ($Before -notcontains $id) {
+            Write-Host "Stash entry added during the task: $ref ($subject). Recover it with: git stash branch <name> $ref"
         }
     }
 }
@@ -301,9 +338,10 @@ function Write-AgentFailureReport([int]$IssueNumber, [string]$BranchPrefix, [dat
     Write-Host "  The agent's session started at $($StartedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')); its transcript is the session that started then."
 }
 
-# An agent that cannot meet the Definition of done stops on purpose: it pushes its branch,
-# says why in a comment on the issue and exits 0 (docs/task-run.md, What "done" means). Name
-# both, so the reason is on the console rather than only on GitHub (as on issue #654).
+# An agent that cannot meet the Definition of done stops on purpose: it commits and pushes its
+# branch with no pull request, says why in a comment on the issue and exits 0 (docs/task-run.md,
+# What "done" means). Name both, so the reason is on the console rather than only on GitHub
+# (as on issue #654).
 function Write-UnfinishedTaskReport([int]$IssueNumber, [string]$BranchPrefix, [datetime]$StartedAt) {
     $pattern = "^origin/[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
     $branches = @(git for-each-ref --format='%(refname:short)' refs/remotes/origin/ | Where-Object { $_ -match $pattern })
@@ -633,7 +671,7 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 4. Implement the task strictly as the issue states it: Scope, Files, Definition of done, Notes for the implementer and Context for an AI assistant are acceptance criteria, not suggestions. Do not widen the scope: if you find something else broken nearby, file a separate issue rather than a second commit.
 5. Run from the repository root: dotnet build, dotnet format TabletopCardEngine.sln --verify-no-changes, dotnet test, dotnet pack TabletopCardEngine.Packages.slnf -c Release - all four must finish without errors. This is a precondition for every step below; do not move on if any of them failed.
 6. If the Definition of done carries a browser probe, run it and quote in the pull request what it printed. "It looks right" is not a check. For every task, also run the browser layout gate locally before opening the pull request (TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests, see docs/task-run.md): it is required when the task touches layout or the demo, and preferred for every other task, because it runs the gate that matters most. Skip it only if it cannot run here, and then say so in the pull request. Quote the summary line of that run (total, passed, failed, skipped), whose tests must have passed rather than been skipped. The browser gate takes about 10 to 15 minutes, usually more than the 10-minute foreground limit, and dotnet test about 3: run each in the foreground with the longest timeout your shell tool allows (10 minutes for Claude Code), not in the background. If a gate run is moved to the background anyway, wait for it to finish, reading its output until the summary line appears, before you commit, open a pull request or merge. A gate run moved to the background, or one that takes longer than this estimate, is expected and is not something to report: its duration goes in the gate table of step 15 and nowhere else. A gate run without its summary line has not passed: never report it as passed or as "running", and never merge without that line. Do not weaken a check to make it pass: a failing assertion is either a defect in your change or a real defect in the product, and the second case needs a follow-up issue, not a softened assertion.
-7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion.
+7. If the Definition of done is not met in full, do not merge and do not close the issue half-done. Finish it yourself; if that is genuinely impossible within this task, stop, merge nothing, and say plainly in a comment on the issue what is blocking completion. Before you write that comment, commit what you have on your task branch with a Conventional Commit whose summary says the work is unfinished, push the branch (git push -u origin <branch>), open no pull request, and name the pushed branch in the comment. Never stash, reset or discard the work instead: a stash stays on this machine, where neither the runner's report nor the next attempt at the issue can see it.
 8. Commit with a meaningful message in English, as a Conventional Commit (see docs/task-run.md, Git and pull request protocol, step 2), and push the branch.
 9. Open a pull request: gh pr create -R $Repo --base main --title "..." --body "Closes #$IssueNumber`n`n<description>". The title is a Conventional Commit, <type>(<scope>)?: <summary>, because the squash merge turns it into the commit on main that CHANGELOG.md is generated from. The body must contain "Closes #$IssueNumber".
 10. $mergeRule
@@ -740,15 +778,17 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
     # The settings file is expected to run the agent non-interactively and without
     # permission prompts: with no human review step, every command (git push,
     # gh pr create, gh pr merge) must run without approval that will never come.
+    $stashBefore = Get-StashIds
     try {
         $agentExitCode = Invoke-Agent -Settings $agentSettings -Prompt $prompt -ModelId $modelId
     } finally {
         Remove-Item -LiteralPath $taskFile -ErrorAction SilentlyContinue
     }
 
+    Write-NewStashReport -Before $stashBefore
     Save-UnfinishedWork -IssueNumber $issueNumber -BranchPrefix $branchPrefix
     Sync-Main
-    Remove-MergedTaskBranch -IssueNumber $issueNumber -BranchPrefix $branchPrefix
+    Remove-SettledTaskBranch -IssueNumber $issueNumber -BranchPrefix $branchPrefix
 
     # Printed before any of the checks below can stop the run, so a failed task is timed too.
     Write-Host "Task on issue #$issueNumber took $(Format-Duration $taskClock.Elapsed)."
