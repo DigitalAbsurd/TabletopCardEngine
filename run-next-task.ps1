@@ -301,6 +301,29 @@ function Write-AgentFailureReport([int]$IssueNumber, [string]$BranchPrefix, [dat
     Write-Host "  The agent's session started at $($StartedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')); its transcript is the session that started then."
 }
 
+# An agent that cannot meet the Definition of done stops on purpose: it pushes its branch,
+# says why in a comment on the issue and exits 0 (docs/task-run.md, What "done" means). Name
+# both, so the reason is on the console rather than only on GitHub (as on issue #654).
+function Write-UnfinishedTaskReport([int]$IssueNumber, [string]$BranchPrefix, [datetime]$StartedAt) {
+    $pattern = "^origin/[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
+    $branches = @(git for-each-ref --format='%(refname:short)' refs/remotes/origin/ | Where-Object { $_ -match $pattern })
+    foreach ($branch in $branches) {
+        Write-Host "  Pushed branch: $($branch.Substring('origin/'.Length))"
+    }
+
+    $since = $StartedAt.ToUniversalTime()
+    $comments = @(((gh issue view $IssueNumber -R $Repo --json comments) | ConvertFrom-Json).comments |
+            Where-Object { ([datetime]$_.createdAt).ToUniversalTime() -ge $since })
+    foreach ($comment in $comments) {
+        $firstLine = ([string]$comment.body -split "`r?`n" | Where-Object { $_.Trim() } | Select-Object -First 1)
+        Write-Host "  Comment by $($comment.author.login): $($comment.url)"
+        Write-Host "    $firstLine"
+    }
+    if ($branches.Count -eq 0 -and $comments.Count -eq 0) {
+        Write-Host '  No pushed branch and no comment on the issue from this run.'
+    }
+}
+
 # The branch name without its leading "<type>/", which the agent picks (see docs/task-run.md).
 # The milestone segment comes from the issue's own milestone, not from -Milestone.
 function Get-BranchPrefix($Issue) {
@@ -752,6 +775,9 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
             foreach ($pr in $stillOpenPr) {
                 Write-Host "  Left-over open PR: #$($pr.number) $($pr.url)"
             }
+        }
+        if ($issueAfter.state -ne 'CLOSED') {
+            Write-UnfinishedTaskReport -IssueNumber $issueNumber -BranchPrefix $branchPrefix -StartedAt $taskStartedAt
         }
         Fail "Task on issue #$issueNumber did not complete cleanly (issue not closed and/or a PR was left open). Not continuing to further tasks."
     }

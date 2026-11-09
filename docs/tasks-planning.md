@@ -334,6 +334,12 @@ Each of these has cost this project a batch.
   one measurement, and half-fails.
 - **A Definition of done nothing can check.** If neither a gate nor a pasted probe settles it, the
   implementer will decide it is done, and they will not be lying.
+- **A probe that cannot fail.** A probe proves the oracle bites only when what it changes is
+  something the oracle checks. Swapping in a more permissive rule cannot fail a replay of legal
+  actions: No-Limit accepts every fixed-limit and pot-limit raise, and the pots come out the same,
+  so "map `FT` to `NoLimit`, the replay must fail" passed and the task stopped unmerged (#654).
+  Before writing the probe, name the assertion it will trip; if there is none, the issue needs one
+  (here, that the engine offers exactly the recorded raise window).
 - **Leaving the wrong fix un-forbidden.** Anything that makes the symptom invisible will be tried
   first unless it is ruled out by name.
 - **Padding the issue with repository-wide rules.** They are in `docs/task-run.md`. Repeating them
