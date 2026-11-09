@@ -116,6 +116,7 @@
         <ActionPanel
             HandData="@Hand"
             RaiseStep="@SmallBlind"
+            BettingStructure="@(GameData?.Options.BettingStructure ?? BettingStructure.NoLimit)"
             CanSeat="@CanSeat"
             MaxPlayers="@(GameData?.Options.MaxPlayersCount ?? 0)"
             PendingJoins="@PendingJoins"

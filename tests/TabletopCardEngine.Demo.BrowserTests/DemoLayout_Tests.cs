@@ -492,6 +492,57 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
+    /// Issue #662: under Fixed-Limit the raise window is one amount, so the bar offers one button
+    /// and no slider, presets, steps or amount box. At blinds 1/2 the first to act raises to 4.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_FixedLimit_ShowsOneRaiseButtonAndNoSlider(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.CreateGameAsync("6-Max", 3, bettingStructureLabel: "Fixed-Limit", smallBlind: "1");
+
+        (await page.CountAsync(DemoPage.RaiseButtonSelector)).Should().Be(1);
+        (await page.ReadTextAsync(DemoPage.RaiseButtonSelector)).Should().Be("Raise to 4");
+        (await page.CountAsync(".action-bar .raise-slider")).Should().Be(0, "a one-position slider is the defect this removes");
+        (await page.CountAsync(DemoPage.RaisePresetSelector)).Should().Be(0);
+        (await page.CountAsync(DemoPage.RaiseInputSelector)).Should().Be(0);
+        (await page.CountAsync(".action-bar .raise-step-btn")).Should().Be(0);
+
+        await page.ScrollActionPanelIntoViewAsync();
+        AssertOwnHitTargets(await page.ProbeHitTargetsAsync(DemoPage.ActionButtonSelectors));
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        layoutContent.ScrollWidth.Should().Be(layoutContent.ClientWidth, $"the action bar must not overflow at {viewportWidth}px ({layoutContent})");
+
+        (await page.SubmitRaiseAsync()).Should().BeTrue("the engine accepts the one amount the bar offers");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Issue #662: under Pot-Limit the "Pot" preset is the engine's maximum raise. At blinds 1/2 with
+    /// three seats the first to act sees "Pot · 7", and submitting it is accepted.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_PotLimit_PotPresetSubmitsTheEnginesMaximum(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.CreateGameAsync("6-Max", 3, bettingStructureLabel: "Pot-Limit", smallBlind: "1");
+
+        IReadOnlyList<HitProbe> presets = await page.ProbeHitTargetsAsync(DemoPage.RaisePresetSelector);
+        presets.Select(preset => preset.Label).Should().Contain("Pot · 7");
+        AssertOwnHitTargets(presets);
+
+        await page.PickRaisePresetAsync("Pot");
+        (await page.ReadTextAsync(DemoPage.RaiseButtonSelector)).Should().Be("Raise to 7");
+
+        (await page.SubmitRaiseAsync()).Should().BeTrue("the engine accepts a raise to its own maximum");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
     /// Issue #114: the header shows the build's commit and a Light / Dark switch. The switch puts
     /// data-theme on the document and swaps AntDesign to its dark stylesheet, and the pick survives a
     /// reload. Neither theme may push the page sideways.

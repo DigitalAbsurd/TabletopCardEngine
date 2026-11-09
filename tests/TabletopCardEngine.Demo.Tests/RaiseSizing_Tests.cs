@@ -202,6 +202,63 @@ public sealed class RaiseSizing_Tests
         RaiseSizing.Validate(corrected.ToString(System.Globalization.CultureInfo.InvariantCulture), 50m, 200m, 987m).IsValid.Should().BeTrue();
     }
 
+    [TestMethod]
+    public void Presets_PotLimit_PotIsExactlyTheEnginesMaximum()
+    {
+        // Arrange - the demo's own sum would say 7, the engine's window tops out at 6
+        var hand = Hand(0, 3, 100, 2, 4, 6);
+
+        // Act
+        var presets = RaiseSizing.Presets(hand, 1m, BettingStructure.PotLimit);
+
+        // Assert
+        presets.Select(p => (p.Label, p.Amount)).Should().Equal(("½ Pot", 5m), ("Pot", 6m));
+    }
+
+    [TestMethod]
+    public void Presets_PotLimit_DropsAPresetThatEqualsAnother()
+    {
+        // Arrange - ½ Pot works out to 5, which is the minimum raise
+        var hand = Hand(0, 3, 100, 2, 5, 6);
+
+        // Act
+        var presets = RaiseSizing.Presets(hand, 1m, BettingStructure.PotLimit);
+
+        // Assert
+        presets.Select(p => (p.Label, p.Amount)).Should().Equal(("Pot", 6m));
+    }
+
+    [TestMethod]
+    public void Presets_PotLimit_PotIsMaxValueAtOneTwoWithThreeInThePot()
+    {
+        // Arrange - first to act at 1/2 with 3 in the pot: 2 + (3 + 2) = 7
+        var hand = Hand(0, 3, 100, 2, 4, 7);
+
+        // Act and Assert
+        RaiseSizing.Presets(hand, 1m, BettingStructure.PotLimit)[^1].Amount.Should().Be(7m);
+    }
+
+    [TestMethod]
+    public void MarksAndPresets_FixedLimit_AreEmpty()
+    {
+        // Arrange
+        var hand = Hand(0, 3, 100, 2, 4, 4);
+
+        // Act and Assert
+        RaiseSizing.Marks(hand, BettingStructure.FixedLimit).Should().BeEmpty();
+        RaiseSizing.Presets(hand, 1m, BettingStructure.FixedLimit).Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void Marks_PotLimit_NamesTheUpperEndMax()
+    {
+        // Arrange
+        var hand = Hand(0, 3, 100, 2, 4, 7);
+
+        // Act and Assert
+        RaiseSizing.Marks(hand, BettingStructure.PotLimit).Select(m => m.Label).Should().Equal("Min", "Max");
+    }
+
     private static HandData Hand(int pot, int streetPot, int stack, int call, int min, int max)
     {
         var evaluations = new List<PlayerActionEvaluationData> { new(PlayerActionType.Fold) };
