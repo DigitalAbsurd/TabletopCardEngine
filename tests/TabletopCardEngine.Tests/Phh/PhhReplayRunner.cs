@@ -86,6 +86,12 @@ internal sealed class PhhReplayRunner : IDisposable
     private const string FixedLimitVariant = "FT";
 
     /// <summary>
+    /// Not a code of the PHH specification: the synthetic pokerkit corpus names pot-limit Texas hold'em
+    /// this way, by analogy with <c>NT</c> and <c>FT</c> (see <c>Resources/phh/README.md</c>).
+    /// </summary>
+    private const string PotLimitVariant = "PT";
+
+    /// <summary>
     /// The betting structure a PHH variant code plays as, or <c>null</c> for a variant the engine does
     /// not play. The one place a variant becomes a structure: pot-limit adds its row here.
     /// </summary>
@@ -94,6 +100,7 @@ internal sealed class PhhReplayRunner : IDisposable
         {
             "NT" => BettingStructure.NoLimit,
             FixedLimitVariant => BettingStructure.FixedLimit,
+            PotLimitVariant => BettingStructure.PotLimit,
             _ => null,
         };
 
@@ -119,6 +126,10 @@ internal sealed class PhhReplayRunner : IDisposable
         else if (hand.Variant == FixedLimitVariant && (hand.SmallBet != hand.BigBlind || hand.BigBet != hand.BigBlind * 2))
         {
             reason = $"bets {hand.SmallBet}/{hand.BigBet} — the engine's fixed-limit bets are the big blind and twice it";
+        }
+        else if (hand.Variant == PotLimitVariant && hand.MinBet != hand.BigBlind)
+        {
+            reason = $"min bet {hand.MinBet} — the engine's smallest bet is the big blind";
         }
         else if (hand.Divergence is not null)
         {
@@ -230,6 +241,11 @@ internal sealed class PhhReplayRunner : IDisposable
                 AssertFixedLimitRaiseWindow(gameData.HandData!, fixedLimitRaise);
             }
 
+            if (hand.Variant == PotLimitVariant)
+            {
+                AssertPotLimitRaiseWindow(gameData.HandData!, expectedSeatNo, action);
+            }
+
             var (actionType, size) = MapDecision(decision, gameData.HandData!);
             gameData = await ApplyAsync(new HoldemActionPlay(gameId, actionType, size), hand, action);
 
@@ -302,6 +318,34 @@ internal sealed class PhhReplayRunner : IDisposable
             (window.MinValue, window.MaxValue).Should().Be((raise.Amount, raise.Amount),
                 $"in fixed-limit the only raise before '{raise.Raw}' is the recorded total");
         }
+    }
+
+    /// <summary>
+    /// In pot-limit the top of the <c>Raise</c> window is the standing wager plus the pot after the seat
+    /// calls, capped at the seat's stack plus its street wager. The runner works that out from the
+    /// table's own numbers (every chip committed this hand, blinds and folded seats' wagers included)
+    /// and does not read it back from the engine. Replaying the recorded actions cannot tell pot-limit
+    /// from no-limit, because every pot-limit raise is also a legal no-limit one and the pots come out
+    /// the same. The check keys on the PHH variant, not on the structure the game was created with.
+    /// </summary>
+    private static void AssertPotLimitRaiseWindow(HandData handData, byte seatNo, PhhAction action)
+    {
+        var window = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
+
+        if (window == null)
+        {
+            return;
+        }
+
+        var seat = handData.Seats.Single(candidate => candidate.SeatNo == seatNo);
+        var ownWager = seat.BetSize ?? 0M;
+        var standingWager = handData.Seats.Max(candidate => candidate.BetSize ?? 0M);
+        var call = standingWager - ownWager;
+        var potAfterCall = handData.Pot + handData.StreetPot + call;
+        var potLimit = Math.Min(standingWager + potAfterCall, seat.Stack + ownWager);
+
+        window.MaxValue.Should().Be(potLimit,
+            $"the pot-limit maximum of the raise before '{action.Raw}' is the standing wager {standingWager} plus the pot {potAfterCall} after a call of {call}, capped at the stack");
     }
 
     private void AssertHandResult(GameData gameData, PhhHand hand)
