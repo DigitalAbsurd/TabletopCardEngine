@@ -99,6 +99,9 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     public const string TableFormatFieldSelector = ".ant-select:has(#setup-table-format_list)";
 
+    /// <summary>The New Game form's Betting structure dropdown.</summary>
+    public const string BettingStructureFieldSelector = ".ant-select:has(#setup-betting-structure_list)";
+
     /// <summary>The Max Players dropdown of the New Game form, found the same way.</summary>
     public const string MaxPlayersFieldSelector = ".ant-select:has(#setup-max-players_list)";
 
@@ -508,6 +511,10 @@ internal sealed class DemoPage : IAsyncDisposable
         await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
+
+    /// <summary>Picks a betting structure in the open New Game form, which shows the Raise cap field for Fixed-Limit.</summary>
+    /// <param name="structureLabel">The structure's caption in the dropdown, such as <c>Fixed-Limit</c>.</param>
+    public Task ChooseBettingStructureAsync(string structureLabel) => SelectOptionAsync(BettingStructureFieldSelector, structureLabel);
 
     /// <summary>
     /// Deals a new game of the given table format and seat count through the New Game form, the way

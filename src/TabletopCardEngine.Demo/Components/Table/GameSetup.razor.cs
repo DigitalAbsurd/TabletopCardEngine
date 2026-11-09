@@ -29,6 +29,9 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     private const decimal DefaultMultiplier = 2m;
 
     private HoldemTableFormat _tableFormat = DemoGameDefaults.TableFormat;
+    private BettingStructure _bettingStructure = DemoGameDefaults.BettingStructure;
+    private int? _raiseCap = DemoGameDefaults.RaiseCap;
+    private bool _noRaiseCap;
     private int _maxPlayers = DemoGameDefaults.MaxPlayers;
     private decimal _smallBlind = DemoGameDefaults.SmallBlind;
     private byte _dealerSeat = DemoGameDefaults.DealerSeatNo;
@@ -76,6 +79,9 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     public void ResetToDefaults()
     {
         _tableFormat = DemoGameDefaults.TableFormat;
+        _bettingStructure = DemoGameDefaults.BettingStructure;
+        _raiseCap = DemoGameDefaults.RaiseCap;
+        _noRaiseCap = false;
         _maxPlayers = DemoGameDefaults.MaxPlayers;
         _smallBlind = DemoGameDefaults.SmallBlind;
         _dealerSeat = DemoGameDefaults.DealerSeatNo;
@@ -383,6 +389,8 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             // left in the disabled box is not sent, because the engine rejects it without Allow rebuy.
             var gameOptions = new GameOptionData
             {
+                BettingStructure = _bettingStructure,
+                RaiseCap = _noRaiseCap ? null : _raiseCap,
                 TableFormat = _tableFormat,
                 MaxPlayersCount = _maxPlayers,
                 InitialSmallBlind = _smallBlind,

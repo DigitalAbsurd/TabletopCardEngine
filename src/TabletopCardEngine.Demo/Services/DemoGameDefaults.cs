@@ -25,10 +25,17 @@ public static class DemoGameDefaults
     /// <summary>The table format the demo boots with.</summary>
     public const HoldemTableFormat TableFormat = HoldemTableFormat.SixMax;
 
+    /// <summary>The betting structure the demo boots with.</summary>
+    public const BettingStructure BettingStructure = Holdem.BettingStructure.NoLimit;
+
+    /// <summary>The raise cap a Fixed-Limit game starts from in the form, the engine's own default.</summary>
+    public const int RaiseCap = 4;
+
     /// <summary>The game options the demo boots with.</summary>
     public static GameOptionData CreateOptions()
         => new()
         {
+            BettingStructure = BettingStructure,
             TableFormat = TableFormat,
             MaxPlayersCount = MaxPlayers,
             InitialSmallBlind = SmallBlind,

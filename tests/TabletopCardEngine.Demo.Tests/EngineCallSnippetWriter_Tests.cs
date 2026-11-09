@@ -37,6 +37,36 @@ public sealed class EngineCallSnippetWriter_Tests
     }
 
     [TestMethod]
+    [DataRow(BettingStructure.FixedLimit, 3, "RaiseCap = 3,")]
+    [DataRow(BettingStructure.FixedLimit, null, "RaiseCap = null,")]
+    public void GenerateSnippet_CreateGame_FixedLimit_WritesTheStructureAndTheCap(BettingStructure structure, int? raiseCap, string expectedCap)
+    {
+        var action = new HoldemActionCreateGame(
+            GameId: Guid.NewGuid(),
+            Options: new GameOptionData { BettingStructure = structure, RaiseCap = raiseCap, MaxPlayersCount = 6, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 });
+        var entry = new EngineCallJournalEntry(SequenceNumber: 1, Action: action, Succeeded: true, ErrorMessages: []);
+
+        var snippet = EngineCallSnippetWriter.GenerateSnippet(entry);
+
+        snippet.Should().Contain("BettingStructure = BettingStructure.FixedLimit");
+        snippet.Should().Contain(expectedCap);
+    }
+
+    [TestMethod]
+    public void GenerateSnippet_CreateGame_PotLimit_WritesTheStructureWithoutACap()
+    {
+        var action = new HoldemActionCreateGame(
+            GameId: Guid.NewGuid(),
+            Options: new GameOptionData { BettingStructure = BettingStructure.PotLimit, MaxPlayersCount = 6, InitialSmallBlind = 1m, InitialDealerSeatNo = 1 });
+        var entry = new EngineCallJournalEntry(SequenceNumber: 1, Action: action, Succeeded: true, ErrorMessages: []);
+
+        var snippet = EngineCallSnippetWriter.GenerateSnippet(entry);
+
+        snippet.Should().Contain("BettingStructure = BettingStructure.PotLimit");
+        snippet.Should().NotContain("RaiseCap");
+    }
+
+    [TestMethod]
     public void GenerateSnippet_LeaveSeat_ProducesValidCSharp()
     {
         // Arrange
