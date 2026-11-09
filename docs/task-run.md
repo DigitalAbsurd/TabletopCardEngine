@@ -140,7 +140,13 @@ satisfied and the four gates are green — not when the code compiles and looks 
 
 - **Do not merge a partial.** If the Definition of done cannot be met, stop, merge nothing, and
   comment on the issue saying exactly what blocks it. A half-done merge is worse than no merge:
-  the issue closes, the runner moves on, and nobody looks again.
+  the issue closes, the runner moves on, and nobody looks again. Keep the work where others can
+  see it: before the comment, commit it on the task branch with a Conventional Commit whose summary
+  says it is unfinished, push the branch (`git push -u origin <branch>`), open no pull request, and
+  name the branch in the comment. Never stash, reset or discard it instead: a stash stays on one
+  machine, and neither the runner's report nor the next attempt at the issue can see it. That next
+  attempt starts from a fresh `main` (the runner deletes the local copy of a fully pushed branch)
+  and may read the pushed branch for context; it picks another slug if the name is taken.
 - **Do not weaken a check to make it pass.** If an assertion fails, you have found either a defect
   in your change or a real defect in the product. Narrowing the assertion until it goes green
   certifies the breakage. Open a follow-up issue and say so in the pull request.
