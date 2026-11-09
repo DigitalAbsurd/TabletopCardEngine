@@ -125,6 +125,7 @@ The following hand histories come from the [PHH dataset](https://github.com/uoft
 - `tests/TabletopCardEngine.Tests/Resources/phh/pluribus.phhs.gz`
 - `tests/TabletopCardEngine.Tests/Resources/phh/handhq-headsup.phhs.gz`
 - `tests/TabletopCardEngine.Tests/Resources/phh/handhq-fullring.phhs.gz`
+- `tests/TabletopCardEngine.Tests/Resources/phh/wsop-fixedlimit.phhs.gz`
 - `src/TabletopCardEngine.Demo/wwwroot/sample/sample.phhs`, ten Pluribus hands and one full-ring handhq hand
 
 The two test corpora are pinned to upstream commit `e47fbd5816372360bade4de5d712346fe1bb70f6`. The

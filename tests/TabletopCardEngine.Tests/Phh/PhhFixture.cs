@@ -20,6 +20,11 @@ internal static class PhhFixture
     private const string HeadsUpResourceSuffix = "Resources.phh.handhq-headsup.phhs.gz";
     private const string FullRingResourceSuffix = "Resources.phh.handhq-fullring.phhs.gz";
 
+    private const string WsopFixedLimitResourceSuffix = "Resources.phh.wsop-fixedlimit.phhs.gz";
+
+    private static readonly Lazy<IReadOnlyList<PhhHand>> _wsopFixedLimit =
+        new(() => PhhReader.ReadAll(ReadGZippedResource(WsopFixedLimitResourceSuffix)));
+
     private static readonly Lazy<IReadOnlyList<PhhHand>> _pluribus =
         new(() => PhhReader.ReadAll(ReadGZippedResource(PluribusResourceSuffix)));
 
@@ -45,6 +50,12 @@ internal static class PhhFixture
     /// replayable — see <c>PhhReplayRunner.IsSupported</c> and <c>Resources/phh/README.md</c>.
     /// </summary>
     internal static IReadOnlyList<PhhHand> FullRing => _fullRing.Value;
+
+    /// <summary>
+    /// The seven fixed-limit hands of the WSOP subset (2023 $50,000 Poker Players Championship, final
+    /// table, day 5), in upstream file order. Five-handed, with finishing stacks, so an exact oracle.
+    /// </summary>
+    internal static IReadOnlyList<PhhHand> WsopFixedLimit => _wsopFixedLimit.Value;
 
     /// <summary>
     /// The Pluribus hands to replay, honouring <see cref="HandLimitVariable"/>. A capped run takes an
@@ -94,7 +105,7 @@ internal static class PhhFixture
 
     /// <summary>Finds one hand by its upstream file name, e.g. <c>pluribus/30/0.phh</c>.</summary>
     internal static PhhHand Single(string source)
-        => Pluribus.Concat(HeadsUp).Concat(FullRing).SingleOrDefault(hand => hand.Source == source)
+        => Pluribus.Concat(HeadsUp).Concat(FullRing).Concat(WsopFixedLimit).SingleOrDefault(hand => hand.Source == source)
             ?? throw new InvalidOperationException($"'{source}' is not in the embedded PHH corpus");
 
     /// <summary>Looks the resource up by suffix so a change of folder layout does not break loading.</summary>

@@ -17,6 +17,7 @@ public sealed class PhhReplayTests
     private const int PluribusHandCount = 10_000;
     private const int HeadsUpHandCount = 2_351;
     private const int FullRingHandCount = 1_505;
+    private const int WsopFixedLimitHandCount = 7;
 
     /// <summary>
     /// How many of the heads-up hands the engine can replay. The rest are showdowns where the history
@@ -204,6 +205,51 @@ public sealed class PhhReplayTests
 
         using var runner = new PhhReplayRunner();
         foreach (var hand in hands)
+        {
+            await runner.ReplayAsync(hand);
+        }
+    }
+
+    /// <summary>
+    /// Guards the WSOP fixed-limit corpus: all seven hands parse, all seven are supported, and the
+    /// recorded finishing stacks are there to be the oracle.
+    /// </summary>
+    [TestMethod]
+    public void PhhWsopFixedLimitCorpus_ParsesAndIsFullySupported()
+    {
+        var corpus = PhhFixture.WsopFixedLimit;
+
+        corpus.Should().HaveCount(WsopFixedLimitHandCount, "the vendored fixture holds the seven fixed-limit hands");
+
+        var unsupported = corpus
+            .Select(hand =>
+            {
+                PhhReplayRunner.IsSupported(hand, out var reason);
+                return $"{hand}: {reason}";
+            })
+            .Where(entry => !entry.EndsWith(": ", StringComparison.Ordinal))
+            .ToArray();
+
+        unsupported.Should().BeEmpty("every hand of this corpus should be replayable by the engine");
+        corpus.Should().OnlyContain(hand => hand.Variant == "FT" && hand.FinishingStacks != null && hand.PlayerCount == 5);
+
+        var firstHand = corpus[0];
+        firstHand.Source.Should().Be("wsop/2023/43/5/01-39-18.phh");
+        firstHand.MinBet.Should().BeNull("the specification forbids min_bet in fixed-limit");
+        firstHand.SmallBet.Should().Be(200_000M);
+        firstHand.BigBet.Should().Be(400_000M);
+        firstHand.BlindsOrStraddles.Should().Equal([100_000M, 200_000M, 0M, 0M, 0M]);
+        firstHand.FinishingStacks.Should().Equal([3_075_000M, 11_925_000M, 7_750_000M, 3_150_000M, 3_800_000M]);
+    }
+
+    /// <summary>
+    /// The WSOP fixed-limit replay: every hand, with the stacks compared exactly against the history.
+    /// </summary>
+    [TestMethod]
+    public async Task PhhWsopFixedLimitReplay_Test()
+    {
+        using var runner = new PhhReplayRunner();
+        foreach (var hand in PhhFixture.WsopFixedLimit)
         {
             await runner.ReplayAsync(hand);
         }

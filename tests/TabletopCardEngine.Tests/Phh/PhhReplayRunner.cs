@@ -83,8 +83,22 @@ internal sealed class PhhReplayRunner : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(playerCount), playerCount, "Player count must be between 2 and 10"),
         };
 
+    private const string FixedLimitVariant = "FT";
+
     /// <summary>
-    /// Whether the engine can model this hand at all. The engine plays no-limit hold'em with no
+    /// The betting structure a PHH variant code plays as, or <c>null</c> for a variant the engine does
+    /// not play. The one place a variant becomes a structure: pot-limit adds its row here.
+    /// </summary>
+    internal static BettingStructure? BettingStructureFor(string variant)
+        => variant switch
+        {
+            "NT" => BettingStructure.NoLimit,
+            FixedLimitVariant => BettingStructure.FixedLimit,
+            _ => null,
+        };
+
+    /// <summary>
+    /// Whether the engine can model this hand at all. The engine plays hold'em with no
     /// antes and a big blind of exactly twice the small blind (<c>StartHandActionHandler</c> derives
     /// it that way), and it can only settle a showdown the history wrote every card of.
     /// <para>
@@ -98,9 +112,13 @@ internal sealed class PhhReplayRunner : IDisposable
     {
         reason = string.Empty;
 
-        if (hand.Variant != "NT")
+        if (BettingStructureFor(hand.Variant) is null)
         {
-            reason = $"variant '{hand.Variant}' is not no-limit Texas hold'em";
+            reason = $"variant '{hand.Variant}' is not a Texas hold'em variant the engine plays";
+        }
+        else if (hand.Variant == FixedLimitVariant && (hand.SmallBet != hand.BigBlind || hand.BigBet != hand.BigBlind * 2))
+        {
+            reason = $"bets {hand.SmallBet}/{hand.BigBet} — the engine's fixed-limit bets are the big blind and twice it";
         }
         else if (hand.PlayerCount < 2)
         {
@@ -178,7 +196,7 @@ internal sealed class PhhReplayRunner : IDisposable
 
         await ApplyAsync(new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { TableFormat = TableFormatFor(playerCount), MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
+            Options: new GameOptionData { BettingStructure = BettingStructureFor(hand.Variant)!.Value, RaiseCap = 4, TableFormat = TableFormatFor(playerCount), MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
             hand);
 
         var gameData = await ApplyAsync(new HoldemActionStartGame(gameId,
@@ -202,6 +220,11 @@ internal sealed class PhhReplayRunner : IDisposable
             var expectedSeatNo = (byte)(decision.PlayerIndex + 1);
             gameData.HandData!.NextPlayerSeatNo.Should().Be(expectedSeatNo,
                 $"'{action.Raw}' should be the turn of {hand.Players[decision.PlayerIndex]} in seat {expectedSeatNo}");
+
+            if (hand.Variant == FixedLimitVariant && decision is PhhCompleteBetRaiseAction fixedLimitRaise)
+            {
+                AssertFixedLimitRaiseWindow(gameData.HandData!, fixedLimitRaise);
+            }
 
             var (actionType, size) = MapDecision(decision, gameData.HandData!);
             gameData = await ApplyAsync(new HoldemActionPlay(gameId, actionType, size), hand, action);
@@ -256,6 +279,27 @@ internal sealed class PhhReplayRunner : IDisposable
         }
     }
 
+    /// <summary>
+    /// In fixed-limit a bet or raise has exactly one size, so the engine must offer exactly the one
+    /// the history recorded: a <c>Raise</c> window whose minimum and maximum are both that total. A
+    /// replay that only applies the recorded actions could not tell the structures apart, because
+    /// every fixed-limit raise is also a legal no-limit one and the pots come out the same. The check
+    /// keys on the PHH variant, not on the structure the game was created with, so a game created
+    /// with the wrong structure fails here.
+    /// </summary>
+    private static void AssertFixedLimitRaiseWindow(HandData handData, PhhCompleteBetRaiseAction raise)
+    {
+        var window = handData.Evaluations.SingleOrDefault(evaluation => evaluation.PlayerActionType == PlayerActionType.Raise);
+
+        window.Should().NotBeNull($"'{raise.Raw}' is a fixed-limit raise, so the engine should offer one");
+
+        if (window != null)
+        {
+            (window.MinValue, window.MaxValue).Should().Be((raise.Amount, raise.Amount),
+                $"in fixed-limit the only raise before '{raise.Raw}' is the recorded total");
+        }
+    }
+
     private void AssertHandResult(GameData gameData, PhhHand hand)
     {
         var handData = gameData.HandData!;
@@ -273,10 +317,15 @@ internal sealed class PhhReplayRunner : IDisposable
             // Not every corpus records where the stacks landed. The handhq hands do not, and could
             // not be compared exactly even if they did: their pots are raked, which the engine has no
             // concept of. Those hands are replayed for everything else a history pins down.
-            if (hand.FinishingStacks is { } finishingStacks)
+            // A corpus without finishing stacks may carry each player's net result instead (`_results`).
+            var expectedFinish = hand.FinishingStacks is { } finishingStacks
+                ? finishingStacks[playerIx]
+                : hand.Results is { } results ? hand.StartingStacks[playerIx]!.Value + results[playerIx] : (decimal?)null;
+
+            if (expectedFinish is { } finish)
             {
                 (seatData.StartHandStack + (seatData.HandResult?.Net ?? 0)).Should()
-                    .Be(finishingStacks[playerIx], $"seat {seatNo} finish stack");
+                    .Be(finish, $"seat {seatNo} finish stack");
             }
         }
 
