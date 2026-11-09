@@ -23,6 +23,11 @@ internal static class PhhFixture
     private const string WsopFixedLimitResourceSuffix = "Resources.phh.wsop-fixedlimit.phhs.gz";
     private const string AcpcFixedLimitResourceSuffix = "Resources.phh.acpc-fixedlimit.phhs.gz";
 
+    private const string PokerkitPotLimitResourceSuffix = "Resources.phh.pokerkit-potlimit.phhs.gz";
+
+    private static readonly Lazy<IReadOnlyList<PhhHand>> _pokerkitPotLimit =
+        new(() => PhhReader.ReadAll(ReadGZippedResource(PokerkitPotLimitResourceSuffix)));
+
     private static readonly Lazy<IReadOnlyList<PhhHand>> _acpcFixedLimit =
         new(() => PhhReader.ReadAll(ReadGZippedResource(AcpcFixedLimitResourceSuffix)));
 
@@ -69,6 +74,13 @@ internal static class PhhFixture
     internal static IReadOnlyList<PhhHand> AcpcFixedLimit => _acpcFixedLimit.Value;
 
     /// <summary>
+    /// The 2 000 synthetic pot-limit hands pokerkit played (variant <c>PT</c>), in file order. Every hole
+    /// card is dealt and the finishing stacks are recorded, so an exact oracle outside the hands tagged
+    /// with <c>_tce_divergence</c>.
+    /// </summary>
+    internal static IReadOnlyList<PhhHand> PokerkitPotLimit => _pokerkitPotLimit.Value;
+
+    /// <summary>
     /// The Pluribus hands to replay, honouring <see cref="HandLimitVariable"/>. A capped run takes an
     /// evenly spaced sample rather than the first N hands, so it still reaches every table in the
     /// corpus — the rarer shapes (multi-way showdowns, split pots) are not spread evenly across it.
@@ -85,6 +97,13 @@ internal static class PhhFixture
 
     /// <summary>The ACPC fixed-limit hands, sampled the same way <see cref="PluribusUpToLimit"/> is.</summary>
     internal static IReadOnlyList<PhhHand> AcpcFixedLimitUpToLimit => UpToLimit(AcpcFixedLimit);
+
+    /// <summary>
+    /// The replayable synthetic pot-limit hands, all of them: the full replay takes under a minute, so
+    /// <see cref="HandLimitVariable"/> does not sample it.
+    /// </summary>
+    internal static IReadOnlyList<PhhHand> PokerkitPotLimitSupported
+        => [.. PokerkitPotLimit.Where(hand => PhhReplayRunner.IsSupported(hand, out _))];
 
     private static IReadOnlyList<PhhHand> UpToLimit(IReadOnlyList<PhhHand> corpus)
     {
