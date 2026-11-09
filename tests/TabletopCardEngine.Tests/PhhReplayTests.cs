@@ -18,6 +18,7 @@ public sealed class PhhReplayTests
     private const int HeadsUpHandCount = 2_351;
     private const int FullRingHandCount = 1_505;
     private const int WsopFixedLimitHandCount = 7;
+    private const int AcpcFixedLimitHandCount = 6_000;
 
     /// <summary>
     /// How many of the heads-up hands the engine can replay. The rest are showdowns where the history
@@ -250,6 +251,46 @@ public sealed class PhhReplayTests
     {
         using var runner = new PhhReplayRunner();
         foreach (var hand in PhhFixture.WsopFixedLimit)
+        {
+            await runner.ReplayAsync(hand);
+        }
+    }
+
+    /// <summary>
+    /// Guards the ACPC fixed-limit corpus: all 6 000 hands parse and are supported, and each carries
+    /// the <c>_results</c> that are the oracle.
+    /// </summary>
+    [TestMethod]
+    public void PhhAcpcFixedLimitCorpus_ParsesAndIsFullySupported()
+    {
+        var corpus = PhhFixture.AcpcFixedLimit;
+
+        corpus.Should().HaveCount(AcpcFixedLimitHandCount, "the vendored fixture holds 3 000 heads-up and 3 000 three-player hands");
+
+        var unsupported = corpus
+            .Select(hand =>
+            {
+                PhhReplayRunner.IsSupported(hand, out var reason);
+                return $"{hand}: {reason}";
+            })
+            .Where(entry => !entry.EndsWith(": ", StringComparison.Ordinal))
+            .ToArray();
+
+        unsupported.Should().BeEmpty("every hand of this corpus should be replayable by the engine");
+        corpus.Should().OnlyContain(hand => hand.Variant == "FT" && hand.Results != null);
+        corpus.Count(hand => hand.PlayerCount == 2).Should().Be(3_000);
+        corpus.Count(hand => hand.PlayerCount == 3).Should().Be(3_000);
+    }
+
+    /// <summary>
+    /// The ACPC fixed-limit replay: a sample of the hands (all of them with the hand limit at 0), with
+    /// the stacks compared exactly against <c>starting_stacks + _results</c>.
+    /// </summary>
+    [TestMethod]
+    public async Task PhhAcpcFixedLimitReplay_Test()
+    {
+        using var runner = new PhhReplayRunner();
+        foreach (var hand in PhhFixture.AcpcFixedLimitUpToLimit)
         {
             await runner.ReplayAsync(hand);
         }

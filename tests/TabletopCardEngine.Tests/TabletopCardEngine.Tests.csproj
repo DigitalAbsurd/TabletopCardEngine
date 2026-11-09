@@ -22,6 +22,7 @@
     <None Remove="Resources\phh\handhq-headsup.phhs.gz" />
     <None Remove="Resources\phh\handhq-fullring.phhs.gz" />
     <None Remove="Resources\phh\wsop-fixedlimit.phhs.gz" />
+    <None Remove="Resources\phh\acpc-fixedlimit.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +30,7 @@
     <EmbeddedResource Include="Resources\phh\handhq-headsup.phhs.gz" />
     <EmbeddedResource Include="Resources\phh\handhq-fullring.phhs.gz" />
     <EmbeddedResource Include="Resources\phh\wsop-fixedlimit.phhs.gz" />
+    <EmbeddedResource Include="Resources\phh\acpc-fixedlimit.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>

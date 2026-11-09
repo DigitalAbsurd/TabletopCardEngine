@@ -1,8 +1,8 @@
 ﻿# PHH test fixtures
 
-Two vendored corpora, both from the [PHH dataset](https://github.com/uoftcprg/phh-dataset) at commit
+Vendored corpora, all but the last from the [PHH dataset](https://github.com/uoftcprg/phh-dataset) at commit
 `e47fbd5816372360bade4de5d712346fe1bb70f6` (MIT — see
-[LICENSE-phh-dataset.txt](LICENSE-phh-dataset.txt)):
+[LICENSE-phh-dataset.txt](LICENSE-phh-dataset.txt)); `acpc-fixedlimit.phhs.gz` is from the Zenodo edition, under CC-BY-4.0:
 
 | File | Hands | What it is |
 | --- | --- | --- |
@@ -10,6 +10,7 @@ Two vendored corpora, both from the [PHH dataset](https://github.com/uoftcprg/ph
 | `handhq-headsup.phhs.gz` | 2 351, of which 2 145 replayable | Real online play, heads-up. Structural oracle. |
 | `handhq-fullring.phhs.gz` | 1 505, of which 1 505 replayable | Real online play, full-ring (7–10 seated). Structural oracle. |
 | `wsop-fixedlimit.phhs.gz` | 7, all replayable | Real tournament play, fixed-limit, five-handed. Exact oracle. |
+| `acpc-fixedlimit.phhs.gz` | 6 000, all replayable | Bot play, fixed-limit, heads-up and three-player. Exact oracle through `_results`. From the Zenodo edition, CC-BY-4.0. |
 
 ## `pluribus.phhs.gz`
 
@@ -126,6 +127,36 @@ Records are copied verbatim apart from the `[N]` header.
 - **Seating:** five-handed, so it is seated as in full ring: `p1` is the small blind, `p2` the big blind and the
   last player is on the button (`InitialDealerSeatNo = PlayerCount`).
 
+## `acpc-fixedlimit.phhs.gz`
+
+Two files of the Annual Computer Poker Competition logs of 2014, from the **Zenodo edition** of the dataset
+(record `17136841`, DOI `10.5281/zenodo.10796885`, licensed **CC-BY-4.0**, not MIT like the GitHub copy; see
+[THIRD-PARTY-NOTICES.md](../../../../THIRD-PARTY-NOTICES.md)). The prefix of the entries is
+`data/annual-computer-poker-competition/competitions/2014/logs/`:
+
+| Entry | Hands | SHA-256 of the inflated file |
+| --- | --- | --- |
+| `2pl_logs/2014_2pl/2pl.652.Cleverpiggy.0.0.phhs` | 3 000 heads-up | `27ae7ec6034e313e794588a6e02ca014a4e972f3d1365b26f775c664569c778d` |
+| `3pl_logs/2014_3pl/3pl.HITSZ_CS_14.Hyperborean_iro.SmooCT.0.0.phhs` | 3 000 three-player | `fd06609f5a99f249373091cb2fe86ecba78b7183605b3628b9fae61fe8112170` |
+
+The heads-up hands come first, then the three-player ones, renumbered `[1]`…`[6000]`, each file preceded by a
+`# acpc/<entry path>` comment. Records are copied verbatim apart from the `[N]` header.
+
+- **Why this slice:** the GitHub copy of the dataset holds only seven fixed-limit hands (`wsop-fixedlimit`). The
+  Zenodo archive holds about 340 million ACPC fixed-limit hands, with every hole card dealt as `d dh` and every
+  player's net in the custom field `_results`: an exact oracle with no rake. Starting stacks are 2 000, blinds
+  5/10 (`small_bet = 10`, `big_bet = 20`), and `Σ _results == 0` in every hand.
+- **What it verifies:** positions, hole cards, the seat on the clock at every decision, street progression, every
+  board card and the stacks exactly, from `starting_stacks + _results`. Forty three-player results are `2.5`, the
+  two-way split of an odd pot, which the engine's rounding to the cent reproduces. No street holds more than four
+  bets, the big blind counting pre-flop, so `RaiseCap = 4` is exercised at its limit.
+- **What it does not verify:** all-ins (no hand goes all in; the most a hand can lose is 240) and any player count
+  beyond 2 and 3.
+- **Seating:** heads-up follows the handhq convention above (the last player acts first pre-flop); three-player is
+  seated as in full ring.
+- **Sampling:** `PhhAcpcFixedLimitReplay_Test` replays an evenly spaced sample of `TCE_TEST_PHH_HAND_LIMIT` hands
+  (default 500), so both files are reached; `0` replays all 6 000.
+
 ## Format
 
 See the [PHH specification](https://phh.readthedocs.io/en/stable/spec.html). The action grammar used
@@ -142,9 +173,13 @@ pwsh ./scripts/pack-phh-fixture.ps1
 pwsh ./scripts/pack-phh-headsup-fixture.ps1
 pwsh ./scripts/pack-phh-fullring-fixture.ps1
 pwsh ./scripts/pack-phh-wsop-fixedlimit-fixture.ps1
+pwsh ./scripts/pack-phh-acpc-fixture.ps1
 ```
 
 The fourth packs `wsop-fixedlimit.phhs.gz` from the pinned commit, reading the files with `git cat-file`.
+The fifth packs `acpc-fixedlimit.phhs.gz` from the Zenodo archive without downloading it: it reads the ZIP64 central
+directory and the two entries with HTTP Range requests, and checks size, CRC-32 and the SHA-256 values above, stopping on
+any mismatch. It needs PowerShell 7 and network access to zenodo.org.
 
 The first sparse-clones the upstream repository (a full clone is ~1.7 GB; a blobless sparse checkout
 of `data/pluribus` is ~12 MB), repacks `pluribus.phhs.gz` and refreshes `LICENSE-phh-dataset.txt`.
@@ -164,7 +199,8 @@ hands each, so packing means splitting records out and renumbering them. Differe
 > <https://arxiv.org/abs/2312.11753>
 
 > Universal, Open, Free, and Transparent Computer Poker Research Group. *A Dataset of Poker Hand
-> Histories.* <https://doi.org/10.5281/zenodo.10796885>
+> Histories.* <https://doi.org/10.5281/zenodo.10796885> (licensed CC-BY-4.0; the ACPC logs it holds come from the
+> Annual Computer Poker Competition).
 
 The upstream hands originate from the supplementary material of Brown, N. & Sandholm, T. (2019).
 *Superhuman AI for multiplayer poker.* Science 365(6456), 885–890.
