@@ -21,6 +21,8 @@ public sealed class PhhReplayTests
     private const int AcpcFixedLimitHandCount = 6_000;
     private const int PotLimitHandCount = 2_000;
     private const int PotLimitTaggedHandCount = 739;
+    private const int FixedLimitHandCount = 2_000;
+    private const int FixedLimitTaggedHandCount = 190;
 
     /// <summary>
     /// How many of the heads-up hands the engine can replay. The rest are showdowns where the history
@@ -337,6 +339,54 @@ public sealed class PhhReplayTests
     public async Task PhhPotLimitReplay_Test()
     {
         var hands = PhhFixture.PokerkitPotLimitSupported;
+
+        hands.Should().NotBeEmpty();
+
+        using var runner = new PhhReplayRunner();
+        foreach (var hand in hands)
+        {
+            await runner.ReplayAsync(hand);
+        }
+    }
+
+    /// <summary>
+    /// Guards the synthetic fixed-limit corpus. The hands tagged with <c>_tce_divergence</c> (an
+    /// incomplete all-in raise or an odd chip) are skipped by <c>IsSupported</c>, and the count is pinned
+    /// so that a reader or filter regression that quietly shrinks the corpus fails here.
+    /// </summary>
+    [TestMethod]
+    public void PhhPokerkitFixedLimitCorpus_ParsesAndIsMostlySupported()
+    {
+        var corpus = PhhFixture.PokerkitFixedLimit;
+
+        corpus.Should().HaveCount(FixedLimitHandCount, "the vendored fixture holds 2 000 synthetic fixed-limit hands");
+        corpus.Should().OnlyContain(hand => hand.Variant == "FT" && hand.FinishingStacks != null);
+
+        corpus.Count(hand => hand.Divergence is not null).Should().Be(FixedLimitTaggedHandCount, "how many hands pokerkit and the engine play differently");
+        corpus.Count(hand => PhhReplayRunner.IsSupported(hand, out _)).Should().Be(FixedLimitHandCount - FixedLimitTaggedHandCount, "how much of the corpus the engine can replay");
+
+        var unsupportedReasons = corpus
+            .Select(hand =>
+            {
+                PhhReplayRunner.IsSupported(hand, out var reason);
+                return reason;
+            })
+            .Where(reason => reason.Length > 0)
+            .Select(reason => reason.StartsWith("pokerkit and the engine follow different rules here", StringComparison.Ordinal) ? "divergence" : reason)
+            .Distinct()
+            .ToArray();
+
+        unsupportedReasons.Should().Equal(["divergence"], "an unsupported hand should only ever be a tagged one");
+    }
+
+    /// <summary>
+    /// The synthetic fixed-limit replay: every supported hand, with the stacks compared exactly against
+    /// <c>finishing_stacks</c>. Not sampled, like the pot-limit replay.
+    /// </summary>
+    [TestMethod]
+    public async Task PhhPokerkitFixedLimitReplay_Test()
+    {
+        var hands = PhhFixture.PokerkitFixedLimitSupported;
 
         hands.Should().NotBeEmpty();
 

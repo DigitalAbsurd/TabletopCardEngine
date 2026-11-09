@@ -25,6 +25,11 @@ internal static class PhhFixture
 
     private const string PokerkitPotLimitResourceSuffix = "Resources.phh.pokerkit-potlimit.phhs.gz";
 
+    private const string PokerkitFixedLimitResourceSuffix = "Resources.phh.pokerkit-fixedlimit.phhs.gz";
+
+    private static readonly Lazy<IReadOnlyList<PhhHand>> _pokerkitFixedLimit =
+        new(() => PhhReader.ReadAll(ReadGZippedResource(PokerkitFixedLimitResourceSuffix)));
+
     private static readonly Lazy<IReadOnlyList<PhhHand>> _pokerkitPotLimit =
         new(() => PhhReader.ReadAll(ReadGZippedResource(PokerkitPotLimitResourceSuffix)));
 
@@ -81,6 +86,13 @@ internal static class PhhFixture
     internal static IReadOnlyList<PhhHand> PokerkitPotLimit => _pokerkitPotLimit.Value;
 
     /// <summary>
+    /// The synthetic fixed-limit hands pokerkit played (variant <c>FT</c>), in file order, from 2 to 10
+    /// seats with all-ins and side pots. Every hole card is dealt and the finishing stacks are recorded,
+    /// so an exact oracle outside the hands tagged with <c>_tce_divergence</c>.
+    /// </summary>
+    internal static IReadOnlyList<PhhHand> PokerkitFixedLimit => _pokerkitFixedLimit.Value;
+
+    /// <summary>
     /// The Pluribus hands to replay, honouring <see cref="HandLimitVariable"/>. A capped run takes an
     /// evenly spaced sample rather than the first N hands, so it still reaches every table in the
     /// corpus — the rarer shapes (multi-way showdowns, split pots) are not spread evenly across it.
@@ -104,6 +116,10 @@ internal static class PhhFixture
     /// </summary>
     internal static IReadOnlyList<PhhHand> PokerkitPotLimitSupported
         => [.. PokerkitPotLimit.Where(hand => PhhReplayRunner.IsSupported(hand, out _))];
+
+    /// <summary>The replayable synthetic fixed-limit hands, all of them, like <see cref="PokerkitPotLimitSupported"/>.</summary>
+    internal static IReadOnlyList<PhhHand> PokerkitFixedLimitSupported
+        => [.. PokerkitFixedLimit.Where(hand => PhhReplayRunner.IsSupported(hand, out _))];
 
     private static IReadOnlyList<PhhHand> UpToLimit(IReadOnlyList<PhhHand> corpus)
     {
