@@ -21,6 +21,10 @@ internal static class PhhFixture
     private const string FullRingResourceSuffix = "Resources.phh.handhq-fullring.phhs.gz";
 
     private const string WsopFixedLimitResourceSuffix = "Resources.phh.wsop-fixedlimit.phhs.gz";
+    private const string AcpcFixedLimitResourceSuffix = "Resources.phh.acpc-fixedlimit.phhs.gz";
+
+    private static readonly Lazy<IReadOnlyList<PhhHand>> _acpcFixedLimit =
+        new(() => PhhReader.ReadAll(ReadGZippedResource(AcpcFixedLimitResourceSuffix)));
 
     private static readonly Lazy<IReadOnlyList<PhhHand>> _wsopFixedLimit =
         new(() => PhhReader.ReadAll(ReadGZippedResource(WsopFixedLimitResourceSuffix)));
@@ -58,6 +62,13 @@ internal static class PhhFixture
     internal static IReadOnlyList<PhhHand> WsopFixedLimit => _wsopFixedLimit.Value;
 
     /// <summary>
+    /// The 6 000 fixed-limit hands of the Annual Computer Poker Competition slice (3 000 heads-up, then
+    /// 3 000 three-player), in file order. Bot play with every hole card dealt and the nets in
+    /// <c>_results</c>, so an exact oracle.
+    /// </summary>
+    internal static IReadOnlyList<PhhHand> AcpcFixedLimit => _acpcFixedLimit.Value;
+
+    /// <summary>
     /// The Pluribus hands to replay, honouring <see cref="HandLimitVariable"/>. A capped run takes an
     /// evenly spaced sample rather than the first N hands, so it still reaches every table in the
     /// corpus — the rarer shapes (multi-way showdowns, split pots) are not spread evenly across it.
@@ -71,6 +82,9 @@ internal static class PhhFixture
     /// <summary>The replayable full-ring hands, sampled the same way <see cref="PluribusUpToLimit"/> is.</summary>
     internal static IReadOnlyList<PhhHand> FullRingUpToLimit
         => UpToLimit([.. FullRing.Where(hand => PhhReplayRunner.IsSupported(hand, out _))]);
+
+    /// <summary>The ACPC fixed-limit hands, sampled the same way <see cref="PluribusUpToLimit"/> is.</summary>
+    internal static IReadOnlyList<PhhHand> AcpcFixedLimitUpToLimit => UpToLimit(AcpcFixedLimit);
 
     private static IReadOnlyList<PhhHand> UpToLimit(IReadOnlyList<PhhHand> corpus)
     {
@@ -105,7 +119,7 @@ internal static class PhhFixture
 
     /// <summary>Finds one hand by its upstream file name, e.g. <c>pluribus/30/0.phh</c>.</summary>
     internal static PhhHand Single(string source)
-        => Pluribus.Concat(HeadsUp).Concat(FullRing).Concat(WsopFixedLimit).SingleOrDefault(hand => hand.Source == source)
+        => Pluribus.Concat(HeadsUp).Concat(FullRing).Concat(WsopFixedLimit).Concat(AcpcFixedLimit).SingleOrDefault(hand => hand.Source == source)
             ?? throw new InvalidOperationException($"'{source}' is not in the embedded PHH corpus");
 
     /// <summary>Looks the resource up by suffix so a change of folder layout does not break loading.</summary>

@@ -7,6 +7,7 @@ license, and this file reproduces the notices those licenses require.
 
 - [What ships, and under which license](#what-ships-and-under-which-license)
 - [PHH dataset](#phh-dataset)
+- [PHH dataset (Zenodo edition)](#phh-dataset-zenodo-edition)
 - [Project artwork](#project-artwork)
 - [Package inventory](#package-inventory)
 - [License texts](#license-texts)
@@ -167,6 +168,25 @@ This repository redistributes those records under the dataset's MIT grant, and e
 dataset's copyright notice beside it (`LICENSE-phh-dataset.txt`).
 [The fixture README](tests/TabletopCardEngine.Tests/Resources/phh/README.md) covers provenance and
 citation.
+
+## PHH dataset (Zenodo edition)
+
+`tests/TabletopCardEngine.Tests/Resources/phh/acpc-fixedlimit.phhs.gz` holds hands from the Zenodo edition of
+the dataset, which is licensed differently from the GitHub copy above:
+
+- **Title:** A Dataset of Poker Hand Histories
+- **Creators:** Universal, Open, Free, and Transparent Computer Poker Research Group
+- **Source:** <https://doi.org/10.5281/zenodo.10796885> (record `17136841`, file `poker-hand-histories.zip`)
+- **License:** [Creative Commons Attribution 4.0 International (CC-BY-4.0)](https://creativecommons.org/licenses/by/4.0/)
+- **Origin of the hands:** the Annual Computer Poker Competition logs of 2014 (`data/annual-computer-poker-competition/competitions/2014/`).
+- **Changes made:** two files of the archive were extracted
+  (`logs/2pl_logs/2014_2pl/2pl.652.Cleverpiggy.0.0.phhs`, `logs/3pl_logs/2014_3pl/3pl.HITSZ_CS_14.Hyperborean_iro.SmooCT.0.0.phhs`),
+  their 6 000 hands renumbered `[1]` to `[6000]`, a header comment and a source comment per file added, and the
+  result gzipped. The records are otherwise verbatim.
+
+CC-BY-4.0 is not on the permissive allowlist of `ThirdPartyNoticesTests`, which covers NuGet packages. These hands
+are test data in a test project that is never packed, and the maintainer accepted the license for it on 2026-11-08.
+[The fixture README](tests/TabletopCardEngine.Tests/Resources/phh/README.md) covers provenance and citation.
 
 ## Project artwork
 
