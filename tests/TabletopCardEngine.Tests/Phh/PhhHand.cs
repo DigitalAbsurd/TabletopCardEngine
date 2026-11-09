@@ -39,6 +39,12 @@ internal sealed record PhhHand
     /// </summary>
     internal decimal[]? Results { get; init; }
 
+    /// <summary>
+    /// The custom field <c>_tce_divergence</c>: the comma-separated names of the rules on which pokerkit
+    /// and the engine differ in this hand. <c>null</c> when the hand has none.
+    /// </summary>
+    internal string? Divergence { get; init; }
+
     /// <summary><c>null</c> for a player whose stack the history does not record.</summary>
     internal required decimal?[] StartingStacks { get; init; }
 

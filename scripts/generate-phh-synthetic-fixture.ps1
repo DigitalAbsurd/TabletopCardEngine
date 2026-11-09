@@ -13,8 +13,8 @@
     installs pokerkit==0.7.7 with --no-cache-dir; nothing is installed on the host. The generator's
     folder is mounted read-only, and its output folder is a fresh temporary directory. The seeds are
     fixed below, so a run reproduces the committed files byte for byte. The generator prints the
-    hand counts per seat count, the hands with an all-in and, for fixed-limit, the hands tagged
-    `_tce_divergence = 'incomplete-all-in'`.
+    hand counts per seat count, the hands with an all-in and the hands tagged `_tce_divergence`, per
+    tag (`incomplete-all-in`, `odd-chip`) and with both.
 
     This script is committed for provenance only; it is NOT part of the build or CI. Run it by hand
     when the fixtures need to be regenerated, then commit the resulting .gz files. Needs PowerShell 7

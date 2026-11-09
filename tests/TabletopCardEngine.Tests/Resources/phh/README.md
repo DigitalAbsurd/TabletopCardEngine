@@ -12,8 +12,8 @@ The two `pokerkit-*` files are not vendored: this project generates them with po
 | `handhq-fullring.phhs.gz` | 1 505, of which 1 505 replayable | Real online play, full-ring (7–10 seated). Structural oracle. |
 | `wsop-fixedlimit.phhs.gz` | 7, all replayable | Real tournament play, fixed-limit, five-handed. Exact oracle. |
 | `acpc-fixedlimit.phhs.gz` | 6 000, all replayable | Bot play, fixed-limit, heads-up and three-player. Exact oracle through `_results`. From the Zenodo edition, CC-BY-4.0. |
-| `pokerkit-potlimit.phhs.gz` | 2 000, synthetic | pokerkit play, pot-limit, 2 to 10 seats, all-ins and side pots. Exact oracle. |
-| `pokerkit-fixedlimit.phhs.gz` | 2 000, synthetic, 177 tagged | pokerkit play, fixed-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
+| `pokerkit-potlimit.phhs.gz` | 2 000, synthetic, 739 tagged | pokerkit play, pot-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
+| `pokerkit-fixedlimit.phhs.gz` | 2 000, synthetic, 190 tagged | pokerkit play, fixed-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
 
 ## `pluribus.phhs.gz`
 
@@ -199,16 +199,22 @@ independent MIT implementation of the rules, through `scripts/phh-synthetic/gene
 - **The pre-flop cap.** pokerkit's predefined `FixedLimitTexasHoldem` allows four raises over the big blind
   pre-flop; the engine allows a bet and three raises, the big blind being the bet. The generator avoids it by
   capping its `Street`s at three raises pre-flop and four on every later street.
-- **Incomplete all-in raises in fixed-limit.** pokerkit counts every all-in raise toward the cap and never reopens
-  the betting for less than a full bet. The engine follows TDA: an all-in raise of at least half a bet reopens the
-  betting and counts toward the cap, one of less than half does neither. This cannot be configured away, so a
-  fixed-limit hand where it can matter carries `_tce_divergence = 'incomplete-all-in'`: on some street an all-in
-  raise of less than a full bet was followed by an action of a seat that had already acted on that street, or by
-  the street reaching the cap. 177 of the 2 000 fixed-limit hands are tagged. The policy does not avoid these
-  spots, because hiding them would hide the difference.
+- **Incomplete all-in raises.** The engine follows TDA Rule 47 in every structure: an all-in for less than a full
+  raise does not reopen the betting to a seat that has already acted. pokerkit reopens it. This cannot be
+  configured away, so a hand where it can matter carries `_tce_divergence = 'incomplete-all-in'`: on some street a
+  seat went all in with a raise or bet smaller than a full raise (the last full raise on the street, at least the
+  big blind, and for a first bet less than the minimum bet), and then a seat that had already acted on that street
+  acted again. In fixed-limit pokerkit also counts every all-in raise toward the cap, where the engine counts an
+  all-in raise of at least half a bet and lets it reopen the betting; there a hand also carries the tag when the
+  street reached the cap after such a raise. 697 of the 2 000 pot-limit hands and 177 of the 2 000 fixed-limit
+  hands are tagged. The policy does not avoid these spots, because hiding them would hide the difference.
 - **Odd chips of a split pot.** pokerkit splits a pot in whole chips and gives the remainder to one winner; the
   engine rounds each share to the cent. A hand where a split pot does not divide evenly therefore ends with
-  different stacks: 78 of the pot-limit hands and 14 of the fixed-limit hands, untagged.
+  different stacks, and carries `_tce_divergence = 'odd-chip'`: one push of the pot gives unequal non-zero amounts
+  to its winners. 78 of the pot-limit hands and 14 of the fixed-limit hands are tagged. A hand with both
+  divergences carries both names, `'incomplete-all-in, odd-chip'` (36 and 1 hands).
+
+The replays skip every hand that carries `_tce_divergence` through `PhhReplayRunner.IsSupported`.
 
 ### Licence
 
