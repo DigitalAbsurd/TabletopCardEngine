@@ -45,7 +45,7 @@ public static class HoldemEndpointRouteBuilderExtensions
             .WithName("HoldemCreateGame")
             .WithOpenApiMetadata(
                 "Creates a game.",
-                "Creates a new game with the supplied options. Returns 201 with GameData. May return 400 (malformed JSON), 409 (GameAlreadyExists), or 422 (InvalidGameOptions).",
+                "Creates a new game with the supplied options. options.bettingStructure is NoLimit, PotLimit or FixedLimit (a string; a number is refused), and options.raiseCap applies to FixedLimit. Returns 201 with GameData. May return 400 (malformed JSON), 409 (GameAlreadyExists), or 422 (InvalidGameOptions).",
                 StatusCodes.Status201Created,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict, StatusCodes.Status422UnprocessableEntity]);
 
