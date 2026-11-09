@@ -536,9 +536,10 @@ public sealed class DemoLayout_Tests
         await using DemoPage page = await OpenDemoAsync(viewportWidth);
 
         await page.OpenNewGameModalAsync();
+        await page.ChooseBettingStructureAsync("Fixed-Limit");
 
         IReadOnlyList<string> overlaps = await page.ReadFieldTextOverlapsAsync(DemoPage.GameSetupSelector);
-        overlaps.Should().BeEmpty("no caption may sit on a field in the New Game form");
+        overlaps.Should().BeEmpty("no caption may sit on a field in the New Game form, the Raise cap field included");
 
         IReadOnlyList<HitProbe> addPlayer = await page.ProbeHitTargetsAsync(DemoPage.AddPlayerButtonSelector);
         addPlayer.Should().HaveCount(1);

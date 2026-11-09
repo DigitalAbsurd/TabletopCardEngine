@@ -38,6 +38,48 @@
             </div>
 
             <div class="form-group">
+                <label for="setup-betting-structure">Betting structure</label>
+                <Select
+                    Id="setup-betting-structure"
+                    @bind-Value="_bettingStructure"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="BettingStructure"
+                    TItem="BettingStructure">
+                    <SelectOptions>
+                        <SelectOption TItemValue="BettingStructure" TItem="BettingStructure" Value="@BettingStructure.NoLimit" Label="@BettingStructureLabels.GetLabel(BettingStructure.NoLimit)" />
+                        <SelectOption TItemValue="BettingStructure" TItem="BettingStructure" Value="@BettingStructure.PotLimit" Label="@BettingStructureLabels.GetLabel(BettingStructure.PotLimit)" />
+                        <SelectOption TItemValue="BettingStructure" TItem="BettingStructure" Value="@BettingStructure.FixedLimit" Label="@BettingStructureLabels.GetLabel(BettingStructure.FixedLimit)" />
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            @if (_bettingStructure == BettingStructure.FixedLimit)
+            {
+                <div class="form-group">
+                    <label for="setup-raise-cap">Raise cap</label>
+                    <input
+                        id="setup-raise-cap"
+                        type="number"
+                        step="1"
+                        min="1"
+                        disabled="@(_isLoading || _noRaiseCap)"
+                        placeholder="No cap"
+                        @bind="_raiseCap"
+                        class="setup-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="setup-no-raise-cap">No cap</label>
+                    <input
+                        id="setup-no-raise-cap"
+                        type="checkbox"
+                        disabled="@_isLoading"
+                        @bind="_noRaiseCap" />
+                </div>
+            }
+
+            <div class="form-group">
                 <label for="setup-max-players">Max Players</label>
                 <Select
                     Id="setup-max-players"

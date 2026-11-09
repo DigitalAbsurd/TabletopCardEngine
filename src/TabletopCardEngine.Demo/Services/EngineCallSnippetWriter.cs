@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text;
+using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
 
 namespace TabletopCardEngine.Demo.Services;
@@ -131,6 +132,11 @@ public sealed class EngineCallSnippetWriter
         sb.Append(nextIndent).AppendLine("{");
         sb.Append(indent2).Append("GameType = GameType.").Append(action.Options.GameType).AppendLine(",");
         sb.Append(indent2).Append("BettingStructure = BettingStructure.").Append(action.Options.BettingStructure).AppendLine(",");
+        if (action.Options.BettingStructure == BettingStructure.FixedLimit)
+        {
+            // The cap is read by Fixed-Limit only, and null is the "no cap" choice, not an omission.
+            sb.Append(indent2).Append("RaiseCap = ").Append(action.Options.RaiseCap?.ToString(CultureInfo.InvariantCulture) ?? "null").AppendLine(",");
+        }
         sb.Append(indent2).Append("TableFormat = HoldemTableFormat.").Append(action.Options.TableFormat).AppendLine(",");
         sb.Append(indent2).Append("MaxPlayersCount = ").AppendLine(action.Options.MaxPlayersCount + ",");
         sb.Append(indent2).Append("InitialSmallBlind = ").AppendLine(FormatDecimal(action.Options.InitialSmallBlind) + ",");

@@ -15,6 +15,10 @@
             <span class="game-summary-value">@GetTableFormatLabel()</span>
         </span>
         <span class="game-summary-item">
+            <span class="game-summary-label">Betting</span>
+            <span class="game-summary-value">@GetBettingStructureLabel()</span>
+        </span>
+        <span class="game-summary-item">
             <span class="game-summary-label">Blinds</span>
             <span class="game-summary-value">@AmountFormat.Format(SmallBlind) / @AmountFormat.Format(BigBlind)</span>
         </span>
@@ -59,6 +63,11 @@
     private string GetTableFormatLabel() =>
         GameData?.Options.TableFormat is HoldemTableFormat format
             ? HoldemTableFormatLabels.GetLabel(format)
+            : string.Empty;
+
+    private string GetBettingStructureLabel() =>
+        GameData?.Options is { } options
+            ? BettingStructureLabels.GetLabel(options.BettingStructure, options.RaiseCap)
             : string.Empty;
 
     private async Task OnNewGameClickedAsync()

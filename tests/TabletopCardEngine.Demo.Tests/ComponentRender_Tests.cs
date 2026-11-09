@@ -295,6 +295,30 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void GameSetup_BettingStructureSelect_OffersAllThreeAndHidesTheRaiseCapUntilFixedLimit()
+    {
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        SetupBrowserGeometryInterop(ctx);
+
+        var component = ctx.Render<GameSetup>();
+
+        var options = component.FindComponents<AntDesign.SelectOption<BettingStructure, BettingStructure>>();
+        options.Select(option => option.Instance.Value).Should().Equal(BettingStructure.NoLimit, BettingStructure.PotLimit, BettingStructure.FixedLimit);
+        options.Select(option => option.Instance.Label).Should().Equal("No-Limit", "Pot-Limit", "Fixed-Limit");
+        component.FindAll("#setup-raise-cap").Should().BeEmpty();
+        component.FindAll("#setup-no-raise-cap").Should().BeEmpty();
+
+        var select = component.FindComponents<AntDesign.Select<BettingStructure, BettingStructure>>().Single();
+        component.InvokeAsync(() => select.Instance.ValueChanged.InvokeAsync(BettingStructure.FixedLimit));
+
+        component.FindAll("#setup-raise-cap").Should().ContainSingle().Which.GetAttribute("min").Should().Be("1");
+        component.Find("#setup-raise-cap").GetAttribute("value").Should().Be("4");
+        component.FindAll("#setup-no-raise-cap").Should().ContainSingle();
+    }
+
+    [TestMethod]
     public void GameSetup_MaxPlayersSelect_RendersTwoToSixByDefaultSixMaxFormat()
     {
         // Arrange
