@@ -111,6 +111,29 @@ When you upgrade from 1.1 to 1.2:
 
 Existing games keep playing exactly as before: no top-up, no rebuy, no buy-in window and fixed blinds. A game's options cannot be changed after it is created, so a game that should use the new features needs a new game. Kicking a player with `KickSeat` needs no migration.
 
+### 1.2 to 1.3
+
+Version 1.3 applies one migration, `AddRaiseCap`, and `MigrateAsync` applies it by itself. No data is lost and no manual steps are required. Like every migration it is one-way: [Upgrading the package](#upgrading-the-package) above says what that means for old instances and for going back.
+
+- **`AddRaiseCap`** adds the raise cap of Fixed-Limit games. `Game` gets `RaiseCap`, `NULL` for every game that exists. The schema version is incremented from 4 to 5, and the engine version is updated to `1.3.0`.
+
+When you upgrade from 1.2 to 1.3:
+
+1. Back up your database.
+2. Stop every instance of the 1.2 engine.
+3. Deploy the 1.3 package.
+4. Run `MigrateAsync` or restart your application (if `MigrateDatabaseOnStartup` is enabled).
+
+Existing games stay No-Limit. A game's options cannot be changed after it is created, so a game that should be Pot-Limit or Fixed-Limit needs a new game.
+
+**Rule changes in No-Limit.** From 1.3.0 on, these apply to existing games too, because the rules are in the engine and not in the database:
+
+- The pre-flop minimum raise is to two big blinds. It was one and a half.
+- After an incomplete all-in raise (one for less than a full raise), the minimum raise counts from the last full raise.
+- A player who has already acted may not re-raise after an incomplete all-in raise (TDA Rule 47). Such a player is offered `Fold` and `Call` only.
+
+A client that hard-coded the old minimum must read the raise window from `HandData.Evaluations` instead. A raise below the new minimum, or a re-raise that is no longer allowed, fails with `HoldemErrorCode.IllegalAction` and saves nothing.
+
 ## `EnsureCreated` is not supported
 
 Do not use `EnsureCreated()` on a relational provider (SQLite, PostgreSQL, SQL Server). A database created that way has no migration history and cannot be upgraded: `MigrateAsync` will fail with `HoldemSchemaFailure.MigrationsNotFound`, and you will have to drop the database and start over. Use `MigrateAsync` instead.

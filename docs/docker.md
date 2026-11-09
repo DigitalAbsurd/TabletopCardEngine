@@ -97,7 +97,7 @@ Before upgrading:
 To upgrade:
 
 1. Pull the new image with `docker pull` or build it locally.
-2. For a production workload, pin a version tag (`1.2.0-sqlite`, `1.2.0-postgres`, etc.) rather than a target-only tag. Target-only tags (`sqlite`, `postgres`, `mssql`) move with every stable release, and an upgrade becomes implicit when you pull.
+2. For a production workload, pin a version tag (`1.3.0-sqlite`, `1.3.0-postgres`, etc.) rather than a target-only tag. Target-only tags (`sqlite`, `postgres`, `mssql`) move with every stable release, and an upgrade becomes implicit when you pull.
 3. Start the new container in place of the old one. The schema is migrated automatically on start-up.
 4. If the migration fails, restore your backup and contact support.
 
