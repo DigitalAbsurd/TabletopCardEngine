@@ -231,7 +231,30 @@ A `gameId` that is not a GUID does not match the route and answers 404.
 }
 ```
 
-The options are the engine's `GameOptionData`, so a value the engine rejects (`minBuyIn` above `maxBuyIn`, a `Levels` schedule with no levels) answers 422 `InvalidGameOptions`. Enums such as `mode` are strings (`"Multiplier"`, `"Levels"`); a number answers 400.
+`POST /games` with a Pot-Limit structure; a raise is capped at the pot:
+
+```json
+{
+  "options": {
+    "bettingStructure": "PotLimit"
+  }
+}
+```
+
+`POST /games` with a Fixed-Limit structure; every bet and raise has a fixed size, and the street allows at most 3 bets (the big blind counts as the first one pre-flop):
+
+```json
+{
+  "options": {
+    "bettingStructure": "FixedLimit",
+    "raiseCap": 3
+  }
+}
+```
+
+`bettingStructure` is `NoLimit` (the default), `PotLimit` or `FixedLimit`. `raiseCap` applies to `FixedLimit` only: the number of bets a street holds before raising closes, `4` by default, and a value below 1 answers 422 `InvalidGameOptions`. The game echoes both in `options`.
+
+The options are the engine's `GameOptionData`, so a value the engine rejects (`minBuyIn` above `maxBuyIn`, a `Levels` schedule with no levels) answers 422 `InvalidGameOptions`. Enums such as `mode` and `bettingStructure` are strings (`"Multiplier"`, `"Levels"`, `"PotLimit"`); a number answers 400.
 
 `POST /games/{gameId}/start` joins players to a game:
 

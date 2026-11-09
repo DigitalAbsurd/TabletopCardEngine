@@ -170,6 +170,117 @@ public sealed class GameSetupEndpointTests
         echoed.GetProperty("blindSchedule").ValueKind.Should().Be(JsonValueKind.Null);
     }
 
+    private static async Task<(Guid GameId, JsonElement Raise)> CreateAndStartAsync(TestApiHost host, string options)
+    {
+        var gameId = Guid.NewGuid();
+        var created = await PostGameAsync(host, $"{{\"gameId\":\"{gameId}\",\"options\":{options}}}");
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        using var start = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/start");
+        start.Content = new StringContent(
+            "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":100},{\"name\":\"b\",\"seatNo\":2,\"buyInAmount\":100}]}",
+            Encoding.UTF8,
+            "application/json");
+        var started = await host.Client.SendAsync(start);
+        started.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var evaluations = (await ReadJsonAsync(started)).GetProperty("handData").GetProperty("evaluations");
+        return (gameId, evaluations.EnumerateArray().Single(e => e.GetProperty("playerActionType").GetString() == "Raise"));
+    }
+
+    private static async Task<HttpResponseMessage> RaiseAsync(TestApiHost host, Guid gameId, decimal size)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/actions");
+        request.Content = new StringContent(
+            string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{{\"actionType\":\"Raise\",\"size\":{size}}}"),
+            Encoding.UTF8,
+            "application/json");
+        return await host.Client.SendAsync(request);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_PotLimit_EchoesTheStructureAndRefusesARaiseAboveTheMaximum()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var (gameId, raise) = await CreateAndStartAsync(host, "{\"bettingStructure\":\"PotLimit\",\"maxPlayersCount\":2}");
+
+        var echoed = (await ReadJsonAsync(await host.Client.GetAsync($"/api/holdem/games/{gameId}"))).GetProperty("options");
+        echoed.GetProperty("bettingStructure").GetString().Should().Be("PotLimit");
+
+        var response = await RaiseAsync(host, gameId, raise.GetProperty("maxValue").GetDecimal() + 1);
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("IllegalAction");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_PotLimit_Returns201WithTheStructure()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"bettingStructure\":\"PotLimit\"}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        (await ReadJsonAsync(response)).GetProperty("options").GetProperty("bettingStructure").GetString().Should().Be("PotLimit");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_FixedLimit_EchoesTheRaiseCapAndRefusesAnotherRaiseSize()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"bettingStructure\":\"FixedLimit\",\"raiseCap\":3}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var echoed = (await ReadJsonAsync(response)).GetProperty("options");
+        echoed.GetProperty("bettingStructure").GetString().Should().Be("FixedLimit");
+        echoed.GetProperty("raiseCap").GetInt32().Should().Be(3);
+
+        var (gameId, raise) = await CreateAndStartAsync(host, "{\"bettingStructure\":\"FixedLimit\",\"raiseCap\":3,\"maxPlayersCount\":2}");
+        var offered = raise.GetProperty("minValue").GetDecimal();
+        raise.GetProperty("maxValue").GetDecimal().Should().Be(offered);
+
+        var wrongSize = await RaiseAsync(host, gameId, offered + 1);
+
+        wrongSize.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(wrongSize)).GetProperty("code").GetString().Should().Be("IllegalAction");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_FixedLimitWithRaiseCapZero_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"bettingStructure\":\"FixedLimit\",\"raiseCap\":0}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("InvalidGameOptions");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_BettingStructureAsNumber_Returns400()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"bettingStructure\":2}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_WithoutBettingStructure_IsNoLimitWithRaiseCap4()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"maxPlayersCount\":4}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var echoed = (await ReadJsonAsync(response)).GetProperty("options");
+        echoed.GetProperty("bettingStructure").GetString().Should().Be("NoLimit");
+        echoed.GetProperty("raiseCap").GetInt32().Should().Be(4);
+    }
+
     [TestMethod]
     public async Task CreateGame_MalformedJson_Returns400()
     {
