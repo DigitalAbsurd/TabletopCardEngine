@@ -18,6 +18,8 @@ public static class PhhWriter
 {
     private const char Newline = '\n';
 
+    private const string PotLimitComment = "# Pot-limit Texas hold'em: 'PT' is a non-standard variant code, not one of the PHH specification.";
+
     /// <summary>
     /// Generates a PHH-formatted string for a single hand, as table <c>[1]</c>.
     /// </summary>
@@ -35,7 +37,7 @@ public static class PhhWriter
             throw new InvalidOperationException("No hand has been dealt yet.");
         }
 
-        return WriteTables([hand]);
+        return WriteTables([hand], game.Options);
     }
 
     /// <summary>
@@ -69,10 +71,10 @@ public static class PhhWriter
 
         handsByNo[current.No] = current;
 
-        return WriteTables([.. handsByNo.Values]);
+        return WriteTables([.. handsByNo.Values], game.Options);
     }
 
-    private static string WriteTables(IReadOnlyList<HandData> hands)
+    private static string WriteTables(IReadOnlyList<HandData> hands, GameOptionData options)
     {
         var text = new StringBuilder();
         for (var i = 0; i < hands.Count; i++)
@@ -82,23 +84,38 @@ public static class PhhWriter
                 text.Append(Newline);
             }
 
+            if (options.BettingStructure == BettingStructure.PotLimit)
+            {
+                text.Append(PotLimitComment).Append(Newline);
+            }
+
             text.Append('[').Append(i + 1).Append(']').Append(Newline);
-            WriteHandTable(text, hands[i]);
+            WriteHandTable(text, hands[i], options.BettingStructure);
         }
 
         return text.ToString();
     }
 
-    private static void WriteHandTable(StringBuilder text, HandData hand)
+    private static void WriteHandTable(StringBuilder text, HandData hand, BettingStructure structure)
     {
         var players = PlayersInOrder(hand);
         var smallBlind = hand.SmallBlind;
         var bigBlind = hand.BigBlind;
 
-        text.Append("variant = 'NT'").Append(Newline);
+        text.Append("variant = '").Append(PhhSupport.VariantFor(structure)).Append('\'').Append(Newline);
         text.Append("antes = ").Append(Array(players.Select(_ => 0m))).Append(Newline);
         text.Append("blinds_or_straddles = ").Append(Array(players.Select((_, i) => i switch { 0 => smallBlind, 1 => bigBlind, _ => 0m }))).Append(Newline);
-        text.Append("min_bet = ").Append(Amount(bigBlind)).Append(Newline);
+        if (structure == BettingStructure.FixedLimit)
+        {
+            // The specification forbids min_bet in a fixed-limit variant; the two bet sizes take its place.
+            text.Append("small_bet = ").Append(Amount(bigBlind)).Append(Newline);
+            text.Append("big_bet = ").Append(Amount(bigBlind * 2)).Append(Newline);
+        }
+        else
+        {
+            text.Append("min_bet = ").Append(Amount(bigBlind)).Append(Newline);
+        }
+
         text.Append("starting_stacks = ").Append(Array(players.Select(seat => seat.StartHandStack))).Append(Newline);
         text.Append("players = [").Append(string.Join(", ", players.Select(seat => $"\"{EscapeForToml(seat.Name)}\""))).Append(']').Append(Newline);
 

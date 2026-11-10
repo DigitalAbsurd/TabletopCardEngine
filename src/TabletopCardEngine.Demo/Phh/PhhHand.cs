@@ -17,7 +17,7 @@ public sealed record PhhHand
     /// <summary>One-based position within the packed <c>.phhs</c> file.</summary>
     public required int Index { get; init; }
 
-    /// <summary>Variant code; <c>NT</c> is no-limit Texas hold'em.</summary>
+    /// <summary>Variant code; <c>NT</c> is no-limit, <c>FT</c> fixed-limit and <c>PT</c> pot-limit Texas hold'em.</summary>
     public required string Variant { get; init; }
 
     public required decimal[] Antes { get; init; }
@@ -28,7 +28,20 @@ public sealed record PhhHand
     /// </summary>
     public required decimal[] BlindsOrStraddles { get; init; }
 
-    public required decimal MinBet { get; init; }
+    /// <summary><c>null</c> in a fixed-limit hand, where the specification forbids <c>min_bet</c>.</summary>
+    public decimal? MinBet { get; init; }
+
+    /// <summary>The fixed-limit bet size of the first two streets (<c>small_bet</c>); <c>null</c> outside fixed-limit.</summary>
+    public decimal? SmallBet { get; init; }
+
+    /// <summary>The fixed-limit bet size of the last two streets (<c>big_bet</c>); <c>null</c> outside fixed-limit.</summary>
+    public decimal? BigBet { get; init; }
+
+    /// <summary>
+    /// The custom field <c>_tce_divergence</c>: the comma-separated names of the rules on which pokerkit
+    /// and the engine differ in this hand. <c>null</c> when the hand has none.
+    /// </summary>
+    public string? Divergence { get; init; }
 
     /// <summary><c>null</c> for a player whose stack the history does not record.</summary>
     public required decimal?[] StartingStacks { get; init; }
