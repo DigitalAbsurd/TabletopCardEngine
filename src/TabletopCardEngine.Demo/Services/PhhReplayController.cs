@@ -95,6 +95,8 @@ public sealed class PhhReplayController
         var gameOptions = new GameOptionData
         {
             MaxPlayersCount = (byte)hand.PlayerCount,
+            BettingStructure = PhhSupport.BettingStructureFor(hand.Variant) ?? BettingStructure.NoLimit,
+            RaiseCap = DemoGameDefaults.RaiseCap,
             InitialSmallBlind = hand.SmallBlind,
             InitialDealerSeatNo = (byte)hand.PlayerCount, // Last player is on the button
             TableFormat = hand.PlayerCount switch

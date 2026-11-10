@@ -30,7 +30,9 @@ public static class PhhWriter
             throw new InvalidOperationException("No hand has been dealt yet.");
         }
 
-        return GenerateHandString(hand, game.Options, journal);
+        var handContent = GenerateHandString(hand, game.Options, journal);
+        var comments = HeaderComments(game.Options);
+        return comments.Count == 0 ? handContent : string.Join(Environment.NewLine, [.. comments, handContent]);
     }
 
     /// <summary>
@@ -51,10 +53,9 @@ public static class PhhWriter
             throw new InvalidOperationException("No hands have been played yet.");
         }
 
-        var lines = new List<string>
-        {
-            "[1]",
-        };
+        var lines = new List<string>();
+        lines.AddRange(HeaderComments(game.Options));
+        lines.Add("[1]");
 
         var handContent = GenerateHandString(hand, game.Options, journal);
         lines.AddRange(handContent.Split(Environment.NewLine));
@@ -62,20 +63,44 @@ public static class PhhWriter
         return string.Join(Environment.NewLine, lines);
     }
 
+    /// <summary>
+    /// The comment lines above a hand: pot-limit's <c>PT</c> is not a code of the specification, and
+    /// a reader of the file should know that.
+    /// </summary>
+    private static List<string> HeaderComments(GameOptionData options)
+        => options.BettingStructure == BettingStructure.PotLimit
+            ? ["# Pot-limit Texas hold'em: 'PT' is a non-standard variant code, not one of the PHH specification."]
+            : [];
+
     private static string GenerateHandString(HandData hand, GameOptionData options, EngineCallJournal journal)
     {
         var lines = new List<string>();
 
         // Metadata section
         lines.Add("[Game]");
-        lines.Add($@"variant = ""NT""");
+        var variant = options.BettingStructure switch
+        {
+            BettingStructure.FixedLimit => PhhSupport.FixedLimitVariant,
+            BettingStructure.PotLimit => PhhSupport.PotLimitVariant,
+            _ => PhhSupport.NoLimitVariant,
+        };
+        lines.Add($@"variant = ""{variant}""");
         var antes = string.Join(", ", Enumerable.Repeat("0", hand.Seats.Count));
         lines.Add($"antes = [{antes}]");
         var sb = options.InitialSmallBlind.ToString(CultureInfo.InvariantCulture);
         var bb = (options.InitialSmallBlind * 2).ToString(CultureInfo.InvariantCulture);
         lines.Add($"blinds_or_straddles = [{sb}, {bb}]");
-        var minBet = options.InitialSmallBlind.ToString(CultureInfo.InvariantCulture);
-        lines.Add($"min_bet = {minBet}");
+        if (options.BettingStructure == BettingStructure.FixedLimit)
+        {
+            // The specification forbids min_bet in a fixed-limit variant; the bet sizes take its place.
+            lines.Add($"small_bet = {bb}");
+            lines.Add($"big_bet = {(options.InitialSmallBlind * 4).ToString(CultureInfo.InvariantCulture)}");
+        }
+        else
+        {
+            // Pot-limit's smallest bet is the big blind; the no-limit value is kept as it always was.
+            lines.Add($"min_bet = {(options.BettingStructure == BettingStructure.PotLimit ? bb : sb)}");
+        }
         var stacks = string.Join(", ", hand.Seats.Select(s => s.StartHandStack.ToString(CultureInfo.InvariantCulture)));
         lines.Add($"starting_stacks = [{stacks}]");
         var players = string.Join(@", """, hand.Seats.Select(s => s.Name));
