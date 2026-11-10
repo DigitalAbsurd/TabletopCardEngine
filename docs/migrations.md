@@ -134,6 +134,8 @@ Existing games stay No-Limit. A game's options cannot be changed after it is cre
 
 A client that hard-coded the old minimum must read the raise window from `HandData.Evaluations` instead. A raise below the new minimum, or a re-raise that is no longer allowed, fails with `HoldemErrorCode.IllegalAction` and saves nothing.
 
+**A sat-out seat stays out of the hand.** With three or more funded seats, a seat that cannot cover the blind it would reach is sat out for the hand. Before 1.3.0 it was still dealt hole cards and, from the second request of the hand on, asked to act, so it could call and play the hand; from 1.3.0 on it gets no hole cards (`SeatData.Hole` is `null`, `IsActive` is `false`), is never on the clock, and keeps its stack for the next hand.
+
 ## `EnsureCreated` is not supported
 
 Do not use `EnsureCreated()` on a relational provider (SQLite, PostgreSQL, SQL Server). A database created that way has no migration history and cannot be upgraded: `MigrateAsync` will fail with `HoldemSchemaFailure.MigrationsNotFound`, and you will have to drop the database and start over. Use `MigrateAsync` instead.

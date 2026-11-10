@@ -65,7 +65,11 @@ internal static class HandTableFactory
             }
         }
 
-        var folded = hand.IsSeatFolded(seatNo) || (!hand.HasSeatActed(seatNo) && seat.Stack <= 0);
+        // The blind posts are the first rows of a dealt hand, so any action means the deal has happened. A seat
+        // without hole cards then was sat out at the deal (HandRunner.DealHoleCards); before the deal every seat
+        // lacks them.
+        var satOut = hand.Actions.Count > 0 && seat.Hole.Count == 0;
+        var folded = satOut || hand.IsSeatFolded(seatNo) || (!hand.HasSeatActed(seatNo) && seat.Stack <= 0);
         var allIn = !folded && hand.HasSeatActed(seatNo) && seat.Stack <= 0;
         seat.Status = folded ? SeatStatus.Folded : allIn ? SeatStatus.AllIn : SeatStatus.Waiting;
 

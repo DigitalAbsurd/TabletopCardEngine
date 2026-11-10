@@ -24,7 +24,7 @@ public sealed class AllInBlindActionOrderTests
     [DataRow(BettingStructure.FixedLimit)]
     public async Task PreFlop_BigBlindStackEqualsTheBigBlind_UnderTheGunActsFirstAndTheBlindIsSkipped(BettingStructure structure)
     {
-        var (first, order, street, next) = await PlayAsync(structure, [Deep, Deep, SmallBlind * 2, Deep, Deep, Deep], callers: 5);
+        var (first, order, street, next, _) = await PlayAsync(structure, [Deep, Deep, SmallBlind * 2, Deep, Deep, Deep], callers: 5);
 
         first.Should().Be(4);
         order.Should().Equal(4, 5, 6, 1, 2);
@@ -39,10 +39,27 @@ public sealed class AllInBlindActionOrderTests
     {
         // With three or more funded seats a stack that cannot cover the blind is sat out rather than
         // posted short (only heads-up does that, see HeadsUpTests), so seat 4 is the big blind here.
-        var (first, order, _, _) = await PlayAsync(structure, [Deep, Deep, 60M, Deep, Deep, Deep], callers: 4);
+        var (first, order, street, next, last) = await PlayAsync(structure, [Deep, Deep, 60M, Deep, Deep, Deep], callers: 5);
 
         first.Should().Be(5);
-        order.Should().Equal(5, 6, 1, 2);
+        order.Should().Equal(5, 6, 1, 2, 4);
+        street.Should().Be(Street.Flop);
+        next.Should().Be(2);
+        AssertSatOut(last, seatNo: 3, startStack: 60M);
+    }
+
+    [TestMethod]
+    [DataRow(BettingStructure.NoLimit)]
+    [DataRow(BettingStructure.FixedLimit)]
+    public async Task PreFlop_SeatBelowTheSmallBlindBeforeTheSmallBlind_IsSatOutAndTheBlindsPassOn(BettingStructure structure)
+    {
+        var (first, order, street, next, last) = await PlayAsync(structure, [Deep, 30M, Deep, Deep, Deep, Deep], callers: 5);
+
+        first.Should().Be(5);
+        order.Should().Equal(5, 6, 1, 3, 4);
+        street.Should().Be(Street.Flop);
+        next.Should().Be(3);
+        AssertSatOut(last, seatNo: 2, startStack: 30M);
     }
 
     [TestMethod]
@@ -50,7 +67,7 @@ public sealed class AllInBlindActionOrderTests
     [DataRow(BettingStructure.FixedLimit)]
     public async Task PreFlop_SmallBlindAllInOnItsPost_UnderTheGunActsFirstAndTheBigBlindKeepsItsOption(BettingStructure structure)
     {
-        var (first, order, street, next) = await PlayAsync(structure, [Deep, SmallBlind, Deep, Deep, Deep, Deep], callers: 5);
+        var (first, order, street, next, _) = await PlayAsync(structure, [Deep, SmallBlind, Deep, Deep, Deep, Deep], callers: 5);
 
         first.Should().Be(4);
         order.Should().Equal(4, 5, 6, 1, 3);
@@ -63,7 +80,7 @@ public sealed class AllInBlindActionOrderTests
     [DataRow(BettingStructure.FixedLimit)]
     public async Task PreFlop_BothBlindsAllInOnTheirPosts_UnderTheGunActsFirstAndTheStreetClosesAfterTheButton(BettingStructure structure)
     {
-        var (first, order, street, next) = await PlayAsync(structure, [Deep, SmallBlind, SmallBlind * 2, Deep, Deep, Deep], callers: 4);
+        var (first, order, street, next, _) = await PlayAsync(structure, [Deep, SmallBlind, SmallBlind * 2, Deep, Deep, Deep], callers: 4);
 
         first.Should().Be(4);
         order.Should().Equal(4, 5, 6, 1);
@@ -71,12 +88,23 @@ public sealed class AllInBlindActionOrderTests
         next.Should().Be(4);
     }
 
+    // A seat sat out at the deal gets no hole cards, never acts and puts nothing into the pot.
+    private static void AssertSatOut(HandData last, byte seatNo, decimal startStack)
+    {
+        var seat = last.Seats.Single(seat => seat.SeatNo == seatNo);
+        seat.Hole.Should().BeNull();
+        seat.Stack.Should().Be(startStack);
+        seat.IsActive.Should().BeFalse();
+        last.Actions.Should().NotContain(action => action.SeatNo == seatNo);
+        last.Pot.Should().Be(500M);
+    }
+
     /// <summary>
     /// Deals a hand and has the given number of seats call (or check) in turn, recording who was on the clock
     /// before each call. Returns the first actor, the order, and the street and seat on the clock after
-    /// the last call.
+    /// the last call, with the last HandData.
     /// </summary>
-    private static async Task<(byte First, List<byte> Order, Street Street, byte Next)> PlayAsync(
+    private static async Task<(byte First, List<byte> Order, Street Street, byte Next, HandData Last)> PlayAsync(
         BettingStructure structure, decimal[] stacks, int callers)
     {
         var options = new GameOptionData
@@ -111,6 +139,6 @@ public sealed class AllInBlindActionOrderTests
             handData = result.Value.HandData!;
         }
 
-        return (first, order, handData.Street, handData.NextPlayerSeatNo);
+        return (first, order, handData.Street, handData.NextPlayerSeatNo, handData);
     }
 }
