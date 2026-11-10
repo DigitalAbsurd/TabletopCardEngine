@@ -146,7 +146,13 @@ satisfied and the four gates are green — not when the code compiles and looks 
   name the branch in the comment. Never stash, reset or discard it instead: a stash stays on one
   machine, and neither the runner's report nor the next attempt at the issue can see it. That next
   attempt starts from a fresh `main` (the runner deletes the local copy of a fully pushed branch)
-  and may read the pushed branch for context; it picks another slug if the name is taken.
+  and may read the pushed branch for context; it picks another slug if the name is taken. When
+  what blocks the task is a follow-up you filed (a defect the task exposed), also add it to the
+  `**Depends on:**` line of the task's own issue (adding the line after the first paragraph if it
+  is missing) and change nothing else in that body. This is the only edit you make to the task's
+  issue. It withdraws the vetting, since the runner treats any edit after the label as unvetted, so
+  the next run does not hand out the task again and fail on the same defect: a maintainer vets the
+  follow-up and re-labels the task.
 - **Do not weaken a check to make it pass.** If an assertion fails, you have found either a defect
   in your change or a real defect in the product. Narrowing the assertion until it goes green
   certifies the breakage. Open a follow-up issue and say so in the pull request.
@@ -188,10 +194,15 @@ For the implementer this means:
     `- <issue title>. — [#N](<issue url>)`, under the `**Found during the work:**` heading of
     the milestone's description (add the heading after the issue list and before the mermaid
     block when it is missing) with `gh api -X PATCH repos/<repo>/milestones/<number>`, and change
-    nothing else there. The mermaid graph and the closing issue's `**Depends on:**` line are the
+    nothing else there. Read the description into a new file whose name is unique to the run
+    (`mktemp`, never a fixed name such as `/tmp/ms.md` that an earlier run may have left behind),
+    and read, edit and write that file with one shell: Git Bash and a native Windows program such
+    as `python` resolve `/tmp` to different folders. Before the PATCH, read the description again
+    and diff it against the file; write it back only when the diff shows exactly the added line. The mermaid graph and the closing issue's `**Depends on:**` line are the
     maintainer's, updated when they vet the issue; the runner already holds `closing` issues
     until every other open issue of the milestone, a follow-up included, is closed. Do not edit
-    any other issue.
+    any other issue, apart from the `**Depends on:**` line of a task your follow-up blocks (see
+    [What "done" means](#what-done-means)).
   - **`Backlog`** for everything else: what the milestone does not need, and every follow-up of a
     task that has no milestone or is itself in `Backlog`. Pass `--milestone Backlog`.
 
