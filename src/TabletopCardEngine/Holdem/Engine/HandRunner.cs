@@ -275,7 +275,15 @@ internal static class HandRunner
         foreach (var seat in table.Seats.OrderBy(seat => seat.SeatNo))
         {
             seat.Hole.Clear();
-            seat.Hole.AddRange(table.Deck.Draw(2));
+
+            // A seat the deal has sat out still draws its two cards, so the deck order and the cards
+            // ICardShuffler supplies per seat do not move, but it keeps none: with no hole cards it is
+            // rehydrated as out of the hand (HandTableFactory.BuildSeat).
+            var cards = table.Deck.Draw(2);
+            if (seat.Status != SeatStatus.Folded)
+            {
+                seat.Hole.AddRange(cards);
+            }
         }
     }
 
