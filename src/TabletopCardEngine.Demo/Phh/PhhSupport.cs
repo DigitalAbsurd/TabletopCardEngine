@@ -1,10 +1,12 @@
-﻿namespace TabletopCardEngine.Demo.Phh;
+﻿using TabletopCardEngine.Holdem;
+
+namespace TabletopCardEngine.Demo.Phh;
 
 /// <summary>
 /// Determines which PHH hands the engine can model.
 ///
 /// Extracted from <c>TabletopCardEngine.Tests.Phh.PhhReplayRunner.IsSupported</c> for use in the demo.
-/// The engine plays no-limit hold'em with no antes and a big blind of exactly twice the small blind
+/// The engine plays no-limit, pot-limit and fixed-limit hold'em with no antes and a big blind of exactly twice the small blind
 /// (derived by <c>StartHandActionHandler</c>), and it can only settle a showdown the history wrote
 /// every card of.
 ///
@@ -14,6 +16,44 @@
 /// </summary>
 public static class PhhSupport
 {
+    /// <summary>The variant code of fixed-limit Texas hold'em.</summary>
+    public const string FixedLimitVariant = "FT";
+
+    /// <summary>The variant code of no-limit Texas hold'em.</summary>
+    public const string NoLimitVariant = "NT";
+
+    /// <summary>
+    /// Not a code of the PHH specification: the test corpora name pot-limit Texas hold'em this way,
+    /// by analogy with <c>NT</c> and <c>FT</c>.
+    /// </summary>
+    public const string PotLimitVariant = "PT";
+
+    /// <summary>
+    /// The betting structure a PHH variant code plays as, or <c>null</c> for a variant the engine does
+    /// not play. The one place a variant becomes a structure.
+    /// </summary>
+    /// <param name="variant">The PHH variant code.</param>
+    /// <returns>The structure, or null for an unsupported variant.</returns>
+    public static BettingStructure? BettingStructureFor(string variant)
+        => variant switch
+        {
+            NoLimitVariant => BettingStructure.NoLimit,
+            FixedLimitVariant => BettingStructure.FixedLimit,
+            PotLimitVariant => BettingStructure.PotLimit,
+            _ => null,
+        };
+
+    /// <summary>The PHH variant code a betting structure is written as; the inverse of <see cref="BettingStructureFor"/>.</summary>
+    /// <param name="structure">The betting structure of the game.</param>
+    /// <returns>The variant code.</returns>
+    public static string VariantFor(BettingStructure structure)
+        => structure switch
+        {
+            BettingStructure.FixedLimit => FixedLimitVariant,
+            BettingStructure.PotLimit => PotLimitVariant,
+            _ => NoLimitVariant,
+        };
+
     /// <summary>
     /// Whether the engine can model this hand at all.
     /// </summary>
@@ -24,9 +64,21 @@ public static class PhhSupport
     {
         reason = string.Empty;
 
-        if (hand.Variant != "NT")
+        if (BettingStructureFor(hand.Variant) is null)
         {
-            reason = $"variant '{hand.Variant}' is not no-limit Texas hold'em";
+            reason = $"variant '{hand.Variant}' is not a Texas hold'em variant the engine plays";
+        }
+        else if (hand.Variant == FixedLimitVariant && (hand.SmallBet != hand.BigBlind || hand.BigBet != hand.BigBlind * 2))
+        {
+            reason = $"bets {hand.SmallBet}/{hand.BigBet} — the engine's fixed-limit bets are the big blind and twice it";
+        }
+        else if (hand.Variant == PotLimitVariant && hand.MinBet != hand.BigBlind)
+        {
+            reason = $"min bet {hand.MinBet} — the engine's smallest bet is the big blind";
+        }
+        else if (hand.Divergence is not null)
+        {
+            reason = $"pokerkit and the engine follow different rules here: {hand.Divergence}";
         }
         else if (hand.PlayerCount < 2)
         {
