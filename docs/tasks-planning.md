@@ -77,6 +77,13 @@ Record verified **non**-findings too, in the issue that would otherwise attract 
 stylesheet is absent from `index.html` on purpose, the package injects it — do not add it". A
 disproved theory is worth as much as a proved one, and without it the implementer re-derives it.
 
+**Run every existing path the Definition of done stands on**, not only the code the issue changes.
+A test that exports a hand and reads it back, replays a file, or migrates a database depends on
+the export, the reader, the replay and the migration already working on `main`. Run that path once
+before writing the issue and put what it did in **Why**. The same holds for a "keep X unchanged"
+note: write it only for an output you have measured to be correct, or it pins a defect as a
+contract.
+
 ## 2. Split by root cause, not by symptom
 
 One symptom can have several causes; one cause can produce several symptoms. **The unit of an issue
@@ -330,6 +337,11 @@ Each of these has cost this project a batch.
 
 - **Writing issues from a source reading.** The cause you can see in the code is often not the cause
   in the running product, and the issue sends the implementer to the wrong file with full confidence.
+- **Building on a path nobody has run.** #663 asked for Fixed-Limit and Pot-Limit hands exported by
+  the demo to read back and replay, and for the No-Limit export to stay byte-identical. On `main`
+  that export had never been readable: it was not valid TOML, and its history was guessed rather
+  than taken from the hand's ledger. The task stopped unmerged and a rewrite (#695) had to come
+  first, and the byte-identical note had to be withdrawn because it protected that defect.
 - **One issue per symptom.** It bundles unrelated causes, so it cannot be `7b`, cannot be verified by
   one measurement, and half-fails.
 - **A Definition of done nothing can check.** If neither a gate nor a pasted probe settles it, the
