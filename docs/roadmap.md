@@ -12,7 +12,7 @@ Every feature below is planned as a **minor** 1.x release: each one adds members
 
 Five features are in:
 
-- Pot-Limit and Fixed-Limit
+- Pot-Limit and Fixed-Limit (✓ **Shipped in 1.3.0**)
 - Tournaments (SNG/MTT, blind levels, antes)
 - Rebuy, buy-in and kick-off
 - 9 to 10 seats (✓ **Shipped in 1.1.0**)
@@ -39,7 +39,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 | 1 | 9 to 10 seats | High | Low | Low | The engine is ring-generic; only validators and hosts cap at 6. Opens full-ring play cheaply. |
 | 2 | Hand history export (PHH) | Medium | Low | Low | Built on the v1.0 ledger (#325); the vendored PHH corpora give a round-trip oracle. |
 | 3 | Rebuy, buy-in and kick-off | High | Medium | Medium | Real cash games need seats to be vacated and stacks topped up; touches seat lifecycle and rehydration. |
-| 4 | Pot-Limit and Fixed-Limit | Medium | Medium | High | New betting rules; wrong sizing is a silent rules bug. Needs its own oracle. |
+| 4 | Pot-Limit and Fixed-Limit (✓ Shipped in 1.3.0) | Medium | Medium | High | New betting rules; wrong sizing is a silent rules bug. Needs its own oracle. |
 | 5 | Tournaments: antes and blind levels, then SNG, then MTT | High | High | High | The largest feature; split into three steps, each its own release. Builds on 1, 3 and the per-hand blinds of #323. |
 
 ## 9 to 10 seats
@@ -110,18 +110,18 @@ See [Buy-ins, top-ups and blind schedules](concepts/buy-ins-and-blinds.md).
 - The supported-variants table (#321) so a new enum member is not playable until listed
 - `HandData.Evaluations` whose `MinValue`/`MaxValue` carry a pot-limit cap or a fixed size as they are
 
-**Comes with the feature:**
+**Shipped in 1.3.0:**
 
-- New `BettingStructure` members
-- `BettingRules.MinRaiseAmount`/`LegalActions`/`Evaluate` per structure (the No-Limit cap is `Stack + StreetWager`, and `Evaluate` always appends an all-in raise)
-- `AllIn` resolution in `PlayActionHandler`
-- Fixed-Limit bet sizes, a raise cap and incomplete all-in raises
-- New `GameOptionData` properties and `Game` columns (one migration per provider)
+- `BettingStructure.PotLimit` and `BettingStructure.FixedLimit`, with the `Raise` window computed per structure and `AllIn` resolved against it
+- `GameOptionData.RaiseCap` for Fixed-Limit (one migration per provider)
+- Two No-Limit rule fixes: the minimum raise, and no reopening of the betting after an incomplete all-in raise (TDA Rule 47)
+
+See [Betting structures](concepts/betting-structures.md).
 
 **Oracle:**
 
-- PHH hands of the fixed-limit variant
-- A hand-built pot-limit suite
+- PHH hands of the fixed-limit variant (WSOP and ACPC), and synthetic pot-limit and fixed-limit corpora played by pokerkit
+- The hand-built pot-limit and fixed-limit suites
 
 ## Tournaments: antes and blind levels, then SNG, then MTT
 
