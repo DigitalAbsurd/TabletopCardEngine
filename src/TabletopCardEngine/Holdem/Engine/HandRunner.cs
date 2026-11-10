@@ -303,11 +303,11 @@ internal static class HandRunner
 
     private static IReadOnlyList<Card> PreFlop(HandTable table)
     {
-        // Skip past the small and big blind to under-the-gun.
-        for (var i = 0; i < 2; i++)
-        {
-            table.NextSeatNo = table.NextSeatAfter(table.NextSeatNo, s => s.IsWaiting);
-        }
+        // Under-the-gun is the first waiting seat after the big blind. A blind that went all in on its
+        // post is not waiting, so counting two waiting seats on from the small blind would overshoot.
+        // Heads-up the walk wraps round to the button, which acts first, or to the big blind when the
+        // button is all in.
+        table.NextSeatNo = table.NextSeatAfter(table.BigBlindSeatNo, s => s.IsWaiting);
         return ForwardStreet(table);
     }
 
