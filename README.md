@@ -5,7 +5,7 @@
 
 # TabletopCardEngine
 
-A .NET 10 engine for No-Limit Texas Hold'em cash games. One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
+A .NET 10 engine for Texas Hold'em cash games (No-Limit, Pot-Limit and Fixed-Limit). One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
 
 [![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/v/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![Docker pulls](https://img.shields.io/docker/pulls/digitalabsurd/tabletopcardengine)](https://hub.docker.com/r/digitalabsurd/tabletopcardengine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) [![Docs](https://readthedocs.org/projects/tabletopcardengine/badge/?version=stable)](https://tabletopcardengine.readthedocs.io/en/stable/)
 
@@ -17,7 +17,7 @@ Try the [interactive Blazor WebAssembly demo](https://digitalabsurd.github.io/Ta
 
 ## Features and limits
 
-The engine deals and runs No-Limit Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1.1 supports: No-Limit Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seats, optional buy-in limits, top-up and rebuy between hands, kicking a player, and optional blind schedules that raise the blinds by level, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
+The engine deals and runs Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1.3 supports: No-Limit, Pot-Limit and Fixed-Limit Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seats, optional buy-in limits, top-up and rebuy between hands, kicking a player, and optional blind schedules that raise the blinds by level, no antes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
 
 | Package | Use it for |
 |---|---|
