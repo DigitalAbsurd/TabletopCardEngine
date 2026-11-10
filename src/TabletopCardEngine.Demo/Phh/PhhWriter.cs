@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text;
 using TabletopCardEngine.Demo.Services;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
@@ -6,18 +7,22 @@ using TabletopCardEngine.Holdem.Dto;
 namespace TabletopCardEngine.Demo.Phh;
 
 /// <summary>
-/// Exports a played hand to PHH (Poker Hand History) format.
-/// Reconstructs the action list from <see cref="EngineCallJournal"/> and game state.
+/// Exports played hands to PHH (Poker Hand History) format, the layout <see cref="PhhReader"/> reads:
+/// one numbered <c>[N]</c> table per hand with the keys directly inside it.
+/// Each hand is built from the engine's own ledger, <see cref="HandData.Actions"/>, so the actors and
+/// their order are what the engine recorded, not a reconstruction.
 ///
 /// This is new code specific to the demo, not a port from the test project.
 /// </summary>
 public static class PhhWriter
 {
+    private const char Newline = '\n';
+
     /// <summary>
-    /// Generates a PHH-formatted string for a single hand.
+    /// Generates a PHH-formatted string for a single hand, as table <c>[1]</c>.
     /// </summary>
     /// <param name="game">The game data containing the hand to export.</param>
-    /// <param name="journal">The call journal containing all actions taken in this hand.</param>
+    /// <param name="journal">The call journal of the session; the hand itself comes from <paramref name="game"/>.</param>
     /// <returns>A complete, spec-conformant PHH hand as a string.</returns>
     public static string WriteHand(GameData game, EngineCallJournal journal)
     {
@@ -30,154 +35,168 @@ public static class PhhWriter
             throw new InvalidOperationException("No hand has been dealt yet.");
         }
 
-        return GenerateHandString(hand, game.Options, journal);
+        return WriteTables([hand]);
     }
 
     /// <summary>
-    /// Generates a PHH-formatted string for a complete multi-hand session.
-    /// Each hand is wrapped in a numbered [N] section.
+    /// Generates a PHH-formatted string for a multi-hand session.
+    /// Each hand the journal's results (and the current game) can reach is written as its own numbered
+    /// <c>[N]</c> table, in the order the hands were played.
     /// </summary>
-    /// <param name="game">The game data containing all hands played.</param>
-    /// <param name="journal">The call journal containing all actions.</param>
+    /// <param name="game">The game data containing the current hand.</param>
+    /// <param name="journal">The call journal; each successful entry's result carries the hand as it stood then.</param>
     /// <returns>A complete, spec-conformant PHH session as a string.</returns>
     public static string WriteSession(GameData game, EngineCallJournal journal)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(journal);
 
-        var hand = game.HandData;
-        if (hand == null || hand.No <= 0)
+        var current = game.HandData;
+        if (current == null || current.No <= 0)
         {
             throw new InvalidOperationException("No hands have been played yet.");
         }
 
-        var lines = new List<string>
+        // The latest result of a hand is the hand as it ended, so a later entry replaces an earlier one.
+        var handsByNo = new SortedDictionary<int, HandData>();
+        foreach (var entry in journal.Entries)
         {
-            "[1]",
-        };
+            if (entry.Succeeded && entry.Result is { IsSuccess: true } result && result.Value.HandData is { No: > 0 } hand)
+            {
+                handsByNo[hand.No] = hand;
+            }
+        }
 
-        var handContent = GenerateHandString(hand, game.Options, journal);
-        lines.AddRange(handContent.Split(Environment.NewLine));
+        handsByNo[current.No] = current;
 
-        return string.Join(Environment.NewLine, lines);
+        return WriteTables([.. handsByNo.Values]);
     }
 
-    private static string GenerateHandString(HandData hand, GameOptionData options, EngineCallJournal journal)
+    private static string WriteTables(IReadOnlyList<HandData> hands)
     {
-        var lines = new List<string>();
-
-        // Metadata section
-        lines.Add("[Game]");
-        lines.Add($@"variant = ""NT""");
-        var antes = string.Join(", ", Enumerable.Repeat("0", hand.Seats.Count));
-        lines.Add($"antes = [{antes}]");
-        var sb = options.InitialSmallBlind.ToString(CultureInfo.InvariantCulture);
-        var bb = (options.InitialSmallBlind * 2).ToString(CultureInfo.InvariantCulture);
-        lines.Add($"blinds_or_straddles = [{sb}, {bb}]");
-        var minBet = options.InitialSmallBlind.ToString(CultureInfo.InvariantCulture);
-        lines.Add($"min_bet = {minBet}");
-        var stacks = string.Join(", ", hand.Seats.Select(s => s.StartHandStack.ToString(CultureInfo.InvariantCulture)));
-        lines.Add($"starting_stacks = [{stacks}]");
-        var players = string.Join(@", """, hand.Seats.Select(s => s.Name));
-        lines.Add($@"players = [""{players}""]");
-
-        // Actions section
-        lines.Add("actions =");
-        lines.Add("[");
-
-        var actions = ExtractActions(hand, journal);
-        foreach (var action in actions)
+        var text = new StringBuilder();
+        for (var i = 0; i < hands.Count; i++)
         {
-            var escaped = EscapeForToml(action);
-            lines.Add($@"    ""{escaped}""");
+            if (i > 0)
+            {
+                text.Append(Newline);
+            }
+
+            text.Append('[').Append(i + 1).Append(']').Append(Newline);
+            WriteHandTable(text, hands[i]);
         }
 
-        // Finishing stacks if hand is complete
-        if (hand.Street == Street.Finished && hand.NextPlayerSeatNo == 0)
+        return text.ToString();
+    }
+
+    private static void WriteHandTable(StringBuilder text, HandData hand)
+    {
+        var players = PlayersInOrder(hand);
+        var smallBlind = hand.SmallBlind;
+        var bigBlind = hand.BigBlind;
+
+        text.Append("variant = 'NT'").Append(Newline);
+        text.Append("antes = ").Append(Array(players.Select(_ => 0m))).Append(Newline);
+        text.Append("blinds_or_straddles = ").Append(Array(players.Select((_, i) => i switch { 0 => smallBlind, 1 => bigBlind, _ => 0m }))).Append(Newline);
+        text.Append("min_bet = ").Append(Amount(bigBlind)).Append(Newline);
+        text.Append("starting_stacks = ").Append(Array(players.Select(seat => seat.StartHandStack))).Append(Newline);
+        text.Append("players = [").Append(string.Join(", ", players.Select(seat => $"\"{EscapeForToml(seat.Name)}\""))).Append(']').Append(Newline);
+
+        text.Append("actions = [").Append(Newline);
+        foreach (var action in Actions(hand, players))
         {
-            var finishingStacks = string.Join(", ", hand.Seats.Select(s => s.Stack.ToString(CultureInfo.InvariantCulture)));
-            lines.Add($@"    ""finishing_stacks = [{finishingStacks}]""");
+            text.Append("    '").Append(action).Append("',").Append(Newline);
         }
 
-        lines.Add("]");
+        text.Append(']').Append(Newline);
 
-        return string.Join(Environment.NewLine, lines);
+        if (IsFinished(hand))
+        {
+            text.Append("finishing_stacks = ").Append(Array(players.Select(FinishingStack))).Append(Newline);
+        }
     }
 
     /// <summary>
-    /// Extracts the action sequence from the journal and game state, formatted as PHH directives.
+    /// The seats dealt into the hand in PHH order, which is how <see cref="PhhReplayController"/> seats
+    /// them: <c>p1</c> is the first dealt-in seat after the button and the button is the last player.
     /// </summary>
-    private static List<string> ExtractActions(HandData hand, EngineCallJournal journal)
+    private static List<SeatData> PlayersInOrder(HandData hand)
+    {
+        var dealtIn = hand.Seats
+            .Where(seat => seat.Hole is { Count: > 0 })
+            .OrderBy(seat => seat.SeatNo)
+            .ToList();
+
+        return [.. dealtIn.Where(seat => seat.SeatNo > hand.DealerSeatNo), .. dealtIn.Where(seat => seat.SeatNo <= hand.DealerSeatNo)];
+    }
+
+    private static List<string> Actions(HandData hand, List<SeatData> players)
     {
         var actions = new List<string>();
-        var boardCardsEmitted = false;
-        var seatToLastActionNoMap = new Dictionary<byte, int>();
+        var playerBySeat = players
+            .Select((seat, index) => (seat.SeatNo, Label: $"p{index + 1}"))
+            .ToDictionary(player => player.SeatNo, player => player.Label);
 
-        // Emit hole cards for all seated players
-        foreach (var seat in hand.Seats)
+        foreach (var seat in players)
         {
-            if (seat.Hole != null && seat.Hole.Count > 0)
+            actions.Add($"d dh {playerBySeat[seat.SeatNo]} {string.Concat(seat.Hole!.Select(CardToPhh))}");
+        }
+
+        var boardDealt = 0;
+        var street = Street.PreFlop;
+        var standingWager = 0m;
+
+        foreach (var action in hand.Actions.OrderBy(action => action.No))
+        {
+            if (action.ActionType is HandActionType.SmallBlind or HandActionType.BigBlind)
             {
-                var playerIndex = IndexOfSeat(hand, seat.SeatNo);
-                var holeCards = string.Join(" ", seat.Hole.Select(CardToPhh));
-                actions.Add($"d dh p{playerIndex + 1} {holeCards}");
+                standingWager = Math.Max(standingWager, action.Amount);
+                continue;
+            }
+
+            if (action.Street != street)
+            {
+                street = action.Street;
+                standingWager = 0m;
+            }
+
+            boardDealt = DealBoard(actions, hand, boardDealt, Math.Min(BoardSize(street), hand.CommunityCards.Count));
+
+            var player = playerBySeat[action.SeatNo];
+            switch (action.ActionType)
+            {
+                case HandActionType.Fold:
+                    actions.Add($"{player} f");
+                    break;
+                case HandActionType.Check:
+                case HandActionType.Call:
+                    actions.Add($"{player} cc");
+                    break;
+                case HandActionType.Bet:
+                case HandActionType.Raise:
+                case HandActionType.AllIn:
+                    // An all-in for no more than the standing wager is a call; PHH has no all-in action.
+                    actions.Add(action.ActionType == HandActionType.AllIn && action.Amount <= standingWager
+                        ? $"{player} cc"
+                        : $"{player} cbr {Amount(action.Amount)}");
+                    standingWager = Math.Max(standingWager, action.Amount);
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown action type: {action.ActionType}");
             }
         }
 
-        // Walk through the journal and reconstruct player actions
-        foreach (var entry in journal.Entries)
+        if (IsFinished(hand))
         {
-            if (!entry.Succeeded)
+            // Cards still to come when everyone is all in.
+            DealBoard(actions, hand, boardDealt, hand.CommunityCards.Count);
+
+            var contenders = players.Where(seat => !seat.IsFolded).ToList();
+            if (contenders.Count >= 2)
             {
-                continue;
-            }
-
-            if (entry.Action is HoldemActionStartGame or HoldemActionStartHand)
-            {
-                // Already handled hole cards above
-                continue;
-            }
-
-            if (entry.Action is HoldemActionPlay playerAction)
-            {
-                // Try to find which seat this action was for by checking seats' LastAction
-                // This is a heuristic: we assume the action was taken by the seat whose LastAction.No is new
-                byte? seatNo = null;
-
-                foreach (var seat in hand.Seats)
+                foreach (var seat in contenders)
                 {
-                    if (seat.LastAction != null)
-                    {
-                        if (!seatToLastActionNoMap.TryGetValue(seat.SeatNo, out var lastNo) ||
-                            lastNo != seat.LastAction.No)
-                        {
-                            seatToLastActionNoMap[seat.SeatNo] = seat.LastAction.No;
-                            seatNo = seat.SeatNo;
-                            break;
-                        }
-                    }
-                }
-
-                // If we couldn't find the seat, skip this action (shouldn't happen in normal play)
-                if (!seatNo.HasValue)
-                {
-                    continue;
-                }
-
-                // Emit board cards once before the first player action (if any board cards exist)
-                if (!boardCardsEmitted && hand.CommunityCards.Count > 0)
-                {
-                    var boardStr = string.Join(" ", hand.CommunityCards.Select(CardToPhh));
-                    actions.Add($"d db {boardStr}");
-                    boardCardsEmitted = true;
-                }
-
-                // Find the player's index in the seats array
-                var playerIndex = IndexOfSeat(hand, seatNo.Value);
-                if (playerIndex >= 0)
-                {
-                    var actionStr = ActionToPhh(playerAction.ActionType, playerAction.Size, playerIndex);
-                    actions.Add(actionStr);
+                    actions.Add($"{playerBySeat[seat.SeatNo]} sm {string.Concat(seat.Hole!.Select(CardToPhh))}");
                 }
             }
         }
@@ -185,21 +204,38 @@ public static class PhhWriter
         return actions;
     }
 
-    /// <summary>
-    /// Position of <paramref name="seatNo"/> in the hand's seat list, or -1 when no such seat is seated.
-    /// </summary>
-    private static int IndexOfSeat(HandData hand, byte seatNo)
+    /// <summary>Emits the board cards from <paramref name="dealt"/> up to <paramref name="target"/>, one deal per street.</summary>
+    private static int DealBoard(List<string> actions, HandData hand, int dealt, int target)
     {
-        for (var i = 0; i < hand.Seats.Count; i++)
+        while (dealt < target)
         {
-            if (hand.Seats[i].SeatNo == seatNo)
-            {
-                return i;
-            }
+            var count = dealt == 0 ? 3 : 1;
+            count = Math.Min(count, target - dealt);
+            actions.Add($"d db {string.Concat(hand.CommunityCards.Skip(dealt).Take(count).Select(CardToPhh))}");
+            dealt += count;
         }
 
-        return -1;
+        return dealt;
     }
+
+    /// <summary>Community cards on the table once <paramref name="street"/> is dealt; the street enum encodes the count.</summary>
+    private static int BoardSize(Street street) => street switch
+    {
+        Street.Flop => 3,
+        Street.Turn => 4,
+        Street.River => 5,
+        _ => 0,
+    };
+
+    private static bool IsFinished(HandData hand) => hand.Street == Street.Finished && hand.NextPlayerSeatNo == 0;
+
+    private static decimal FinishingStack(SeatData seat)
+        => seat.HandResult is null ? seat.Stack : seat.StartHandStack + seat.HandResult.Net;
+
+    private static string Array(IEnumerable<decimal> amounts) => $"[{string.Join(", ", amounts.Select(Amount))}]";
+
+    /// <summary>An amount without a database scale (<c>50</c>, not <c>50.0000</c>), in invariant culture.</summary>
+    private static string Amount(decimal amount) => amount.ToString("0.####", CultureInfo.InvariantCulture);
 
     /// <summary>
     /// Converts a card from engine format ("ah") to PHH format ("Ah").
@@ -216,22 +252,7 @@ public static class PhhWriter
     }
 
     /// <summary>
-    /// Formats a player action as a PHH directive.
-    /// </summary>
-    private static string ActionToPhh(PlayerActionType actionType, decimal size, int playerIndex)
-    {
-        return actionType switch
-        {
-            PlayerActionType.Fold => $"p{playerIndex + 1} f",
-            PlayerActionType.Check => $"p{playerIndex + 1} cc",
-            PlayerActionType.Call => $"p{playerIndex + 1} cc",
-            PlayerActionType.Raise => $"p{playerIndex + 1} cbr {size.ToString(CultureInfo.InvariantCulture)}",
-            _ => throw new ArgumentException($"Unknown action type: {actionType}"),
-        };
-    }
-
-    /// <summary>
-    /// Escapes special characters for TOML string values.
+    /// Escapes special characters for TOML basic string values.
     /// </summary>
     private static string EscapeForToml(string value)
     {
