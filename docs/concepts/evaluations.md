@@ -107,8 +107,9 @@ Three seats at blinds 1/2 on a table with 100 stacks each. The action so far:
 |--------|-----|-----|---|
 | Fold   | 0   | 0   | Give up; no chips used |
 | Call   | 4   | 4   | Put in 4 more chips; total 6 on this street |
-| Raise  | 8   | 98  | Raise the street total to 8 (the minimum, 2× the big blind) up to 98 (all in) |
-| AllIn  | 0   | 0   | Commit all 98 chips |
+| Raise  | 10  | 100 | Raise the street total to 10 (the minimum: the standing 6 plus the last full raise of 4) up to 100 (all in: the 98 stack plus the 2 already bet) |
+
+There is no `AllIn` row: going all in is a `Raise` to the top of the window, here 100.
 
 **Making a raise call with Play:**
 
@@ -119,13 +120,13 @@ var play = HoldemAction.Play(gameId, PlayerActionType.Raise, size: 20);
 var result = await engine.ApplyAsync(play, ct);
 ```
 
-Notice that the `size` parameter is 20 (the absolute street total), not 18 (the increment). The window says "raise to 8–98", so 20 is in range. The engine records the action and updates:
+Notice that the `size` parameter is 20 (the absolute street total), not 18 (the increment). The window says "raise to 10–100", so 20 is in range. The engine records the action and updates:
 
 - Seat 1's `BetSize` becomes 20
 - Seat 1's stack becomes 80 (98 - 18)
 - `StreetPot` now includes Seat 1's 20
 
-If you sent `size: 98`, the engine would raise to 98 (the maximum, putting in the whole stack). If you sent `size: 7` (outside the window), the engine would reject with `IllegalAction`.
+If you sent `size: 100`, the engine would raise to 100 (the maximum, putting in the whole stack). If you sent `size: 9` (outside the window), the engine would reject with `IllegalAction`.
 
 ## Call vs Raise: the key difference
 
@@ -141,7 +142,7 @@ This difference is by design. A call is easy to visualize as a top-up, a raise a
 When you read `GameData.Evaluations`:
 
 1. If `Evaluations` is empty, it is nobody's turn (hand is over, or not yet started).
-2. All seats can fold. `Fold` may not appear in the list, but it is always an option.
+2. `Fold` is always in the list while it is a seat's turn, with an empty window (`[0-0]`).
 3. For `Call`, add `MinValue` to the seat's current `BetSize` to get the absolute amount.
 4. For `Raise`, the window is already absolute; use it directly.
 5. `AllIn` commits the whole stack. As a call it is always legal; as a raise it is legal only when `Evaluations` offers a `Raise`.
