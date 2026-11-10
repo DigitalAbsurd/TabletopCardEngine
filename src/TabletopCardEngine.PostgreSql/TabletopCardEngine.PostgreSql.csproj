@@ -15,7 +15,7 @@
       see docs/public-api.md.
     -->
     <EnablePackageValidation>true</EnablePackageValidation>
-    <PackageValidationBaselineVersion>1.2.1</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.3.0</PackageValidationBaselineVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
