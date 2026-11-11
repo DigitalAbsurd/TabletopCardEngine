@@ -60,3 +60,9 @@ An opening wager on a street where nothing has been bet\.
 `AllIn` 9
 
 The seat has committed its whole stack\.
+
+<a name='TabletopCardEngine.Holdem.HandActionType.Ante'></a>
+
+`Ante` 10
+
+An ante the engine posted before the deal; dead money\.

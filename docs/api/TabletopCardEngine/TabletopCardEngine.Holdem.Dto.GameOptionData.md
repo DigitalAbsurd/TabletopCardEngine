@@ -45,6 +45,35 @@ public bool AllowTopUp { get; init; }
 #### Property Value
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.Ante'></a>
+
+## GameOptionData\.Ante Property
+
+The ante every hand is dealt with: dead money that goes into the pot and counts towards a seat's total
+contribution, never towards its street wager\. [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') \(the default\) means no ante, and is what
+a game created before 1\.4 reads back\. Must be positive and have at most two decimal places when set\. Under a
+[BlindSchedule](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.BlindSchedule 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.BlindSchedule') the ante keeps its ratio to the small blind\.
+
+```csharp
+public System.Nullable<decimal> Ante { get; init; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='TabletopCardEngine.Holdem.Dto.GameOptionData.AnteType'></a>
+
+## GameOptionData\.AnteType Property
+
+Who posts the [Ante](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.Ante 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.Ante')\. Ignored when [Ante](TabletopCardEngine.Holdem.Dto.GameOptionData.md#TabletopCardEngine.Holdem.Dto.GameOptionData.Ante 'TabletopCardEngine\.Holdem\.Dto\.GameOptionData\.Ante') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\. Must be a defined value\.
+
+```csharp
+public TabletopCardEngine.Holdem.AnteType AnteType { get; init; }
+```
+
+#### Property Value
+[AnteType](TabletopCardEngine.Holdem.AnteType.md 'TabletopCardEngine\.Holdem\.AnteType')
+
 <a name='TabletopCardEngine.Holdem.Dto.GameOptionData.BettingStructure'></a>
 
 ## GameOptionData\.BettingStructure Property

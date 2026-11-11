@@ -45,6 +45,8 @@ internal static class GameDataMapper
                 MinBuyIn = game.MinBuyIn,
                 MaxBuyIn = game.MaxBuyIn,
                 RaiseCap = game.RaiseCap,
+                Ante = game.Ante,
+                AnteType = game.AnteType,
                 BlindSchedule = game.BlindSchedule is { } schedule
                     ? schedule with
                     {
@@ -95,6 +97,7 @@ internal static class GameDataMapper
                     Evaluations: evaluations)
                 {
                     SmallBlind = currentHand.SmallBlind ?? game.InitialSmallBlind,
+                    Ante = currentHand.Ante ?? 0,
                     BigBlind = (currentHand.SmallBlind ?? game.InitialSmallBlind) * 2,
                     BlindLevel = currentHand.BlindLevel,
                     Actions = actionsProjection,

@@ -55,6 +55,39 @@ public sealed class GameScopeValidationTests
     }
 
     [TestMethod]
+    [DataRow("0")]
+    [DataRow("-1")]
+    public async Task CreateGame_AnteNotPositive_FailsWithInvalidGameOptions(string ante)
+        => await AssertCreateGameFailsAsync(new GameOptionData { Ante = decimal.Parse(ante, System.Globalization.CultureInfo.InvariantCulture) }, HoldemErrorCode.InvalidGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_AnteWithThreeDecimalPlaces_FailsWithInvalidGameOptions()
+        => await AssertCreateGameFailsAsync(new GameOptionData { Ante = 1.005M }, HoldemErrorCode.InvalidGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_UndefinedAnteType_FailsWithInvalidGameOptions()
+        => await AssertCreateGameFailsAsync(new GameOptionData { AnteType = (AnteType)99 }, HoldemErrorCode.InvalidGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_Ante_FailsWithUnsupportedGameOptions()
+        => await AssertCreateGameFailsAsync(new GameOptionData { Ante = 1 }, HoldemErrorCode.UnsupportedGameOptions);
+
+    [TestMethod]
+    public async Task CreateGame_NoAnte_RoundTripsNullAnteAndZeroHandAnte()
+    {
+        using var host = TestEngineHost.Setup(out var engine, out _);
+
+        (await engine.ApplyAsync(new HoldemActionCreateGame(_gameId, new GameOptionData()))).IsSuccess.Should().BeTrue();
+        var started = await engine.ApplyAsync(new HoldemActionStartGame(_gameId, _seats));
+        var loaded = await engine.ApplyAsync(new HoldemActionGetGame(_gameId));
+
+        started.IsSuccess.Should().BeTrue();
+        loaded.Value.Options.Ante.Should().BeNull();
+        loaded.Value.Options.AnteType.Should().Be(AnteType.Classic);
+        loaded.Value.HandData!.Ante.Should().Be(0);
+    }
+
+    [TestMethod]
     public async Task CreateGame_DefaultOptions_RaiseCapIsFour()
     {
         using var host = TestEngineHost.Setup(out var engine, out _);

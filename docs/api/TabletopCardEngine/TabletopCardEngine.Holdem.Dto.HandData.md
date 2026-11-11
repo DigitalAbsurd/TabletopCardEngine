@@ -105,6 +105,19 @@ public System.Collections.Generic.IReadOnlyList<TabletopCardEngine.Holdem.Dto.Pl
 #### Property Value
 [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[PlayerActionData](TabletopCardEngine.Holdem.Dto.PlayerActionData.md 'TabletopCardEngine\.Holdem\.Dto\.PlayerActionData')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
 
+<a name='TabletopCardEngine.Holdem.Dto.HandData.Ante'></a>
+
+## HandData\.Ante Property
+
+The ante of this hand, or `0` when the hand has none\.
+
+```csharp
+public decimal Ante { get; init; }
+```
+
+#### Property Value
+[System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')
+
 <a name='TabletopCardEngine.Holdem.Dto.HandData.BigBlind'></a>
 
 ## HandData\.BigBlind Property

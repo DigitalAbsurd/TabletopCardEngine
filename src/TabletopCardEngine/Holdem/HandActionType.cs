@@ -30,5 +30,8 @@ public enum HandActionType : byte
     Bet = 8,
 
     /// <summary>The seat has committed its whole stack.</summary>
-    AllIn = 9
+    AllIn = 9,
+
+    /// <summary>An ante the engine posted before the deal; dead money.</summary>
+    Ante = 10
 }

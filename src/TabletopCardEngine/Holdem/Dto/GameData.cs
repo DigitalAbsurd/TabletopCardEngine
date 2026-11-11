@@ -88,6 +88,9 @@ public record HandData(
     /// <summary>The nominal small blind of this hand. Read the blinds here rather than deriving them from <see cref="GameOptionData"/>: the blinds can rise from hand to hand under <see cref="GameOptionData.BlindSchedule"/>.</summary>
     public decimal SmallBlind { get; init; }
 
+    /// <summary>The ante of this hand, or <c>0</c> when the hand has none.</summary>
+    public decimal Ante { get; init; }
+
     /// <summary>The nominal big blind of this hand. A seat short of it posts what it has (see <see cref="SeatData.LastAction"/>), so this is the level, not the amount posted.</summary>
     public decimal BigBlind { get; init; }
 

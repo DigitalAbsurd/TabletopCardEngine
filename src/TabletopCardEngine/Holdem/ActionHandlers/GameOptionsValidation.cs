@@ -35,6 +35,27 @@ internal static class GameOptionsValidation
             return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_RaiseCapBelowOne);
         }
 
+        if (options.Ante <= 0)
+        {
+            return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_AnteNotPositive);
+        }
+
+        if (options.Ante is { } ante && !AmountRules.HasValidScale(ante))
+        {
+            return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_AnteTooManyDecimals);
+        }
+
+        if (!Enum.IsDefined(options.AnteType))
+        {
+            return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_AnteTypeUndefined);
+        }
+
+        // Until #712 posts antes, a game that sets one would play hands that never collect it.
+        if (options.Ante is not null)
+        {
+            return new HoldemError(HoldemErrorCode.UnsupportedGameOptions, PackResource.HoldemValidation_AnteNotSupportedYet);
+        }
+
         return null;
     }
 

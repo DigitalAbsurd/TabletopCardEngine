@@ -26,6 +26,11 @@ internal class Game
     /// <summary>The most bets a Fixed-Limit street may hold; <see langword="null"/> means no cap, which is what every game created before 1.3 has.</summary>
     public int? RaiseCap { get; set; }
 
+    /// <summary>The ante of every hand; <see langword="null"/> means no ante, which is what every game created before 1.4 has.</summary>
+    public decimal? Ante { get; set; }
+
+    public AnteType AnteType { get; set; } = AnteType.Classic;
+
     public bool IsFinished { get; set; }
 
     /// <summary>Optimistic concurrency token. Application-incremented on every saving call, since SQLite has no rowversion.</summary>
