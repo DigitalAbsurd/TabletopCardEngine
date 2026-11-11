@@ -50,12 +50,6 @@ internal static class GameOptionsValidation
             return new HoldemError(HoldemErrorCode.InvalidGameOptions, PackResource.HoldemValidation_AnteTypeUndefined);
         }
 
-        // Until #712 posts antes, a game that sets one would play hands that never collect it.
-        if (options.Ante is not null)
-        {
-            return new HoldemError(HoldemErrorCode.UnsupportedGameOptions, PackResource.HoldemValidation_AnteNotSupportedYet);
-        }
-
         return null;
     }
 

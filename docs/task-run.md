@@ -501,7 +501,7 @@ renumber.
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
 23. **The v1 scope is enforced, and each rule has its own code.** No-Limit, Pot-Limit and Fixed-Limit Hold'em cash games at 2 to 10
-    seats, with optional buy-in limits, top-up, rebuy and kick, and optional blind schedules; no antes, no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
+    seats, with optional buy-in limits, top-up, rebuy and kick, optional blind schedules, and optional antes posted per `AnteType` (fact 32); no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
     `FullRing` 7 to 10 (`Holdem/ActionHandlers/HoldemTableFormatExtensions.cs`). `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
     and `InvalidGameOptions = 6` when `TableFormat` is not a defined `HoldemTableFormat`, `MaxPlayersCount` is
@@ -613,6 +613,25 @@ renumber.
     away from zero and caps it at `MaxSmallBlind`; `Levels` mode takes `SmallBlindLevels[min(L, count) - 1]`. The state
     comes from the previous hand's columns, never from the hand number or the history, because only the latest hand
     is loaded. A raise logs `BlindLevelRaised` (1014).
+32. **An ante is dead money: in `Committed` and `Pot`, never in a street wager.** `GameOptionData.Ante` (`null` is
+    none) is posted at the deal by `HandRunner.StartHand`. The hand's ante is set once in `HandDealer.DealAsync` and
+    stored in `Hand.Ante` (`HandData.Ante`): `Game.Ante` without a blind schedule, otherwise
+    `round(Game.Ante × hand.SmallBlind / Game.InitialSmallBlind, 2, AwayFromZero)`, the only place it is rounded.
+    `AnteType.Classic`: every seat dealt in posts `min(ante, stack)` *before* the blinds; a seat its ante puts all in
+    posts no blind and the blind seats are chosen as before among the seats that can still post (heads-up when two
+    can), which can move the button off a seat all in on its ante. When fewer than two seats would be left with chips
+    after the antes, the blind seats are chosen first and a seat the ante emptied posts a blind of `0`.
+    `AnteType.BigBlind`: the big blind seat (heads-up too) posts its blind first, then `min(ante, stack left)`; nobody
+    else posts one. The ante goes into `TableSeat.Committed` (`TableSeat.Ante` keeps it apart) and never into
+    `StreetBets`, so it counts in side pots and the Pot-Limit maximum (fact 29) but not towards a call, the minimum
+    raise, the big blind's option or the Fixed-Limit bet size and cap. The ledger holds one `HandAction` row per
+    ante posted, `ActionType = Ante`, `Street = PreFlop`, `Amount = AddAmount = Paid =` what was posted,
+    `Size =` the hand's ante, before the blind rows for `Classic` and right after the big blind row for `BigBlind`
+    (none when nothing was left to post). Every per-street `Max(Amount)` of the ledger excludes these rows
+    (`EntityExtensions.GetSeatActions`, `GameDataMapper`), and `GetSeatBetAmount` adds them on their own.
+    `HandData.Pot` includes the antes from the deal on, `StreetPot` and `SeatData.BetSize` never do, so `Pot +
+    StreetPot` is always the whole pot; `SeatData.LastAction` skips an ante row. A seat whose only row is its ante
+    rehydrates all in when the ante emptied it.
 
 ## A known, deliberate duplication
 

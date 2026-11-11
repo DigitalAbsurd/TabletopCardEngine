@@ -56,21 +56,42 @@ internal static class EntityExtensions
     internal static decimal GetSeatWinAmount(this Hand hand, byte seatNo)
         => hand.PlayerEndStates.SingleOrDefault(endState => endState.SeatNo == seatNo)?.WinAmount ?? 0;
 
+    /// <summary>
+    /// Everything the seat has put in this hand: the largest cumulative wager of each street plus its ante. The ante
+    /// row is recorded on the pre-flop but is dead money, never part of a street wager, so it is added on its own.
+    /// </summary>
     internal static decimal GetSeatBetAmount(this Hand hand, byte seatNo)
         => hand.GetSeatActions(seatNo)
             .Select(street => street.Value.Max(action => action.Amount))
-            .Sum();
+            .Sum()
+            + hand.GetSeatAnte(seatNo);
 
+    /// <summary>What the seat posted as its ante this hand; 0 when it posted none.</summary>
+    internal static decimal GetSeatAnte(this Hand hand, byte seatNo)
+        => hand.Actions
+            .Where(action => action.SeatNo == seatNo && action.IsAnte())
+            .Sum(action => action.Amount);
+
+    /// <summary>Every ante posted this hand, all of it already in the pot.</summary>
+    internal static decimal GetAntes(this Hand hand)
+        => hand.Actions.Where(action => action.IsAnte()).Sum(action => action.Amount);
+
+    /// <summary>Whether the row is an ante: dead money, left out of every per-street wager.</summary>
+    internal static bool IsAnte(this HandAction action)
+        => action.ActionType == HandActionType.Ante;
+
+    /// <summary>The seat's wagers by street, the ante excluded: it is never part of a street wager.</summary>
     internal static Dictionary<Street, List<HandAction>> GetSeatActions(this Hand hand, byte seatNo)
         => hand.Actions
-            .Where(action => action.SeatNo == seatNo)
+            .Where(action => action.SeatNo == seatNo && !action.IsAnte())
             .OrderBy(action => action.No)
             .GroupBy(action => action.Street)
             .ToDictionary(street => street.Key, street => street.ToList());
 
+    /// <summary>The seat's latest wager or fold, the ante excluded.</summary>
     internal static HandAction? GetSeatLastAction(this Hand hand, byte seatNo)
         => hand.Actions
-            .Where(action => action.SeatNo == seatNo)
+            .Where(action => action.SeatNo == seatNo && !action.IsAnte())
             .LastOrDefault();
 
     internal static decimal GetSeatActualStack(this Hand hand, byte seatNo)
@@ -92,13 +113,15 @@ internal static class EntityExtensions
 
     internal static decimal GetPot(this Hand hand)
         => hand.PlayerStartStates.Select(startState => hand.GetSeatLastAction(startState.SeatNo)?.Amount ?? 0)
-        .Sum();
+        .Sum()
+        + hand.GetAntes();
 
     internal static bool IsSeatFolded(this Hand hand, byte seatNo)
         => hand.GetSeatActions(seatNo).SelectMany(street => street.Value).Any(action => action.ActionType == HandActionType.Fold);
 
+    /// <summary>Whether the seat has any row in the ledger, its ante included.</summary>
     internal static bool HasSeatActed(this Hand hand, byte seatNo)
-        => hand.GetSeatActions(seatNo).SelectMany(street => street.Value).Any();
+        => hand.Actions.Any(action => action.SeatNo == seatNo);
 
     /// <summary>
     /// The seat's latest occupant: its <see cref="Player"/> row with the highest <see cref="Player.HandNoStart"/>,

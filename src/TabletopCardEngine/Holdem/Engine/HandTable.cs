@@ -11,6 +11,12 @@ internal sealed class HandTable
 {
     public required decimal SmallBlind { get; init; }
 
+    /// <summary>The ante of this hand, already scaled to its blind level; 0 when the hand has none.</summary>
+    public decimal Ante { get; init; }
+
+    /// <summary>Who posts <see cref="Ante"/>. Ignored when there is no ante.</summary>
+    public AnteType AnteType { get; init; } = AnteType.Classic;
+
     /// <summary>The game's betting structure, which decides the largest raise <see cref="BettingRules"/> allows.</summary>
     public BettingStructure BettingStructure { get; init; } = BettingStructure.NoLimit;
 

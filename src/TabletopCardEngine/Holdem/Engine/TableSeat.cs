@@ -12,8 +12,14 @@ internal sealed class TableSeat
     public required string Name { get; init; }
     public decimal Stack { get; set; }
 
-    /// <summary>Total wagered this hand, across every street — the side-pot input.</summary>
+    /// <summary>Total wagered this hand, across every street and the ante included — the side-pot input.</summary>
     public decimal Committed { get; set; }
+
+    /// <summary>
+    /// The ante this seat posted. It is dead money: part of <see cref="Committed"/>, never a street bet, so it
+    /// counts towards neither calling nor raising.
+    /// </summary>
+    public decimal Ante { get; set; }
 
     public SeatStatus Status { get; set; } = SeatStatus.Waiting;
     public List<Card> Hole { get; } = [];

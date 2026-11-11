@@ -147,9 +147,6 @@
   <data name="HoldemValidation_AnteTypeUndefined" xml:space="preserve">
     <value>The ante type is not a defined value</value>
   </data>
-  <data name="HoldemValidation_AnteNotSupportedYet" xml:space="preserve">
-    <value>Antes are not supported yet</value>
-  </data>
   <data name="HoldemValidation_InvalidSeat" xml:space="preserve">
     <value>A seat to join is invalid</value>
   </data>

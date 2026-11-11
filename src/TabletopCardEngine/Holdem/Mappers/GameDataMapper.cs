@@ -18,7 +18,10 @@ internal static class GameDataMapper
 
         currentHand.TryGetBlindSeats(out var smallBlindSeatNo, out var bigBlindSeatNo);
 
+        // The antes are dead money posted at the deal: they are in Pot from then on, like a street already
+        // closed, and never part of a seat's street wager, so StreetPot and BetSize leave them out.
         var playersRoundAmounts = currentHand.Actions
+            .Where(action => !action.IsAnte())
             .GroupBy(action => new { action.Street, action.SeatNo })
             .Select(group => new { group.Key.Street, group.Key.SeatNo, Amount = group.Max(action => action.Amount) })
             .ToList();
@@ -63,7 +66,7 @@ internal static class GameDataMapper
                             Name: player.Name,
                             Hole: currentHand.GetSeatHoleCards(player.SeatNo) is { } hole ? new EquatableList<Card>(hole) : null,
                             LastAction: actionsProjection
-                                .Where(action => action.SeatNo == player.SeatNo)
+                                .Where(action => action.SeatNo == player.SeatNo && action.ActionType != HandActionType.Ante)
                                 .LastOrDefault(),
                             StartHandStack: currentHand.GetSeatStartStack(player.SeatNo),
                             BetSize: playersRoundAmounts
@@ -92,7 +95,8 @@ internal static class GameDataMapper
                     // Both pots split on NextStreet, the street on the clock. Splitting StreetPot on the
                     // last action's own Street instead counted a street that had just closed in both.
                     StreetPot: playersRoundAmounts.Where(entry => entry.Street == lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
-                    Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum(),
+                    Pot: playersRoundAmounts.Where(entry => entry.Street != lastHandAction.NextStreet).Select(entry => entry.Amount).Sum()
+                        + currentHand.GetAntes(),
                     CommunityCards: new EquatableList<Card>(currentHand.GetDeckCards()),
                     Evaluations: evaluations)
                 {

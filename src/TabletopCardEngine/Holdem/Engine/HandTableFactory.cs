@@ -23,6 +23,8 @@ internal static class HandTableFactory
         var table = new HandTable
         {
             SmallBlind = hand.SmallBlind ?? game.InitialSmallBlind,
+            Ante = hand.Ante ?? 0M,
+            AnteType = game.AnteType,
             BettingStructure = game.BettingStructure,
             RaiseCap = game.RaiseCap,
             Deck = deck ?? CardDeck.Shuffled(exclude: hand.GetDeckCards().Concat(seats.SelectMany(seat => seat.Hole))),
@@ -56,6 +58,7 @@ internal static class HandTableFactory
         seat.Hole.AddRange(hand.GetSeatHoleCards(seatNo) ?? []);
         seat.Stack = hand.GetSeatActualStack(seatNo);
         seat.Committed = hand.GetSeatBetAmount(seatNo);
+        seat.Ante = hand.GetSeatAnte(seatNo);
 
         if (hand.GetSeatActions(seatNo).TryGetValue(hand.GetStreet(), out var streetActions))
         {
@@ -65,9 +68,9 @@ internal static class HandTableFactory
             }
         }
 
-        // The blind posts are the first rows of a dealt hand, so any action means the deal has happened. A seat
-        // without hole cards then was sat out at the deal (HandRunner.DealHoleCards); before the deal every seat
-        // lacks them.
+        // The antes and blind posts are the first rows of a dealt hand, so any action means the deal has happened.
+        // A seat without hole cards then was sat out at the deal (HandRunner.DealHoleCards); before the deal every
+        // seat lacks them. An ante row counts as having acted, so a seat its ante put all in rehydrates all in.
         var satOut = hand.Actions.Count > 0 && seat.Hole.Count == 0;
         var folded = satOut || hand.IsSeatFolded(seatNo) || (!hand.HasSeatActed(seatNo) && seat.Stack <= 0);
         var allIn = !folded && hand.HasSeatActed(seatNo) && seat.Stack <= 0;
