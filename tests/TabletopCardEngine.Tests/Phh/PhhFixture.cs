@@ -21,6 +21,7 @@ internal static class PhhFixture
     private const string FullRingResourceSuffix = "Resources.phh.handhq-fullring.phhs.gz";
 
     private const string WsopFixedLimitResourceSuffix = "Resources.phh.wsop-fixedlimit.phhs.gz";
+    private const string WsopNoLimitResourceSuffix = "Resources.phh.wsop-nolimit.phhs.gz";
     private const string AcpcFixedLimitResourceSuffix = "Resources.phh.acpc-fixedlimit.phhs.gz";
 
     private const string PokerkitPotLimitResourceSuffix = "Resources.phh.pokerkit-potlimit.phhs.gz";
@@ -38,6 +39,9 @@ internal static class PhhFixture
 
     private static readonly Lazy<IReadOnlyList<PhhHand>> _wsopFixedLimit =
         new(() => PhhReader.ReadAll(ReadGZippedResource(WsopFixedLimitResourceSuffix)));
+
+    private static readonly Lazy<IReadOnlyList<PhhHand>> _wsopNoLimit =
+        new(() => PhhReader.ReadAll(ReadGZippedResource(WsopNoLimitResourceSuffix)));
 
     private static readonly Lazy<IReadOnlyList<PhhHand>> _pluribus =
         new(() => PhhReader.ReadAll(ReadGZippedResource(PluribusResourceSuffix)));
@@ -70,6 +74,12 @@ internal static class PhhFixture
     /// table, day 5), in upstream file order. Five-handed, with finishing stacks, so an exact oracle.
     /// </summary>
     internal static IReadOnlyList<PhhHand> WsopFixedLimit => _wsopFixedLimit.Value;
+
+    /// <summary>
+    /// The eleven no-limit hands of the same WSOP final table, in upstream file order. Five-handed, each with
+    /// a big blind ante, and with finishing stacks, so an exact oracle.
+    /// </summary>
+    internal static IReadOnlyList<PhhHand> WsopNoLimit => _wsopNoLimit.Value;
 
     /// <summary>
     /// The 6 000 fixed-limit hands of the Annual Computer Poker Competition slice (3 000 heads-up, then
@@ -154,7 +164,7 @@ internal static class PhhFixture
 
     /// <summary>Finds one hand by its upstream file name, e.g. <c>pluribus/30/0.phh</c>.</summary>
     internal static PhhHand Single(string source)
-        => Pluribus.Concat(HeadsUp).Concat(FullRing).Concat(WsopFixedLimit).Concat(AcpcFixedLimit).SingleOrDefault(hand => hand.Source == source)
+        => Pluribus.Concat(HeadsUp).Concat(FullRing).Concat(WsopFixedLimit).Concat(WsopNoLimit).Concat(AcpcFixedLimit).SingleOrDefault(hand => hand.Source == source)
             ?? throw new InvalidOperationException($"'{source}' is not in the embedded PHH corpus");
 
     /// <summary>Looks the resource up by suffix so a change of folder layout does not break loading.</summary>

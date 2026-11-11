@@ -18,6 +18,7 @@ public sealed class PhhReplayTests
     private const int HeadsUpHandCount = 2_351;
     private const int FullRingHandCount = 1_505;
     private const int WsopFixedLimitHandCount = 7;
+    private const int WsopNoLimitHandCount = 11;
     private const int AcpcFixedLimitHandCount = 6_000;
     private const int PotLimitHandCount = 2_000;
     private const int PotLimitTaggedHandCount = 739;
@@ -245,6 +246,46 @@ public sealed class PhhReplayTests
         firstHand.BigBet.Should().Be(400_000M);
         firstHand.BlindsOrStraddles.Should().Equal([100_000M, 200_000M, 0M, 0M, 0M]);
         firstHand.FinishingStacks.Should().Equal([3_075_000M, 11_925_000M, 7_750_000M, 3_150_000M, 3_800_000M]);
+    }
+
+    /// <summary>
+    /// Guards the WSOP no-limit fixture: no hand is filtered out, and every one is five-handed with a
+    /// big blind ante on <c>p2</c> that is not equal to the big blind.
+    /// </summary>
+    [TestMethod]
+    public void PhhWsopNoLimitCorpus_ParsesAndIsFullySupported()
+    {
+        var corpus = PhhFixture.WsopNoLimit;
+
+        corpus.Should().HaveCount(WsopNoLimitHandCount, "the vendored fixture holds the eleven no-limit hands");
+
+        var unsupported = corpus
+            .Select(hand =>
+            {
+                PhhReplayRunner.IsSupported(hand, out var reason);
+                return $"{hand}: {reason}";
+            })
+            .Where(entry => !entry.EndsWith(": ", StringComparison.Ordinal))
+            .ToArray();
+
+        unsupported.Should().BeEmpty("every hand of this corpus should be replayable by the engine");
+        corpus.Should().OnlyContain(hand => hand.Variant == "NT" && hand.FinishingStacks != null && hand.PlayerCount == 5);
+        corpus.Should().OnlyContain(hand => hand.Antes[1] != 0 && hand.Antes.Count(ante => ante != 0) == 1 && hand.Antes[1] != hand.BigBlind);
+        corpus[0].Source.Should().Be("wsop/2023/43/5/00-02-07.phh");
+    }
+
+    /// <summary>
+    /// The WSOP no-limit replay: every hand, a big blind ante each, with the stacks compared exactly
+    /// against the history.
+    /// </summary>
+    [TestMethod]
+    public async Task PhhWsopNoLimitReplay_Test()
+    {
+        using var runner = new PhhReplayRunner();
+        foreach (var hand in PhhFixture.WsopNoLimit)
+        {
+            await runner.ReplayAsync(hand);
+        }
     }
 
     /// <summary>
