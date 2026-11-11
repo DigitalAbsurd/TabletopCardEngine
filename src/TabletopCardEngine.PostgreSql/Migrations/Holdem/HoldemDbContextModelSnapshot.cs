@@ -61,6 +61,17 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                     b.Property<bool>("AllowTopUp")
                         .HasColumnType("boolean");
 
+                    b.Property<decimal?>("Ante")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("AnteType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("Classic");
+
                     b.Property<string>("BettingStructure")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -125,6 +136,10 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
 
                     b.Property<int>("No")
                         .HasColumnType("integer");
+
+                    b.Property<decimal?>("Ante")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int>("BlindLevel")
                         .HasColumnType("integer");
@@ -346,8 +361,8 @@ namespace TabletopCardEngine.PostgreSql.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.3.0",
-                            SchemaVersion = 5
+                            EngineVersion = "1.4.0",
+                            SchemaVersion = 6
                         });
                 });
 

@@ -81,6 +81,17 @@ public sealed record GameOptionData
     /// Must be at least 1 when set. Games created before 1.3 read back <see langword="null"/>.
     /// </summary>
     public int? RaiseCap { get; init; } = 4;
+
+    /// <summary>
+    /// The ante every hand is dealt with: dead money that goes into the pot and counts towards a seat's total
+    /// contribution, never towards its street wager. <see langword="null"/> (the default) means no ante, and is what
+    /// a game created before 1.4 reads back. Must be positive and have at most two decimal places when set. Under a
+    /// <see cref="BlindSchedule"/> the ante keeps its ratio to the small blind.
+    /// </summary>
+    public decimal? Ante { get; init; }
+
+    /// <summary>Who posts the <see cref="Ante"/>. Ignored when <see cref="Ante"/> is <see langword="null"/>. Must be a defined value.</summary>
+    public AnteType AnteType { get; init; } = AnteType.Classic;
 }
 
 /// <summary>A player taking a seat, together with the stack they bring to it.</summary>

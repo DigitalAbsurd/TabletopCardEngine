@@ -18,6 +18,7 @@
 
 | Enums | |
 | :--- | :--- |
+| [AnteType](TabletopCardEngine.Holdem.AnteType.md 'TabletopCardEngine\.Holdem\.AnteType') | Who posts the ante of a hand\. |
 | [BettingStructure](TabletopCardEngine.Holdem.BettingStructure.md 'TabletopCardEngine\.Holdem\.BettingStructure') | How bets and raises are sized in a game\. |
 | [BlindIncreaseMode](TabletopCardEngine.Holdem.BlindIncreaseMode.md 'TabletopCardEngine\.Holdem\.BlindIncreaseMode') | How a game's small blind is worked out each time its blind schedule raises a level\. |
 | [GameType](TabletopCardEngine.Holdem.GameType.md 'TabletopCardEngine\.Holdem\.GameType') | The poker variant a game is played in\. |

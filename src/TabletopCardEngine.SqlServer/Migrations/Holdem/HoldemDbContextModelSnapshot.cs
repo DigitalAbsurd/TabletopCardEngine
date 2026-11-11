@@ -61,6 +61,17 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                     b.Property<bool>("AllowTopUp")
                         .HasColumnType("bit");
 
+                    b.Property<decimal?>("Ante")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("AnteType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)")
+                        .HasDefaultValue("Classic");
+
                     b.Property<string>("BettingStructure")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -125,6 +136,10 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
 
                     b.Property<int>("No")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("Ante")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("BlindLevel")
                         .HasColumnType("int");
@@ -346,8 +361,8 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.3.0",
-                            SchemaVersion = 5
+                            EngineVersion = "1.4.0",
+                            SchemaVersion = 6
                         });
                 });
 

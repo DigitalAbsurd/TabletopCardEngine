@@ -55,6 +55,17 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                     b.Property<bool>("AllowTopUp")
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal?>("Ante")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("AnteType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Classic");
+
                     b.Property<string>("BettingStructure")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -119,6 +130,10 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
 
                     b.Property<int>("No")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("Ante")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("BlindLevel")
                         .HasColumnType("INTEGER");
@@ -340,8 +355,8 @@ namespace TabletopCardEngine.Sqlite.Migrations.Holdem
                         new
                         {
                             Id = 1,
-                            EngineVersion = "1.3.0",
-                            SchemaVersion = 5
+                            EngineVersion = "1.4.0",
+                            SchemaVersion = 6
                         });
                 });
 

@@ -82,6 +82,7 @@ nav:
                   - 'TabletopCardEngineTelemetry': api/TabletopCardEngine/TabletopCardEngine.TabletopCardEngineTelemetry.md
               - 'TabletopCardEngine.Holdem':
                   - 'Namespace': api/TabletopCardEngine/TabletopCardEngine.Holdem.md
+                  - 'AnteType': api/TabletopCardEngine/TabletopCardEngine.Holdem.AnteType.md
                   - 'BettingStructure': api/TabletopCardEngine/TabletopCardEngine.Holdem.BettingStructure.md
                   - 'BlindIncreaseMode': api/TabletopCardEngine/TabletopCardEngine.Holdem.BlindIncreaseMode.md
                   - 'GameType': api/TabletopCardEngine/TabletopCardEngine.Holdem.GameType.md

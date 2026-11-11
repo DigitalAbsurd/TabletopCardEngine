@@ -89,6 +89,10 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasPrecision(18, AmountRules.MaxDecimalPlaces);
 
         modelBuilder.Entity<Hand>()
+            .Property(entity => entity.Ante)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<Hand>()
             .HasKey(entity => new { entity.GameId, entity.No });
 
         modelBuilder.Entity<HandPlayerStartState>()
@@ -204,6 +208,17 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .Property(entity => entity.BettingStructure)
             .HasConversion<string>()
             .HasMaxLength(EnumColumnMaxLength);
+
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.Ante)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        // The default is what games created before the column existed get: none has an ante, so the type is moot.
+        modelBuilder.Entity<Game>()
+            .Property(entity => entity.AnteType)
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength)
+            .HasDefaultValue(AnteType.Classic);
 
         // The default is what games created before the column existed get: they all played 2 to 6 seats.
         modelBuilder.Entity<Game>()

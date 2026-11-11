@@ -26,7 +26,7 @@ public sealed class ActionTypeContractTests
 
     [TestMethod]
     public void HandActionType_Members_AreWhatTheLedgerRecords()
-        => Enum.GetNames<HandActionType>().Should().Equal("SmallBlind", "BigBlind", "Fold", "Check", "Call", "Raise", "Bet", "AllIn");
+        => Enum.GetNames<HandActionType>().Should().Equal("SmallBlind", "BigBlind", "Fold", "Check", "Call", "Raise", "Bet", "AllIn", "Ante");
 
     [TestMethod]
     public void HandActionType_SharedMembers_KeepPlayerActionTypeNumbers()

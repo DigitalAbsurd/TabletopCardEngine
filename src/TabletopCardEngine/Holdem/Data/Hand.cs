@@ -10,6 +10,9 @@ internal class Hand
     /// <summary>The small blind this hand was dealt at; <see langword="null"/> means the game's initial small blind, which is what every hand written before blind schedules has.</summary>
     public decimal? SmallBlind { get; set; }
 
+    /// <summary>The ante this hand was dealt with; <see langword="null"/> on a hand without an ante and on every hand dealt before 1.4.</summary>
+    public decimal? Ante { get; set; }
+
     /// <summary>How many levels the blinds have risen by when this hand is dealt.</summary>
     public int BlindLevel { get; set; }
 
