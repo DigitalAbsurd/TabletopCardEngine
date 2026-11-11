@@ -77,7 +77,7 @@ Contributions made on the current street only\.
 
 `Pot` [System\.Decimal](https://learn.microsoft.com/en-us/dotnet/api/system.decimal 'System\.Decimal')
 
-Everything contributed on prior streets — [StreetPot](TabletopCardEngine.Holdem.Dto.HandData.md#TabletopCardEngine.Holdem.Dto.HandData.HandData(int,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Holdem.Dto.SeatData_,byte,byte,byte,byte,TabletopCardEngine.Holdem.Street,decimal,decimal,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Card_,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Holdem.Dto.PlayerActionEvaluationData_).StreetPot 'TabletopCardEngine\.Holdem\.Dto\.HandData\.HandData\(int, System\.Collections\.Generic\.IReadOnlyList&lt;TabletopCardEngine\.Holdem\.Dto\.SeatData&gt;, byte, byte, byte, byte, TabletopCardEngine\.Holdem\.Street, decimal, decimal, System\.Collections\.Generic\.IReadOnlyList&lt;TabletopCardEngine\.Card&gt;, System\.Collections\.Generic\.IReadOnlyList&lt;TabletopCardEngine\.Holdem\.Dto\.PlayerActionEvaluationData&gt;\)\.StreetPot') is not included\.
+Everything contributed on prior streets, plus every ante from the deal on — [StreetPot](TabletopCardEngine.Holdem.Dto.HandData.md#TabletopCardEngine.Holdem.Dto.HandData.HandData(int,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Holdem.Dto.SeatData_,byte,byte,byte,byte,TabletopCardEngine.Holdem.Street,decimal,decimal,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Card_,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Holdem.Dto.PlayerActionEvaluationData_).StreetPot 'TabletopCardEngine\.Holdem\.Dto\.HandData\.HandData\(int, System\.Collections\.Generic\.IReadOnlyList&lt;TabletopCardEngine\.Holdem\.Dto\.SeatData&gt;, byte, byte, byte, byte, TabletopCardEngine\.Holdem\.Street, decimal, decimal, System\.Collections\.Generic\.IReadOnlyList&lt;TabletopCardEngine\.Card&gt;, System\.Collections\.Generic\.IReadOnlyList&lt;TabletopCardEngine\.Holdem\.Dto\.PlayerActionEvaluationData&gt;\)\.StreetPot') is not included, so the two add up to the whole pot\.
 
 <a name='TabletopCardEngine.Holdem.Dto.HandData.HandData(int,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Holdem.Dto.SeatData_,byte,byte,byte,byte,TabletopCardEngine.Holdem.Street,decimal,decimal,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Card_,System.Collections.Generic.IReadOnlyList_TabletopCardEngine.Holdem.Dto.PlayerActionEvaluationData_).CommunityCards'></a>
 
@@ -226,7 +226,7 @@ public int No { get; init; }
 
 ## HandData\.Pot Property
 
-Everything contributed on prior streets — StreetPot is not included\.
+Everything contributed on prior streets, plus every ante from the deal on — StreetPot is not included, so the two add up to the whole pot\.
 
 ```csharp
 public decimal Pot { get; init; }

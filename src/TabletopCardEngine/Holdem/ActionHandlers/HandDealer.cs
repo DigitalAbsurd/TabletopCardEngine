@@ -6,7 +6,7 @@ namespace TabletopCardEngine.Holdem.ActionHandlers;
 
 /// <summary>
 /// The dealing both <c>StartGame</c> and <c>StartHand</c> perform once their own preconditions hold:
-/// seat the players, build the deck, post the blinds and record the hole cards.
+/// seat the players, build the deck, post the antes and the blinds and record the hole cards.
 /// </summary>
 internal static class HandDealer
 {
@@ -43,6 +43,15 @@ internal static class HandDealer
         var smallBlindPost = table[table.SmallBlindSeatNo].StreetWager;
         var bigBlindPost = table[table.BigBlindSeatNo].StreetWager;
 
+        // The antes are written apart from the blinds, so the per-street maximum the pot maths takes never sees
+        // them: classic ones before the blind rows, the big blind ante right after its blind.
+        var anteSeats = table.Seats.Where(seat => seat.Ante > 0).OrderBy(seat => seat.SeatNo).ToList();
+        var bigBlindAnte = table.AnteType == AnteType.BigBlind && anteSeats.Count > 0;
+        if (!bigBlindAnte)
+        {
+            AddAnteRows(table.SmallBlindSeatNo, Street.PreFlop);
+        }
+
         game.AddAction(seatNo: table.SmallBlindSeatNo,
             street: Street.PreFlop,
             handActionType: HandActionType.SmallBlind,
@@ -58,8 +67,13 @@ internal static class HandDealer
             size: table.SmallBlind * 2,
             amount: bigBlindPost,
             addAmount: Math.Min(table.SmallBlind, bigBlindPost),
-            nextSeatNo: table.NextSeatNo,
-            nextStreet: table.Street);
+            nextSeatNo: bigBlindAnte ? table.BigBlindSeatNo : table.NextSeatNo,
+            nextStreet: bigBlindAnte ? Street.PreFlop : table.Street);
+
+        if (bigBlindAnte)
+        {
+            AddAnteRows(table.NextSeatNo, table.Street);
+        }
 
         // A hand decided at the deal (the blinds leave nobody to ask) was already run out and awarded by
         // HandRunner.StartHand, so its board and end states are recorded now; otherwise both are empty.
@@ -86,6 +100,32 @@ internal static class HandDealer
             hand.BlindLevel = state.BlindLevel;
             hand.BlindLevelStartHandNo = state.BlindLevelStartHandNo;
             hand.BlindThresholdsPassed = state.BlindThresholdsPassed;
+
+            // The ante keeps its ratio to the small blind as the blinds rise. This is the one place it is rounded.
+            hand.Ante = game.Ante is { } ante && game.BlindSchedule is not null
+                ? Math.Round(ante * state.SmallBlind / game.InitialSmallBlind, 2, MidpointRounding.AwayFromZero)
+                : game.Ante;
+        }
+
+        // One row per ante posted. Size is the hand's nominal ante; Amount and AddAmount are what the seat posted,
+        // less when its stack was short. The last row hands the clock on: to the small blind before the blinds, or
+        // to whoever acts first after the big blind ante.
+        void AddAnteRows(byte nextSeatNo, Street nextStreet)
+        {
+            for (var index = 0; index < anteSeats.Count; index++)
+            {
+                var seat = anteSeats[index];
+                var last = index == anteSeats.Count - 1;
+                game.AddAction(seatNo: seat.SeatNo,
+                    street: Street.PreFlop,
+                    handActionType: HandActionType.Ante,
+                    size: table.Ante,
+                    amount: seat.Ante,
+                    addAmount: seat.Ante,
+                    nextSeatNo: last ? nextSeatNo : anteSeats[index + 1].SeatNo,
+                    nextStreet: last ? nextStreet : Street.PreFlop,
+                    paid: seat.Ante);
+            }
         }
 
         byte ResolvePreviousDealerSeatNo()

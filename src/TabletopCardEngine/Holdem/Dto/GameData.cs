@@ -69,7 +69,7 @@ public record SeatData(
 /// <param name="NextPlayerSeatNo">The seat to act, or <c>0</c> when it is nobody's turn.</param>
 /// <param name="Street">The street now in progress.</param>
 /// <param name="StreetPot">Contributions made on the current street only.</param>
-/// <param name="Pot">Everything contributed on prior streets — <paramref name="StreetPot"/> is not included.</param>
+/// <param name="Pot">Everything contributed on prior streets, plus every ante from the deal on — <paramref name="StreetPot"/> is not included, so the two add up to the whole pot.</param>
 /// <param name="CommunityCards">The board, in dealt order. Record equality compares it element by element for values the engine returns.</param>
 /// <param name="Evaluations">What <paramref name="NextPlayerSeatNo"/> may legally do; empty when it is nobody's turn. Record equality compares it element by element for values the engine returns.</param>
 public record HandData(

@@ -151,15 +151,6 @@ namespace TabletopCardEngine.Resources {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Antes are not supported yet.
-        /// </summary>
-        internal static string HoldemValidation_AnteNotSupportedYet {
-            get {
-                return ResourceManager.GetString("HoldemValidation_AnteNotSupportedYet", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to A seat to join is invalid.
         /// </summary>
         internal static string HoldemValidation_InvalidSeat {

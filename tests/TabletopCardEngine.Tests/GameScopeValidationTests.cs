@@ -69,10 +69,6 @@ public sealed class GameScopeValidationTests
         => await AssertCreateGameFailsAsync(new GameOptionData { AnteType = (AnteType)99 }, HoldemErrorCode.InvalidGameOptions);
 
     [TestMethod]
-    public async Task CreateGame_Ante_FailsWithUnsupportedGameOptions()
-        => await AssertCreateGameFailsAsync(new GameOptionData { Ante = 1 }, HoldemErrorCode.UnsupportedGameOptions);
-
-    [TestMethod]
     public async Task CreateGame_NoAnte_RoundTripsNullAnteAndZeroHandAnte()
     {
         using var host = TestEngineHost.Setup(out var engine, out _);

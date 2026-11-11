@@ -9,24 +9,49 @@
 internal static class HandRunner
 {
     /// <summary>
-    /// Starts a new hand: shifts the button, settles who posts the blinds (folding every broke
-    /// seat), collects them — capped at what each seat has — deals hole cards, and advances to the
-    /// first decision, or straight to showdown if the blinds alone leave one player standing.
+    /// Starts a new hand: shifts the button, collects the classic antes, settles who posts the blinds
+    /// (folding every broke seat), collects them — capped at what each seat has — and then the big
+    /// blind ante, deals hole cards, and advances to the first decision, or straight to showdown if the
+    /// antes and blinds alone leave one player standing.
     /// </summary>
     /// <exception cref="InvalidOperationException">Fewer than two seats have chips to play with.</exception>
     internal static void StartHand(HandTable table)
     {
         ShiftButton(table);
+
+        // Classic antes come before the blinds, so a seat the ante puts all in posts no blind and the blind
+        // seats are chosen among the seats that can still post. When fewer than two seats would be left
+        // with chips, nobody could be chosen, so the blind seats are chosen first and a seat the ante has
+        // emptied then posts a blind of nothing.
+        var classicAnte = table.Ante > 0 && table.AnteType == AnteType.Classic;
+        var antesBeforeBlindSeats = classicAnte && table.Seats.Count(seat => seat.IsActive && seat.Stack > table.Ante) >= 2;
+        if (antesBeforeBlindSeats)
+        {
+            PostClassicAntes(table);
+        }
+
         ExcludeShortOfMoneySeats(table);
 
         // Counted on chips rather than on ActiveCount, because a seat with less than a full blind is
         // a playable hand — it posts what it has and is all in — not a seat that cannot be dealt to.
-        if (table.Seats.Count(seat => seat.Stack > 0) < 2 || table.SmallBlindSeatNo == 0 || table.BigBlindSeatNo == 0)
+        // A seat its ante put all in is dealt in too.
+        if (table.Seats.Count(seat => seat.IsActive && (seat.Stack > 0 || seat.Status == SeatStatus.AllIn)) < 2
+            || table.SmallBlindSeatNo == 0 || table.BigBlindSeatNo == 0)
         {
             throw new InvalidOperationException("At least two funded seats are required to start a hand.");
         }
 
+        if (classicAnte && !antesBeforeBlindSeats)
+        {
+            PostClassicAntes(table);
+        }
+
         PostBlinds(table);
+        if (table.Ante > 0 && table.AnteType == AnteType.BigBlind)
+        {
+            PostAnte(table[table.BigBlindSeatNo], table.Ante);
+        }
+
         DealHoleCards(table);
         StartStreet(table);
     }
@@ -157,14 +182,14 @@ internal static class HandRunner
     /// <summary>
     /// Zeroes out anyone who cannot cover the small blind (or, failing that, the big blind),
     /// folds every broke seat, and settles who actually posts. Ported from NPokerEngine's
-    /// <c>ExcludeShortOfMoneyPlayers</c> / <c>SteelMoneyFromPoorPlayer</c> — there is no ante here,
-    /// so "cannot cover the ante" never applies.
+    /// <c>ExcludeShortOfMoneyPlayers</c> / <c>SteelMoneyFromPoorPlayer</c>. A seat a classic ante has
+    /// already put all in is in the hand but cannot post: it is skipped, not folded.
     /// </summary>
     private static void ExcludeShortOfMoneySeats(HandTable table)
     {
         var (smallBlindSeatNo, bigBlindSeatNo) = StealFromPoorSeats(table);
 
-        foreach (var seat in table.Seats.Where(seat => seat.Stack <= 0))
+        foreach (var seat in table.Seats.Where(seat => seat.Stack <= 0 && seat.Status != SeatStatus.AllIn))
         {
             seat.Status = SeatStatus.Folded;
         }
@@ -173,10 +198,10 @@ internal static class HandRunner
         // answers above, which is how this used to work: that search picks seats by what they can
         // afford, so swapping its answers hands the big blind to a seat that only ever qualified for
         // the small one — and the post then takes more chips than the seat has.
-        if (table.ActiveCount == 2)
+        if (table.WaitingCount == 2)
         {
             smallBlindSeatNo = table.DealerSeatNo;
-            bigBlindSeatNo = table.Seats.First(seat => seat.IsActive && seat.SeatNo != table.DealerSeatNo).SeatNo;
+            bigBlindSeatNo = table.Seats.First(seat => seat.IsWaiting && seat.SeatNo != table.DealerSeatNo).SeatNo;
         }
 
         table.SmallBlindSeatNo = smallBlindSeatNo;
@@ -249,6 +274,33 @@ internal static class HandRunner
     {
         PostBlind(table, table[table.SmallBlindSeatNo], HandActionType.SmallBlind, table.SmallBlind, table.SmallBlind);
         PostBlind(table, table[table.BigBlindSeatNo], HandActionType.BigBlind, table.SmallBlind * 2, table.SmallBlind);
+    }
+
+    /// <summary>Every seat dealt into the hand posts the ante, before any blind.</summary>
+    private static void PostClassicAntes(HandTable table)
+    {
+        foreach (var seat in table.Seats.Where(seat => seat.IsActive && seat.Stack > 0))
+        {
+            PostAnte(seat, table.Ante);
+        }
+    }
+
+    /// <summary>
+    /// Posts an ante, capped at the stack like a blind. It goes into <see cref="TableSeat.Committed"/> only and
+    /// is never recorded as a street bet: it is dead money, so it neither counts towards a call nor sets
+    /// the minimum raise, and the big blind keeps its option.
+    /// </summary>
+    private static void PostAnte(TableSeat seat, decimal ante)
+    {
+        var posted = Math.Min(ante, seat.Stack);
+        seat.Stack -= posted;
+        seat.Committed += posted;
+        seat.Ante += posted;
+
+        if (seat.Stack == 0)
+        {
+            seat.Status = SeatStatus.AllIn;
+        }
     }
 
     /// <summary>
