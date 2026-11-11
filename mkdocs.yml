@@ -182,3 +182,4 @@ nav:
           - adr/0008-harmonize-the-public-api.md
           - adr/0009-generated-api-reference.md
           - adr/0010-release-signing.md
+          - adr/0011-tournaments-orchestrate-holdem-games.md
