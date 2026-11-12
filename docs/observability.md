@@ -50,7 +50,7 @@ services.AddOpenTelemetry().WithMetrics(metrics =>
     metrics.AddMeter(TabletopCardEngineTelemetry.MeterName));
 ```
 
-**Logs:** The engine logs through `ILogger<HoldemTable>`. When no `ILoggerFactory` is registered in the container, the engine logs nothing (it does not create its own factory).
+**Logs:** The engine logs through `ILogger<HoldemTable>`, and tournaments through `ILogger<HoldemTournament>`; both categories start with `TabletopCardEngine`. When no `ILoggerFactory` is registered in the container, the engine logs nothing (it does not create its own factory).
 
 **Metrics:** The engine publishes metrics through an `IMeterFactory`. When one is present, it calls `IMeterFactory.Create()` to get a meter with the `MeterName`. When absent, it falls back to a process-wide `Meter` that persists for the application's lifetime.
 
@@ -78,8 +78,13 @@ The engine logs nothing at Error or Critical: exceptions propagate to the host, 
 | 1020 | `StreetDealt` | Debug | `Hand {HandNo} of game {GameId} moved to {Street}` | The hand moved to a new street |
 | 1100 | `HoleCardsDealt` | Trace | `Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}` | Hole cards were dealt (when `EnableSensitiveCardLogging` is on) |
 | 1101 | `BoardDealt` | Trace | `Hand {HandNo} of game {GameId}: {Street} dealt {Cards}` | Community cards were dealt (when `EnableSensitiveCardLogging` is on) |
+| 1200 | `TournamentCreated` | Information | `Tournament {TournamentId} created with {LevelCount} levels and a starting stack of {StartingStack}` | A tournament was created |
+| 1201 | `TournamentEntryRegistered` | Information | `Entry {EntryNo} registered for tournament {TournamentId}, now {EntryCount} entries` | A player registered for a tournament |
+| 1202 | `TournamentEntryUnregistered` | Information | `Entry {EntryNo} unregistered from tournament {TournamentId}, now {EntryCount} entries` | A registration was withdrawn |
 
-**Scope:** Every log record is stamped with the game ID and hand number through a logger scope opened at the start of each call:
+**Event ID ranges:** 1000–1099 are games and hands, 1100–1199 the opt-in card events, and **1200–1299 are reserved for tournaments**. A tournament event never takes an ID outside its range. A tournament event logs scalars only, never a player's name.
+
+**Scope:** Every log record of an `IHoldemTable` call is stamped with the game ID and hand number through a logger scope opened at the start of each call:
 
 ```
 GameId:{GameId} HandNo:{HandNo}
@@ -89,9 +94,11 @@ GameId:{GameId} HandNo:{HandNo}
 
 The engine opens one `Activity` (a span in OpenTelemetry terminology) per call to `IHoldemTable.ApplyAsync`. On the first call of each `IHoldemTable` instance, a schema check runs before the span and the metrics: if the database is newer or needs migration, `HoldemSchemaException` is thrown before any signal is emitted.
 
+Each call to `IHoldemTournament.ApplyAsync` opens one span of its own the same way, from the same source, after the same first-call schema check.
+
 **Source name:** `"TabletopCardEngine"`
 
-**Span name:** `"TabletopCardEngine.ApplyHoldemAction"`
+**Span name:** `"TabletopCardEngine.ApplyHoldemAction"` for `IHoldemTable`, `"TabletopCardEngine.ApplyTournamentAction"` for `IHoldemTournament`
 
 **Span kind:** `Internal`
 
@@ -99,11 +106,12 @@ The engine opens one `Activity` (a span in OpenTelemetry terminology) per call t
 
 | Tag Name | Type | Values | When Set |
 |---|---|---|---|
-| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, `LeaveSeat`, `TopUp`, `KickSeat`, or `Unknown` | Always (at start) |
-| `tabletopcardengine.game.id` | string | The game ID as a GUID string | Always (at start) |
+| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, `LeaveSeat`, `TopUp`, `KickSeat`; on a tournament span `CreateTournament`, `GetTournament`, `Register`, `Unregister`; or `Unknown` | Always (at start) |
+| `tabletopcardengine.game.id` | string | The game ID as a GUID string | Always (at start), on a Hold'em span |
+| `tabletopcardengine.tournament.id` | string | The tournament ID as a GUID string | Always (at start), on a tournament span |
 | `tabletopcardengine.player_action.type` | string | `Fold`, `Check`, `Call`, `Raise`, `Bet`, `AllIn` | Only for `Play` actions |
-| `tabletopcardengine.hand.no` | integer | The current hand's number | Set at return if hand number > 0 |
-| `tabletopcardengine.street` | string | `PreFlop`, `Flop`, `Turn`, `River`, `Showdown`, `Finished` | Set at return if a hand is loaded |
+| `tabletopcardengine.hand.no` | integer | The current hand's number | Set at return if hand number > 0, on a Hold'em span |
+| `tabletopcardengine.street` | string | `PreFlop`, `Flop`, `Turn`, `River`, `Showdown`, `Finished` | Set at return if a hand is loaded, on a Hold'em span |
 | `tabletopcardengine.outcome` | string | `Success`, `Failure`, or `Exception` | Set at return |
 | `tabletopcardengine.error.code` | string | The error code name (e.g., `InvalidSeat`, `Conflict`) | Set at return if outcome is `Failure` |
 
@@ -119,7 +127,7 @@ An exception is added to the span with `AddException()` when one is caught.
 
 ## Metrics
 
-The engine records four instruments. All metrics use tags to partition data; no metric tag has unbounded cardinality — every tag value is from a fixed enumeration or the list of defined error codes.
+The engine records four instruments. A tournament call is counted in `tabletopcardengine.actions`, `tabletopcardengine.validation_failures` and `tabletopcardengine.action.duration` like a Hold'em call, with its own `tabletopcardengine.action.type` values. All metrics use tags to partition data; no metric tag has unbounded cardinality — every tag value is from a fixed enumeration or the list of defined error codes.
 
 | Instrument Name | Type | Unit | Tags | What is Recorded |
 |---|---|---|---|---|

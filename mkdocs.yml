@@ -127,6 +127,21 @@ nav:
                   - 'Namespace': api/TabletopCardEngine/TabletopCardEngine.Holdem.Options.md
                   - 'HoldemOptionsBuilder': api/TabletopCardEngine/TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder.md
                   - 'HoldemSettings': api/TabletopCardEngine/TabletopCardEngine.Holdem.Options.HoldemSettings.md
+              - 'TabletopCardEngine.Holdem.Tournaments':
+                  - 'Namespace': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.md
+                  - 'IHoldemTournament': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.IHoldemTournament.md
+                  - 'TournamentAction': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentAction.md
+                  - 'TournamentActionCreate': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionCreate.md
+                  - 'TournamentActionGet': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionGet.md
+                  - 'TournamentActionRegister': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionRegister.md
+                  - 'TournamentActionUnregister': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionUnregister.md
+                  - 'TournamentData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentData.md
+                  - 'TournamentEntryData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentEntryData.md
+                  - 'TournamentEntryState': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentEntryState.md
+                  - 'TournamentLevelData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentLevelData.md
+                  - 'TournamentOptionData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentOptionData.md
+                  - 'TournamentState': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentState.md
+                  - 'TournamentTableData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentTableData.md
           - TabletopCardEngine.OpenTelemetry:
               - 'Assembly': api/TabletopCardEngine.OpenTelemetry/index.md
               - 'TabletopCardEngine.OpenTelemetry':

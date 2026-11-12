@@ -31,6 +31,12 @@ public sealed class HoldemProblemsTests
     [DataRow(HoldemErrorCode.InvalidBuyIn, 422)]
     [DataRow(HoldemErrorCode.TopUpNotAllowed, 409)]
     [DataRow(HoldemErrorCode.RebuyNotAllowed, 409)]
+    [DataRow(HoldemErrorCode.TournamentNotFound, 404)]
+    [DataRow(HoldemErrorCode.TournamentAlreadyExists, 409)]
+    [DataRow(HoldemErrorCode.InvalidTournamentOptions, 422)]
+    [DataRow(HoldemErrorCode.TournamentAlreadyStarted, 409)]
+    [DataRow(HoldemErrorCode.TournamentFull, 409)]
+    [DataRow(HoldemErrorCode.InvalidEntry, 422)]
     public void StatusCodeFor_EveryCode_MatchesTheTable(HoldemErrorCode code, int expectedStatus, bool ifMatchPresent = false)
     {
         var status = HoldemProblems.StatusCodeFor(code, ifMatchPresent);
@@ -95,14 +101,15 @@ public sealed class HoldemProblemsTests
                 content.Should().Contain("412");
                 content.Should().Contain("409");
             }
-            else if (code == HoldemErrorCode.GameNotFound)
+            else if (code is HoldemErrorCode.GameNotFound or HoldemErrorCode.TournamentNotFound)
             {
                 content.Should().Contain("404",
                     because: $"the docs must list status 404 for {codeName}");
             }
             else if (code is HoldemErrorCode.InvalidAction or HoldemErrorCode.UnsupportedGameOptions or
                 HoldemErrorCode.InvalidGameOptions or HoldemErrorCode.InvalidSeat or
-                HoldemErrorCode.IllegalAction or HoldemErrorCode.InvalidBuyIn)
+                HoldemErrorCode.IllegalAction or HoldemErrorCode.InvalidBuyIn or
+                HoldemErrorCode.InvalidTournamentOptions or HoldemErrorCode.InvalidEntry)
             {
                 content.Should().Contain("422",
                     because: $"the docs must list status 422 for {codeName}");

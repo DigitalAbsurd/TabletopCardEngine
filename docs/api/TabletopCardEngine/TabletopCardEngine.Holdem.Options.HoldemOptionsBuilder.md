@@ -63,3 +63,30 @@ The same builder, for chaining\.
 [System\.ArgumentOutOfRangeException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentoutofrangeexception 'System\.ArgumentOutOfRangeException')  
 The settings end up with a minimum below 2, a maximum above 10 \(the largest table format, which a
 setting can only narrow\), or a minimum above the maximum\. That is a configuration error, not a game result\.
+
+<a name='TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder.WithTimeProvider(System.TimeProvider)'></a>
+
+## HoldemOptionsBuilder\.WithTimeProvider\(TimeProvider\) Method
+
+Replaces the clock tournaments read their blind levels from, which is [System\.TimeProvider\.System](https://learn.microsoft.com/en-us/dotnet/api/system.timeprovider.system 'System\.TimeProvider\.System') by
+default\. A test or a replay passes a clock it controls, so the levels change when it says\.
+
+```csharp
+public TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder WithTimeProvider(System.TimeProvider timeProvider);
+```
+#### Parameters
+
+<a name='TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder.WithTimeProvider(System.TimeProvider).timeProvider'></a>
+
+`timeProvider` [System\.TimeProvider](https://learn.microsoft.com/en-us/dotnet/api/system.timeprovider 'System\.TimeProvider')
+
+The clock to read\.
+
+#### Returns
+[HoldemOptionsBuilder](TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder.md 'TabletopCardEngine\.Holdem\.Options\.HoldemOptionsBuilder')  
+The same builder, for chaining\.
+
+#### Exceptions
+
+[System\.ArgumentNullException](https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception 'System\.ArgumentNullException')  
+[timeProvider](TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder.md#TabletopCardEngine.Holdem.Options.HoldemOptionsBuilder.WithTimeProvider(System.TimeProvider).timeProvider 'TabletopCardEngine\.Holdem\.Options\.HoldemOptionsBuilder\.WithTimeProvider\(System\.TimeProvider\)\.timeProvider') is [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null')\.

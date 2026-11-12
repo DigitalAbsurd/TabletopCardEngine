@@ -439,12 +439,12 @@ renumber.
     implementation must be idempotent within a hand.
 16. *Retired by #137:* "deal at random again" means `DemoGameSession.UsePlayEngine()`, the engine
     with no shuffler. No option is ever reset, so `WithCardShuffler` still never needs a `null`.
-17. **Seventeen validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
+17. **Twenty-three validation failures exist**, all from `Resources/PackResource.resx`, each carrying a
     `HoldemErrorCode`: `GameAlreadyExists = 1`, `CurrentHandEnded = 2`, `PreviousHandNotEnded = 3`,
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6` (which also covers an undefined table
     format and a seat count outside the format's range), `InvalidSeat = 7`, and the four lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, `IllegalAction = 13` of fact 29, `InvalidBuyIn = 15` of fact 23, and the two top-up codes of fact 23: `TopUpNotAllowed = 16` and `RebuyNotAllowed = 17`.
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, `IllegalAction = 13` of fact 29, `InvalidBuyIn = 15` of fact 23, and the two top-up codes of fact 23: `TopUpNotAllowed = 16` and `RebuyNotAllowed = 17`. The tournament codes of `IHoldemTournament` follow, with resource strings keyed `HoldemValidation_Tournament*`: `TournamentNotFound = 18`, `TournamentAlreadyExists = 19`, `InvalidTournamentOptions = 20`, `TournamentAlreadyStarted = 21`, `TournamentFull = 22` and `InvalidEntry = 23`.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -541,7 +541,7 @@ renumber.
     from the loaded version fails with `Conflict` before any handler runs, and so does a
     `DbUpdateConcurrencyException` from the save. On a relational database the save is one explicit transaction that runs
     the conditional `UPDATE Game ... WHERE Version = @old` as its own statement before any child row is written
-    (`HoldemTable.SaveVersionFirstAsync`), so the second of two racing writers updates no row and gets `Conflict`
+    (`VersionedSave.SaveVersionFirstAsync`), so the second of two racing writers updates no row and gets `Conflict`
     before it can reach a duplicate `HandAction` key. That ordering is what makes it hold on PostgreSQL and SQL Server,
     whose providers batch a save: in a single batch the duplicate insert failed first. EF InMemory applies
     inserts before updates and has no transactions, so on a non-relational provider the engine re-reads

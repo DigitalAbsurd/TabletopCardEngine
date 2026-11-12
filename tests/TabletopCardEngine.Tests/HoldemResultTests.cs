@@ -112,6 +112,12 @@ public sealed class HoldemResultTests
             [HoldemErrorCode.InvalidBuyIn] = 15,
             [HoldemErrorCode.TopUpNotAllowed] = 16,
             [HoldemErrorCode.RebuyNotAllowed] = 17,
+            [HoldemErrorCode.TournamentNotFound] = 18,
+            [HoldemErrorCode.TournamentAlreadyExists] = 19,
+            [HoldemErrorCode.InvalidTournamentOptions] = 20,
+            [HoldemErrorCode.TournamentAlreadyStarted] = 21,
+            [HoldemErrorCode.TournamentFull] = 22,
+            [HoldemErrorCode.InvalidEntry] = 23,
         };
 
         Enum.GetValues<HoldemErrorCode>().Should().BeEquivalentTo(expected.Keys, "a new code needs a row in this table");

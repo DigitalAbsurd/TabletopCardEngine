@@ -45,4 +45,18 @@ public sealed class HoldemOptionsBuilder
         _options.CardShuffler = cardShuffler;
         return this;
     }
+
+    /// <summary>
+    /// Replaces the clock tournaments read their blind levels from, which is <see cref="TimeProvider.System"/> by
+    /// default. A test or a replay passes a clock it controls, so the levels change when it says.
+    /// </summary>
+    /// <param name="timeProvider">The clock to read.</param>
+    /// <returns>The same builder, for chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="timeProvider"/> is <see langword="null"/>.</exception>
+    public HoldemOptionsBuilder WithTimeProvider(TimeProvider timeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(timeProvider);
+        _options.TimeProvider = timeProvider;
+        return this;
+    }
 }

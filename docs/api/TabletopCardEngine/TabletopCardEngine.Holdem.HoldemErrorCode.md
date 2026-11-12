@@ -114,3 +114,39 @@ The seat still has chips and the game does not allow topping up \(`AllowTopUp` i
 `RebuyNotAllowed` 17
 
 The seat has no chips and the game does not allow a rebuy \(`AllowRebuy` is off\), or the player has used up `MaxRebuys`\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TournamentNotFound'></a>
+
+`TournamentNotFound` 18
+
+No tournament with the requested id exists\. Every tournament action except `CreateTournament` needs one\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TournamentAlreadyExists'></a>
+
+`TournamentAlreadyExists` 19
+
+A tournament with the requested id already exists\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.InvalidTournamentOptions'></a>
+
+`InvalidTournamentOptions` 20
+
+A tournament option is out of range: the table format and seats, an amount, the entry limits, the levels or the payouts\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TournamentAlreadyStarted'></a>
+
+`TournamentAlreadyStarted` 21
+
+The tournament is no longer registering, so its entries cannot change\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TournamentFull'></a>
+
+`TournamentFull` 22
+
+The tournament already has `MaxEntries` entries, so nobody else can register\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.InvalidEntry'></a>
+
+`InvalidEntry` 23
+
+The entry is invalid: a name that is empty, too long or already registered, or an entry number that is not registered\.
