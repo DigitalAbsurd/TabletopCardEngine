@@ -9,9 +9,10 @@ namespace TabletopCardEngine.Holdem.Tournaments;
 
 /// <summary>
 /// <c>DealTable</c>: between two hands of one table, records the players the ended hand eliminated, finishes the
-/// tournament when one player is left, and otherwise deals the table's next hand at the clock's level. Like
+/// tournament when one player is left, breaks or balances the table (<see cref="TournamentBalancer"/>), seats the players
+/// moving to it, and deals its next hand at the clock's level. Like
 /// <see cref="TournamentStarter"/>, it runs the game's own handlers on the tournament's <see cref="HoldemDbContext"/>, so
-/// the tournament and the table's game are saved together. It never writes a stack: a player leaves the game through
+/// the tournament and the table's game are saved together. It never writes a stack into a game: a player leaves the game through
 /// <see cref="EntityExtensions.LeaveSeat"/>, and the chips stay where the ledger put them.
 /// </summary>
 internal static class TournamentDealer
@@ -20,9 +21,13 @@ internal static class TournamentDealer
     /// <param name="Eliminated">The entries the call placed, best place first.</param>
     /// <param name="Winner">The entry that won, when the call finished the tournament.</param>
     /// <param name="Dealt">The table whose next hand the call dealt, if it dealt one.</param>
-    internal sealed record Outcome(IReadOnlyList<TournamentEntry> Eliminated, TournamentEntry? Winner, TournamentStarter.OpenedTable? Dealt)
+    /// <param name="Moved">The players the call took off the table, in the order they moved.</param>
+    /// <param name="BrokenTableNo">The table the call broke, if it broke it.</param>
+    /// <param name="SeatTaken">The players moving to the table whose reserved seat was found taken, and who keep moving.</param>
+    internal sealed record Outcome(IReadOnlyList<TournamentEntry> Eliminated, TournamentEntry? Winner, TournamentStarter.OpenedTable? Dealt,
+        IReadOnlyList<TournamentBalancer.Move> Moved, int? BrokenTableNo, IReadOnlyList<TournamentEntry> SeatTaken)
     {
-        internal static readonly Outcome None = new([], null, null);
+        internal static readonly Outcome None = new([], null, null, [], null, []);
     }
 
     internal static async Task<(HoldemError? Error, Outcome Outcome)> DealAsync(
@@ -63,29 +68,65 @@ internal static class TournamentDealer
         if (remaining.Count == 1)
         {
             var error = await FinishAsync(tournament, remaining[0], dbContext, game, options, cancellationToken);
-            return error is null ? (null, new Outcome(eliminated, remaining[0], null)) : (error, Outcome.None);
+            return error is null ? (null, Outcome.None with { Eliminated = eliminated, Winner = remaining[0] }) : (error, Outcome.None);
         }
 
-        var seated = remaining
-            .Where(entry => entry.TableNo == table.TableNo && entry.SeatNo is not null && entry.CarriedStack is null)
-            .OrderBy(entry => entry.SeatNo)
-            .ToList();
+        var moved = new List<TournamentBalancer.Move>();
+        if (TournamentBalancer.BreakOrBalance(tournament, table, game, moved))
+        {
+            var error = await new FinishGameActionHandler().ImplementHandleAsync(new HoldemActionFinishGame(game.Id), game, cancellationToken);
+            if (error is not null)
+            {
+                return (error, Outcome.None);
+            }
 
+            game.Version++;
+            return (null, Outcome.None with { Eliminated = eliminated, Moved = moved, BrokenTableNo = table.TableNo });
+        }
+
+        gameChanged |= moved.Count > 0;
+
+        // A reserved seat is free by construction: the seat of a player who left frees after the hand it left in, and
+        // a reservation never takes a seat held by a player seated or moving there. One found taken anyway keeps moving.
+        var seated = TournamentBalancer.SeatedAt(remaining, table.TableNo).ToList();
+        var seatTaken = new List<TournamentEntry>();
+        var arrivals = new List<TournamentEntry>();
+        foreach (var arrival in TournamentBalancer.MovingTo(remaining, table.TableNo))
+        {
+            var seatNo = arrival.SeatNo!.Value;
+            var taken = seated.Any(entry => entry.SeatNo == seatNo) || (hand.No != 0 && game.IsSeatTaken(seatNo));
+            (taken ? seatTaken : arrivals).Add(arrival);
+        }
+
+        // An arrival is seated by the deal that deals it in, never into a running hand: with fewer than two players the
+        // table waits, and the arrivals keep moving with their stacks until it can deal.
         TournamentStarter.OpenedTable? dealt = null;
-        if (seated.Count >= 2)
+        if (seated.Count + arrivals.Count >= 2)
         {
             var now = options.TimeProvider.GetUtcNow();
             var level = TournamentClock.DealLevelAt(tournament.Levels, TournamentClock.LevelIndex(tournament.Levels, tournament.StartedAt!.Value, now));
 
             // A table drawn with a single player has no hand yet, and StartHand refuses to deal before hand 1.
+            var arrivalJoins = arrivals.Select(entry => new PlayerJoinData(entry.Name, entry.SeatNo!.Value, entry.CarriedStack!.Value)).ToList();
             var error = hand.No == 0
                 ? await new StartGameActionHandler(options.CardShuffler, level).ImplementHandleAsync(
-                    new HoldemActionStartGame(game.Id, [.. seated.Select(entry => new PlayerJoinData(entry.Name, entry.SeatNo!.Value, tournament.StartingStack))]),
+                    new HoldemActionStartGame(game.Id,
+                        [.. seated.Select(entry => new PlayerJoinData(entry.Name, entry.SeatNo!.Value, tournament.StartingStack)), .. arrivalJoins]),
                     game, cancellationToken)
-                : await new StartHandActionHandler(options.CardShuffler, level).ImplementHandleAsync(new HoldemActionStartHand(game.Id), game, cancellationToken);
+                : await new StartHandActionHandler(options.CardShuffler, level).ImplementHandleAsync(
+                    new HoldemActionStartHand(game.Id) { JoinSeats = arrivalJoins }, game, cancellationToken);
             if (error is not null)
             {
                 return (error, Outcome.None);
+            }
+
+            // The stack came from another table, not from a buy-in, and the table's ledger says so. The kind is set only
+            // now, because the deal reads every row of another kind than a join as a top-up still to add.
+            var dealtHandNo = game.GetCurrentHand().No;
+            foreach (var arrival in arrivals)
+            {
+                game.BuyIns.Single(buyIn => buyIn.SeatNo == arrival.SeatNo && buyIn.HandNo == dealtHandNo).Kind = BuyInKind.Transfer;
+                arrival.CarriedStack = null;
             }
 
             gameChanged = true;
@@ -97,11 +138,11 @@ internal static class TournamentDealer
             game.Version++;
         }
 
-        return (null, new Outcome(eliminated, null, dealt));
+        return (null, new Outcome(eliminated, null, dealt, moved, null, seatTaken));
     }
 
     /// <summary>The entries still playing: not withdrawn and not placed.</summary>
-    private static IEnumerable<TournamentEntry> Remaining(Tournament tournament)
+    internal static IEnumerable<TournamentEntry> Remaining(Tournament tournament)
         => tournament.ActiveEntries().Where(entry => entry.Place is null);
 
     /// <summary>
