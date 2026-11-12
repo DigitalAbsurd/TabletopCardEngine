@@ -26,6 +26,7 @@
     <None Remove="Resources\phh\acpc-fixedlimit.phhs.gz" />
     <None Remove="Resources\phh\pokerkit-potlimit.phhs.gz" />
     <None Remove="Resources\phh\pokerkit-fixedlimit.phhs.gz" />
+    <None Remove="Resources\phh\pokerkit-antes.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +38,7 @@
     <EmbeddedResource Include="Resources\phh\acpc-fixedlimit.phhs.gz" />
     <EmbeddedResource Include="Resources\phh\pokerkit-potlimit.phhs.gz" />
     <EmbeddedResource Include="Resources\phh\pokerkit-fixedlimit.phhs.gz" />
+    <EmbeddedResource Include="Resources\phh\pokerkit-antes.phhs.gz" />
   </ItemGroup>
 
   <ItemGroup>
