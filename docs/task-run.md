@@ -623,8 +623,11 @@ renumber.
     after the antes, the blind seats are chosen first and a seat the ante emptied posts a blind of `0`.
     `AnteType.BigBlind`: the big blind seat (heads-up too) posts its blind first, then `min(ante, stack left)`; nobody
     else posts one. The ante goes into `TableSeat.Committed` (`TableSeat.Ante` keeps it apart) and never into
-    `StreetBets`, so it counts in side pots and the Pot-Limit maximum (fact 29) but not towards a call, the minimum
-    raise, the big blind's option or the Fixed-Limit bet size and cap. The ledger holds one `HandAction` row per
+    `StreetBets`, so it counts in the Pot-Limit maximum (fact 29) but not towards a call, the minimum
+    raise, the big blind's option or the Fixed-Limit bet size and cap. In the side pots (`PotDistribution.BuildPots`)
+    a classic ante counts in the seat's level, so a seat short on its ante wins only what it matched of the others';
+    a big blind ante sets no level and is dead money in the lowest pot, so a big blind all in with its ante on top of
+    a called wager loses the ante to the caller (TDA; WSOP hand `2023/43/5/03-02-41`, #740). The ledger holds one `HandAction` row per
     ante posted, `ActionType = Ante`, `Street = PreFlop`, `Amount = AddAmount = Paid =` what was posted,
     `Size =` the hand's ante, before the blind rows for `Classic` and right after the big blind row for `BigBlind`
     (none when nothing was left to post). Every per-street `Max(Amount)` of the ledger excludes these rows
