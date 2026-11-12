@@ -296,6 +296,10 @@ The result is then gzipped like the other files (`System.IO.Compression.GZipStre
 
 The replays skip every hand that carries `_tce_divergence` through `PhhReplayRunner.IsSupported`.
 
+**Replayed by** `PhhPokerkitAntesReplay_Test` in `PhhReplayTests`: the 1 155 supported hands, never sampled by
+`TCE_TEST_PHH_HAND_LIMIT`, with the stacks compared exactly against `finishing_stacks`.
+`PhhPokerkitAntesCorpus_ParsesAndIsMostlySupported` pins the 2 000 hands and the 845 tagged ones.
+
 ## Format
 
 See the [PHH specification](https://phh.readthedocs.io/en/stable/spec.html). The action grammar used

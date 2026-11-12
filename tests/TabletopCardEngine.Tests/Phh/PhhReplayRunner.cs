@@ -84,6 +84,14 @@ internal sealed class PhhReplayRunner : IDisposable
         };
 
     /// <summary>
+    /// What each player posts as an ante, by seat. pokerkit indexes <c>antes</c> like
+    /// <c>blinds_or_straddles</c> and reverses the two entries heads-up, so there the big blind's ante,
+    /// paid by <c>p1</c>, is the second entry (the fixture README, <c>pokerkit-antes</c>).
+    /// </summary>
+    private static decimal[] AntesBySeat(PhhHand hand)
+        => hand.PlayerCount == 2 ? [.. hand.Antes.Reverse()] : hand.Antes;
+
+    /// <summary>
     /// The ante the engine plays a hand's <c>antes</c> as. Every player posting the same non-zero amount is
     /// a <see cref="AnteType.Classic"/> ante; the big blind's player alone posting one is a
     /// <see cref="AnteType.BigBlind"/> ante (heads-up included, see <see cref="BlindSeatsFor"/>); all zeros is
@@ -95,7 +103,8 @@ internal sealed class PhhReplayRunner : IDisposable
         anteType = AnteType.Classic;
         reason = string.Empty;
 
-        var posted = hand.Antes.Where(value => value != 0).ToArray();
+        var antes = AntesBySeat(hand);
+        var posted = antes.Where(value => value != 0).ToArray();
         if (posted.Length == 0)
         {
             return true;
@@ -108,7 +117,7 @@ internal sealed class PhhReplayRunner : IDisposable
         }
 
         var bigBlindIx = BlindSeatsFor(hand.PlayerCount).BigBlindSeatNo - 1;
-        if (posted.Length == 1 && hand.Antes[bigBlindIx] != 0)
+        if (posted.Length == 1 && antes[bigBlindIx] != 0)
         {
             ante = posted[0];
             anteType = AnteType.BigBlind;
@@ -336,13 +345,14 @@ internal sealed class PhhReplayRunner : IDisposable
 
         handData.Ante.Should().Be(ante ?? 0M, "the hand's nominal ante");
 
+        var antes = AntesBySeat(hand);
         var expected = new Dictionary<byte, decimal>();
         for (var playerIx = 0; playerIx < hand.PlayerCount; playerIx++)
         {
             var seatNo = (byte)(playerIx + 1);
             var stack = hand.StartingStacks[playerIx]!.Value;
-            var available = anteType == AnteType.BigBlind ? stack - Math.Min(hand.BlindsOrStraddles[playerIx], stack) : stack;
-            var posted = Math.Min(hand.Antes[playerIx], available);
+            var available = anteType == AnteType.BigBlind ? stack - Math.Min(seatNo == BlindSeatsFor(hand.PlayerCount).BigBlindSeatNo ? hand.BigBlind : hand.SmallBlind, stack) : stack;
+            var posted = Math.Min(antes[playerIx], available);
             if (posted > 0)
             {
                 expected[seatNo] = posted;
