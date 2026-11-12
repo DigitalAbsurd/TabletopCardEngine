@@ -54,7 +54,7 @@
                     <span class="pot-value">@AmountFormat.Format(Hand.Pot + Hand.StreetPot)</span>
                 </div>
                 <div class="pot-breakdown">
-                    <span class="pot-small blinds-value">Blinds @AmountFormat.Format(Hand.SmallBlind)/@AmountFormat.Format(Hand.BigBlind)@(HasBlindSchedule ? $" · Level {Hand.BlindLevel + 1}" : "")</span>
+                    <span class="pot-small blinds-value">Blinds @AmountFormat.Format(Hand.SmallBlind)/@AmountFormat.Format(Hand.BigBlind)@AnteSuffix@(HasBlindSchedule ? $" · Level {Hand.BlindLevel + 1}" : "")</span>
                     @if (BlindLevelRaised)
                     {
                         <span class="blind-raised" title="The blinds rose for this hand">Blinds up</span>
@@ -172,6 +172,14 @@
 
     /// <summary>The smallest chip on the table, and so one step of the raise amount.</summary>
     private decimal SmallBlind => GameData?.Options.InitialSmallBlind ?? 0m;
+
+    /// <summary>
+    /// The ante of the dealt hand, as the blinds line carries it: the hand's own figure, because a blind
+    /// schedule scales it, and the type from the game's options. Empty when the hand has none.
+    /// </summary>
+    private string AnteSuffix => Hand is { Ante: > 0 } hand
+        ? $" · {(GameData?.Options.AnteType == AnteType.BigBlind ? "BB ante" : "Ante")} {AmountFormat.Format(hand.Ante)}"
+        : "";
 
     /// <summary>Whether the game has a blind schedule: only then does the level mean anything to show.</summary>
     private bool HasBlindSchedule => GameData?.Options.BlindSchedule is not null;

@@ -1080,6 +1080,86 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void PokerTable_WithAnte_ShowsItBeforeTheLevel()
+    {
+        using var ctx = new BunitContext();
+        var game = WithBlinds(BuildGameData(BuildHandDataWithSeats(3)), 1, 1m, 0, schedule: true);
+        game = game with { HandData = game.HandData! with { Ante = 1m } };
+
+        var component = RenderTable(ctx, game);
+
+        component.Find(".blinds-value").TextContent.Should().Contain("Blinds 1/2 · Ante 1 · Level 1");
+    }
+
+    [TestMethod]
+    public void PokerTable_WithBigBlindAnte_ShowsTheBigBlindLabel()
+    {
+        using var ctx = new BunitContext();
+        var game = WithBlinds(BuildGameData(BuildHandDataWithSeats(3)), 1, 1m, 0, schedule: false);
+        game = game with { Options = game.Options with { AnteType = AnteType.BigBlind }, HandData = game.HandData! with { Ante = 2m } };
+
+        var component = RenderTable(ctx, game);
+
+        component.Find(".blinds-value").TextContent.Should().Contain("Blinds 1/2 · BB ante 2").And.NotContain("Level");
+    }
+
+    [TestMethod]
+    public void PokerTable_WithoutAnte_ShowsNoAnte()
+    {
+        using var ctx = new BunitContext();
+        var game = WithBlinds(BuildGameData(BuildHandDataWithSeats(3)), 1, 1m, 0, schedule: false);
+
+        var component = RenderTable(ctx, game);
+
+        component.Find(".blinds-value").TextContent.Should().NotContain("nte");
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_AnteSwitchOff_CreatesAGameWithoutAnAnte()
+    {
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-use-ante").Change(true);
+        component.Find("#setup-use-ante").Change(false);
+
+        var applied = await component.Instance.ApplyAsync();
+
+        applied.Should().BeTrue();
+        ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options.Ante.Should().BeNull();
+        component.FindAll("#setup-ante").Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_AnteSwitchOn_DefaultsToTheSmallBlindAndCarriesTheAnteIn()
+    {
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-use-ante").Change(true);
+        component.Find("#setup-ante").GetAttribute("value").Should().Be("1");
+        component.Find("#setup-ante").Change("2");
+
+        var applied = await component.Instance.ApplyAsync();
+
+        applied.Should().BeTrue();
+        var options = ctx.Services.GetRequiredService<DemoGameSession>().CurrentGame!.Options;
+        options.Ante.Should().Be(2m);
+        options.AnteType.Should().Be(AnteType.Classic);
+    }
+
+    [TestMethod]
+    public async Task GameSetup_ApplyAsync_AnteSwitchOnWithNoAmount_IsRefusedByTheForm()
+    {
+        using var ctx = new BunitContext();
+        var component = RenderGameSetup(ctx);
+        component.Find("#setup-use-ante").Change(true);
+        component.Find("#setup-ante").Change("");
+
+        var applied = await component.Instance.ApplyAsync();
+
+        applied.Should().BeFalse();
+    }
+
+    [TestMethod]
     public void PokerTable_WithSchedule_ShowsOneBasedLevel()
     {
         using var ctx = new BunitContext();
