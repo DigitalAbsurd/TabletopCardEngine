@@ -59,6 +59,10 @@ public sealed class MultiHandSessionTests
     private const decimal ScheduleBuyIn = 1000;
     private const int ScheduleIncreaseEveryHands = 20; // the invariant side; the game options below spell the 20 out so a probe can change one without the other
 
+    // The ante policy: blinds 10/20 and buy-ins of 10 big blinds, so antes and shoves bust seats within the session.
+    private const decimal AnteBuyIn = 200;
+    private const int AnteShoveOdds = 150;
+
     /// <summary>Fixed so a failure is reproducible.</summary>
     private const int Seed = 20260825;
 
@@ -262,6 +266,197 @@ public sealed class MultiHandSessionTests
         }
 
         handsPlayed.Should().BeGreaterThan(ScheduleIncreaseEveryHands, "the session must outlive the first level");
+    }
+
+    /// <summary>
+    /// A short-stacked session with an ante, classic at half the small blind or on the big blind alone at twice
+    /// it. Stacks of 10 big blinds and a seeded shove now and then bust seats, some of them on the ante alone, and
+    /// the session ends once fewer than two seats have chips. On top of the first test's invariants: the ledger
+    /// holds one ante row per seat dealt in (classic) or one on the big blind seat (big blind ante), each for what
+    /// the seat could still pay, and the pot is the antes plus every seat's wager of every street at every decision.
+    /// </summary>
+    [TestMethod]
+    [DataRow(6, TestDatabaseKind.Sqlite, AnteType.Classic, DisplayName = "six-handed classic ante, Sqlite")]
+    [DataRow(2, TestDatabaseKind.Sqlite, AnteType.Classic, DisplayName = "heads-up classic ante, Sqlite")]
+    [DataRow(6, TestDatabaseKind.Sqlite, AnteType.BigBlind, DisplayName = "six-handed big blind ante, Sqlite")]
+    [DataRow(2, TestDatabaseKind.Sqlite, AnteType.BigBlind, DisplayName = "heads-up big blind ante, Sqlite")]
+    [DataRow(6, TestDatabaseKind.InMemory, AnteType.Classic, DisplayName = "six-handed classic ante, InMemory")]
+    [DataRow(2, TestDatabaseKind.InMemory, AnteType.Classic, DisplayName = "heads-up classic ante, InMemory")]
+    [DataRow(6, TestDatabaseKind.InMemory, AnteType.BigBlind, DisplayName = "six-handed big blind ante, InMemory")]
+    [DataRow(2, TestDatabaseKind.InMemory, AnteType.BigBlind, DisplayName = "heads-up big blind ante, InMemory")]
+    [DataRow(6, TestDatabaseKind.PostgreSql, AnteType.Classic, DisplayName = "six-handed classic ante, PostgreSql")]
+    [DataRow(2, TestDatabaseKind.PostgreSql, AnteType.Classic, DisplayName = "heads-up classic ante, PostgreSql")]
+    [DataRow(6, TestDatabaseKind.PostgreSql, AnteType.BigBlind, DisplayName = "six-handed big blind ante, PostgreSql")]
+    [DataRow(2, TestDatabaseKind.PostgreSql, AnteType.BigBlind, DisplayName = "heads-up big blind ante, PostgreSql")]
+    [DataRow(6, TestDatabaseKind.SqlServer, AnteType.Classic, DisplayName = "six-handed classic ante, SqlServer")]
+    [DataRow(2, TestDatabaseKind.SqlServer, AnteType.Classic, DisplayName = "heads-up classic ante, SqlServer")]
+    [DataRow(6, TestDatabaseKind.SqlServer, AnteType.BigBlind, DisplayName = "six-handed big blind ante, SqlServer")]
+    [DataRow(2, TestDatabaseKind.SqlServer, AnteType.BigBlind, DisplayName = "heads-up big blind ante, SqlServer")]
+    public async Task MultiHandSession_WithAntes_KeepsTheLedgerBalanced(int seatCount, TestDatabaseKind database, AnteType anteType)
+    {
+        var ante = anteType == AnteType.Classic ? SmallBlind / 2 : SmallBlind * 2;
+        var gameId = Guid.Parse("{66666666-6666-6666-6666-666666666666}");
+        var random = new Random(Seed + 3000 + seatCount + (int)anteType * 10);
+        var cardsByHand = new Dictionary<int, (Dictionary<byte, Card[]> Hole, Card[] Board)>();
+
+        using var host = TestEngineHost.Setup(out var holdemEngine, out _,
+            shuffler: new TestCardShuffler(
+                getHoleFunc: (handNo, seatNo) => cardsByHand[handNo].Hole[seatNo],
+                getDeckFunc: handNo => cardsByHand[handNo].Board),
+            database: database);
+
+        (await holdemEngine.ApplyAsync(new HoldemActionCreateGame(
+            GameId: gameId,
+            Options: new GameOptionData
+            {
+                TableFormat = GetTableFormat(seatCount),
+                MaxPlayersCount = seatCount,
+                InitialSmallBlind = SmallBlind,
+                InitialDealerSeatNo = FirstDealerSeatNo,
+                Ante = ante,
+                AnteType = anteType
+            }))).IsSuccess.Should().BeTrue();
+
+        var joinSeats = Enumerable.Range(1, seatCount)
+            .Select(seatNo => new PlayerJoinData($"Seat{seatNo}", (byte)seatNo, AnteBuyIn))
+            .ToArray();
+
+        var stacks = joinSeats.ToDictionary(seat => seat.SeatNo, seat => seat.BuyInAmount);
+        byte? previousDealerSeatNo = null;
+        var handsPlayed = 0;
+
+        for (var handNo = 1; handNo <= HandCount; handNo++)
+        {
+            var dealtIn = stacks.Where(stack => stack.Value > 0).Select(stack => stack.Key).Order().ToArray();
+            if (dealtIn.Length < 2)
+            {
+                break;
+            }
+
+            cardsByHand[handNo] = DealCards(random, seatCount);
+
+            using var scope = new AssertionScope($"{seatCount}-handed {anteType} ante session hand #{handNo}");
+
+            HoldemAction startAction = handNo == 1
+                ? new HoldemActionStartGame(gameId, joinSeats)
+                : new HoldemActionStartHand(gameId);
+            var startResult = await holdemEngine.ApplyAsync(startAction);
+            startResult.IsSuccess.Should().BeTrue(
+                $"hand #{handNo} should start: {string.Join("; ", startResult.Errors.Select(error => error.Message))}");
+
+            var gameData = startResult.Value;
+            var handData = gameData.HandData!;
+            handsPlayed++;
+
+            handData.No.Should().Be(handNo);
+            handData.Ante.Should().Be(ante, "the ante is the game's, with no blind schedule to scale it");
+            AssertAnteButtonAndBlindSeats(handData, dealtIn, previousDealerSeatNo, seatCount);
+            AssertAnteRows(handData, anteType);
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.StartHandStack.Should().Be(stacks[seatData.SeatNo],
+                    $"seat {seatData.SeatNo} should start on what it finished the previous hand with");
+            }
+
+            gameData = await PlayOutHandAsync(holdemEngine, gameId, gameData, random, shoveOdds: AnteShoveOdds,
+                beforeDecision: (data, _) =>
+                {
+                    AssertPotIsEveryChipPosted(data.HandData!);
+                    return Task.FromResult(data);
+                });
+            handData = gameData.HandData!;
+
+            handData.Seats.Sum(seat => seat.HandResult?.Net ?? 0).Should()
+                .Be(0, "a hand neither creates nor destroys chips");
+
+            foreach (var seatData in handData.Seats)
+            {
+                seatData.HandResult.Should().NotBeNull($"seat {seatData.SeatNo} should have a result");
+                stacks[seatData.SeatNo] = seatData.StartHandStack + (seatData.HandResult?.Net ?? 0);
+                stacks[seatData.SeatNo].Should().BeGreaterOrEqualTo(0, $"seat {seatData.SeatNo} cannot end below nothing");
+            }
+
+            stacks.Values.Sum().Should().Be(seatCount * AnteBuyIn, "nobody buys in again, so the chips on the table never change");
+
+            previousDealerSeatNo = handData.DealerSeatNo;
+        }
+
+        handsPlayed.Should().BeGreaterThan(5, "the session must outlast a handful of hands");
+    }
+
+    /// <summary>
+    /// The button moves to the next seat with chips and the blinds follow by position, whatever the seats can
+    /// cover: the small blind is the next seat with chips after the button, the big blind the next after that,
+    /// and with two seats funded the button posts the small blind.
+    /// </summary>
+    private static void AssertAnteButtonAndBlindSeats(HandData handData, byte[] dealtIn, byte? previousDealerSeatNo, int seatCount)
+    {
+        var expectedDealerSeatNo = previousDealerSeatNo == null
+            ? FirstDealerSeatNo
+            : NextDealtInSeatNo(dealtIn, previousDealerSeatNo.Value, seatCount);
+        handData.DealerSeatNo.Should().Be(expectedDealerSeatNo, "the button moves to the next seat with chips");
+
+        var expectedSmallBlindSeatNo = dealtIn.Length == 2
+            ? handData.DealerSeatNo
+            : NextDealtInSeatNo(dealtIn, handData.DealerSeatNo, seatCount);
+        handData.SmallBlindSeatNo.Should().Be(expectedSmallBlindSeatNo, "where the small blind sits");
+        handData.BigBlindSeatNo.Should().Be(NextDealtInSeatNo(dealtIn, expectedSmallBlindSeatNo, seatCount),
+            "the big blind sits at the next seat with chips");
+    }
+
+    /// <summary>
+    /// A classic ante is posted by every seat dealt in, a big blind ante by the big blind seat alone, and each
+    /// is <c>min(ante, what the seat has left)</c>: the whole stack before the blinds for a classic ante, the
+    /// stack the big blind has left after its blind for the other. A seat with nothing left for it has no row.
+    /// </summary>
+    private static void AssertAnteRows(HandData handData, AnteType anteType)
+    {
+        var anteRows = handData.Actions.Where(action => action.ActionType == HandActionType.Ante).ToArray();
+        var posters = anteType == AnteType.Classic
+            ? handData.Seats.Where(seat => seat.StartHandStack > 0).Select(seat => seat.SeatNo).ToArray()
+            : [handData.BigBlindSeatNo];
+
+        var expectedAmounts = new Dictionary<byte, decimal>();
+        foreach (var seatNo in posters)
+        {
+            var startStack = handData.Seats.Single(seat => seat.SeatNo == seatNo).StartHandStack;
+            var leftForAnte = anteType == AnteType.Classic
+                ? startStack
+                : startStack - handData.Actions.Single(action => action.ActionType == HandActionType.BigBlind).Amount;
+            var expected = Math.Min(handData.Ante, leftForAnte);
+            if (expected > 0)
+            {
+                expectedAmounts[seatNo] = expected;
+            }
+        }
+
+        anteRows.Select(row => row.SeatNo).Should().BeEquivalentTo(expectedAmounts.Keys,
+            "one ante row per seat that posts, and none for a seat with nothing left for it");
+        anteRows.Should().OnlyHaveUniqueItems(row => row.SeatNo, "a seat posts its ante once");
+
+        foreach (var row in anteRows)
+        {
+            row.Street.Should().Be(Street.PreFlop, "an ante is posted at the deal");
+            row.Size.Should().Be(handData.Ante, "the ledger keeps the nominal ante");
+            row.Amount.Should().Be(expectedAmounts[row.SeatNo], $"seat {row.SeatNo} posts the ante or what it has left");
+        }
+    }
+
+    /// <summary>
+    /// <c>Pot</c> plus <c>StreetPot</c> is every chip posted so far: the antes, and for each seat and street the
+    /// highest cumulative amount of its ledger rows, since <c>Amount</c> is cumulative within a street.
+    /// </summary>
+    private static void AssertPotIsEveryChipPosted(HandData handData)
+    {
+        var antes = handData.Actions.Where(action => action.ActionType == HandActionType.Ante).Sum(action => action.Amount);
+        var wagers = handData.Actions
+            .Where(action => action.ActionType != HandActionType.Ante)
+            .GroupBy(action => (action.SeatNo, action.Street))
+            .Sum(group => group.Max(action => action.Amount));
+
+        (handData.Pot + handData.StreetPot).Should().Be(antes + wagers,
+            $"the pot holds every ante and wager posted so far, on {handData.Street}");
     }
 
     /// <summary>
