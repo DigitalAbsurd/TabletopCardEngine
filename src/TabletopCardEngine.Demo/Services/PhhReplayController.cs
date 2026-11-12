@@ -92,6 +92,7 @@ public sealed class PhhReplayController
         _currentGameId = Guid.NewGuid();
         _handNo = 1;
 
+        PhhSupport.AnteFor(hand, out var ante, out var anteType, out _);
         var gameOptions = new GameOptionData
         {
             MaxPlayersCount = (byte)hand.PlayerCount,
@@ -99,6 +100,8 @@ public sealed class PhhReplayController
             RaiseCap = DemoGameDefaults.RaiseCap,
             InitialSmallBlind = hand.SmallBlind,
             InitialDealerSeatNo = (byte)hand.PlayerCount, // Last player is on the button
+            Ante = ante,
+            AnteType = anteType,
             TableFormat = hand.PlayerCount switch
             {
                 2 => HoldemTableFormat.HeadsUp,

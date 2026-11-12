@@ -103,7 +103,7 @@ public static class PhhWriter
         var bigBlind = hand.BigBlind;
 
         text.Append("variant = '").Append(PhhSupport.VariantFor(structure)).Append('\'').Append(Newline);
-        text.Append("antes = ").Append(Array(players.Select(_ => 0m))).Append(Newline);
+        text.Append("antes = ").Append(Array(AntesPosted(hand, players))).Append(Newline);
         text.Append("blinds_or_straddles = ").Append(Array(players.Select((_, i) => i switch { 0 => smallBlind, 1 => bigBlind, _ => 0m }))).Append(Newline);
         if (structure == BettingStructure.FixedLimit)
         {
@@ -131,6 +131,25 @@ public static class PhhWriter
         {
             text.Append("finishing_stacks = ").Append(Array(players.Select(FinishingStack))).Append(Newline);
         }
+    }
+
+    /// <summary>
+    /// What each player posted as an ante, from the ledger's <see cref="HandActionType.Ante"/> rows, in PHH
+    /// player order. Heads-up the two entries are swapped, the way <c>blinds_or_straddles</c> is indexed
+    /// (the small blind first, and that is the last player), so a reader maps them back by the same rule.
+    /// </summary>
+    private static List<decimal> AntesPosted(HandData hand, List<SeatData> players)
+    {
+        var antes = players
+            .Select(seat => hand.Actions.Where(action => action.ActionType == HandActionType.Ante && action.SeatNo == seat.SeatNo).Sum(action => action.Amount))
+            .ToList();
+
+        if (antes.Count == 2)
+        {
+            antes.Reverse();
+        }
+
+        return antes;
     }
 
     /// <summary>
@@ -165,6 +184,11 @@ public static class PhhWriter
 
         foreach (var action in hand.Actions.OrderBy(action => action.No))
         {
+            if (action.ActionType == HandActionType.Ante)
+            {
+                continue;
+            }
+
             if (action.ActionType is HandActionType.SmallBlind or HandActionType.BigBlind)
             {
                 standingWager = Math.Max(standingWager, action.Amount);
