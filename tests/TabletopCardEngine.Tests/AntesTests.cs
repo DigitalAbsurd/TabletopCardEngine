@@ -174,6 +174,27 @@ public sealed class AntesTests
     }
 
     [TestMethod]
+    public async Task BigBlindAnte_AllInAboveTheCaller_TheAnteIsDeadMoneyForTheCaller()
+    {
+        // The shape of WSOP hand 2023/43/5/03-02-41: the big blind moves all in, its ante on top of the wager lifts
+        // its total above the caller's, and the caller has the better hand. Dealer 3, seat 1 the small blind.
+        using var session = await AnteSession.CreateAsync(new GameOptionData { InitialDealerSeatNo = 3, Ante = 3, AnteType = AnteType.BigBlind },
+            [Stack, 25M, Stack]);
+
+        await session.StartAsync();
+        await session.PlayAsync(PlayerActionType.Fold);
+        await session.PlayAsync(PlayerActionType.Raise, 10);
+        await session.PlayAsync(PlayerActionType.AllIn);
+        var hand = (await session.PlayAsync(PlayerActionType.Call)).HandData!;
+
+        hand.Street.Should().Be(Street.Finished);
+        hand.CommunityCards.Should().Equal(_board);
+        Seat(hand, 2).HandResult!.Net.Should().Be(-25M, "the big blind's ante is not its own to take back");
+        Seat(hand, 1).HandResult!.Net.Should().Be(25M, "the aces win the 22 wagered by each seat and the ante of 3");
+        Seat(hand, 3).HandResult!.Net.Should().Be(0M);
+    }
+
+    [TestMethod]
     public async Task ClassicAnte_HeadsUp_BothSeatsPostBeforeTheBlinds()
     {
         using var session = await AnteSession.CreateAsync(new GameOptionData { MaxPlayersCount = 2, InitialDealerSeatNo = 1, Ante = 1, AnteType = AnteType.Classic },
