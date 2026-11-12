@@ -38,6 +38,12 @@ public abstract record TournamentAction(Guid TournamentId)
     /// <param name="entryNo">The <see cref="TournamentEntryData.EntryNo"/> the registration was given.</param>
     public static TournamentActionUnregister Unregister(Guid tournamentId, int entryNo)
         => new(tournamentId, entryNo);
+
+    /// <summary>Closes registration, draws the seats, opens the tables and deals their first hands.</summary>
+    /// <param name="tournamentId">The tournament to start.</param>
+    /// <param name="seatDrawSeed">The seed of the seat draw, to reproduce one; <see langword="null"/> to draw one at random.</param>
+    public static TournamentActionStart StartTournament(Guid tournamentId, int? seatDrawSeed = null)
+        => new(tournamentId) { SeatDrawSeed = seatDrawSeed };
 }
 
 /// <summary>
@@ -77,3 +83,31 @@ public record TournamentActionRegister(Guid TournamentId, string Name) : Tournam
 /// <param name="TournamentId">The tournament to withdraw from.</param>
 /// <param name="EntryNo">The <see cref="TournamentEntryData.EntryNo"/> to withdraw.</param>
 public record TournamentActionUnregister(Guid TournamentId, int EntryNo) : TournamentAction(TournamentId);
+
+/// <summary>
+/// Starts a tournament that is <see cref="TournamentState.Registering"/>; afterwards it fails with
+/// <see cref="HoldemErrorCode.TournamentAlreadyStarted"/>, and with fewer than
+/// <see cref="TournamentOptionData.MinEntries"/> entries it fails with <see cref="HoldemErrorCode.NotEnoughPlayers"/>.
+/// <para>
+/// Registration closes and the seats are drawn at random: the entries are split into as few tables of
+/// <see cref="TournamentOptionData.MaxPlayersPerTable"/> seats as they fit in, whose sizes differ by at most one, each
+/// seated from seat 1 up with a button drawn among its seats. Each table is an ordinary game, listed in
+/// <see cref="TournamentData.Tables"/>, whose first hand is dealt at once at the first level with every player at
+/// <see cref="TournamentOptionData.StartingStack"/>; a table drawn with a single player waits without a hand. The
+/// level clock starts now, and the prize pool is fixed.
+/// </para>
+/// <para>
+/// Players act on their table through <see cref="IHoldemTable"/> with its game id, which takes <c>Play</c> and
+/// <c>GetGame</c> only: every other action on a tournament table fails with
+/// <see cref="HoldemErrorCode.ManagedByTournament"/>.
+/// </para>
+/// </summary>
+/// <param name="TournamentId">The tournament to start.</param>
+public record TournamentActionStart(Guid TournamentId) : TournamentAction(TournamentId)
+{
+    /// <summary>
+    /// The seed of the seat draw; <see langword="null"/> (the default) draws a seed at random. Either way the seed
+    /// is kept, so a start can be reproduced: one seed gives one draw of seats and buttons for the same entries.
+    /// </summary>
+    public int? SeatDrawSeed { get; init; }
+}

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using TabletopCardEngine.Holdem.ActionHandlers;
 using TabletopCardEngine.Holdem.Data;
@@ -87,6 +88,16 @@ internal sealed class HoldemTable : IHoldemTable
             _logger.ActionRejected(actionType, holdemAction.GameId, HoldemErrorCode.GameNotFound);
             SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.GameNotFound, actionType, start);
             return HoldemResult<GameData>.Fail(new HoldemError(HoldemErrorCode.GameNotFound, PackResource.HoldemValidation_GameNotFound));
+        }
+
+        // A tournament table is dealt, seated and ended by its tournament, which runs the handlers on its own context
+        // and so never comes through here: a player may only play and read the game.
+        if (existed && holdemAction is not (HoldemActionPlay or HoldemActionGetGame)
+            && await dbContext.Set<TournamentTable>().AnyAsync(table => table.GameId == game.Id, cancellationToken))
+        {
+            _logger.ActionRejected(actionType, holdemAction.GameId, HoldemErrorCode.ManagedByTournament);
+            SetOutcomeTagsAndReturn(activity, "Failure", HoldemErrorCode.ManagedByTournament, actionType, start);
+            return HoldemResult<GameData>.Fail(new HoldemError(HoldemErrorCode.ManagedByTournament, PackResource.HoldemValidation_ManagedByTournament));
         }
 
         if (existed && holdemAction is not HoldemActionCreateGame && holdemAction.ExpectedVersion is { } expected && expected != game.Version)

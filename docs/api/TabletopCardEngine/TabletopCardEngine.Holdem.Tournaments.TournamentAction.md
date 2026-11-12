@@ -17,6 +17,7 @@ Derived
 ↳ [TournamentActionCreate](TabletopCardEngine.Holdem.Tournaments.TournamentActionCreate.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionCreate')  
 ↳ [TournamentActionGet](TabletopCardEngine.Holdem.Tournaments.TournamentActionGet.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionGet')  
 ↳ [TournamentActionRegister](TabletopCardEngine.Holdem.Tournaments.TournamentActionRegister.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionRegister')  
+↳ [TournamentActionStart](TabletopCardEngine.Holdem.Tournaments.TournamentActionStart.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionStart')  
 ↳ [TournamentActionUnregister](TabletopCardEngine.Holdem.Tournaments.TournamentActionUnregister.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionUnregister')
 
 Implements [System\.IEquatable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')[TournamentAction](TabletopCardEngine.Holdem.Tournaments.TournamentAction.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentAction')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.iequatable-1 'System\.IEquatable\`1')
@@ -143,6 +144,32 @@ The player's display name, 1 to 64 characters, unique within the tournament rega
 
 #### Returns
 [TournamentActionRegister](TabletopCardEngine.Holdem.Tournaments.TournamentActionRegister.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionRegister')
+
+<a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.StartTournament(System.Guid,System.Nullable_int_)'></a>
+
+## TournamentAction\.StartTournament\(Guid, Nullable&lt;int&gt;\) Method
+
+Closes registration, draws the seats, opens the tables and deals their first hands\.
+
+```csharp
+public static TabletopCardEngine.Holdem.Tournaments.TournamentActionStart StartTournament(System.Guid tournamentId, System.Nullable<int> seatDrawSeed=null);
+```
+#### Parameters
+
+<a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.StartTournament(System.Guid,System.Nullable_int_).tournamentId'></a>
+
+`tournamentId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The tournament to start\.
+
+<a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.StartTournament(System.Guid,System.Nullable_int_).seatDrawSeed'></a>
+
+`seatDrawSeed` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The seed of the seat draw, to reproduce one; [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') to draw one at random\.
+
+#### Returns
+[TournamentActionStart](TabletopCardEngine.Holdem.Tournaments.TournamentActionStart.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionStart')
 
 <a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.Unregister(System.Guid,int)'></a>
 

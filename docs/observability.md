@@ -81,6 +81,8 @@ The engine logs nothing at Error or Critical: exceptions propagate to the host, 
 | 1200 | `TournamentCreated` | Information | `Tournament {TournamentId} created with {LevelCount} levels and a starting stack of {StartingStack}` | A tournament was created |
 | 1201 | `TournamentEntryRegistered` | Information | `Entry {EntryNo} registered for tournament {TournamentId}, now {EntryCount} entries` | A player registered for a tournament |
 | 1202 | `TournamentEntryUnregistered` | Information | `Entry {EntryNo} unregistered from tournament {TournamentId}, now {EntryCount} entries` | A registration was withdrawn |
+| 1203 | `TournamentStarted` | Information | `Tournament {TournamentId} started with {EntryCount} entries at {TableCount} tables` | A tournament was started: its seats were drawn and its tables opened |
+| 1204 | `TournamentLevelStarted` | Debug | `Table {TableNo} of tournament {TournamentId} dealt hand {HandNo} of game {GameId} at level {LevelIndex}: small blind {SmallBlind}` | A tournament table dealt its first hand at a level, read off the tournament's clock |
 
 **Event ID ranges:** 1000–1099 are games and hands, 1100–1199 the opt-in card events, and **1200–1299 are reserved for tournaments**. A tournament event never takes an ID outside its range. A tournament event logs scalars only, never a player's name.
 
@@ -106,7 +108,7 @@ Each call to `IHoldemTournament.ApplyAsync` opens one span of its own the same w
 
 | Tag Name | Type | Values | When Set |
 |---|---|---|---|
-| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, `LeaveSeat`, `TopUp`, `KickSeat`; on a tournament span `CreateTournament`, `GetTournament`, `Register`, `Unregister`; or `Unknown` | Always (at start) |
+| `tabletopcardengine.action.type` | string | `CreateGame`, `GetGame`, `StartGame`, `StartHand`, `Play`, `FinishGame`, `LeaveSeat`, `TopUp`, `KickSeat`; on a tournament span `CreateTournament`, `GetTournament`, `Register`, `Unregister`, `StartTournament`; or `Unknown` | Always (at start) |
 | `tabletopcardengine.game.id` | string | The game ID as a GUID string | Always (at start), on a Hold'em span |
 | `tabletopcardengine.tournament.id` | string | The tournament ID as a GUID string | Always (at start), on a tournament span |
 | `tabletopcardengine.player_action.type` | string | `Fold`, `Check`, `Call`, `Raise`, `Bet`, `AllIn` | Only for `Play` actions |

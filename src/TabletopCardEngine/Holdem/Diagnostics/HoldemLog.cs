@@ -69,6 +69,12 @@ internal static partial class HoldemLog
     [LoggerMessage(EventId = 1202, Level = LogLevel.Information, Message = "Entry {EntryNo} unregistered from tournament {TournamentId}, now {EntryCount} entries")]
     internal static partial void TournamentEntryUnregistered(this ILogger logger, int entryNo, Guid tournamentId, int entryCount);
 
+    [LoggerMessage(EventId = 1203, Level = LogLevel.Information, Message = "Tournament {TournamentId} started with {EntryCount} entries at {TableCount} tables")]
+    internal static partial void TournamentStarted(this ILogger logger, Guid tournamentId, int entryCount, int tableCount);
+
+    [LoggerMessage(EventId = 1204, Level = LogLevel.Debug, Message = "Table {TableNo} of tournament {TournamentId} dealt hand {HandNo} of game {GameId} at level {LevelIndex}: small blind {SmallBlind}")]
+    internal static partial void TournamentLevelStarted(this ILogger logger, int tableNo, Guid tournamentId, int handNo, Guid gameId, int levelIndex, decimal smallBlind);
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Trace, Message = "Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}")]
     internal static partial void HoleCardsDealt(this ILogger logger, int handNo, Guid gameId, byte seatNo, IEnumerable<Card> cards);
 

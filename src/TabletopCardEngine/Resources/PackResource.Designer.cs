@@ -374,5 +374,23 @@ namespace TabletopCardEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_TournamentConflict", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament has fewer entries than its MinEntries, so it cannot start.
+        /// </summary>
+        internal static string HoldemValidation_TournamentNotEnoughEntries {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentNotEnoughEntries", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The game is a tournament table: only Play and GetGame may be applied to it, the tournament does the rest.
+        /// </summary>
+        internal static string HoldemValidation_ManagedByTournament {
+            get {
+                return ResourceManager.GetString("HoldemValidation_ManagedByTournament", resourceCulture);
+            }
+        }
     }
 }

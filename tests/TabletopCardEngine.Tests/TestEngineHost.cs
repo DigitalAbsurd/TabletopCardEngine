@@ -37,7 +37,8 @@ internal static class TestEngineHost
         Action<HoldemSettings>? configureSettings = null,
         Action<HoldemDbContext>? seedAction = null,
         Action<IServiceCollection>? configureServices = null,
-        TestDatabaseKind database = TestDatabaseKind.Sqlite)
+        TestDatabaseKind database = TestDatabaseKind.Sqlite,
+        TimeProvider? timeProvider = null)
     {
         // SQLite keeps its own path, file mode included; every other kind comes from the matrix harness.
         IDisposable? databaseLifetime = null;
@@ -92,6 +93,11 @@ internal static class TestEngineHost
                 {
                     opts.WithCardShuffler(shuffler);
                 }
+
+                if (timeProvider != null)
+                {
+                    opts.WithTimeProvider(timeProvider);
+                }
             }
             ));
         configureServices?.Invoke(services);
@@ -110,9 +116,10 @@ internal static class TestEngineHost
     /// <summary>The same container as <see cref="Setup"/>, handing out the tournament entry point instead of the table.</summary>
     internal static DisposableTestData SetupTournament(out IHoldemTournament tournament,
         out IDbContextFactory<HoldemDbContext> contextFactory,
-        TestDatabaseKind database = TestDatabaseKind.Sqlite)
+        TestDatabaseKind database = TestDatabaseKind.Sqlite,
+        TimeProvider? timeProvider = null)
     {
-        var host = Setup(out _, out contextFactory, database: database);
+        var host = Setup(out _, out contextFactory, database: database, timeProvider: timeProvider);
         tournament = host.GetRequiredService<IHoldemTournament>();
         return host;
     }
