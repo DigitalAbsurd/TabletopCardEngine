@@ -127,6 +127,48 @@
             </div>
 
             <div class="form-group">
+                <label for="setup-use-ante">Ante</label>
+                <input
+                    id="setup-use-ante"
+                    type="checkbox"
+                    disabled="@_isLoading"
+                    checked="@_useAnte"
+                    @onchange="OnUseAnteChanged" />
+            </div>
+
+            @if (_useAnte)
+            {
+                <div class="form-group">
+                    <label for="setup-ante">Ante amount</label>
+                    <input
+                        id="setup-ante"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        disabled="@_isLoading"
+                        placeholder="Ante amount"
+                        @bind="_ante"
+                        class="setup-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="setup-ante-type">Ante type</label>
+                    <Select
+                        Id="setup-ante-type"
+                        @bind-Value="_anteType"
+                        Disabled="@_isLoading"
+                        Style="width: 100%;"
+                        TItemValue="AnteType"
+                        TItem="AnteType">
+                        <SelectOptions>
+                            <SelectOption TItemValue="AnteType" TItem="AnteType" Value="@AnteType.Classic" Label="Classic (every player)" />
+                            <SelectOption TItemValue="AnteType" TItem="AnteType" Value="@AnteType.BigBlind" Label="Big blind ante" />
+                        </SelectOptions>
+                    </Select>
+                </div>
+            }
+
+            <div class="form-group">
                 <label for="setup-allow-top-up">Allow top-up</label>
                 <input
                     id="setup-allow-top-up"

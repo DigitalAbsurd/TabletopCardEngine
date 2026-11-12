@@ -34,6 +34,9 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     private bool _noRaiseCap;
     private int _maxPlayers = DemoGameDefaults.MaxPlayers;
     private decimal _smallBlind = DemoGameDefaults.SmallBlind;
+    private bool _useAnte;
+    private decimal? _ante;
+    private AnteType _anteType = AnteType.Classic;
     private byte _dealerSeat = DemoGameDefaults.DealerSeatNo;
     private bool _allowTopUp;
     private bool _allowRebuy;
@@ -84,6 +87,9 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         _noRaiseCap = false;
         _maxPlayers = DemoGameDefaults.MaxPlayers;
         _smallBlind = DemoGameDefaults.SmallBlind;
+        _useAnte = false;
+        _ante = null;
+        _anteType = AnteType.Classic;
         _dealerSeat = DemoGameDefaults.DealerSeatNo;
         _allowTopUp = false;
         _allowRebuy = false;
@@ -303,7 +309,18 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
         }
     }
 
+    /// <summary>Switching the ante on offers the small blind as its amount, the usual size of a classic ante.</summary>
+    private void OnUseAnteChanged(ChangeEventArgs e)
+    {
+        _useAnte = e.Value is true;
+        if (_useAnte && _ante is null)
+        {
+            _ante = _smallBlind;
+        }
+    }
+
     private bool IsFormValid
+
     {
         get
         {
@@ -320,6 +337,12 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
                 {
                     return false;
                 }
+            }
+
+            // An ante that is switched on needs an amount; the engine answers for its size and decimals
+            if (_useAnte && _ante is not > 0)
+            {
+                return false;
             }
 
             // Dealer seat must be valid
@@ -394,6 +417,8 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
                 TableFormat = _tableFormat,
                 MaxPlayersCount = _maxPlayers,
                 InitialSmallBlind = _smallBlind,
+                Ante = _useAnte ? _ante : null,
+                AnteType = _anteType,
                 InitialDealerSeatNo = _dealerSeat,
                 AllowTopUp = _allowTopUp,
                 AllowRebuy = _allowRebuy,
