@@ -392,5 +392,32 @@ namespace TabletopCardEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_ManagedByTournament", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament has not started yet, so it has no table to deal.
+        /// </summary>
+        internal static string HoldemValidation_TournamentNotStarted {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament has finished, so its tables deal no more hands.
+        /// </summary>
+        internal static string HoldemValidation_TournamentFinished {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament has no such table, or the table has been broken up.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidTable {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidTable", resourceCulture);
+            }
+        }
     }
 }

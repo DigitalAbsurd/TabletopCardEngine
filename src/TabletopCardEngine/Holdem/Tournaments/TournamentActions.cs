@@ -44,6 +44,12 @@ public abstract record TournamentAction(Guid TournamentId)
     /// <param name="seatDrawSeed">The seed of the seat draw, to reproduce one; <see langword="null"/> to draw one at random.</param>
     public static TournamentActionStart StartTournament(Guid tournamentId, int? seatDrawSeed = null)
         => new(tournamentId) { SeatDrawSeed = seatDrawSeed };
+
+    /// <summary>Records a table's eliminations after its hand has ended, and deals its next hand at the current level.</summary>
+    /// <param name="tournamentId">The tournament the table belongs to.</param>
+    /// <param name="tableNo">The <see cref="TournamentTableData.TableNo"/> of the table to deal.</param>
+    public static TournamentActionDealTable DealTable(Guid tournamentId, int tableNo)
+        => new(tournamentId, tableNo);
 }
 
 /// <summary>
@@ -111,3 +117,35 @@ public record TournamentActionStart(Guid TournamentId) : TournamentAction(Tourna
     /// </summary>
     public int? SeatDrawSeed { get; init; }
 }
+
+/// <summary>
+/// The host's call between two hands of one table of a running tournament: nothing deals a table's next hand by
+/// itself. It fails with <see cref="HoldemErrorCode.TournamentNotStarted"/> while the tournament is registering, with
+/// <see cref="HoldemErrorCode.TournamentFinished"/> once it has finished, with <see cref="HoldemErrorCode.InvalidTable"/>
+/// for a table number the tournament does not have or a table that has been broken up, and with
+/// <see cref="HoldemErrorCode.PreviousHandNotEnded"/> while the table's hand is still being played.
+/// <para>
+/// Every player at the table who ended its last hand without chips is eliminated. With <c>P</c> players left before
+/// the call and <c>b</c> of them out now, they take places <c>P - b + 1</c> to <c>P</c>, the bigger stack at the start
+/// of that hand taking the better place. Players who started that hand with equal stacks tie: each gets the best
+/// place of the group, and they share the prizes of the places the group covers equally, to the cent, any cent left
+/// over going to the lower <see cref="TournamentEntryData.EntryNo"/>. The prize of place <c>k</c> is
+/// <see cref="TournamentData.PrizePool"/> times the <c>k</c>-th of <see cref="TournamentOptionData.Payouts"/>, divided
+/// by 100 and rounded to the cent, and <c>0</c> past the last payout; first place gets what the other paid places
+/// leave of the pool, so the prizes add up to it exactly. An eliminated player's seat is freed.
+/// </para>
+/// <para>
+/// When one player is left, that player takes first place and its prize, the tournament becomes
+/// <see cref="TournamentState.Finished"/>, and every table's game is finished, after which <c>Play</c> on it fails with
+/// <see cref="HoldemErrorCode.GameFinished"/>. Otherwise, when the table still has at least two players, its next hand
+/// is dealt at the level the tournament's clock shows now; a hand already in play keeps the level it was dealt at. A
+/// table left with fewer than two players deals nothing and waits; the call still succeeds.
+/// </para>
+/// <para>
+/// The call saves the tournament and that table's game together, so two tables never wait for each other; a lost race
+/// with another call on the same tournament fails with <see cref="HoldemErrorCode.Conflict"/>.
+/// </para>
+/// </summary>
+/// <param name="TournamentId">The tournament the table belongs to.</param>
+/// <param name="TableNo">The <see cref="TournamentTableData.TableNo"/> of the table to deal.</param>
+public record TournamentActionDealTable(Guid TournamentId, int TableNo) : TournamentAction(TournamentId);

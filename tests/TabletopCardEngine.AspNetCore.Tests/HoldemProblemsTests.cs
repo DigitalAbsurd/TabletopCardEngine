@@ -38,6 +38,9 @@ public sealed class HoldemProblemsTests
     [DataRow(HoldemErrorCode.TournamentFull, 409)]
     [DataRow(HoldemErrorCode.InvalidEntry, 422)]
     [DataRow(HoldemErrorCode.ManagedByTournament, 409)]
+    [DataRow(HoldemErrorCode.TournamentNotStarted, 409)]
+    [DataRow(HoldemErrorCode.TournamentFinished, 409)]
+    [DataRow(HoldemErrorCode.InvalidTable, 422)]
     public void StatusCodeFor_EveryCode_MatchesTheTable(HoldemErrorCode code, int expectedStatus, bool ifMatchPresent = false)
     {
         var status = HoldemProblems.StatusCodeFor(code, ifMatchPresent);
@@ -110,7 +113,7 @@ public sealed class HoldemProblemsTests
             else if (code is HoldemErrorCode.InvalidAction or HoldemErrorCode.UnsupportedGameOptions or
                 HoldemErrorCode.InvalidGameOptions or HoldemErrorCode.InvalidSeat or
                 HoldemErrorCode.IllegalAction or HoldemErrorCode.InvalidBuyIn or
-                HoldemErrorCode.InvalidTournamentOptions or HoldemErrorCode.InvalidEntry)
+                HoldemErrorCode.InvalidTournamentOptions or HoldemErrorCode.InvalidEntry or HoldemErrorCode.InvalidTable)
             {
                 content.Should().Contain("422",
                     because: $"the docs must list status 422 for {codeName}");

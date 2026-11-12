@@ -75,6 +75,12 @@ internal static partial class HoldemLog
     [LoggerMessage(EventId = 1204, Level = LogLevel.Debug, Message = "Table {TableNo} of tournament {TournamentId} dealt hand {HandNo} of game {GameId} at level {LevelIndex}: small blind {SmallBlind}")]
     internal static partial void TournamentLevelStarted(this ILogger logger, int tableNo, Guid tournamentId, int handNo, Guid gameId, int levelIndex, decimal smallBlind);
 
+    [LoggerMessage(EventId = 1205, Level = LogLevel.Information, Message = "Entry {EntryNo} of tournament {TournamentId} eliminated in place {Place} with a prize of {Prize}, at table {TableNo} in hand {HandNo}")]
+    internal static partial void TournamentEntryEliminated(this ILogger logger, int entryNo, Guid tournamentId, int place, decimal prize, int tableNo, int handNo);
+
+    [LoggerMessage(EventId = 1206, Level = LogLevel.Information, Message = "Tournament {TournamentId} finished: entry {EntryNo} won it with a prize of {Prize}")]
+    internal static partial void TournamentFinished(this ILogger logger, Guid tournamentId, int entryNo, decimal prize);
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Trace, Message = "Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}")]
     internal static partial void HoleCardsDealt(this ILogger logger, int handNo, Guid gameId, byte seatNo, IEnumerable<Card> cards);
 

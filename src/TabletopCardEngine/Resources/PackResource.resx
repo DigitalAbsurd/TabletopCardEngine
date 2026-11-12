@@ -228,4 +228,13 @@
   <data name="HoldemValidation_ManagedByTournament" xml:space="preserve">
     <value>The game is a tournament table: only Play and GetGame may be applied to it, the tournament does the rest</value>
   </data>
+  <data name="HoldemValidation_TournamentNotStarted" xml:space="preserve">
+    <value>The tournament has not started yet, so it has no table to deal</value>
+  </data>
+  <data name="HoldemValidation_TournamentFinished" xml:space="preserve">
+    <value>The tournament has finished, so its tables deal no more hands</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidTable" xml:space="preserve">
+    <value>The tournament has no such table, or the table has been broken up</value>
+  </data>
 </root>

@@ -117,9 +117,10 @@ internal static class TestEngineHost
     internal static DisposableTestData SetupTournament(out IHoldemTournament tournament,
         out IDbContextFactory<HoldemDbContext> contextFactory,
         TestDatabaseKind database = TestDatabaseKind.Sqlite,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        ICardShuffler? shuffler = null)
     {
-        var host = Setup(out _, out contextFactory, database: database, timeProvider: timeProvider);
+        var host = Setup(out _, out contextFactory, shuffler: shuffler, database: database, timeProvider: timeProvider);
         tournament = host.GetRequiredService<IHoldemTournament>();
         return host;
     }

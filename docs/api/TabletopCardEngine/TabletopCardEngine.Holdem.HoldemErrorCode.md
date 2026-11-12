@@ -157,3 +157,21 @@ The entry is invalid: a name that is empty, too long or already registered, or a
 
 The game is a table of a tournament, which deals its hands, seats and moves its players and ends it: only
 `Play` and `GetGame` may be applied to it through `IHoldemTable`\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TournamentNotStarted'></a>
+
+`TournamentNotStarted` 25
+
+The tournament is still registering, so it has no table to deal\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.TournamentFinished'></a>
+
+`TournamentFinished` 26
+
+The tournament has finished: its places and prizes are final, and its tables deal no more hands\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.InvalidTable'></a>
+
+`InvalidTable` 27
+
+The tournament has no table with the requested number, or that table has been broken up\.

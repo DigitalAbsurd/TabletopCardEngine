@@ -15,6 +15,7 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 Derived  
 ↳ [TournamentActionCreate](TabletopCardEngine.Holdem.Tournaments.TournamentActionCreate.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionCreate')  
+↳ [TournamentActionDealTable](TabletopCardEngine.Holdem.Tournaments.TournamentActionDealTable.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionDealTable')  
 ↳ [TournamentActionGet](TabletopCardEngine.Holdem.Tournaments.TournamentActionGet.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionGet')  
 ↳ [TournamentActionRegister](TabletopCardEngine.Holdem.Tournaments.TournamentActionRegister.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionRegister')  
 ↳ [TournamentActionStart](TabletopCardEngine.Holdem.Tournaments.TournamentActionStart.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionStart')  
@@ -98,6 +99,32 @@ Identifier to use, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/lang
 
 #### Returns
 [TournamentActionCreate](TabletopCardEngine.Holdem.Tournaments.TournamentActionCreate.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionCreate')
+
+<a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.DealTable(System.Guid,int)'></a>
+
+## TournamentAction\.DealTable\(Guid, int\) Method
+
+Records a table's eliminations after its hand has ended, and deals its next hand at the current level\.
+
+```csharp
+public static TabletopCardEngine.Holdem.Tournaments.TournamentActionDealTable DealTable(System.Guid tournamentId, int tableNo);
+```
+#### Parameters
+
+<a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.DealTable(System.Guid,int).tournamentId'></a>
+
+`tournamentId` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
+
+The tournament the table belongs to\.
+
+<a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.DealTable(System.Guid,int).tableNo'></a>
+
+`tableNo` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The [TableNo](TabletopCardEngine.Holdem.Tournaments.TournamentTableData.md#TabletopCardEngine.Holdem.Tournaments.TournamentTableData.TableNo 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentTableData\.TableNo') of the table to deal\.
+
+#### Returns
+[TournamentActionDealTable](TabletopCardEngine.Holdem.Tournaments.TournamentActionDealTable.md 'TabletopCardEngine\.Holdem\.Tournaments\.TournamentActionDealTable')
 
 <a name='TabletopCardEngine.Holdem.Tournaments.TournamentAction.GetTournament(System.Guid)'></a>
 
