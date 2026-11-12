@@ -180,4 +180,46 @@
   <data name="HoldemValidation_RebuyNotAllowed" xml:space="preserve">
     <value>The game does not allow this player another rebuy</value>
   </data>
+  <data name="HoldemValidation_TournamentNotFound" xml:space="preserve">
+    <value>The tournament does not exist</value>
+  </data>
+  <data name="HoldemValidation_TournamentAlreadyExists" xml:space="preserve">
+    <value>A tournament with this id already exists</value>
+  </data>
+  <data name="HoldemValidation_TournamentUnsupportedGameOptions" xml:space="preserve">
+    <value>The tournament's betting structure is not supported</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidTables" xml:space="preserve">
+    <value>The tournament's table format, seats per table, raise cap or ante type is invalid</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidAmounts" xml:space="preserve">
+    <value>The tournament's starting stack must be positive and its buy-in not negative, each with at most two decimal places</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidEntryLimits" xml:space="preserve">
+    <value>The tournament needs a minimum of at least two entries, and a maximum no smaller than the minimum</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidLevels" xml:space="preserve">
+    <value>The tournament needs 1 to 100 levels, each with a positive small blind no smaller than the previous one, a non-negative ante, amounts with at most two decimal places and a duration of at least one minute in whole seconds, all fitting in 4000 characters of JSON</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidPayouts" xml:space="preserve">
+    <value>The tournament's payouts must hold 1 to MinEntries positive percentages with at most two decimal places, none larger than the one before it, summing to exactly 100</value>
+  </data>
+  <data name="HoldemValidation_TournamentAlreadyStarted" xml:space="preserve">
+    <value>The tournament is no longer registering</value>
+  </data>
+  <data name="HoldemValidation_TournamentFull" xml:space="preserve">
+    <value>The tournament has reached its maximum number of entries</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidEntryName" xml:space="preserve">
+    <value>The entry's name must be 1 to 64 characters, not whitespace only, and not already registered in the tournament</value>
+  </data>
+  <data name="HoldemValidation_TournamentUnknownEntry" xml:space="preserve">
+    <value>No entry with this number is registered in the tournament</value>
+  </data>
+  <data name="HoldemValidation_TournamentInvalidAction" xml:space="preserve">
+    <value>The tournament action is not one the engine knows</value>
+  </data>
+  <data name="HoldemValidation_TournamentConflict" xml:space="preserve">
+    <value>The tournament was changed by another action; reload it and try again.</value>
+  </data>
 </root>

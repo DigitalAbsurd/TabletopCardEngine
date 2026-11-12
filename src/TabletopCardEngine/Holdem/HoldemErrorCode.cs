@@ -60,4 +60,22 @@ public enum HoldemErrorCode
 
     /// <summary>The seat has no chips and the game does not allow a rebuy (<c>AllowRebuy</c> is off), or the player has used up <c>MaxRebuys</c>.</summary>
     RebuyNotAllowed = 17,
+
+    /// <summary>No tournament with the requested id exists. Every tournament action except <c>CreateTournament</c> needs one.</summary>
+    TournamentNotFound = 18,
+
+    /// <summary>A tournament with the requested id already exists.</summary>
+    TournamentAlreadyExists = 19,
+
+    /// <summary>A tournament option is out of range: the table format and seats, an amount, the entry limits, the levels or the payouts.</summary>
+    InvalidTournamentOptions = 20,
+
+    /// <summary>The tournament is no longer registering, so its entries cannot change.</summary>
+    TournamentAlreadyStarted = 21,
+
+    /// <summary>The tournament already has <c>MaxEntries</c> entries, so nobody else can register.</summary>
+    TournamentFull = 22,
+
+    /// <summary>The entry is invalid: a name that is empty, too long or already registered, or an entry number that is not registered.</summary>
+    InvalidEntry = 23,
 }

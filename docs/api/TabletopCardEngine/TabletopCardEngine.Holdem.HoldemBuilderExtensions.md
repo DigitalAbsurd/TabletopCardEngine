@@ -16,7 +16,7 @@ Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system
 
 ## HoldemBuilderExtensions\.AddHoldem\(this TabletopCardEngineBuilder, Action&lt;DbContextOptionsBuilder&gt;, Action&lt;HoldemOptionsBuilder&gt;\) Method
 
-Registers [IHoldemTable](TabletopCardEngine.Holdem.IHoldemTable.md 'TabletopCardEngine\.Holdem\.IHoldemTable') as a singleton over an EF Core context factory\.
+Registers [IHoldemTable](TabletopCardEngine.Holdem.IHoldemTable.md 'TabletopCardEngine\.Holdem\.IHoldemTable') and [IHoldemTournament](TabletopCardEngine.Holdem.Tournaments.IHoldemTournament.md 'TabletopCardEngine\.Holdem\.Tournaments\.IHoldemTournament') as singletons over an EF Core context factory\.
 
 Engine options belong to the container: each call creates its own engine options and
 registers them as a singleton instance, so engines built from different containers can be

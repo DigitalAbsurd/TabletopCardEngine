@@ -60,6 +60,15 @@ internal static partial class HoldemLog
     [LoggerMessage(EventId = 1020, Level = LogLevel.Debug, Message = "Hand {HandNo} of game {GameId} moved to {Street}")]
     internal static partial void StreetDealt(this ILogger logger, int handNo, Guid gameId, Street street);
 
+    [LoggerMessage(EventId = 1200, Level = LogLevel.Information, Message = "Tournament {TournamentId} created with {LevelCount} levels and a starting stack of {StartingStack}")]
+    internal static partial void TournamentCreated(this ILogger logger, Guid tournamentId, int levelCount, decimal startingStack);
+
+    [LoggerMessage(EventId = 1201, Level = LogLevel.Information, Message = "Entry {EntryNo} registered for tournament {TournamentId}, now {EntryCount} entries")]
+    internal static partial void TournamentEntryRegistered(this ILogger logger, int entryNo, Guid tournamentId, int entryCount);
+
+    [LoggerMessage(EventId = 1202, Level = LogLevel.Information, Message = "Entry {EntryNo} unregistered from tournament {TournamentId}, now {EntryCount} entries")]
+    internal static partial void TournamentEntryUnregistered(this ILogger logger, int entryNo, Guid tournamentId, int entryCount);
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Trace, Message = "Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}")]
     internal static partial void HoleCardsDealt(this ILogger logger, int handNo, Guid gameId, byte seatNo, IEnumerable<Card> cards);
 

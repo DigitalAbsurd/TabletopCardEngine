@@ -14,7 +14,13 @@ internal static class HoldemActivity
     /// <summary>The span name for each <see cref="IHoldemTable.ApplyAsync"/> call.</summary>
     internal const string Name = "TabletopCardEngine.ApplyHoldemAction";
 
-    /// <summary>The action type: <c>CreateGame</c>, <c>GetGame</c>, <c>StartGame</c>, <c>StartHand</c>, <c>Play</c>, <c>FinishGame</c>, <c>LeaveSeat</c>, <c>TopUp</c>, <c>KickSeat</c>, or <c>Unknown</c>.</summary>
+    /// <summary>The span name for each <c>IHoldemTournament.ApplyAsync</c> call.</summary>
+    internal const string TournamentName = "TabletopCardEngine.ApplyTournamentAction";
+
+    /// <summary>
+    /// The action type: <c>CreateGame</c>, <c>GetGame</c>, <c>StartGame</c>, <c>StartHand</c>, <c>Play</c>, <c>FinishGame</c>, <c>LeaveSeat</c>, <c>TopUp</c>, <c>KickSeat</c>,
+    /// or on a tournament span <c>CreateTournament</c>, <c>GetTournament</c>, <c>Register</c>, <c>Unregister</c>; <c>Unknown</c> for a type the engine does not know.
+    /// </summary>
     internal const string ActionTypeTag = "tabletopcardengine.action.type";
 
     /// <summary>For <c>Play</c> actions only: the player action type (<c>Fold</c>, <c>Check</c>, <c>Call</c>, <c>Raise</c>, <c>Bet</c>, <c>AllIn</c>).</summary>
@@ -22,6 +28,9 @@ internal static class HoldemActivity
 
     /// <summary>The game ID.</summary>
     internal const string GameIdTag = "tabletopcardengine.game.id";
+
+    /// <summary>The tournament ID, on a tournament span.</summary>
+    internal const string TournamentIdTag = "tabletopcardengine.tournament.id";
 
     /// <summary>The current hand's number (omitted when <c>0</c>).</summary>
     internal const string HandNumberTag = "tabletopcardengine.hand.no";

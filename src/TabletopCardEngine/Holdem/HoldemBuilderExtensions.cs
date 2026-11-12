@@ -6,6 +6,7 @@ using System.Diagnostics.Metrics;
 using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Diagnostics;
 using TabletopCardEngine.Holdem.Options;
+using TabletopCardEngine.Holdem.Tournaments;
 
 namespace TabletopCardEngine.Holdem;
 
@@ -13,7 +14,7 @@ namespace TabletopCardEngine.Holdem;
 public static class HoldemBuilderExtensions
 {
     /// <summary>
-    /// Registers <see cref="IHoldemTable"/> as a singleton over an EF Core context factory.
+    /// Registers <see cref="IHoldemTable"/> and <see cref="IHoldemTournament"/> as singletons over an EF Core context factory.
     /// <para>
     /// Engine options belong to the container: each call creates its own engine options and
     /// registers them as a singleton instance, so engines built from different containers can be
@@ -69,6 +70,17 @@ public static class HoldemBuilderExtensions
             var metrics = HoldemMetrics.CreateOrGetFallback(meterFactory);
             var schemaManager = servicesProvider.GetRequiredService<HoldemSchemaManager>();
             return new HoldemTable(resolvedOptions, logger, metrics, schemaManager);
+        });
+        services.AddSingleton<IHoldemTournament>(servicesProvider =>
+        {
+            var resolvedOptions = servicesProvider.GetRequiredService<HoldemOptions>();
+            resolvedOptions.DbContextFactory =
+                servicesProvider.GetRequiredService<IDbContextFactory<HoldemDbContext>>();
+            var logger = servicesProvider.GetService<ILoggerFactory>()?.CreateLogger<HoldemTournament>()
+                ?? NullLogger<HoldemTournament>.Instance;
+            var metrics = HoldemMetrics.CreateOrGetFallback(servicesProvider.GetService<IMeterFactory>());
+            var schemaManager = servicesProvider.GetRequiredService<HoldemSchemaManager>();
+            return new HoldemTournament(resolvedOptions, logger, metrics, schemaManager);
         });
 
         return builder;

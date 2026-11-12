@@ -248,5 +248,131 @@ namespace TabletopCardEngine.Resources {
                 return ResourceManager.GetString("HoldemValidation_RebuyNotAllowed", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament does not exist.
+        /// </summary>
+        internal static string HoldemValidation_TournamentNotFound {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A tournament with this id already exists.
+        /// </summary>
+        internal static string HoldemValidation_TournamentAlreadyExists {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentAlreadyExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament's betting structure is not supported.
+        /// </summary>
+        internal static string HoldemValidation_TournamentUnsupportedGameOptions {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentUnsupportedGameOptions", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament's table format, seats per table, raise cap or ante type is invalid.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidTables {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidTables", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament's starting stack must be positive and its buy-in not negative, each with at most two decimal places.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidAmounts {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidAmounts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament needs a minimum of at least two entries, and a maximum no smaller than the minimum.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidEntryLimits {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidEntryLimits", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament needs 1 to 100 levels, each with a positive small blind no smaller than the previous one, a non-negative ante, amounts with at most two decimal places and a duration of at least one minute in whole seconds, all fitting in 4000 characters of JSON.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidLevels {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidLevels", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament's payouts must hold 1 to MinEntries positive percentages with at most two decimal places, none larger than the one before it, summing to exactly 100.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidPayouts {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidPayouts", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament is no longer registering.
+        /// </summary>
+        internal static string HoldemValidation_TournamentAlreadyStarted {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentAlreadyStarted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament has reached its maximum number of entries.
+        /// </summary>
+        internal static string HoldemValidation_TournamentFull {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The entry's name must be 1 to 64 characters, not whitespace only, and not already registered in the tournament.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidEntryName {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidEntryName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No entry with this number is registered in the tournament.
+        /// </summary>
+        internal static string HoldemValidation_TournamentUnknownEntry {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentUnknownEntry", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament action is not one the engine knows.
+        /// </summary>
+        internal static string HoldemValidation_TournamentInvalidAction {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentInvalidAction", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The tournament was changed by another action; reload it and try again.
+        /// </summary>
+        internal static string HoldemValidation_TournamentConflict {
+            get {
+                return ResourceManager.GetString("HoldemValidation_TournamentConflict", resourceCulture);
+            }
+        }
     }
 }

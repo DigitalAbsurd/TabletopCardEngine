@@ -14,4 +14,5 @@ internal sealed class HoldemOptions
     internal IDbContextFactory<HoldemDbContext> DbContextFactory { get; set; } = null!;
     internal HoldemSettings Settings { get; set; } = new();
     internal ICardShuffler? CardShuffler { get; set; }
+    internal TimeProvider TimeProvider { get; set; } = TimeProvider.System;
 }

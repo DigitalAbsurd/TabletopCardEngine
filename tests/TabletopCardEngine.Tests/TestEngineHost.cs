@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Data;
 using TabletopCardEngine.Holdem.Options;
+using TabletopCardEngine.Holdem.Tournaments;
 using TabletopCardEngine.Sqlite;
 using TabletopCardEngine.Tests.Persistence;
 
@@ -104,6 +105,16 @@ internal static class TestEngineHost
 
         holdemEngine = serviceProvider.GetRequiredService<IHoldemTable>();
         return new DisposableTestData(serviceProvider, keepAliveConnection ?? databaseLifetime);
+    }
+
+    /// <summary>The same container as <see cref="Setup"/>, handing out the tournament entry point instead of the table.</summary>
+    internal static DisposableTestData SetupTournament(out IHoldemTournament tournament,
+        out IDbContextFactory<HoldemDbContext> contextFactory,
+        TestDatabaseKind database = TestDatabaseKind.Sqlite)
+    {
+        var host = Setup(out _, out contextFactory, database: database);
+        tournament = host.GetRequiredService<IHoldemTournament>();
+        return host;
     }
 
     internal sealed class DisposableTestData : IDisposable
