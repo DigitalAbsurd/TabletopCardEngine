@@ -232,6 +232,97 @@ internal class HoldemDbContext(DbContextOptions dbContextOptions) : DbContext(db
             .HasConversion<string>()
             .HasMaxLength(EnumColumnMaxLength);
 
+        modelBuilder.Entity<Tournament>()
+            .HasMany(tournament => tournament.Entries)
+            .WithOne(entry => entry.Tournament)
+            .HasForeignKey(entry => entry.TournamentId);
+
+        modelBuilder.Entity<Tournament>()
+            .HasMany(tournament => tournament.Tables)
+            .WithOne(table => table.Tournament)
+            .HasForeignKey(table => table.TournamentId);
+
+        // The link from a game to its tournament lives here, not on Game. It does not cascade: the tournament
+        // does not own the game, and SQL Server would not allow a second cascade path anyway.
+        modelBuilder.Entity<TournamentTable>()
+            .HasOne<Game>()
+            .WithMany()
+            .HasForeignKey(table => table.GameId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TournamentTable>()
+            .HasIndex(table => table.GameId)
+            .IsUnique();
+
+        modelBuilder.Entity<TournamentEntry>()
+            .HasKey(entity => new { entity.TournamentId, entity.EntryNo });
+
+        modelBuilder.Entity<TournamentEntry>()
+            .Property(entity => entity.Name)
+            .HasMaxLength(AmountRules.PlayerNameMaxLength);
+
+        modelBuilder.Entity<TournamentEntry>()
+            .Property(entity => entity.CarriedStack)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<TournamentEntry>()
+            .Property(entity => entity.Prize)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces)
+            .HasDefaultValue(0M);
+
+        modelBuilder.Entity<TournamentTable>()
+            .HasKey(entity => new { entity.TournamentId, entity.TableNo });
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.BettingStructure)
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.TableFormat)
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.AnteType)
+            .HasConversion<string>()
+            .HasMaxLength(EnumColumnMaxLength);
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.StartingStack)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.BuyIn)
+            .HasPrecision(18, AmountRules.MaxDecimalPlaces);
+
+        // The two lists are JSON columns, compared by their JSON since a list compares by reference.
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.Levels)
+            .HasMaxLength(TournamentJson.MaxLength)
+            .HasConversion(
+                levels => TournamentJson.Serialize(levels),
+                json => TournamentJson.Deserialize<TournamentLevel>(json),
+                new ValueComparer<List<TournamentLevel>>(
+                    (left, right) => TournamentJson.Serialize(left) == TournamentJson.Serialize(right),
+                    levels => TournamentJson.Serialize(levels).GetHashCode(StringComparison.Ordinal),
+                    levels => TournamentJson.Deserialize<TournamentLevel>(TournamentJson.Serialize(levels))));
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.Payouts)
+            .HasMaxLength(TournamentJson.MaxLength)
+            .HasConversion(
+                payouts => TournamentJson.Serialize(payouts),
+                json => TournamentJson.Deserialize<decimal>(json),
+                new ValueComparer<List<decimal>>(
+                    (left, right) => TournamentJson.Serialize(left) == TournamentJson.Serialize(right),
+                    payouts => TournamentJson.Serialize(payouts).GetHashCode(StringComparison.Ordinal),
+                    payouts => TournamentJson.Deserialize<decimal>(TournamentJson.Serialize(payouts))));
+
+        modelBuilder.Entity<Tournament>()
+            .Property(entity => entity.Version)
+            .IsConcurrencyToken();
+
         modelBuilder.Entity<TceSchemaRow>()
             .ToTable(HoldemSchema.SchemaTable);
 

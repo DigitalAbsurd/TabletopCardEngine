@@ -41,7 +41,7 @@ public sealed class SqlitePackageTests
 
         status.State.Should().Be(HoldemSchemaState.UpToDate);
         status.PendingMigrations.Should().BeEmpty();
-        status.DatabaseSchemaVersion.Should().Be(6);
+        status.DatabaseSchemaVersion.Should().Be(7);
 
         var engine = host.GetRequiredService<IHoldemTable>();
         var gameId = Guid.NewGuid();
@@ -148,6 +148,9 @@ public sealed class SqlitePackageTests
                 "tce_holdem_HandPlayerEndState",
                 "tce_holdem_HandPlayerStartState",
                 "tce_holdem_Player",
+                "tce_holdem_Tournament",
+                "tce_holdem_TournamentEntry",
+                "tce_holdem_TournamentTable",
             ]);
         }
         finally
