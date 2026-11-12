@@ -478,6 +478,9 @@ Every error returned by the engine comes back as an HTTP problem response with a
 | `TournamentFull` | 22 | 409 |
 | `InvalidEntry` | 23 | 422 |
 | `ManagedByTournament` | 24 | 409 |
+| `TournamentNotStarted` | 25 | 409 |
+| `TournamentFinished` | 26 | 409 |
+| `InvalidTable` | 27 | 422 |
 
 **The logic.**
 

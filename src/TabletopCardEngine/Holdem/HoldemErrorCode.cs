@@ -84,4 +84,13 @@ public enum HoldemErrorCode
     /// <c>Play</c> and <c>GetGame</c> may be applied to it through <c>IHoldemTable</c>.
     /// </summary>
     ManagedByTournament = 24,
+
+    /// <summary>The tournament is still registering, so it has no table to deal.</summary>
+    TournamentNotStarted = 25,
+
+    /// <summary>The tournament has finished: its places and prizes are final, and its tables deal no more hands.</summary>
+    TournamentFinished = 26,
+
+    /// <summary>The tournament has no table with the requested number, or that table has been broken up.</summary>
+    InvalidTable = 27,
 }

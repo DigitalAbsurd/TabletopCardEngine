@@ -4,7 +4,9 @@ using TabletopCardEngine.Resources;
 
 namespace TabletopCardEngine.Holdem.ActionHandlers;
 
-internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionStartHand>
+/// <param name="cardShuffler">Supplies predetermined cards, or <see langword="null"/> to deal at random.</param>
+/// <param name="level">The level a tournament table deals the hand at; <see langword="null"/> for a cash game.</param>
+internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler, DealLevel? level = null) : HoldemActionHandler<HoldemActionStartHand>
 {
     internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartHand startHandData, Game game, CancellationToken cancellationToken)
     {
@@ -44,7 +46,7 @@ internal sealed class StartHandActionHandler(ICardShuffler? cardShuffler) : Hold
             return new HoldemError(HoldemErrorCode.NotEnoughPlayers, PackResource.HoldemValidation_NotEnoughPlayers);
         }
 
-        await HandDealer.DealAsync(game, startHandData.JoinSeats, cardShuffler, cancellationToken);
+        await HandDealer.DealAsync(game, startHandData.JoinSeats, cardShuffler, cancellationToken, level);
 
         return null;
     }

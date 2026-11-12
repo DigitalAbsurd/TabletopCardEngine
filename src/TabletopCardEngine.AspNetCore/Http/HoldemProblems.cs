@@ -42,6 +42,9 @@ internal static class HoldemProblems
         HoldemErrorCode.TournamentFull => 409,
         HoldemErrorCode.InvalidEntry => 422,
         HoldemErrorCode.ManagedByTournament => 409,
+        HoldemErrorCode.TournamentNotStarted => 409,
+        HoldemErrorCode.TournamentFinished => 409,
+        HoldemErrorCode.InvalidTable => 422,
         _ => throw new ArgumentOutOfRangeException(nameof(code), code, null),
     };
 

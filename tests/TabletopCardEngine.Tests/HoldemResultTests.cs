@@ -119,6 +119,9 @@ public sealed class HoldemResultTests
             [HoldemErrorCode.TournamentFull] = 22,
             [HoldemErrorCode.InvalidEntry] = 23,
             [HoldemErrorCode.ManagedByTournament] = 24,
+            [HoldemErrorCode.TournamentNotStarted] = 25,
+            [HoldemErrorCode.TournamentFinished] = 26,
+            [HoldemErrorCode.InvalidTable] = 27,
         };
 
         Enum.GetValues<HoldemErrorCode>().Should().BeEquivalentTo(expected.Keys, "a new code needs a row in this table");
