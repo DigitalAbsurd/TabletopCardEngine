@@ -84,6 +84,14 @@ internal sealed class PhhReplayRunner : IDisposable
         };
 
     /// <summary>
+    /// What each player posts as an ante, by seat. pokerkit indexes <c>antes</c> like
+    /// <c>blinds_or_straddles</c> and reverses the two entries heads-up, so there the big blind's ante,
+    /// paid by <c>p1</c>, is the second entry (the fixture README, <c>pokerkit-antes</c>).
+    /// </summary>
+    private static decimal[] AntesBySeat(PhhHand hand)
+        => hand.PlayerCount == 2 ? [.. hand.Antes.Reverse()] : hand.Antes;
+
+    /// <summary>
     /// The ante the engine plays a hand's <c>antes</c> as. Every player posting the same non-zero amount is
     /// a <see cref="AnteType.Classic"/> ante; the big blind's player alone posting one is a
     /// <see cref="AnteType.BigBlind"/> ante (heads-up included, see <see cref="BlindSeatsFor"/>); all zeros is
@@ -95,7 +103,8 @@ internal sealed class PhhReplayRunner : IDisposable
         anteType = AnteType.Classic;
         reason = string.Empty;
 
-        var posted = hand.Antes.Where(value => value != 0).ToArray();
+        var antes = AntesBySeat(hand);
+        var posted = antes.Where(value => value != 0).ToArray();
         if (posted.Length == 0)
         {
             return true;
@@ -108,7 +117,7 @@ internal sealed class PhhReplayRunner : IDisposable
         }
 
         var bigBlindIx = BlindSeatsFor(hand.PlayerCount).BigBlindSeatNo - 1;
-        if (posted.Length == 1 && hand.Antes[bigBlindIx] != 0)
+        if (posted.Length == 1 && antes[bigBlindIx] != 0)
         {
             ante = posted[0];
             anteType = AnteType.BigBlind;
@@ -276,6 +285,11 @@ internal sealed class PhhReplayRunner : IDisposable
             }
 
             var expectedSeatNo = (byte)(decision.PlayerIndex + 1);
+            if (IsCheckNobodyCanAnswer(gameData.HandData!, decision, expectedSeatNo))
+            {
+                continue;
+            }
+
             gameData.HandData!.NextPlayerSeatNo.Should().Be(expectedSeatNo,
                 $"'{action.Raw}' should be the turn of {hand.Players[decision.PlayerIndex]} in seat {expectedSeatNo}");
 
@@ -300,6 +314,60 @@ internal sealed class PhhReplayRunner : IDisposable
         return gameData;
     }
 
+    /// <summary>
+    /// pokerkit asks the last seat with chips for a <c>cc</c> even when it already holds the highest wager of the
+    /// street and nobody is left who could answer a bet: a blind the ante emptied posts nothing, so the small blind
+    /// can be that seat. The engine puts nobody on the clock there (and runs the board out), which is the same hand,
+    /// so the runner skips that one check rather than asking the engine for it. Nothing else is skipped: the action
+    /// must be a <c>cc</c>, the engine must have nobody to act, and the seat PHH names must be the only one still in
+    /// with chips behind, read from the ledger so that it holds after the hand is settled too.
+    /// </summary>
+    private static bool IsCheckNobodyCanAnswer(HandData handData, IPhhPlayerDecision decision, byte seatNo)
+    {
+        if (decision is not PhhCheckCallAction || handData.NextPlayerSeatNo != 0)
+        {
+            return false;
+        }
+
+        var withChipsBehind = handData.Seats
+            .Where(seat =>
+            {
+                var actions = handData.Actions.Where(action => action.SeatNo == seat.SeatNo).ToList();
+                if (actions.Any(action => action.ActionType == HandActionType.Fold))
+                {
+                    return false;
+                }
+
+                var antes = actions.Where(action => action.ActionType == HandActionType.Ante).Sum(action => action.Amount);
+                var wagers = actions.Where(action => action.ActionType != HandActionType.Ante)
+                    .GroupBy(action => action.Street).Sum(street => street.Max(action => action.Amount));
+                return seat.StartHandStack - antes - wagers > 0;
+            })
+            .Select(seat => seat.SeatNo)
+            .ToList();
+
+        return withChipsBehind.SequenceEqual([seatNo]);
+    }
+
+    /// <summary>
+    /// What the two blinds put on the street, each capped at what its seat has left: after a classic ante,
+    /// which is collected first, or before a big blind ante, which comes after the blind.
+    /// </summary>
+    private static decimal PostedBlinds(PhhHand hand)
+    {
+        AnteFor(hand, out var ante, out var anteType, out _);
+        var (smallBlindSeatNo, bigBlindSeatNo) = BlindSeatsFor(hand.PlayerCount);
+
+        decimal Posted(byte seatNo, decimal blind)
+        {
+            var stack = hand.StartingStacks[seatNo - 1]!.Value;
+            var left = anteType == AnteType.Classic && ante is not null ? Math.Max(0M, stack - ante.Value) : stack;
+            return Math.Min(blind, left);
+        }
+
+        return Posted(smallBlindSeatNo, hand.SmallBlind) + Posted(bigBlindSeatNo, hand.BigBlind);
+    }
+
     private void AssertHandStart(GameData gameData, PhhHand hand)
     {
         var handData = gameData.HandData!;
@@ -309,8 +377,12 @@ internal sealed class PhhReplayRunner : IDisposable
         handData.DealerSeatNo.Should().Be((byte)hand.PlayerCount, "the last PHH player is on the button");
         handData.SmallBlindSeatNo.Should().Be(smallBlindSeatNo, "where the small blind sits");
         handData.BigBlindSeatNo.Should().Be(bigBlindSeatNo, "where the big blind sits");
-        handData.StreetPot.Should().Be(hand.SmallBlind + hand.BigBlind, "only the blinds are in yet");
-        handData.CommunityCards.Should().BeEmpty("no board is dealt pre-flop");
+        // A hand the antes and blinds alone leave with fewer than two seats to act is run out at the deal.
+        if (handData.Street != Street.Finished)
+        {
+            handData.StreetPot.Should().Be(PostedBlinds(hand), "only the blinds are in yet");
+            handData.CommunityCards.Should().BeEmpty("no board is dealt pre-flop");
+        }
 
         for (var playerIx = 0; playerIx < hand.PlayerCount; playerIx++)
         {
@@ -336,13 +408,14 @@ internal sealed class PhhReplayRunner : IDisposable
 
         handData.Ante.Should().Be(ante ?? 0M, "the hand's nominal ante");
 
+        var antes = AntesBySeat(hand);
         var expected = new Dictionary<byte, decimal>();
         for (var playerIx = 0; playerIx < hand.PlayerCount; playerIx++)
         {
             var seatNo = (byte)(playerIx + 1);
             var stack = hand.StartingStacks[playerIx]!.Value;
-            var available = anteType == AnteType.BigBlind ? stack - Math.Min(hand.BlindsOrStraddles[playerIx], stack) : stack;
-            var posted = Math.Min(hand.Antes[playerIx], available);
+            var available = anteType == AnteType.BigBlind ? stack - Math.Min(seatNo == BlindSeatsFor(hand.PlayerCount).BigBlindSeatNo ? hand.BigBlind : hand.SmallBlind, stack) : stack;
+            var posted = Math.Min(antes[playerIx], available);
             if (posted > 0)
             {
                 expected[seatNo] = posted;
