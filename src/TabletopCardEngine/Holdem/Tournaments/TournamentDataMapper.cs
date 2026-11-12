@@ -20,10 +20,12 @@ internal static class TournamentDataMapper
     internal static IEnumerable<TournamentEntry> ActiveEntries(this Tournament tournament)
         => tournament.Entries.Where(entry => !entry.IsWithdrawn()).OrderBy(entry => entry.EntryNo);
 
-    internal static TournamentData ToTournamentData(Tournament tournament)
+    /// <summary>The tournament as a caller sees it at <paramref name="now"/>, which the level clock is read at.</summary>
+    internal static TournamentData ToTournamentData(Tournament tournament, DateTimeOffset now)
     {
         var entries = tournament.ActiveEntries().ToList();
         var state = (TournamentState)tournament.State;
+        var levelIndex = tournament.StartedAt is { } startedAt ? TournamentClock.LevelIndex(tournament.Levels, startedAt, now) : 0;
 
         return new TournamentData(tournament.Id, ToOptions(tournament), state, tournament.Version)
         {
@@ -35,6 +37,8 @@ internal static class TournamentDataMapper
                     IsBroken = table.IsBroken,
                     PlayerCount = entries.Count(entry => entry.TableNo == table.TableNo && EntryState(entry, state) == TournamentEntryState.Seated),
                 })),
+            LevelIndex = levelIndex,
+            LevelEndsAt = tournament.StartedAt is { } started ? TournamentClock.LevelEndsAt(tournament.Levels, started, levelIndex) : null,
             StartedAt = tournament.StartedAt,
             FinishedAt = tournament.FinishedAt,
             PrizePool = tournament.BuyIn * entries.Count,

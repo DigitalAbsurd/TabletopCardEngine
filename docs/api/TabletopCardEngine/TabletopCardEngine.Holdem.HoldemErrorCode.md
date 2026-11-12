@@ -150,3 +150,10 @@ The tournament already has `MaxEntries` entries, so nobody else can register\.
 `InvalidEntry` 23
 
 The entry is invalid: a name that is empty, too long or already registered, or an entry number that is not registered\.
+
+<a name='TabletopCardEngine.Holdem.HoldemErrorCode.ManagedByTournament'></a>
+
+`ManagedByTournament` 24
+
+The game is a table of a tournament, which deals its hands, seats and moves its players and ends it: only
+`Play` and `GetGame` may be applied to it through `IHoldemTable`\.

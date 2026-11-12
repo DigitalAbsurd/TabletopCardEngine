@@ -134,6 +134,7 @@ nav:
                   - 'TournamentActionCreate': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionCreate.md
                   - 'TournamentActionGet': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionGet.md
                   - 'TournamentActionRegister': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionRegister.md
+                  - 'TournamentActionStart': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionStart.md
                   - 'TournamentActionUnregister': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentActionUnregister.md
                   - 'TournamentData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentData.md
                   - 'TournamentEntryData': api/TabletopCardEngine/TabletopCardEngine.Holdem.Tournaments.TournamentEntryData.md

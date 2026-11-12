@@ -222,4 +222,10 @@
   <data name="HoldemValidation_TournamentConflict" xml:space="preserve">
     <value>The tournament was changed by another action; reload it and try again.</value>
   </data>
+  <data name="HoldemValidation_TournamentNotEnoughEntries" xml:space="preserve">
+    <value>The tournament has fewer entries than its MinEntries, so it cannot start</value>
+  </data>
+  <data name="HoldemValidation_ManagedByTournament" xml:space="preserve">
+    <value>The game is a tournament table: only Play and GetGame may be applied to it, the tournament does the rest</value>
+  </data>
 </root>

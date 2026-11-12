@@ -78,4 +78,10 @@ public enum HoldemErrorCode
 
     /// <summary>The entry is invalid: a name that is empty, too long or already registered, or an entry number that is not registered.</summary>
     InvalidEntry = 23,
+
+    /// <summary>
+    /// The game is a table of a tournament, which deals its hands, seats and moves its players and ends it: only
+    /// <c>Play</c> and <c>GetGame</c> may be applied to it through <c>IHoldemTable</c>.
+    /// </summary>
+    ManagedByTournament = 24,
 }

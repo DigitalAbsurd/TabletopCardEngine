@@ -4,7 +4,9 @@ using TabletopCardEngine.Resources;
 
 namespace TabletopCardEngine.Holdem.ActionHandlers;
 
-internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler) : HoldemActionHandler<HoldemActionStartGame>
+/// <param name="cardShuffler">Supplies predetermined cards, or <see langword="null"/> to deal at random.</param>
+/// <param name="level">The level a tournament table deals hand 1 at; <see langword="null"/> for a cash game.</param>
+internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler, DealLevel? level = null) : HoldemActionHandler<HoldemActionStartGame>
 {
     internal override async Task<HoldemError?> ImplementHandleAsync(HoldemActionStartGame holdemAction, Game game, CancellationToken cancellationToken)
     {
@@ -28,7 +30,7 @@ internal sealed class StartGameActionHandler(ICardShuffler? cardShuffler) : Hold
         // fixed here rather than left to every caller.
         var joinSeats = holdemAction.JoinSeats.OrderBy(join => join.SeatNo).ToArray();
 
-        await HandDealer.DealAsync(game, joinSeats, cardShuffler, cancellationToken);
+        await HandDealer.DealAsync(game, joinSeats, cardShuffler, cancellationToken, level);
 
         return null;
     }

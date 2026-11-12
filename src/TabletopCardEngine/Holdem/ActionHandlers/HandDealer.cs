@@ -18,7 +18,11 @@ internal static class HandDealer
     /// </param>
     /// <param name="cardShuffler">Supplies predetermined hole cards, or <see langword="null"/> to deal at random.</param>
     /// <param name="cancellationToken">Handed to the shuffler, which may do I/O.</param>
-    internal static async Task DealAsync(Game game, IReadOnlyList<PlayerJoinData> joinSeats, ICardShuffler? cardShuffler, CancellationToken cancellationToken)
+    /// <param name="level">
+    /// The level a tournament table deals at, read off the tournament's clock, used instead of the game's own blind
+    /// schedule; <see langword="null"/> for a cash game, which deals exactly as before.
+    /// </param>
+    internal static async Task DealAsync(Game game, IReadOnlyList<PlayerJoinData> joinSeats, ICardShuffler? cardShuffler, CancellationToken cancellationToken, DealLevel? level = null)
     {
         game.JoinPlayers(joinSeats);
         var previousHand = game.GetCurrentHand();
@@ -91,6 +95,19 @@ internal static class HandDealer
         // ExcludeShortOfMoneySeats seats the blinds and PostBlind caps them at the stacks. They never change after the deal.
         void SetBlindLevel(Hand hand)
         {
+            if (level is { } dealLevel)
+            {
+                // A tournament's levels run on its clock, not on hand counts, so the schedule is not consulted. The
+                // level starts at this hand unless the previous hand was already dealt at it.
+                var sameLevel = previousHand.No != 0 && previousHand.BlindLevel == dealLevel.BlindLevel;
+                hand.SmallBlind = dealLevel.SmallBlind;
+                hand.BlindLevel = dealLevel.BlindLevel;
+                hand.BlindLevelStartHandNo = sameLevel ? previousHand.BlindLevelStartHandNo : hand.No;
+                hand.BlindThresholdsPassed = 0;
+                hand.Ante = dealLevel.Ante;
+                return;
+            }
+
             var previous = new BlindLevelState(previousHand.SmallBlind ?? game.InitialSmallBlind,
                 previousHand.BlindLevel, previousHand.BlindLevelStartHandNo, previousHand.BlindThresholdsPassed);
             var state = BlindSchedule.Next(game.BlindSchedule, game.InitialSmallBlind, previous,
@@ -208,3 +225,9 @@ internal static class HandDealer
         }
     }
 }
+
+/// <summary>The blinds and ante a hand is dealt at when they come from outside the game, as a tournament's clock gives them.</summary>
+/// <param name="BlindLevel">The level's index, stored as <see cref="Hand.BlindLevel"/>.</param>
+/// <param name="SmallBlind">The level's small blind; the big blind is twice it.</param>
+/// <param name="Ante">The level's ante, or <see langword="null"/> when it has none.</param>
+internal readonly record struct DealLevel(int BlindLevel, decimal SmallBlind, decimal? Ante);

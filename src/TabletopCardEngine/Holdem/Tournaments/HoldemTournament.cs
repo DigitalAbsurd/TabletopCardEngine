@@ -68,6 +68,7 @@ internal sealed class HoldemTournament : IHoldemTournament
         TournamentActionGet => "GetTournament",
         TournamentActionRegister => "Register",
         TournamentActionUnregister => "Unregister",
+        TournamentActionStart => "StartTournament",
         _ => "Unknown"
     };
 
@@ -92,6 +93,7 @@ internal sealed class HoldemTournament : IHoldemTournament
         }
 
         HoldemError? error;
+        IReadOnlyList<TournamentStarter.OpenedTable> opened = [];
         switch (action)
         {
             case TournamentActionCreate create:
@@ -104,12 +106,15 @@ internal sealed class HoldemTournament : IHoldemTournament
                 break;
             case TournamentActionGet:
                 SetSuccessTags(activity, actionType, start);
-                return HoldemResult<TournamentData>.Ok(TournamentDataMapper.ToTournamentData(tournament!));
+                return HoldemResult<TournamentData>.Ok(TournamentDataMapper.ToTournamentData(tournament!, _options.TimeProvider.GetUtcNow()));
             case TournamentActionRegister register:
                 error = Register(register, tournament!);
                 break;
             case TournamentActionUnregister unregister:
                 error = Unregister(unregister, tournament!);
+                break;
+            case TournamentActionStart startTournament:
+                (error, opened) = await TournamentStarter.StartAsync(startTournament, tournament!, dbContext, _options, cancellationToken);
                 break;
             default:
                 error = new HoldemError(HoldemErrorCode.InvalidAction, PackResource.HoldemValidation_TournamentInvalidAction);
@@ -131,9 +136,9 @@ internal sealed class HoldemTournament : IHoldemTournament
             return Failure(activity, actionType, start, ConflictError());
         }
 
-        LogApplied(action, tournament!);
+        LogApplied(action, tournament!, opened);
         SetSuccessTags(activity, actionType, start);
-        return HoldemResult<TournamentData>.Ok(TournamentDataMapper.ToTournamentData(tournament!));
+        return HoldemResult<TournamentData>.Ok(TournamentDataMapper.ToTournamentData(tournament!, _options.TimeProvider.GetUtcNow()));
     }
 
     private static (Tournament? Tournament, HoldemError? Error) Create(TournamentActionCreate action, Tournament? existing)
@@ -214,8 +219,21 @@ internal sealed class HoldemTournament : IHoldemTournament
     }
 
     /// <summary>Logs the lifecycle event a successful call caused. Scalars only: never a player's name.</summary>
-    private void LogApplied(TournamentAction action, Tournament tournament)
+    private void LogApplied(TournamentAction action, Tournament tournament, IReadOnlyList<TournamentStarter.OpenedTable> opened)
     {
+        // A table's first hand at a level is a Debug event, so it is checked before the Information gate below.
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            foreach (var (tableNo, game) in opened)
+            {
+                var hand = game.GetCurrentHand();
+                if (hand.No != 0 && hand.BlindLevelStartHandNo == hand.No)
+                {
+                    _logger.TournamentLevelStarted(tableNo, tournament.Id, hand.No, game.Id, hand.BlindLevel, hand.SmallBlind ?? game.InitialSmallBlind);
+                }
+            }
+        }
+
         if (!_logger.IsEnabled(LogLevel.Information))
         {
             return;
@@ -231,6 +249,9 @@ internal sealed class HoldemTournament : IHoldemTournament
                 break;
             case TournamentActionUnregister unregister:
                 _logger.TournamentEntryUnregistered(unregister.EntryNo, tournament.Id, tournament.ActiveEntries().Count());
+                break;
+            case TournamentActionStart:
+                _logger.TournamentStarted(tournament.Id, tournament.ActiveEntries().Count(), tournament.Tables.Count);
                 break;
         }
     }

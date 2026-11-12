@@ -37,6 +37,7 @@ public sealed class HoldemProblemsTests
     [DataRow(HoldemErrorCode.TournamentAlreadyStarted, 409)]
     [DataRow(HoldemErrorCode.TournamentFull, 409)]
     [DataRow(HoldemErrorCode.InvalidEntry, 422)]
+    [DataRow(HoldemErrorCode.ManagedByTournament, 409)]
     public void StatusCodeFor_EveryCode_MatchesTheTable(HoldemErrorCode code, int expectedStatus, bool ifMatchPresent = false)
     {
         var status = HoldemProblems.StatusCodeFor(code, ifMatchPresent);
