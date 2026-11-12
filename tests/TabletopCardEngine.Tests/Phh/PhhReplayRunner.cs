@@ -83,6 +83,46 @@ internal sealed class PhhReplayRunner : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(playerCount), playerCount, "Player count must be between 2 and 10"),
         };
 
+    /// <summary>
+    /// The ante the engine plays a hand's <c>antes</c> as. Every player posting the same non-zero amount is
+    /// a <see cref="AnteType.Classic"/> ante; the big blind's player alone posting one is a
+    /// <see cref="AnteType.BigBlind"/> ante (heads-up included, see <see cref="BlindSeatsFor"/>); all zeros is
+    /// none. Any other shape is not an ante the engine has, and <paramref name="reason"/> names it.
+    /// </summary>
+    internal static bool AnteFor(PhhHand hand, out decimal? ante, out AnteType anteType, out string reason)
+    {
+        ante = null;
+        anteType = AnteType.Classic;
+        reason = string.Empty;
+
+        var posted = hand.Antes.Where(value => value != 0).ToArray();
+        if (posted.Length == 0)
+        {
+            return true;
+        }
+
+        if (posted.Length == hand.PlayerCount && posted.Distinct().Count() == 1)
+        {
+            ante = posted[0];
+            return true;
+        }
+
+        var bigBlindIx = BlindSeatsFor(hand.PlayerCount).BigBlindSeatNo - 1;
+        if (posted.Length == 1 && hand.Antes[bigBlindIx] != 0)
+        {
+            ante = posted[0];
+            anteType = AnteType.BigBlind;
+            return true;
+        }
+
+        reason = posted.Length == 1
+            ? "antes on seats other than the big blind"
+            : posted.Length == hand.PlayerCount
+                ? "antes of different sizes"
+                : "antes on some seats but not all of them and not only the big blind";
+        return false;
+    }
+
     private const string FixedLimitVariant = "FT";
 
     /// <summary>
@@ -105,8 +145,8 @@ internal sealed class PhhReplayRunner : IDisposable
         };
 
     /// <summary>
-    /// Whether the engine can model this hand at all. The engine plays hold'em with no
-    /// antes and a big blind of exactly twice the small blind (<c>StartHandActionHandler</c> derives
+    /// Whether the engine can model this hand at all. The engine plays hold'em with a classic or a
+    /// big blind ante (see <see cref="AnteFor"/>) and a big blind of exactly twice the small blind (<c>StartHandActionHandler</c> derives
     /// it that way), and it can only settle a showdown the history wrote every card of.
     /// <para>
     /// Recorded finishing stacks are deliberately *not* required. A corpus that has them is verified
@@ -143,9 +183,9 @@ internal sealed class PhhReplayRunner : IDisposable
         {
             reason = "the antes and blinds do not line up with the players";
         }
-        else if (hand.Antes.Any(ante => ante != 0))
+        else if (!AnteFor(hand, out _, out _, out var anteReason))
         {
-            reason = "antes are not supported by the engine";
+            reason = anteReason;
         }
         else if (hand.SmallBlind <= 0 || hand.BigBlind != hand.SmallBlind * 2)
         {
@@ -209,9 +249,11 @@ internal sealed class PhhReplayRunner : IDisposable
 
         using var scope = new AssertionScope(hand.ToString());
 
+        AnteFor(hand, out var ante, out var anteType, out _);
+
         await ApplyAsync(new HoldemActionCreateGame(
             GameId: gameId,
-            Options: new GameOptionData { BettingStructure = BettingStructureFor(hand.Variant)!.Value, RaiseCap = 4, TableFormat = TableFormatFor(playerCount), MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount }),
+            Options: new GameOptionData { BettingStructure = BettingStructureFor(hand.Variant)!.Value, RaiseCap = 4, TableFormat = TableFormatFor(playerCount), MaxPlayersCount = playerCount, InitialSmallBlind = hand.SmallBlind, InitialDealerSeatNo = (byte)playerCount, Ante = ante, AnteType = anteType }),
             hand);
 
         var gameData = await ApplyAsync(new HoldemActionStartGame(gameId,
@@ -222,6 +264,7 @@ internal sealed class PhhReplayRunner : IDisposable
                     BuyInAmount: hand.StartingStacks[playerIx]!.Value))]), hand);
 
         AssertHandStart(gameData, hand);
+        AssertAntes(gameData, hand);
 
         foreach (var action in hand.Actions)
         {
@@ -279,6 +322,36 @@ internal sealed class PhhReplayRunner : IDisposable
             seatData.Hole.Should().Equal(_currentDeck.HoleCards[seatNo],
                 $"seat {seatNo} should hold the cards the history dealt it");
         }
+    }
+
+    /// <summary>
+    /// The ledger's <see cref="HandActionType.Ante"/> rows are what the history says each player posted, by
+    /// seat, and <see cref="HandData.Ante"/> is the nominal ante. A post is capped at what the seat has left,
+    /// which for a big blind ante is its stack after the blind.
+    /// </summary>
+    private static void AssertAntes(GameData gameData, PhhHand hand)
+    {
+        var handData = gameData.HandData!;
+        AnteFor(hand, out var ante, out var anteType, out _);
+
+        handData.Ante.Should().Be(ante ?? 0M, "the hand's nominal ante");
+
+        var expected = new Dictionary<byte, decimal>();
+        for (var playerIx = 0; playerIx < hand.PlayerCount; playerIx++)
+        {
+            var seatNo = (byte)(playerIx + 1);
+            var stack = hand.StartingStacks[playerIx]!.Value;
+            var available = anteType == AnteType.BigBlind ? stack - Math.Min(hand.BlindsOrStraddles[playerIx], stack) : stack;
+            var posted = Math.Min(hand.Antes[playerIx], available);
+            if (posted > 0)
+            {
+                expected[seatNo] = posted;
+            }
+        }
+
+        handData.Actions.Where(action => action.ActionType == HandActionType.Ante)
+            .ToDictionary(action => action.SeatNo, action => action.Amount).Should().BeEquivalentTo(expected,
+                "each ante row should be what the history says that seat posted");
     }
 
     /// <summary>

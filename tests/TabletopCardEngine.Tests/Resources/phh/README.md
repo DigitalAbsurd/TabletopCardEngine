@@ -11,6 +11,7 @@ The two `pokerkit-*` files are not vendored: this project generates them with po
 | `handhq-headsup.phhs.gz` | 2 351, of which 2 145 replayable | Real online play, heads-up. Structural oracle. |
 | `handhq-fullring.phhs.gz` | 1 505, of which 1 505 replayable | Real online play, full-ring (7–10 seated). Structural oracle. |
 | `wsop-fixedlimit.phhs.gz` | 7, all replayable | Real tournament play, fixed-limit, five-handed. Exact oracle. |
+| `wsop-nolimit.phhs.gz` | 11, all replayable | Real tournament play, no-limit, five-handed, big blind ante. Exact oracle. |
 | `acpc-fixedlimit.phhs.gz` | 6 000, all replayable | Bot play, fixed-limit, heads-up and three-player. Exact oracle through `_results`. From the Zenodo edition, CC-BY-4.0. |
 | `pokerkit-potlimit.phhs.gz` | 2 000, synthetic, 739 tagged | pokerkit play, pot-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
 | `pokerkit-fixedlimit.phhs.gz` | 2 000, synthetic, 190 tagged | pokerkit play, fixed-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
@@ -38,7 +39,7 @@ of Brown & Sandholm (2019). They are uniquely well suited as an engine oracle:
   ground truth to compare against;
 - all amounts are whole chips, which matters because NPokerEngine holds amounts as `float`;
 - blinds are a plain 50/100 with no antes, matching what the engine supports
-  (`StartHandActionHandler` derives the big blind as `InitialSmallBlind * 2` and has no ante concept).
+  (`StartHandActionHandler` derives the big blind as `InitialSmallBlind * 2`).
 
 Stacks are reset to 10 000 before every hand, so each hand is replayed as its own `Game`.
 
@@ -53,7 +54,8 @@ filter has one home. Records are copied verbatim apart from the renumbered `[N]`
 The `pluribus` subset is entirely six-handed, and it is the only subset of the dataset that is both
 no-limit hold'em and an exact oracle. Heads-up needed its own corpus:
 
-- the WSOP subset's 11 no-limit hold'em hands are all five-handed with a big-blind ante;
+- the WSOP subset's 11 no-limit hold'em hands are all five-handed (they are `wsop-nolimit.phhs.gz` below, an exact
+  oracle for the big blind ante);
 - the four historical selections are pot-limit Omaha, 2-7 triple draw, short-deck and a hand with
   antes;
 - the 278 million heads-up no-limit hands of the Annual Computer Poker Competition are excluded from
@@ -129,6 +131,24 @@ Records are copied verbatim apart from the `[N]` header.
   the game as `FixedLimit` with `RaiseCap = 4` and replays `cbr X` as a raise *to* `X`. Players who folded unseen have `????` hole cards, which `PhhHandDeck` fills in.
 - **Seating:** five-handed, so it is seated as in full ring: `p1` is the small blind, `p2` the big blind and the
   last player is on the button (`InitialDealerSeatNo = PlayerCount`).
+
+## `wsop-nolimit.phhs.gz`
+
+The eleven hands with `variant = 'NT'` of the same folder, **`data/wsop/2023/43/5`**: `00-02-07`, `00-08-38`,
+`00-15-36`, `00-18-39`, `02-51-10`, `02-53-09`, `02-54-12`, `02-56-12`, `02-57-27`, `03-00-32` and `03-02-41`,
+ordered by file name and renumbered `[1]`…`[11]`, each preceded by a `# wsop/2023/43/5/<file>` comment. Records are
+copied verbatim apart from the `[N]` header. Licence MIT, like the other GitHub subsets.
+
+- **Why this subset:** it is the only real corpus of the dataset with antes that the engine models, and it is an
+  exact oracle: every hand is five-handed with `finishing_stacks` recorded and a **big blind ante**, `antes =
+  [0, A, 0, 0, 0]` with `p2` the big blind. The ante is one and a half big blinds, not one: 120 000 at blinds
+  40 000/80 000 (two hands), 150 000 at 50 000/100 000 (two hands) and 225 000 at 75 000/150 000 (seven hands).
+- **What it verifies:** everything `wsop-fixedlimit` does, in no-limit. The runner maps `antes` to
+  `GameOptionData.Ante` with `AnteType.BigBlind` (`PhhReplayRunner.AnteFor`; all entries equal would be
+  `AnteType.Classic`) and also asserts that the ledger's `Ante` rows are what each seat posted and that
+  `HandData.Ante` is the nominal ante. `03-02-41` is the hand where the big blind goes all in with its ante on top
+  of a called wager and loses: the ante is dead money in the lowest pot, not an excess returned to the big blind.
+- **Seating:** as `wsop-fixedlimit`.
 
 ## `acpc-fixedlimit.phhs.gz`
 
@@ -239,7 +259,11 @@ pwsh ./scripts/pack-phh-fullring-fixture.ps1
 pwsh ./scripts/pack-phh-wsop-fixedlimit-fixture.ps1
 pwsh ./scripts/pack-phh-acpc-fixture.ps1
 pwsh ./scripts/generate-phh-synthetic-fixture.ps1
+pwsh ./scripts/pack-phh-wsop-nolimit-fixture.ps1
 ```
+
+The seventh packs `wsop-nolimit.phhs.gz` the same way the fourth packs `wsop-fixedlimit.phhs.gz`, keeping `NT`
+instead of `FT`, and reproduces the committed file byte for byte.
 
 The sixth regenerates both `pokerkit-*` files with the pinned image, pokerkit version and seeds above, and prints the
 hand counts per seat count, the hands with an all-in and the tagged fixed-limit hands. It needs PowerShell 7 and
