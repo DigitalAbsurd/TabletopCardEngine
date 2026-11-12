@@ -48,6 +48,19 @@ internal static class HandRunner
     }
 
     /// <summary>
+    /// The seat that would post the big blind if a hand were started on <paramref name="table"/>, its dealer being the
+    /// previous hand's button: the same button move and blind placement <see cref="StartHand"/> makes, heads-up
+    /// included, and <c>0</c> when fewer than two seats have chips. Moves the button on <paramref name="table"/>, which
+    /// the caller builds for the question and throws away.
+    /// </summary>
+    internal static byte NextBigBlindSeatNo(HandTable table)
+    {
+        ShiftButton(table);
+        ExcludeShortOfMoneySeats(table);
+        return table.SmallBlindSeatNo == 0 ? (byte)0 : table.BigBlindSeatNo;
+    }
+
+    /// <summary>
     /// Applies one action for the seat currently on the clock, advances the street (or ends the
     /// hand, possibly running the board all the way out first) as needed, and reports what happened.
     /// </summary>

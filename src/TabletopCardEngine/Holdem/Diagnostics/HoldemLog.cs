@@ -81,6 +81,15 @@ internal static partial class HoldemLog
     [LoggerMessage(EventId = 1206, Level = LogLevel.Information, Message = "Tournament {TournamentId} finished: entry {EntryNo} won it with a prize of {Prize}")]
     internal static partial void TournamentFinished(this ILogger logger, Guid tournamentId, int entryNo, decimal prize);
 
+    [LoggerMessage(EventId = 1207, Level = LogLevel.Information, Message = "Entry {EntryNo} of tournament {TournamentId} moved from table {FromTableNo} to seat {SeatNo} of table {ToTableNo} with a stack of {Stack}")]
+    internal static partial void TournamentEntryMoved(this ILogger logger, int entryNo, Guid tournamentId, int fromTableNo, int toTableNo, byte seatNo, decimal stack);
+
+    [LoggerMessage(EventId = 1208, Level = LogLevel.Information, Message = "Table {TableNo} of tournament {TournamentId} broken: {MovedCount} entries moved, {TableCount} tables left")]
+    internal static partial void TournamentTableBroken(this ILogger logger, int tableNo, Guid tournamentId, int movedCount, int tableCount);
+
+    [LoggerMessage(EventId = 1209, Level = LogLevel.Warning, Message = "Entry {EntryNo} of tournament {TournamentId} found its seat {SeatNo} at table {TableNo} taken and keeps moving")]
+    internal static partial void TournamentEntrySeatTaken(this ILogger logger, int entryNo, Guid tournamentId, int tableNo, byte seatNo);
+
     [LoggerMessage(EventId = 1100, Level = LogLevel.Trace, Message = "Hand {HandNo} of game {GameId}: seat {SeatNo} was dealt {Cards}")]
     internal static partial void HoleCardsDealt(this ILogger logger, int handNo, Guid gameId, byte seatNo, IEnumerable<Card> cards);
 

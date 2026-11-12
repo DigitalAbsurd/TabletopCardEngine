@@ -240,6 +240,15 @@ internal sealed class HoldemTournament : IHoldemTournament
             }
         }
 
+        // A reserved seat found taken is a Warning, so it is checked before the Information gate below.
+        if (_logger.IsEnabled(LogLevel.Warning))
+        {
+            foreach (var entry in dealOutcome.SeatTaken)
+            {
+                _logger.TournamentEntrySeatTaken(entry.EntryNo, tournament.Id, entry.TableNo!.Value, entry.SeatNo!.Value);
+            }
+        }
+
         if (!_logger.IsEnabled(LogLevel.Information))
         {
             return;
@@ -263,6 +272,16 @@ internal sealed class HoldemTournament : IHoldemTournament
                 foreach (var entry in dealOutcome.Eliminated)
                 {
                     _logger.TournamentEntryEliminated(entry.EntryNo, tournament.Id, entry.Place!.Value, entry.Prize, entry.EliminatedAtTableNo!.Value, entry.EliminatedInHandNo!.Value);
+                }
+
+                foreach (var move in dealOutcome.Moved)
+                {
+                    _logger.TournamentEntryMoved(move.EntryNo, tournament.Id, move.FromTableNo, move.ToTableNo, move.SeatNo, move.Stack);
+                }
+
+                if (dealOutcome.BrokenTableNo is { } brokenTableNo)
+                {
+                    _logger.TournamentTableBroken(brokenTableNo, tournament.Id, dealOutcome.Moved.Count, tournament.Tables.Count(table => !table.IsBroken));
                 }
 
                 if (dealOutcome.Winner is { } winner)
