@@ -35,31 +35,31 @@ public sealed class AllInBlindActionOrderTests
     [TestMethod]
     [DataRow(BettingStructure.NoLimit)]
     [DataRow(BettingStructure.FixedLimit)]
-    public async Task PreFlop_SeatBelowTheBigBlindAtTheBigBlind_IsSatOutAndTheBlindPassesOn(BettingStructure structure)
+    public async Task PreFlop_SeatBelowTheBigBlindAtTheBigBlind_PostsWhatItHasAndIsAllIn(BettingStructure structure)
     {
-        // With three or more funded seats a stack that cannot cover the blind is sat out rather than
-        // posted short (only heads-up does that, see HeadsUpTests), so seat 4 is the big blind here.
+        // The blinds go by position: seat 3 is the big blind whatever its stack, posts its 60 and is all in. The
+        // standing wager is the 60 it posted, so the others call 60 and the small blind completes to it.
         var (first, order, street, next, last) = await PlayAsync(structure, [Deep, Deep, 60M, Deep, Deep, Deep], callers: 5);
 
-        first.Should().Be(5);
-        order.Should().Equal(5, 6, 1, 2, 4);
+        first.Should().Be(4);
+        order.Should().Equal(4, 5, 6, 1, 2);
         street.Should().Be(Street.Flop);
         next.Should().Be(2);
-        AssertSatOut(last, seatNo: 3, startStack: 60M);
+        AssertPostedShort(last, seatNo: 3, HandActionType.BigBlind, posted: 60M, pot: 6 * 60M);
     }
 
     [TestMethod]
     [DataRow(BettingStructure.NoLimit)]
     [DataRow(BettingStructure.FixedLimit)]
-    public async Task PreFlop_SeatBelowTheSmallBlindBeforeTheSmallBlind_IsSatOutAndTheBlindsPassOn(BettingStructure structure)
+    public async Task PreFlop_SeatBelowTheSmallBlindAtTheSmallBlind_PostsWhatItHasAndIsAllIn(BettingStructure structure)
     {
         var (first, order, street, next, last) = await PlayAsync(structure, [Deep, 30M, Deep, Deep, Deep, Deep], callers: 5);
 
-        first.Should().Be(5);
-        order.Should().Equal(5, 6, 1, 3, 4);
+        first.Should().Be(4);
+        order.Should().Equal(4, 5, 6, 1, 3);
         street.Should().Be(Street.Flop);
         next.Should().Be(3);
-        AssertSatOut(last, seatNo: 2, startStack: 30M);
+        AssertPostedShort(last, seatNo: 2, HandActionType.SmallBlind, posted: 30M, pot: 30M + (5 * SmallBlind * 2));
     }
 
     [TestMethod]
@@ -88,15 +88,15 @@ public sealed class AllInBlindActionOrderTests
         next.Should().Be(4);
     }
 
-    // A seat sat out at the deal gets no hole cards, never acts and puts nothing into the pot.
-    private static void AssertSatOut(HandData last, byte seatNo, decimal startStack)
+    // A blind too short for its post is dealt in, posts its whole stack as the blind and takes no other action.
+    private static void AssertPostedShort(HandData last, byte seatNo, HandActionType blind, decimal posted, decimal pot)
     {
         var seat = last.Seats.Single(seat => seat.SeatNo == seatNo);
-        seat.Hole.Should().BeNull();
-        seat.Stack.Should().Be(startStack);
-        seat.IsActive.Should().BeFalse();
-        last.Actions.Should().NotContain(action => action.SeatNo == seatNo);
-        last.Pot.Should().Be(500M);
+        seat.Hole.Should().NotBeNull();
+        seat.Stack.Should().Be(0M);
+        last.Actions.Where(action => action.SeatNo == seatNo).Select(action => (action.ActionType, action.Amount))
+            .Should().Equal((blind, posted));
+        last.Pot.Should().Be(pot);
     }
 
     /// <summary>
