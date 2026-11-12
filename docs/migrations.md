@@ -138,9 +138,10 @@ A client that hard-coded the old minimum must read the raise window from `HandDa
 
 ### 1.3 to 1.4
 
-Version 1.4 applies one migration, `AddAntes`, and `MigrateAsync` applies it by itself. No data is lost and no manual steps are required.
+Version 1.4 applies two migrations, `AddAntes` and `AddTournaments`, and `MigrateAsync` applies them by itself. No data is lost and no manual steps are required.
 
 - **`AddAntes`** adds the antes. `Game` gets `Ante` (`NULL` for every game that exists, which is no ante) and `AnteType` (`Classic`), and `Hand` gets `Ante`. The schema version is incremented from 5 to 6, and the engine version is updated to `1.4.0`.
+- **`AddTournaments`** adds the three tables a tournament keeps its state in: `Tournament`, `TournamentEntry` and `TournamentTable`. No existing table changes. The schema version is incremented from 6 to 7.
 
 When you upgrade from 1.3 to 1.4, follow the same four steps as above: back up, stop every 1.3 instance, deploy 1.4, migrate.
 

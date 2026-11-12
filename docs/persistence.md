@@ -66,6 +66,7 @@ Hold'em has a database schema of its own, `tce_holdem`, so that another game's `
 
 - On PostgreSQL and SQL Server, every Hold'em table is in the schema `tce_holdem`: `tce_holdem.Game`, `tce_holdem.Hand`, and so on.
 - SQLite has no schemas, so every Hold'em table name starts with `tce_holdem_` instead: `tce_holdem_Game`, `tce_holdem_Hand`, ..., `tce_holdem___TceSchema`. `HoldemDbContext.OnModelCreating` adds the prefix to every entity when the provider is SQLite.
+- Schema 7 adds the tournament tables `Tournament`, `TournamentEntry` and `TournamentTable` (`tce_holdem.Tournament` and so on, or `tce_holdem_Tournament` on SQLite). They are internal: a tournament runs ordinary games, and the only link from a game to its tournament is `TournamentTable.GameId`, a unique foreign key that does not cascade, so `Game`, `Hand` and `Player` are unchanged ([ADR-0011](adr/0011-tournaments-orchestrate-holdem-games.md)).
 - InMemory has neither, and its store is never shared with another game's.
 
 The migration history is the table `__TceMigrationsHistory`, not EF's default `__EFMigrationsHistory`, so it never collides with a host's own EF context running over the same database. It is `tce_holdem.__TceMigrationsHistory` on PostgreSQL and SQL Server, and `tce_holdem___TceMigrationsHistory` on SQLite. On SQLite, EF Core also creates its migration lock table, `__EFMigrationsLock`, which EF names and every EF context migrating the file shares.

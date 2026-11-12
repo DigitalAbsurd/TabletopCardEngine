@@ -362,8 +362,144 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                         {
                             Id = 1,
                             EngineVersion = "1.4.0",
-                            SchemaVersion = 6
+                            SchemaVersion = 7
                         });
+                });
+
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Tournament", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnteType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("BettingStructure")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<decimal>("BuyIn")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTimeOffset?>("FinishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Levels")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int?>("MaxEntries")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxPlayersPerTable")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinEntries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Payouts")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int?>("RaiseCap")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SeatDrawSeed")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("StartedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("StartingStack")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte>("State")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("TableFormat")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tournament", "tce_holdem");
+                });
+
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.TournamentEntry", b =>
+                {
+                    b.Property<Guid>("TournamentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("EntryNo")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CarriedStack")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("EliminatedAtTableNo")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EliminatedInHandNo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("Place")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Prize")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<byte?>("SeatNo")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("TableNo")
+                        .HasColumnType("int");
+
+                    b.HasKey("TournamentId", "EntryNo");
+
+                    b.ToTable("TournamentEntry", "tce_holdem");
+                });
+
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.TournamentTable", b =>
+                {
+                    b.Property<Guid>("TournamentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TableNo")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GameId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsBroken")
+                        .HasColumnType("bit");
+
+                    b.HasKey("TournamentId", "TableNo");
+
+                    b.HasIndex("GameId")
+                        .IsUnique();
+
+                    b.ToTable("TournamentTable", "tce_holdem");
                 });
 
             modelBuilder.Entity("TabletopCardEngine.Holdem.Data.BuyIn", b =>
@@ -462,6 +598,34 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                     b.Navigation("Game");
                 });
 
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.TournamentEntry", b =>
+                {
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Tournament", "Tournament")
+                        .WithMany("Entries")
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tournament");
+                });
+
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.TournamentTable", b =>
+                {
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Game", null)
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TabletopCardEngine.Holdem.Data.Tournament", "Tournament")
+                        .WithMany("Tables")
+                        .HasForeignKey("TournamentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tournament");
+                });
+
             modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Game", b =>
                 {
                     b.Navigation("BuyIns");
@@ -482,6 +646,13 @@ namespace TabletopCardEngine.SqlServer.Migrations.Holdem
                     b.Navigation("PlayerEndStates");
 
                     b.Navigation("PlayerStartStates");
+                });
+
+            modelBuilder.Entity("TabletopCardEngine.Holdem.Data.Tournament", b =>
+                {
+                    b.Navigation("Entries");
+
+                    b.Navigation("Tables");
                 });
 #pragma warning restore 612, 618
         }
