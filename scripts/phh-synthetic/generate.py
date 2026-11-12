@@ -1,10 +1,16 @@
-"""Generates a synthetic pot-limit or fixed-limit Texas hold'em PHH corpus with pokerkit.
+"""Generates a synthetic no-limit, pot-limit or fixed-limit Texas hold'em PHH corpus with pokerkit.
 
 pokerkit (MIT) is an independent implementation of the rules, so the hands it plays are an oracle
 for this engine where no real data exists: PHH has no code for pot-limit hold'em at all, and the
 real fixed-limit corpora never go all in. The State is built from Streets for both structures,
 never from pokerkit's predefined FixedLimitTexasHoldem, whose pre-flop cap is one raise more than
 this engine allows.
+
+--antes classic|big-blind adds an ante drawn per hand from a few ratios to the big blind. A classic
+ante is posted by every seat (ante_trimming_status true, the uniform case); a big blind ante by the
+big blind's seat alone (ante_trimming_status false, which pokerkit documents for non-uniform antes).
+The default, none, writes the zeros it always wrote and draws nothing extra, so a corpus generated
+before the option existed regenerates byte for byte.
 
 Standard library plus pokerkit 0.7.7. A single random.Random(seed) drives every draw, so a given
 seed gives byte-identical output. Run it through scripts/generate-phh-synthetic-fixture.ps1, which
@@ -40,6 +46,13 @@ MAX_SEATS = 10
 DEEP = (100, 300)
 MEDIUM = (20, 60)
 SHORT = (1, 10)
+
+# Ratios of the ante to the big blind; every one is a whole number of chips at a big blind of 100.
+ANTE_RATIOS = (0.1, 0.25, 0.5, 1, 1.5)
+# The chance that one seat gets a stack below one ante plus one big blind, on purpose.
+SHORT_OF_ANTE_CHANCE = 0.2
+
+BIG_BLIND_ANTE_TAG = 'big blind ante posted before the blind'
 
 FOLD_WEIGHT = 0.15
 CHECK_OR_CALL_WEIGHT = 0.5
@@ -77,10 +90,23 @@ def build_streets(structure):
         for index in range(4))
 
 
-def create_state(structure, blinds, stacks):
-    betting = BettingStructure.FIXED_LIMIT if structure == 'fixed-limit' else BettingStructure.POT_LIMIT
-    return State(AUTOMATIONS, Deck.STANDARD, (StandardHighHand,), build_streets(structure), betting,
-                 True, (0,) * len(stacks), blinds, 0, stacks, len(stacks))
+BETTING_STRUCTURES = {
+    'no-limit': BettingStructure.NO_LIMIT,
+    'pot-limit': BettingStructure.POT_LIMIT,
+    'fixed-limit': BettingStructure.FIXED_LIMIT,
+}
+VARIANTS = {'no-limit': 'NT', 'pot-limit': 'PT', 'fixed-limit': 'FT'}
+
+
+def big_blind_index(seat_count):
+    """The player pokerkit makes the big blind: index 1, or 0 heads-up, where pokerkit reverses the
+    blinds the way the PHH histories do (the last player posts the small blind)."""
+    return 0 if seat_count == 2 else 1
+
+
+def create_state(structure, blinds, stacks, antes, trimming):
+    return State(AUTOMATIONS, Deck.STANDARD, (StandardHighHand,), build_streets(structure),
+                 BETTING_STRUCTURES[structure], trimming, antes, blinds, 0, stacks, len(stacks))
 
 
 def draw_stacks(rng, seat_count):
@@ -99,16 +125,45 @@ def card_text(card):
     return f'{card.rank.value}{card.suit.value}'
 
 
-def play_hand(rng, structure, seat_count):
+def draw_antes(rng, seat_count, stacks, ante_type):
+    """Draws the hand's ante and returns the per-seat antes as passed to pokerkit. One seat in
+    five gets a stack below one ante plus one big blind (the big blind's seat in half of those),
+    so a seat all in on its ante and a big blind short of both its blind and its ante happen."""
+    ante = round(rng.choice(ANTE_RATIOS) * BIG_BLIND)
+    bb = big_blind_index(seat_count)
+    if rng.random() < SHORT_OF_ANTE_CHANCE:
+        seat = bb if ante_type == 'big-blind' and rng.random() < 0.5 else rng.randrange(seat_count)
+        stacks[seat] = rng.randint(1, ante + BIG_BLIND - 1)
+    if ante_type == 'classic':
+        return [ante] * seat_count
+    # pokerkit indexes antes like blinds_or_straddles, the big blind's entry being the second one
+    # even heads-up, where it pays for player 0 (State.get_effective_ante reverses the two).
+    antes = [0] * seat_count
+    antes[1] = ante
+    return antes
+
+
+def play_hand(rng, structure, seat_count, ante_type='none'):
     """Plays one hand and returns its fields plus what the summary counts."""
     stacks = draw_stacks(rng, seat_count)
+    antes = [0] * seat_count if ante_type == 'none' else draw_antes(rng, seat_count, stacks, ante_type)
     blinds = (SMALL_BLIND, BIG_BLIND) + (0,) * (seat_count - 2)
     deck = [rank + suit for rank in RANKS for suit in SUITS]
     rng.shuffle(deck)
 
-    state = create_state(structure, blinds, stacks)
+    state = create_state(structure, blinds, stacks, antes, ante_type != 'big-blind')
     actions = []
     all_in = False
+    side_pot = False
+
+    # Seats all in on the ante they posted, and whether the big blind was short of its blind plus
+    # its ante: pokerkit collects antes before blinds, ADR-0011 posts the big blind first.
+    ante_all_in = sum(1 for seat in range(seat_count) if antes[seat] and state.stacks[seat] == 0)
+    bb_ante = antes[1] if ante_type == 'big-blind' else 0
+    ante_order = bb_ante > 0 and stacks[big_blind_index(seat_count)] < bb_ante + BIG_BLIND
+    # A classic ante that empties a seat: the engine then picks the blind seats among the seats that
+    # can still post, where pokerkit keeps them. Counted, not tagged: see the pull request.
+    classic_empties_seat = ante_type == 'classic' and any(stack <= antes[0] for stack in stacks)
 
     # Per-street bookkeeping for the divergence tags. The tagging only observes the hand.
     street_index = None
@@ -183,6 +238,8 @@ def play_hand(rng, structure, seat_count):
             cards = ''.join(card_text(card) for card in shown.hole_cards)
             actions.append(f'p{shown.player_index + 1} sm {cards}')
         elif state.can_push_chips():
+            if len([pot for pot in state.pots if pot.amount]) > 1:
+                side_pot = True
             amounts = [amount for amount in state.push_chips().amounts if amount]
             if len(set(amounts)) > 1:
                 odd_chip = True
@@ -199,12 +256,17 @@ def play_hand(rng, structure, seat_count):
         raise RuntimeError(f'Chips not conserved: {stacks} -> {finishing}')
     return {
         'blinds': list(blinds),
+        'antes': antes,
         'starting_stacks': stacks,
         'actions': actions,
         'finishing_stacks': finishing,
         'all_in': all_in or any(stack == 0 for stack in finishing),
         'incomplete_all_in': divergent,
         'odd_chip': odd_chip,
+        'ante_all_in': ante_all_in,
+        'side_pot': side_pot,
+        'ante_order': ante_order,
+        'classic_empties_seat': classic_empties_seat,
     }
 
 
@@ -212,12 +274,11 @@ def toml_list(values):
     return '[' + ', '.join(f"'{value}'" if isinstance(value, str) else str(value) for value in values) + ']'
 
 
-def hand_toml(structure, seed, number, hand):
-    seat_count = len(hand['starting_stacks'])
+def hand_toml(structure, seed, number, hand, ante_type='none'):
     lines = [
-        f"variant = '{'FT' if structure == 'fixed-limit' else 'PT'}'",
-        'ante_trimming_status = true',
-        f'antes = {toml_list([0] * seat_count)}',
+        f"variant = '{VARIANTS[structure]}'",
+        f"ante_trimming_status = {'false' if ante_type == 'big-blind' else 'true'}",
+        f"antes = {toml_list(hand['antes'])}",
         f"blinds_or_straddles = {toml_list(hand['blinds'])}",
     ]
     if structure == 'fixed-limit':
@@ -232,7 +293,9 @@ def hand_toml(structure, seed, number, hand):
         f"_generator = '{GENERATOR}'",
         f'_seed = {seed}',
     ]
-    tags = [tag for tag, applies in (('incomplete-all-in', hand['incomplete_all_in']), ('odd-chip', hand['odd_chip'])) if applies]
+    tags = [tag for tag, applies in (('incomplete-all-in', hand['incomplete_all_in']),
+                                     ('odd-chip', hand['odd_chip']),
+                                     (BIG_BLIND_ANTE_TAG, hand['ante_order'])) if applies]
     if tags:
         lines.append(f"_tce_divergence = '{', '.join(tags)}'")
     return '\n'.join(lines) + '\n'
@@ -251,10 +314,14 @@ def verify_with_pokerkit(texts, expected):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument('--structure', choices=('pot-limit', 'fixed-limit'), required=True)
+    parser.add_argument('--structure', choices=tuple(BETTING_STRUCTURES), required=True)
+    parser.add_argument('--antes', choices=('none', 'classic', 'big-blind'), default='none')
     parser.add_argument('--hands', type=int, default=2000)
     parser.add_argument('--seed', type=int, required=True)
     parser.add_argument('--out', required=True)
+    parser.add_argument('--first-number', type=int, default=1,
+                        help='the number of the first hand, so that two runs can be concatenated')
+    parser.add_argument('--append', action='store_true', help='append to --out instead of writing it')
     args = parser.parse_args()
 
     installed = importlib.metadata.version('pokerkit')
@@ -267,39 +334,63 @@ def main():
     incomplete_hands = 0
     odd_chip_hands = 0
     both_hands = 0
+    ante_all_in_hands = 0
+    side_pot_hands = 0
+    ante_order_hands = 0
+    classic_empties_hands = 0
     texts = []
     finishings = []
     for index in range(args.hands):
         seat_count = MIN_SEATS + index % (MAX_SEATS - MIN_SEATS + 1)
-        hand = play_hand(rng, args.structure, seat_count)
+        hand = play_hand(rng, args.structure, seat_count, args.antes)
         seat_counts[seat_count] += 1
         all_in_hands += hand['all_in']
         incomplete_hands += hand['incomplete_all_in']
         odd_chip_hands += hand['odd_chip']
         both_hands += hand['incomplete_all_in'] and hand['odd_chip']
-        texts.append(hand_toml(args.structure, args.seed, index + 1, hand))
+        ante_all_in_hands += hand['ante_all_in'] > 0
+        side_pot_hands += hand['side_pot']
+        ante_order_hands += hand['ante_order']
+        classic_empties_hands += hand['classic_empties_seat']
+        texts.append(hand_toml(args.structure, args.seed, args.first_number + index, hand, args.antes))
         finishings.append(hand['finishing_stacks'])
 
-    if args.structure == 'fixed-limit':
-        step = max(1, args.hands // 200)
+    # pokerkit's reader does not know the made-up PT code; every other structure is loaded back.
+    if args.structure != 'pot-limit':
+        step = 1 if args.antes != 'none' else max(1, args.hands // 200)
         verify_with_pokerkit(texts[::step], finishings[::step])
-        print(f'pokerkit replayed {len(texts[::step])} sampled hands to the same finishing stacks')
+        print(f'pokerkit replayed {len(texts[::step])} written hands to the same finishing stacks')
 
-    variant = 'fixed-limit (FT)' if args.structure == 'fixed-limit' else "pot-limit (non-standard 'PT')"
-    with open(args.out, 'w', encoding='utf-8', newline='\n') as output:
-        output.write(f'# Synthetic {variant} Texas hold\'em hands, generated with {GENERATOR}, seed {args.seed}.\n')
-        output.write('# Generated by scripts/phh-synthetic/generate.py through '
-                     'scripts/generate-phh-synthetic-fixture.ps1 - do not edit by hand.\n')
+    variants = {
+        'no-limit': 'no-limit (NT)',
+        'pot-limit': "pot-limit (non-standard 'PT')",
+        'fixed-limit': 'fixed-limit (FT)',
+    }
+    ante_text = '' if args.antes == 'none' else f' with {args.antes} antes'
+    with open(args.out, 'a' if args.append else 'w', encoding='utf-8', newline='\n') as output:
+        if not args.append:
+            output.write(f"# Synthetic {variants[args.structure]} Texas hold'em hands, generated with {GENERATOR}, "
+                         f'seed {args.seed}.\n')
+            output.write('# Generated by scripts/phh-synthetic/generate.py through '
+                         'scripts/generate-phh-synthetic-fixture.ps1 - do not edit by hand.\n')
+        elif args.antes != 'none':
+            output.write(f'\n# Hands {args.first_number} to {args.first_number + args.hands - 1}: '
+                         f'{args.antes} antes, seed {args.seed}.\n')
         for index, text in enumerate(texts):
-            output.write(f'\n[{index + 1}]\n{text}')
+            output.write(f'\n[{args.first_number + index}]\n{text}')
 
-    print(f'{args.structure}: {args.hands} hands, seed {args.seed}')
+    print(f'{args.structure}{ante_text}: {args.hands} hands, seed {args.seed}')
     for seat_count in range(MIN_SEATS, MAX_SEATS + 1):
         print(f'  {seat_count:2} seats: {seat_counts[seat_count]} hands')
     print(f'  hands with an all-in: {all_in_hands}')
     print(f"  hands tagged 'incomplete-all-in': {incomplete_hands}")
     print(f"  hands tagged 'odd-chip': {odd_chip_hands}")
     print(f"  hands tagged with both: {both_hands}")
+    if args.antes != 'none':
+        print(f'  hands with a seat all in on its ante: {ante_all_in_hands}')
+        print(f'  hands with a side pot: {side_pot_hands}')
+        print(f"  hands tagged '{BIG_BLIND_ANTE_TAG}': {ante_order_hands}")
+        print(f'  hands where a classic ante empties a seat before the blinds (not tagged): {classic_empties_hands}')
     return 0
 
 

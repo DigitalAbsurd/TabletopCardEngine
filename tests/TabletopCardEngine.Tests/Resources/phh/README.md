@@ -3,7 +3,7 @@
 Vendored corpora, all but the last from the [PHH dataset](https://github.com/uoftcprg/phh-dataset) at commit
 `e47fbd5816372360bade4de5d712346fe1bb70f6` (MIT — see
 [LICENSE-phh-dataset.txt](LICENSE-phh-dataset.txt)); `acpc-fixedlimit.phhs.gz` is from the Zenodo edition, under CC-BY-4.0.
-The two `pokerkit-*` files are not vendored: this project generates them with pokerkit (see below).
+The three `pokerkit-*` files are not vendored: this project generates them with pokerkit (see below).
 
 | File | Hands | What it is |
 | --- | --- | --- |
@@ -15,6 +15,7 @@ The two `pokerkit-*` files are not vendored: this project generates them with po
 | `acpc-fixedlimit.phhs.gz` | 6 000, all replayable | Bot play, fixed-limit, heads-up and three-player. Exact oracle through `_results`. From the Zenodo edition, CC-BY-4.0. |
 | `pokerkit-potlimit.phhs.gz` | 2 000, synthetic, 739 tagged | pokerkit play, pot-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
 | `pokerkit-fixedlimit.phhs.gz` | 2 000, synthetic, 190 tagged | pokerkit play, fixed-limit, 2 to 10 seats, all-ins and side pots. Exact oracle outside the tagged hands. |
+| `pokerkit-antes.phhs.gz` | 2 000, synthetic, 845 tagged | pokerkit play, no-limit, 2 to 10 seats, classic antes (1 000 hands) and big blind antes (1 000 hands), all-ins on the ante and side pots. Exact oracle outside the tagged hands. |
 
 ## `pluribus.phhs.gz`
 
@@ -240,6 +241,60 @@ The replays skip every hand that carries `_tce_divergence` through `PhhReplayRun
 
 pokerkit is a tool that was run to produce these files; it is not redistributed, and no part of it is in the
 repository. The generated hands are this project's own work, so `THIRD-PARTY-NOTICES.md` has no row for them.
+
+## `pokerkit-antes.phhs.gz`
+
+2 000 synthetic no-limit hands (`variant = 'NT'`) with antes, played by pokerkit 0.7.7 through the same
+`scripts/phh-synthetic/generate.py` as the two corpora above (same image, same stack bands, same action policy, raises a
+uniform whole-chip size inside pokerkit's window). The real ante oracle (`wsop-nolimit.phhs.gz`) is eleven five-handed
+hands with a big blind ante and deep stacks; nothing real has classic antes, a seat all in on its ante, a big blind
+short of its ante, or side pots built from antes at 2 to 10 seats.
+
+- **Two runs, concatenated:** hands 1 to 1 000 are `--antes classic` with seed **659** (every seat posts the ante,
+  `ante_trimming_status = true`), hands 1 001 to 2 000 are `--antes big-blind` with seed **660** (the big blind's player
+  alone posts it, `ante_trimming_status = false`, which pokerkit documents for non-uniform antes). The second run
+  uses `--first-number 1001 --append`, so the file is numbered `[1]` to `[2000]` and every hand keeps the `_generator` and
+  `_seed` of its own run. Seat counts run 2 to 10 in turn in each half. `--antes` defaults to `none`, which writes the
+  zeros and draws nothing extra, so the pot-limit and fixed-limit files above regenerate byte for byte.
+- **The ante:** drawn per hand as a ratio of the big blind (100): 0.1, 0.25, 0.5, 1 or 1.5, that is 10, 25, 50, 100 or
+  150 chips. In one hand in five a seat (in the big blind ante half, the big blind's player in half of those) gets a stack
+  drawn from 1 to one ante plus one big blind minus one, so a seat is put all in by its ante, or the big blind falls
+  short of its blind plus its ante. `antes` is written as passed to pokerkit.
+- **Heads-up `antes` are pokerkit's order, not the seating order.** pokerkit indexes `antes` like
+  `blinds_or_straddles` and reverses the two entries heads-up (`State.get_effective_ante`), so the big blind's ante,
+  paid by `p1`, is written `antes = [0, a]`: the second entry in every table size. Read by seating order, as the
+  specification has it, that ante looks like it belongs to `p2`, the button.
+- **How it is checked:** the generator checks chip conservation for every hand and loads every written hand back with
+  `pokerkit.HandHistory.loads`, replaying it to the same finishing stacks.
+- **Commands** (the image and pokerkit version of the section above, from the repository root; `$OUT` is a writable folder):
+
+```
+python /gen/generate.py --structure no-limit --antes classic --hands 1000 --seed 659 --out /out/pokerkit-antes.phhs
+python /gen/generate.py --structure no-limit --antes big-blind --hands 1000 --seed 660 --first-number 1001 --append --out /out/pokerkit-antes.phhs
+```
+
+The result is then gzipped like the other files (`System.IO.Compression.GZipStream`, optimal).
+
+### Where pokerkit and this engine differ
+
+- **A big blind short of its blind plus its ante.** pokerkit collects the antes before the blinds, so a big blind with
+  `S < ante + big blind` posts the ante first and the blind from what is left; ADR-0011 posts the big blind first and the
+  ante from what is left. The two split the same chips differently (stack 150, ante 100: pokerkit posts a 100 ante and
+  a 50 blind, the engine a 100 blind and a 50 ante), which changes what the others must call. A hand of the big blind
+  half where the big blind's stack is below the ante plus 100 carries
+  `_tce_divergence = 'big blind ante posted before the blind'`.
+- **Incomplete all-in raises and odd chips** are the two reasons of the pokerkit corpora above and are tagged the same
+  way, with the same names, joined by a comma when a hand has several.
+- **Counts.** 845 of the 2 000 hands are tagged: 382 of the classic half and 463 of the big blind half. By reason, 716
+  carry `incomplete-all-in` (364 and 352), 72 carry `odd-chip` (36 and 36) and 131 carry
+  `big blind ante posted before the blind` (90 of them with no other reason). 238 hands have a seat all in on the ante it
+  posted (124 classic, 114 big blind) and 931 have a side pot (472 and 459).
+- **Not tagged, left for the replay to decide.** In 79 hands of the classic half a seat's stack is no more than the ante,
+  so the ante empties it before the blinds. Fact 32 of `docs/task-run.md` has the engine then pick the blind seats among
+  the seats that can still post, where pokerkit keeps its blind seats and posts a blind of 0 for the empty one. That may
+  change who acts first, and the generator does not tag it: it counts the hands in its summary instead.
+
+The replays skip every hand that carries `_tce_divergence` through `PhhReplayRunner.IsSupported`.
 
 ## Format
 
