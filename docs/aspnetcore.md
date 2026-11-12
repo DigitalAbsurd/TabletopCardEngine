@@ -256,6 +256,30 @@ A `gameId` that is not a GUID does not match the route and answers 404.
 
 The options are the engine's `GameOptionData`, so a value the engine rejects (`minBuyIn` above `maxBuyIn`, a `Levels` schedule with no levels) answers 422 `InvalidGameOptions`. Enums such as `mode` and `bettingStructure` are strings (`"Multiplier"`, `"Levels"`, `"PotLimit"`); a number answers 400.
 
+`POST /games` with a classic ante; every seat dealt into the hand posts 1 before the blinds:
+
+```json
+{
+  "options": {
+    "ante": 1,
+    "anteType": "Classic"
+  }
+}
+```
+
+`POST /games` with a big blind ante; only the big blind seat posts it, 2, right after its blind:
+
+```json
+{
+  "options": {
+    "ante": 2,
+    "anteType": "BigBlind"
+  }
+}
+```
+
+`ante` is `null` (no ante) by default, a positive amount with at most two decimals otherwise, and `0` answers 422 `InvalidGameOptions`. `anteType` is `Classic` (the default) or `BigBlind`, a string like the other enums; a number answers 400. Once a hand is dealt, `handData.ante` holds the hand's ante and the ante posts are `"Ante"` rows at the start of `handData.actions`, one per seat that posted, before the blinds for `Classic` and right after the big blind for `BigBlind`. An ante is dead money: it is in `handData.pot` from the deal but never in a street wager.
+
 `POST /games/{gameId}/start` joins players to a game:
 
 ```json
@@ -325,7 +349,7 @@ or
 The engine's enums and `Card` values have type-specific JSON converters registered in the host's
 `Microsoft.AspNetCore.Http.Json.JsonOptions`, so no other type of the host is affected.
 
-**Enum serialization.** Engine enums (`GameType`, `BettingStructure`, `BlindIncreaseMode`, `CardType`, `CardSuit`,
+**Enum serialization.** Engine enums (`AnteType`, `GameType`, `BettingStructure`, `BlindIncreaseMode`, `CardType`, `CardSuit`,
 `HandActionType`, `HandRankType`, `PlayerActionType`, `Street`) are serialized by name — e.g.
 `"Holdem"`, `"NoLimit"`, `"Raise"` — not as numbers. Numbers are rejected on input, so an
 undefined value cannot slip in as a number.

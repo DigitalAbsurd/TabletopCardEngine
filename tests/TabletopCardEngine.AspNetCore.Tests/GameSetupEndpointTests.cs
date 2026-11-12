@@ -281,6 +281,91 @@ public sealed class GameSetupEndpointTests
         echoed.GetProperty("raiseCap").GetInt32().Should().Be(4);
     }
 
+    private static async Task<JsonElement> CreateAndStartThreeHandedAsync(TestApiHost host, string options)
+    {
+        var gameId = Guid.NewGuid();
+        var created = await PostGameAsync(host, $"{{\"gameId\":\"{gameId}\",\"options\":{options}}}");
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        using var start = new HttpRequestMessage(HttpMethod.Post, $"/api/holdem/games/{gameId}/start");
+        start.Content = new StringContent(
+            "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":100},{\"name\":\"b\",\"seatNo\":2,\"buyInAmount\":100},{\"name\":\"c\",\"seatNo\":3,\"buyInAmount\":100}]}",
+            Encoding.UTF8,
+            "application/json");
+        var started = await host.Client.SendAsync(start);
+        started.StatusCode.Should().Be(HttpStatusCode.OK);
+        return (await ReadJsonAsync(started)).GetProperty("handData");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_ClassicAnte_EchoesTheOptionsAndPostsOneAntePerSeat()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"ante\":1,\"anteType\":\"Classic\",\"maxPlayersCount\":3}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var echoed = (await ReadJsonAsync(response)).GetProperty("options");
+        echoed.GetProperty("ante").GetDecimal().Should().Be(1);
+        echoed.GetProperty("anteType").GetString().Should().Be("Classic");
+
+        var hand = await CreateAndStartThreeHandedAsync(host, "{\"ante\":1,\"anteType\":\"Classic\",\"maxPlayersCount\":3}");
+        hand.GetProperty("ante").GetDecimal().Should().Be(1);
+        var actions = hand.GetProperty("actions").EnumerateArray().ToList();
+        actions.Take(3).Select(a => a.GetProperty("actionType").GetString()).Should().Equal("Ante", "Ante", "Ante");
+        actions.Take(3).Select(a => (int)a.GetProperty("seatNo").GetByte()).Should().Equal(1, 2, 3);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_BigBlindAnte_PostsOneAnteOnTheBigBlindSeat()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"ante\":2,\"anteType\":\"BigBlind\"}}");
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var hand = await CreateAndStartThreeHandedAsync(host, "{\"ante\":2,\"anteType\":\"BigBlind\"}");
+
+        hand.GetProperty("ante").GetDecimal().Should().Be(2);
+        var antes = hand.GetProperty("actions").EnumerateArray().Where(a => a.GetProperty("actionType").GetString() == "Ante").ToList();
+        antes.Should().ContainSingle();
+        antes[0].GetProperty("seatNo").GetByte().Should().Be(hand.GetProperty("bigBlindSeatNo").GetByte());
+    }
+
+    [TestMethod]
+    public async Task CreateGame_AnteZero_Returns422()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"ante\":0}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.UnprocessableContent);
+        (await ReadJsonAsync(response)).GetProperty("code").GetString().Should().Be("InvalidGameOptions");
+    }
+
+    [TestMethod]
+    public async Task CreateGame_AnteTypeAsNumber_Returns400()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"anteType\":2}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateGame_WithoutAnte_EchoesNullAnteAndClassicType()
+    {
+        await using var host = await TestApiHost.StartAsync();
+
+        var response = await PostGameAsync(host, "{\"options\":{\"maxPlayersCount\":4}}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var echoed = (await ReadJsonAsync(response)).GetProperty("options");
+        echoed.GetProperty("ante").ValueKind.Should().Be(JsonValueKind.Null);
+        echoed.GetProperty("anteType").GetString().Should().Be("Classic");
+    }
+
     [TestMethod]
     public async Task CreateGame_MalformedJson_Returns400()
     {
