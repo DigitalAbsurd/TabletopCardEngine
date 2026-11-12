@@ -30,6 +30,10 @@ Measured on `main` at `c97e6ba`: there is no tournament code, `HandActionType` h
   pots), never towards its street wager.
 - A classic ante is posted before the blinds. A big blind ante is posted after the big blind, from
   what is left: the big blind takes priority, as in the TDA rules.
+- The button and the blinds go by position, settled before any ante is collected: a blind seat its
+  classic ante empties keeps its place and posts a blind of nothing, and a seat too short for its
+  blind posts what it has. Tournament short stacks make this the common case, and the synthetic
+  ante corpus (`pokerkit-antes.phhs.gz`) is the oracle for it (#744).
 - Under a blind schedule the ante keeps its ratio to the small blind:
   `round(Ante × SmallBlind / InitialSmallBlind, 2)`.
 

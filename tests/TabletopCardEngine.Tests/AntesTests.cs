@@ -123,18 +123,19 @@ public sealed class AntesTests
 
         var hand = (await session.StartAsync()).HandData!;
 
-        // Seat 1 would have posted the small blind; all in on its ante, it posts none, and the blinds move on.
+        // The blinds go by position, settled before the antes: seat 1 is the small blind, all in on its ante, and
+        // posts a blind of nothing; seat 2 is the big blind and seat 3 opens.
         Seat(hand, 1).Stack.Should().Be(0M);
         Seat(hand, 1).Hole.Should().Equal(_holes[1]);
         hand.Actions.Where(action => action.SeatNo == 1).Select(action => (action.ActionType, action.Size, action.Amount))
-            .Should().Equal((HandActionType.Ante, 1M, 0.5M));
-        hand.SmallBlindSeatNo.Should().Be(2);
-        hand.BigBlindSeatNo.Should().Be(3);
-        hand.NextPlayerSeatNo.Should().Be(4);
+            .Should().Equal((HandActionType.Ante, 1M, 0.5M), (HandActionType.SmallBlind, 1M, 0M));
+        hand.SmallBlindSeatNo.Should().Be(1);
+        hand.BigBlindSeatNo.Should().Be(2);
+        hand.NextPlayerSeatNo.Should().Be(3);
         hand.Pot.Should().Be(5.5M);
-        hand.StreetPot.Should().Be(3M);
+        hand.StreetPot.Should().Be(2M);
 
-        // Seats 4, 5 and 6 fold, seat 1 is skipped, the small blind folds: the big blind and seat 1 show down.
+        // Seats 3, 4, 5 and 6 fold, seat 1 is all in: the big blind and seat 1 show down.
         foreach (var _ in Enumerable.Range(0, 4))
         {
             hand = (await session.PlayAsync(PlayerActionType.Fold)).HandData!;
@@ -142,14 +143,57 @@ public sealed class AntesTests
 
         hand.Street.Should().Be(Street.Finished);
         hand.CommunityCards.Should().Equal(_board);
-        hand.Pot.Should().Be(8.5M);
+        hand.Pot.Should().Be(7.5M);
 
-        // Seat 1 wins the pot it contests, 0.5 from each of the six seats dealt; the other 5.5 is the big blind's alone.
+        // Seat 1 wins the pot it contests, 0.5 from each of the six seats dealt; the other 4.5 is the big blind's alone.
         Seat(hand, 1).HandResult!.Net.Should().Be(0.5M * 6 - 0.5M);
-        Seat(hand, 3).HandResult!.Net.Should().Be(8.5M - (0.5M * 6) - 3M);
-        Seat(hand, 2).HandResult!.Net.Should().Be(-2M);
-        new byte[] { 4, 5, 6 }.Select(seatNo => Seat(hand, seatNo).HandResult!.Net).Should().OnlyContain(net => net == -1M);
+        Seat(hand, 2).HandResult!.Net.Should().Be(7.5M - (0.5M * 6) - 3M);
+        new byte[] { 3, 4, 5, 6 }.Select(seatNo => Seat(hand, seatNo).HandResult!.Net).Should().OnlyContain(net => net == -1M);
         hand.Seats.Sum(seat => seat.HandResult!.Net).Should().Be(0M);
+    }
+
+    [TestMethod]
+    public async Task ClassicAnte_BigBlindEmptiedByTheAnte_TheSmallBlindGetsTheOption()
+    {
+        // Dealer 3: seat 1 the small blind, seat 2 the big blind, whose ante empties it, so it posts nothing. The
+        // small blind then holds the standing wager, and like a big blind it has an option: a post is not an action.
+        using var session = await AnteSession.CreateAsync(new GameOptionData { InitialDealerSeatNo = 3, Ante = 1, AnteType = AnteType.Classic },
+            [Stack, 1M, Stack]);
+
+        var hand = (await session.StartAsync()).HandData!;
+        hand.SmallBlindSeatNo.Should().Be(1);
+        hand.BigBlindSeatNo.Should().Be(2);
+        Seat(hand, 2).Stack.Should().Be(0M);
+        hand.NextPlayerSeatNo.Should().Be(3);
+        Call(hand).Should().Be(1M, "the standing wager is the small blind's 1");
+
+        hand = (await session.PlayAsync(PlayerActionType.Call)).HandData!;
+
+        hand.Street.Should().Be(Street.PreFlop, "the small blind has not acted yet");
+        hand.NextPlayerSeatNo.Should().Be(1);
+        hand.Evaluations.Should().Contain(new PlayerActionEvaluationData(PlayerActionType.Check));
+        RaiseWindow(hand).Min.Should().Be(4M, "a raise is measured from the nominal big blind");
+
+        hand = (await session.PlayAsync(PlayerActionType.Check)).HandData!;
+        hand.Street.Should().Be(Street.Flop);
+    }
+
+    [TestMethod]
+    public async Task ClassicAnte_BigBlindEmptiedByTheAnte_AFullRaiseReopensTheBettingToALimper()
+    {
+        // Dealer 4: the big blind, seat 2, posts nothing. Seat 3 limps for the small blind's 1, seat 4 raises to 10:
+        // a full raise over the nominal big blind of 2, so seat 3 may raise again (TDA Rule 47 only stops an
+        // all-in for less than a full raise).
+        using var session = await AnteSession.CreateAsync(new GameOptionData { InitialDealerSeatNo = 4, Ante = 1, AnteType = AnteType.Classic },
+            [Stack, 1M, Stack, Stack]);
+
+        await session.StartAsync();
+        await session.PlayAsync(PlayerActionType.Call);
+        await session.PlayAsync(PlayerActionType.Raise, 10);
+        var hand = (await session.PlayAsync(PlayerActionType.Fold)).HandData!;
+
+        hand.NextPlayerSeatNo.Should().Be(3);
+        RaiseWindow(hand).Should().Be((18M, Stack - 1), "the last full raise was 8, over the nominal big blind");
     }
 
     [TestMethod]
@@ -258,7 +302,7 @@ public sealed class AntesTests
         using var session = await AnteSession.CreateAsync(new GameOptionData { MaxPlayersCount = 2, InitialDealerSeatNo = 1, Ante = 1, AnteType = AnteType.Classic },
             [0.5M, Stack]);
 
-        // With one seat left that can post, the blind seats are chosen first and seat 1 posts a blind of nothing.
+        // The blind seats are chosen by position before the antes, so seat 1, the button, posts the small blind of nothing.
         var hand = (await session.StartAsync()).HandData!;
 
         hand.Street.Should().Be(Street.Finished, "nobody is left to bet against");
@@ -327,7 +371,9 @@ public sealed class AntesTests
             AnteType = AnteType.Classic,
         }, [0.5M, Stack, Stack, Stack, Stack, Stack]);
 
-        // Dealer 6 and seat 1 all in on its ante: seat 2 posts the small blind, seat 3 the big blind, seat 4 opens.
+        // Dealer 6: seat 1 is the small blind and all in on its ante, so it posts nothing; seat 2 posts the big
+        // blind and seat 3 opens. Seat 3 raises, seat 4 calls, seats 5 and 6 fold, the big blind calls; on the flop
+        // the big blind checks, seat 3 bets and seat 4 calls.
         var steps = new List<Func<Task<GameData>>>
         {
             session.StartAsync,
@@ -353,13 +399,13 @@ public sealed class AntesTests
 
         var hand = last!.HandData!;
         hand.Street.Should().Be(Street.Flop);
-        hand.NextPlayerSeatNo.Should().Be(3);
-        hand.Pot.Should().Be(5.5M + 1M + (3 * 5M), "the antes, the folded small blind and three pre-flop wagers of 5");
+        hand.NextPlayerSeatNo.Should().Be(2);
+        hand.Pot.Should().Be(5.5M + (3 * 5M), "the antes and three pre-flop wagers of 5");
         hand.StreetPot.Should().Be(2 * 10M);
 
         // The pot-limit maximum reads Committed, which the reload rebuilt from the ante rows as well: the bet of 10
-        // plus the pot after seat 3 calls it, 21.5 + 20 + 10.
-        RaiseWindow(hand).Should().Be((20M, 10M + 21.5M + 20M + 10M));
+        // plus the pot after the big blind calls it, 20.5 + 20 + 10.
+        RaiseWindow(hand).Should().Be((20M, 10M + 20.5M + 20M + 10M));
     }
 
     private static SeatData Seat(HandData hand, byte seatNo) => hand.Seats.Single(seat => seat.SeatNo == seatNo);
