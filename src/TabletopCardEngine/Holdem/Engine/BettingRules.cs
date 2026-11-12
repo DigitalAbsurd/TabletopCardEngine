@@ -147,25 +147,31 @@ internal static class BettingRules
         return count;
     }
 
-    // Replays this street's raise-kind wagers in order, up to and including the bet at maxOrder.
+    // Replays this street's raise-kind wagers in order, up to and including the bet at maxOrder. Pre-flop a raise
+    // is measured from the nominal big blind at least, the same floor the returned standing wager has, so a big
+    // blind posted short (by its stack or its ante) neither inflates the increment of the first raise nor keeps
+    // that full raise from reopening the betting to a seat that limped.
     private static (decimal Standing, decimal Increment) StandingAndIncrement(HandTable table, int maxOrder)
     {
         var bigBlind = table.SmallBlind * 2;
+        var floor = table.Street == Street.PreFlop ? bigBlind : 0M;
         var standing = 0M;
         var increment = bigBlind;
         foreach (var bet in table.Seats.SelectMany(seat => seat.StreetBets).Where(bet => bet.Order <= maxOrder).OrderBy(bet => bet.Order))
         {
-            if (!IsRaiseKind(bet) || bet.Amount <= standing)
+            var isBlind = bet.Action is HandActionType.SmallBlind or HandActionType.BigBlind;
+            var basis = isBlind ? standing : Math.Max(standing, floor);
+            if (!IsRaiseKind(bet) || bet.Amount <= basis)
             {
                 continue;
             }
-            if (bet.Action is not (HandActionType.SmallBlind or HandActionType.BigBlind) && bet.Amount - standing >= increment)
+            if (!isBlind && bet.Amount - basis >= increment)
             {
-                increment = bet.Amount - standing;
+                increment = bet.Amount - basis;
             }
             standing = bet.Amount;
         }
-        return (table.Street == Street.PreFlop ? Math.Max(standing, bigBlind) : standing, increment);
+        return (Math.Max(standing, floor), increment);
     }
 
     // An all-in call is recorded as AllIn with AddAmount 0; only an all-in raise counts.

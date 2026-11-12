@@ -146,10 +146,9 @@ The engine publishes logs, traces, and metrics as part of its public contract. L
 
 - **Heads-up changes the positions, not just the ring size.** With two funded seats the button posts
   the small blind, acts *first* pre-flop and *last* on every street after it. `ExcludeShortOfMoneySeats`
-  assigns those two roles directly when `ActiveCount == 2` rather than deriving and then swapping them,
-  because `StealFromPoorSeats` picks seats by what they can afford and swapping its answers would hand
-  the big blind to a seat that only qualified for the small one. `DealStreet` recognises heads-up as
-  `DealerSeatNo == SmallBlindSeatNo`.
+  assigns those two roles directly when two seats are waiting; with more, the blinds go by position (the
+  first seat with chips after the button, then the next), whatever each can cover. `DealStreet` recognises
+  heads-up as `DealerSeatNo == SmallBlindSeatNo`.
 - **A blind post is capped at the stack**, and the seat then goes all in (`PostBlind`). `HandAction.Amount`
   for a blind row is therefore what was posted, not the nominal blind — `Size` keeps the nominal one.
   Heads-up is where this happens routinely, and the two `HeadsUpTests` short-stack cases pin it down.

@@ -617,10 +617,11 @@ renumber.
     none) is posted at the deal by `HandRunner.StartHand`. The hand's ante is set once in `HandDealer.DealAsync` and
     stored in `Hand.Ante` (`HandData.Ante`): `Game.Ante` without a blind schedule, otherwise
     `round(Game.Ante × hand.SmallBlind / Game.InitialSmallBlind, 2, AwayFromZero)`, the only place it is rounded.
-    `AnteType.Classic`: every seat dealt in posts `min(ante, stack)` *before* the blinds; a seat its ante puts all in
-    posts no blind and the blind seats are chosen as before among the seats that can still post (heads-up when two
-    can), which can move the button off a seat all in on its ante. When fewer than two seats would be left with chips
-    after the antes, the blind seats are chosen first and a seat the ante emptied posts a blind of `0`.
+    The button and the blind seats are settled by position before any chip goes in (`ExcludeShortOfMoneySeats`:
+    the first seat with chips after the button, then the next), whatever the seats can cover.
+    `AnteType.Classic`: every seat dealt in posts `min(ante, stack)` *before* the blinds; a blind seat its ante puts
+    all in keeps its place and posts a blind of `0`. A blind post is not a voluntary action, so a small blind holding
+    the standing wager (the big blind posted no more) gets an option like the big blind's (`TableSeat.BlindOptionPending`).
     `AnteType.BigBlind`: the big blind seat (heads-up too) posts its blind first, then `min(ante, stack left)`; nobody
     else posts one. The ante goes into `TableSeat.Committed` (`TableSeat.Ante` keeps it apart) and never into
     `StreetBets`, so it counts in the Pot-Limit maximum (fact 29) but not towards a call, the minimum

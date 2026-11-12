@@ -49,10 +49,12 @@ internal sealed class TableSeat
     public bool HasActedThisStreet => StreetBets.Count > 0;
 
     /// <summary>
-    /// True only preflop, and only until this seat acts again: the big blind gets an option even
-    /// when nobody has raised over it.
+    /// True only preflop, and only until this seat acts again: a blind post is not a voluntary action, so a blind
+    /// gets an option even when nobody has raised over it. That is the big blind's option, and it is the small
+    /// blind's too when the big blind posted no more than it (a big blind its ante or its stack left short), which
+    /// leaves the small blind holding the standing wager.
     /// </summary>
-    public bool BigBlindOptionPending => StreetBets is [{ Action: HandActionType.BigBlind }];
+    public bool BlindOptionPending => StreetBets is [{ Action: HandActionType.BigBlind or HandActionType.SmallBlind }];
 
     internal void Record(HandActionType action, decimal amount, decimal addAmount, decimal paid, int order)
         => StreetBets.Add(new SeatBet(action, amount, addAmount, paid, order));

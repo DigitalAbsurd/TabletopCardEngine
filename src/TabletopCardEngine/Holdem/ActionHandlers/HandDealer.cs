@@ -88,7 +88,7 @@ internal static class HandDealer
         }
 
         // The blinds are fixed here, once the start stacks are known and before the table is built, because
-        // ExcludeShortOfMoneySeats decides who can afford them. They never change after the deal.
+        // ExcludeShortOfMoneySeats seats the blinds and PostBlind caps them at the stacks. They never change after the deal.
         void SetBlindLevel(Hand hand)
         {
             var previous = new BlindLevelState(previousHand.SmallBlind ?? game.InitialSmallBlind,
