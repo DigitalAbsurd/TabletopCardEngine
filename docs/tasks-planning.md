@@ -352,6 +352,12 @@ Each of these has cost this project a batch.
   so "map `FT` to `NoLimit`, the replay must fail" passed and the task stopped unmerged (#654).
   Before writing the probe, name the assertion it will trip; if there is none, the issue needs one
   (here, that the engine offers exactly the recorded raise window).
+- **Leaving a known divergence for the replay to decide.** An issue that builds an oracle often
+  learns where the oracle and the engine disagree. It must settle each such case itself, by tagging
+  it so the replay skips it, or by filing the engine follow-up and putting it on the replay issue's
+  `Depends on` line, before the replay issue is vetted. #714 left 79 hands of its ante corpus untagged
+  "for the replay to decide", while #715 forbade tagging a failing hand or loosening the assertion:
+  the run of #715 could only stop, and did (#744).
 - **Leaving the wrong fix un-forbidden.** Anything that makes the symptom invisible will be tried
   first unless it is ruled out by name.
 - **Padding the issue with repository-wide rules.** They are in `docs/task-run.md`. Repeating them
