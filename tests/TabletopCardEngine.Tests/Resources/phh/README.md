@@ -289,10 +289,14 @@ The result is then gzipped like the other files (`System.IO.Compression.GZipStre
   carry `incomplete-all-in` (364 and 352), 72 carry `odd-chip` (36 and 36) and 131 carry
   `big blind ante posted before the blind` (90 of them with no other reason). 238 hands have a seat all in on the ante it
   posted (124 classic, 114 big blind) and 931 have a side pot (472 and 459).
-- **Not tagged, left for the replay to decide.** In 79 hands of the classic half a seat's stack is no more than the ante,
-  so the ante empties it before the blinds. Fact 32 of `docs/task-run.md` has the engine then pick the blind seats among
-  the seats that can still post, where pokerkit keeps its blind seats and posts a blind of 0 for the empty one. That may
-  change who acts first, and the generator does not tag it: it counts the hands in its summary instead.
+- **Not tagged, and the engine agrees.** In 79 hands of the classic half a seat's stack is no more than the ante, so the
+  ante empties it before the blinds; in others a seat is short of its blind. pokerkit keeps the blind seats by position
+  and posts what the seat has, a blind of 0 for an empty one, and so does the engine since #744 (fact 32 of
+  `docs/task-run.md`).
+- **A check nobody can answer.** When every other seat is all in or folded and the last seat with chips already holds
+  the standing wager (a blind its ante emptied posted nothing), pokerkit still asks that seat for a `cc`. The engine puts
+  nobody on the clock there, which is the same hand, and `PhhReplayRunner` skips that one check; the stacks are still
+  compared exactly.
 
 The replays skip every hand that carries `_tce_divergence` through `PhhReplayRunner.IsSupported`.
 
