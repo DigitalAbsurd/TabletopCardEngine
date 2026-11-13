@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Tournaments;
 
 namespace TabletopCardEngine.AspNetCore.Tests;
 
@@ -14,7 +15,7 @@ namespace TabletopCardEngine.AspNetCore.Tests;
 public sealed class OpenApiMetadataTests
 {
     [TestMethod]
-    public async Task ApiExplorer_ReportsSevenEndpoints()
+    public async Task ApiExplorer_ReportsFifteenEndpoints()
     {
         await using var host = await TestApiHost.StartAsync(configure: b => b.Services.AddEndpointsApiExplorer());
         var apiDescriptionProvider = host.App.Services.GetRequiredService<IApiDescriptionGroupCollectionProvider>();
@@ -31,6 +32,12 @@ public sealed class OpenApiMetadataTests
             ("POST", "api/holdem/games/{gameId:guid}/seats/{seatNo:int}/leave"),
             ("POST", "api/holdem/games/{gameId:guid}/seats/{seatNo:int}/top-up"),
             ("POST", "api/holdem/games/{gameId:guid}/seats/{seatNo:int}/kick"),
+            ("POST", "api/holdem/tournaments"),
+            ("GET", "api/holdem/tournaments/{tournamentId:guid}"),
+            ("POST", "api/holdem/tournaments/{tournamentId:guid}/entries"),
+            ("DELETE", "api/holdem/tournaments/{tournamentId:guid}/entries/{entryNo:int}"),
+            ("POST", "api/holdem/tournaments/{tournamentId:guid}/start"),
+            ("POST", "api/holdem/tournaments/{tournamentId:guid}/tables/{tableNo:int}/deal"),
         };
 
         var actualEndpoints = descriptions
@@ -38,7 +45,7 @@ public sealed class OpenApiMetadataTests
             .OrderBy(x => (x.Item1, x.Item2))
             .ToList();
 
-        actualEndpoints.Should().HaveCount(9);
+        actualEndpoints.Should().HaveCount(15);
         foreach (var expected in expectedEndpoints.OrderBy(x => (x.Item1, x.Item2)))
         {
             actualEndpoints.Should().Contain(expected);
@@ -46,7 +53,7 @@ public sealed class OpenApiMetadataTests
     }
 
     [TestMethod]
-    public async Task ApiExplorer_EveryEndpoint_DeclaresGameDataOnSuccess()
+    public async Task ApiExplorer_EveryEndpoint_DeclaresItsDataOnSuccess()
     {
         await using var host = await TestApiHost.StartAsync(configure: b => b.Services.AddEndpointsApiExplorer());
         var apiDescriptionProvider = host.App.Services.GetRequiredService<IApiDescriptionGroupCollectionProvider>();
@@ -56,10 +63,18 @@ public sealed class OpenApiMetadataTests
         {
             var successResponse = d.SupportedResponseTypes.FirstOrDefault(r => r.IsDefaultResponse == false);
             successResponse.Should().NotBeNull($"endpoint {d.HttpMethod} {d.RelativePath} should declare a success response");
-            successResponse!.Type.Should().Be<GameData>();
+            if (d.RelativePath!.StartsWith("api/holdem/tournaments", StringComparison.Ordinal))
+            {
+                successResponse!.Type.Should().Be<TournamentData>();
+            }
+            else
+            {
+                successResponse!.Type.Should().Be<GameData>();
+            }
+
             successResponse.ApiResponseFormats.Should().Contain(f => f.MediaType == "application/json");
 
-            var expectedStatus = d.HttpMethod == "POST" && d.RelativePath == "api/holdem/games"
+            var expectedStatus = d.HttpMethod == "POST" && (d.RelativePath == "api/holdem/games" || d.RelativePath == "api/holdem/tournaments")
                 ? StatusCodes.Status201Created
                 : StatusCodes.Status200OK;
             successResponse.StatusCode.Should().Be(expectedStatus, $"endpoint {d.HttpMethod} {d.RelativePath} should return status {expectedStatus}");
@@ -84,6 +99,12 @@ public sealed class OpenApiMetadataTests
             { "POST:api/holdem/games/{gameId:guid}/seats/{seatNo:int}/leave", [400, 404, 409, 412, 422] },
             { "POST:api/holdem/games/{gameId:guid}/seats/{seatNo:int}/top-up", [400, 404, 409, 412, 422] },
             { "POST:api/holdem/games/{gameId:guid}/seats/{seatNo:int}/kick", [400, 404, 409, 412, 422] },
+            { "POST:api/holdem/tournaments", [400, 409, 422] },
+            { "GET:api/holdem/tournaments/{tournamentId:guid}", [400, 404, 412] },
+            { "POST:api/holdem/tournaments/{tournamentId:guid}/entries", [400, 404, 409, 412, 422] },
+            { "DELETE:api/holdem/tournaments/{tournamentId:guid}/entries/{entryNo:int}", [400, 404, 409, 412, 422] },
+            { "POST:api/holdem/tournaments/{tournamentId:guid}/start", [400, 404, 409, 412, 422] },
+            { "POST:api/holdem/tournaments/{tournamentId:guid}/tables/{tableNo:int}/deal", [400, 404, 409, 412, 422] },
         };
 
         foreach (var description in descriptions)
@@ -119,10 +140,10 @@ public sealed class OpenApiMetadataTests
         var descriptions = apiDescriptionProvider.ApiDescriptionGroups.Items.SelectMany(g => g.Items).ToList();
 
         var postRoutes = descriptions.Where(d => d.HttpMethod == "POST").ToList();
-        postRoutes.Should().HaveCount(8, "should have 8 POST endpoints");
+        postRoutes.Should().HaveCount(12, "should have 12 POST endpoints");
 
         var getRoutes = descriptions.Where(d => d.HttpMethod == "GET").ToList();
-        getRoutes.Should().HaveCount(1, "should have 1 GET endpoint");
+        getRoutes.Should().HaveCount(2, "should have 2 GET endpoints");
 
         foreach (var postRoute in postRoutes)
         {
@@ -131,7 +152,8 @@ public sealed class OpenApiMetadataTests
 
             if ((postRoute.RelativePath?.EndsWith("finish", StringComparison.Ordinal) ?? false)
                 || (postRoute.RelativePath?.EndsWith("leave", StringComparison.Ordinal) ?? false)
-                || (postRoute.RelativePath?.EndsWith("kick", StringComparison.Ordinal) ?? false))
+                || (postRoute.RelativePath?.EndsWith("kick", StringComparison.Ordinal) ?? false)
+                || (postRoute.RelativePath?.EndsWith("deal", StringComparison.Ordinal) ?? false))
             {
                 bodyParam.Should().BeNull($"endpoint {postRoute.RelativePath} should not have a body parameter");
             }
@@ -149,9 +171,9 @@ public sealed class OpenApiMetadataTests
         var endpointDataSource = host.App.Services.GetRequiredService<EndpointDataSource>();
         var endpoints = endpointDataSource.Endpoints.OfType<RouteEndpoint>().Where(e => e.RoutePattern.RawText?.StartsWith("/api/holdem", StringComparison.Ordinal) ?? false).ToList();
 
-        endpoints.Should().HaveCount(9);
+        endpoints.Should().HaveCount(15);
 
-        var expectedNames = new[] { "HoldemGetGame", "HoldemCreateGame", "HoldemStartGame", "HoldemStartHand", "HoldemPlay", "HoldemFinishGame", "HoldemLeaveSeat", "HoldemTopUpSeat", "HoldemKickSeat" };
+        var expectedNames = new[] { "HoldemGetGame", "HoldemCreateGame", "HoldemStartGame", "HoldemStartHand", "HoldemPlay", "HoldemFinishGame", "HoldemLeaveSeat", "HoldemTopUpSeat", "HoldemKickSeat", "HoldemCreateTournament", "HoldemGetTournament", "HoldemRegisterEntry", "HoldemUnregisterEntry", "HoldemStartTournament", "HoldemDealTable" };
 
         foreach (var endpoint in endpoints)
         {

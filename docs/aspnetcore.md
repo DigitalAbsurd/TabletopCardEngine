@@ -344,13 +344,69 @@ or
 {}
 ```
 
+### Tournaments
+
+The same group maps the tournament routes of `IHoldemTournament`. They go through the same dispatcher as the game routes, so `ETag`
+is `TournamentData.version`, `If-Match` becomes the action's `ExpectedVersion`, and a failure is the problem response of
+[Errors](#errors). A tournament route never calls `IHoldemTable`; the tables of a running tournament are ordinary games, played with the game routes.
+
+| Method | Path | Engine action | Success | Problem statuses |
+|---|---|---|---|---|
+| `POST` | `/tournaments` | `CreateTournament` | 201 with `TournamentData`, `Location` header, and an `ETag` | 400 (malformed JSON), 409 `TournamentAlreadyExists`, 422 `UnsupportedGameOptions` \| `InvalidTournamentOptions` |
+| `GET` | `/tournaments/{tournamentId:guid}` | `GetTournament` | 200 with `TournamentData` and an `ETag` | 400 (bad `If-Match`), 404 `TournamentNotFound`, 412 `Conflict` |
+| `POST` | `/tournaments/{tournamentId:guid}/entries` | `Register` | 200 with `TournamentData` and an `ETag` | 400 (bad `If-Match`, malformed JSON), 404 `TournamentNotFound`, 409 `TournamentAlreadyStarted` \| `TournamentFull`, 412 `Conflict`, 422 `InvalidEntry` |
+| `DELETE` | `/tournaments/{tournamentId:guid}/entries/{entryNo:int}` | `Unregister` | 200 with `TournamentData` and an `ETag` | 400 (bad `If-Match`), 404 `TournamentNotFound`, 409 `TournamentAlreadyStarted`, 412 `Conflict`, 422 `InvalidEntry` |
+| `POST` | `/tournaments/{tournamentId:guid}/start` | `StartTournament` | 200 with `TournamentData` and an `ETag` | 400 (bad `If-Match`, malformed JSON), 404 `TournamentNotFound`, 409 `TournamentAlreadyStarted` \| `NotEnoughPlayers`, 412 `Conflict` |
+| `POST` | `/tournaments/{tournamentId:guid}/tables/{tableNo:int}/deal` | `DealTable` | 200 with `TournamentData` and an `ETag` | 400 (bad `If-Match`), 404 `TournamentNotFound`, 409 `TournamentNotStarted` \| `TournamentFinished` \| `PreviousHandNotEnded`, 412 `Conflict`, 422 `InvalidTable` |
+
+`POST /tournaments` takes the rules of `TournamentOptionData` and an optional `tournamentId`; it ignores `If-Match`. This one has two blind levels with an ante on the second, pays the top two places 65/35 and charges a buy-in of 10:
+
+```json
+{
+  "options": {
+    "bettingStructure": "NoLimit",
+    "tableFormat": "SixMax",
+    "maxPlayersPerTable": 6,
+    "anteType": "Classic",
+    "startingStack": 5000,
+    "buyIn": 10,
+    "minEntries": 2,
+    "levels": [
+      { "smallBlind": 25, "ante": 0, "duration": "00:10:00" },
+      { "smallBlind": 50, "ante": 5, "duration": "00:10:00" }
+    ],
+    "payouts": [65, 35]
+  }
+}
+```
+
+A level's `duration` is the default `System.Text.Json` form of a `TimeSpan`, a `"hh:mm:ss"` string (`"00:10:00"` is ten minutes). `state` and an entry's `state` are strings (`"Registering"`, `"Running"`, `"Finished"`; `"Seated"`, `"Eliminated"`, ...); a number answers 400.
+
+`POST /tournaments/{tournamentId}/entries` registers a player and `DELETE /tournaments/{tournamentId}/entries/{entryNo}` withdraws one, while the tournament is `Registering`:
+
+```json
+{
+  "name": "Alice"
+}
+```
+
+`POST /tournaments/{tournamentId}/start` closes registration, draws the seats and deals each table's first hand. The body is optional; `seatDrawSeed` reproduces a draw:
+
+```json
+{
+  "seatDrawSeed": 42
+}
+```
+
+**The host loop.** Nothing deals a table's next hand by itself. For each table in `tables` (read its `gameId` from `TournamentData`), the host plays the hand on the table's game with `POST /games/{gameId}/actions`, and once the game's `handData` says the hand ended, calls `POST /tournaments/{tournamentId}/tables/{tableNo}/deal`. That records the eliminations and deals the table's next hand, or finishes the tournament when one player is left (`state` `"Finished"`; `place` and `prize` are final on every entry). Every other game route (`/hands`, `/start`, `/finish`, the seat routes) answers 409 `ManagedByTournament` on a tournament table, and `deal` answers 409 `PreviousHandNotEnded` while the hand is still being played.
+
 ### JSON
 
 The engine's enums and `Card` values have type-specific JSON converters registered in the host's
 `Microsoft.AspNetCore.Http.Json.JsonOptions`, so no other type of the host is affected.
 
 **Enum serialization.** Engine enums (`AnteType`, `GameType`, `BettingStructure`, `BlindIncreaseMode`, `CardType`, `CardSuit`,
-`HandActionType`, `HandRankType`, `PlayerActionType`, `Street`) are serialized by name — e.g.
+`HandActionType`, `HandRankType`, `PlayerActionType`, `Street`, `TournamentState`, `TournamentEntryState`) are serialized by name — e.g.
 `"Holdem"`, `"NoLimit"`, `"Raise"` — not as numbers. Numbers are rejected on input, so an
 undefined value cannot slip in as a number.
 
