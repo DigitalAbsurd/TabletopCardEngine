@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using TabletopCardEngine.Holdem;
+using TabletopCardEngine.Holdem.Tournaments;
 
 namespace TabletopCardEngine.AspNetCore.Json;
 
@@ -19,5 +20,7 @@ internal static class HoldemJson
         converters.Add(new JsonStringEnumConverter<HoldemTableFormat>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<PlayerActionType>(namingPolicy: null, allowIntegerValues: false));
         converters.Add(new JsonStringEnumConverter<Street>(namingPolicy: null, allowIntegerValues: false));
+        converters.Add(new JsonStringEnumConverter<TournamentEntryState>(namingPolicy: null, allowIntegerValues: false));
+        converters.Add(new JsonStringEnumConverter<TournamentState>(namingPolicy: null, allowIntegerValues: false));
     }
 }

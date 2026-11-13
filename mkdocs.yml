@@ -154,13 +154,16 @@ nav:
               - 'TabletopCardEngine.AspNetCore':
                   - 'Namespace': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.md
                   - 'HoldemCreateGameRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemCreateGameRequest.md
+                  - 'HoldemCreateTournamentRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemCreateTournamentRequest.md
                   - 'HoldemEndpointRouteBuilderExtensions': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemEndpointRouteBuilderExtensions.md
                   - 'HoldemHealthChecksBuilderExtensions': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemHealthChecksBuilderExtensions.md
                   - 'HoldemHostingBuilderExtensions': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemHostingBuilderExtensions.md
                   - 'HoldemHostOptions': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemHostOptions.md
                   - 'HoldemPlayRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemPlayRequest.md
+                  - 'HoldemRegisterRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemRegisterRequest.md
                   - 'HoldemStartGameRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemStartGameRequest.md
                   - 'HoldemStartHandRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemStartHandRequest.md
+                  - 'HoldemStartTournamentRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemStartTournamentRequest.md
                   - 'HoldemTopUpRequest': api/TabletopCardEngine.AspNetCore/TabletopCardEngine.AspNetCore.HoldemTopUpRequest.md
           - TabletopCardEngine.Sqlite:
               - 'Assembly': api/TabletopCardEngine.Sqlite/index.md

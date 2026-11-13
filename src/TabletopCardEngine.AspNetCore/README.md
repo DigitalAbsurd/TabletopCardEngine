@@ -26,7 +26,7 @@ app.MapHoldemApi();
 await app.RunAsync();
 ```
 
-The health check calls the engine to report the database schema state. The API exposes endpoints to create games, start hands, play actions, and retrieve game state.
+The health check calls the engine to report the database schema state. The API exposes endpoints to create games, start hands, play actions, and retrieve game state. Tournament routes under `/tournaments` create a tournament, take registrations, start it and deal its tables.
 
 **Documentation:** [ASP.NET Core](https://tabletopcardengine.readthedocs.io/en/stable/aspnetcore/) · [Repository](https://github.com/DigitalAbsurd/TabletopCardEngine)
 

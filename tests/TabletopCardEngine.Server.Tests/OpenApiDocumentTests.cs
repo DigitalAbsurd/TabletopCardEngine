@@ -80,7 +80,13 @@ public sealed class OpenApiDocumentTests
             "/api/holdem/games/{gameId}/seats/{seatNo}/kick",
             "/api/holdem/games/{gameId}/seats/{seatNo}/leave",
             "/api/holdem/games/{gameId}/seats/{seatNo}/top-up",
-            "/api/holdem/games/{gameId}/start");
+            "/api/holdem/games/{gameId}/start",
+            "/api/holdem/tournaments",
+            "/api/holdem/tournaments/{tournamentId}",
+            "/api/holdem/tournaments/{tournamentId}/entries",
+            "/api/holdem/tournaments/{tournamentId}/entries/{entryNo}",
+            "/api/holdem/tournaments/{tournamentId}/start",
+            "/api/holdem/tournaments/{tournamentId}/tables/{tableNo}/deal");
 
         var operationIds = new HashSet<string>();
         foreach (var path in paths.EnumerateObject())
@@ -96,14 +102,20 @@ public sealed class OpenApiDocumentTests
 
         operationIds.Order().Should().Equal(
             "HoldemCreateGame",
+            "HoldemCreateTournament",
+            "HoldemDealTable",
             "HoldemFinishGame",
             "HoldemGetGame",
+            "HoldemGetTournament",
             "HoldemKickSeat",
             "HoldemLeaveSeat",
             "HoldemPlay",
+            "HoldemRegisterEntry",
             "HoldemStartGame",
             "HoldemStartHand",
-            "HoldemTopUpSeat");
+            "HoldemStartTournament",
+            "HoldemTopUpSeat",
+            "HoldemUnregisterEntry");
     });
 
     [TestMethod]

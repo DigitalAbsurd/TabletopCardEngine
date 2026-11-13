@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.AspNetCore.Http;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Holdem.Dto;
+using TabletopCardEngine.Holdem.Tournaments;
 
 namespace TabletopCardEngine.AspNetCore;
 
@@ -155,10 +156,80 @@ public static class HoldemEndpointRouteBuilderExtensions
                 StatusCodes.Status200OK,
                 [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity]);
 
+        int[] tournamentProblems = [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict, StatusCodes.Status412PreconditionFailed, StatusCodes.Status422UnprocessableEntity];
+
+        group.MapPost("/tournaments", (HoldemCreateTournamentRequest request, HttpContext context, IHoldemTournament engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, TournamentAction.CreateTournament(request.Options, request.TournamentId),
+                    data => TypedResults.CreatedAtRoute(data, "HoldemGetTournament", new { tournamentId = data.TournamentId }),
+                    honourIfMatch: false))
+            .WithName("HoldemCreateTournament")
+            .WithOpenApiMetadata<TournamentData>(
+                "Creates a tournament.",
+                "Creates a tournament in the Registering state with the supplied options. options.levels needs 1 to 100 blind levels; a level's duration is a \"hh:mm:ss\" string such as \"00:10:00\", at least one minute. options.bettingStructure, options.tableFormat and options.anteType are strings; a number is refused. options.payouts are percentages summing to 100 and default to [100]. Returns 201 with TournamentData and a Location header. May return 400 (malformed JSON), 409 (TournamentAlreadyExists), or 422 (UnsupportedGameOptions, InvalidTournamentOptions).",
+                StatusCodes.Status201Created,
+                [StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict, StatusCodes.Status422UnprocessableEntity]);
+
+        group.MapGet("/tournaments/{tournamentId:guid}", (Guid tournamentId, HttpContext context, IHoldemTournament engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, TournamentAction.GetTournament(tournamentId), data => TypedResults.Ok(data)))
+            .WithName("HoldemGetTournament")
+            .WithOpenApiMetadata<TournamentData>(
+                "Reads a tournament.",
+                "Reads the current state of a tournament by ID; the ETag is its version. Returns 200 with TournamentData. May return 400 (bad If-Match), 404 (TournamentNotFound), or 412 (Conflict).",
+                StatusCodes.Status200OK,
+                [StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status412PreconditionFailed]);
+
+        group.MapPost("/tournaments/{tournamentId:guid}/entries", (HoldemRegisterRequest request, Guid tournamentId, HttpContext context, IHoldemTournament engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, TournamentAction.Register(tournamentId, request.Name),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemRegisterEntry")
+            .WithOpenApiMetadata<TournamentData>(
+                "Registers a player.",
+                "Registers a player while the tournament is Registering; the new entry's entryNo is in the returned entries. Returns 200 with TournamentData. May return 400 (bad If-Match, malformed JSON), 404 (TournamentNotFound), 409 (TournamentAlreadyStarted, TournamentFull), 412 (Conflict), or 422 (InvalidEntry).",
+                StatusCodes.Status200OK,
+                tournamentProblems);
+
+        group.MapDelete("/tournaments/{tournamentId:guid}/entries/{entryNo:int}", (Guid tournamentId, int entryNo, HttpContext context, IHoldemTournament engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, TournamentAction.Unregister(tournamentId, entryNo),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemUnregisterEntry")
+            .WithOpenApiMetadata<TournamentData>(
+                "Withdraws a registration.",
+                "Withdraws a registration while the tournament is Registering. Returns 200 with TournamentData. May return 400 (bad If-Match), 404 (TournamentNotFound), 409 (TournamentAlreadyStarted), 412 (Conflict), or 422 (InvalidEntry).",
+                StatusCodes.Status200OK,
+                tournamentProblems);
+
+        group.MapPost("/tournaments/{tournamentId:guid}/start", (HoldemStartTournamentRequest? request, Guid tournamentId, HttpContext context, IHoldemTournament engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, TournamentAction.StartTournament(tournamentId, request?.SeatDrawSeed),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemStartTournament")
+            .WithOpenApiMetadata<TournamentData>(
+                "Starts a tournament.",
+                "Closes registration, draws the seats, opens the tables as games and deals their first hands; each table's gameId is in the returned tables. Players act on a table with the game routes, which take actions and reads only. Returns 200 with TournamentData. May return 400 (bad If-Match, malformed JSON), 404 (TournamentNotFound), 409 (TournamentAlreadyStarted, NotEnoughPlayers), or 412 (Conflict).",
+                StatusCodes.Status200OK,
+                tournamentProblems);
+
+        group.MapPost("/tournaments/{tournamentId:guid}/tables/{tableNo:int}/deal", (Guid tournamentId, int tableNo, HttpContext context, IHoldemTournament engine) =>
+                HoldemApiDispatcher.SendAsync(context, engine, TournamentAction.DealTable(tournamentId, tableNo),
+                    data => TypedResults.Ok(data)))
+            .WithName("HoldemDealTable")
+            .WithOpenApiMetadata<TournamentData>(
+                "Deals a table's next hand.",
+                "Records the eliminations of a table whose hand has ended and deals its next hand, or finishes the tournament when one player is left. Returns 200 with TournamentData. May return 400 (bad If-Match), 404 (TournamentNotFound), 409 (TournamentNotStarted, TournamentFinished, PreviousHandNotEnded), 412 (Conflict), or 422 (InvalidTable).",
+                StatusCodes.Status200OK,
+                tournamentProblems);
+
         return group;
     }
 
     private static RouteHandlerBuilder WithOpenApiMetadata(
+        this RouteHandlerBuilder builder,
+        string summary,
+        string description,
+        int successStatus,
+        int[] problemStatuses)
+        => builder.WithOpenApiMetadata<GameData>(summary, description, successStatus, problemStatuses);
+
+    private static RouteHandlerBuilder WithOpenApiMetadata<TData>(
         this RouteHandlerBuilder builder,
         string summary,
         string description,
@@ -169,7 +240,7 @@ public static class HoldemEndpointRouteBuilderExtensions
             .WithTags("Holdem")
             .WithSummary(summary)
             .WithDescription(description)
-            .Produces<GameData>(successStatus)
+            .Produces<TData>(successStatus)
             .WithProblemsForStatuses(problemStatuses);
     }
 
