@@ -5,7 +5,7 @@ namespace TabletopCardEngine.Holdem.Tournaments;
 
 /// <summary>
 /// The multi-table part of <c>DealTable</c> (ADR-0011, point 8). The table being dealt breaks when the players left fit
-/// at fewer tables, and otherwise gives its next big blind to the shortest table while it is two players larger. Only
+/// at fewer tables, and otherwise gives its next big blind, or failing that an arrival not seated yet, to the shortest table while it is two players larger. Only
 /// the table being dealt ever breaks or gives a player away, and a move never touches the target's game: the player is a
 /// tournament row carrying its stack until the target deals, so play at the other tables goes on undisturbed.
 /// </summary>
@@ -19,7 +19,8 @@ internal static class TournamentBalancer
     /// A table's count is its seated players plus the players moving to it. With <c>P</c> players left, <c>S</c> seats a
     /// table and <c>T</c> tables not broken, the table breaks when <c>T &gt; ceil(P / S)</c>: every seated player
     /// moves, in ascending seat order, and then every player moving to it. Otherwise, while its count is at least the lowest count of the other tables plus
-    /// two, the player due for its next big blind moves. Every move goes to the table with the lowest count (ties: the
+    /// two, the player due for its next big blind moves, or, when no seated player can be given away, the player moving in with the
+    /// last seat reserved. Every move goes to the table with the lowest count (ties: the
     /// lowest table number), into its lowest seat neither held nor reserved.
     /// </summary>
     /// <returns>Whether the table broke; the caller then finishes its game and deals nothing.</returns>
@@ -49,13 +50,20 @@ internal static class TournamentBalancer
         {
             var seated = SeatedAt(remaining, table.TableNo).ToList();
             var bigBlindSeatNo = NextBigBlindSeatNo(tournament, game, seated);
-            if (seated.SingleOrDefault(entry => entry.SeatNo == bigBlindSeatNo) is not { } entry)
+            if (seated.SingleOrDefault(entry => entry.SeatNo == bigBlindSeatNo) is { } entry)
             {
-                // Fewer than two seated players have chips, so there is no next hand and no big blind to give away.
+                moves.Add(MoveOut(tournament, remaining, others, table, game, entry));
+                continue;
+            }
+
+            // Fewer than two seated players have chips, so there is no next hand and no big blind to give away. The
+            // players moving in are not seated yet, so one of them can still be sent on: the last seat reserved goes.
+            if (MovingTo(remaining, table.TableNo).LastOrDefault() is not { } arrival)
+            {
                 break;
             }
 
-            moves.Add(MoveOut(tournament, remaining, others, table, game, entry));
+            moves.Add(MoveOut(tournament, remaining, others, table, game, arrival));
         }
 
         return false;

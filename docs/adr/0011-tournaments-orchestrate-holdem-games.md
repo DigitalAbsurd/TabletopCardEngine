@@ -90,7 +90,12 @@ rounded to the cent, the remainder going to first place.
 - when the players left fit into one table fewer, table A breaks and its players move to the tables
   with the fewest players;
 - otherwise, when A has at least two players more than the shortest table, A sends the player due to
-  post the next big blind to the shortest table, until the difference is at most one.
+  post the next big blind to the shortest table, until the difference is at most one;
+- when A is that much larger but none of its seated players can be given away (fewer than two of them
+  have chips, so there is no next big blind), as happens when most of A are players moving in from
+  broken tables, A sends the players moving to it, last reserved seat first, to the shortest table, one
+  at a time, until the difference is at most one. Such a player is only a tournament row (its target
+  table and reserved seat change), so no game is touched and nobody is seated into a running hand.
 
 A moved player carries the stack and is seated at the target table's next `DealTable`.
 
