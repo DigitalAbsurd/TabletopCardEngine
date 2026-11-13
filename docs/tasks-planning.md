@@ -328,6 +328,11 @@ Then:
 
 Add `-TrustedAuthors <login>, <login>` to take only issues opened by those accounts.
 
+Add `-Issue <n>, <n>` to take only those issues, for example to finish the follow-ups a stopped
+task is waiting on before the lower-numbered ready issues of its milestone. It only narrows the
+choice: a listed issue still has to pass the vetting guard, its `Depends on` line and the
+closing-label rule.
+
 `-TaskCount 0` works through every ready issue until none is left. It stops at the first task that
 fails to close cleanly rather than piling more work on a broken state.
 

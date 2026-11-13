@@ -177,6 +177,87 @@ public sealed class TournamentTableBalanceTests
         await session.AssertJoinedWithTheirStacksAsync(2, carried);
     }
 
+    [TestMethod]
+    public async Task DealTable_TableBreaksWhileAPlayerIsMovingToIt_MovesThatPlayerToo()
+    {
+        using var session = Session.Start(entryCount: 18);
+        await session.StartAsync();
+
+        // Table 2 loses three players and deals on with three.
+        await session.PlayHandAsync(2, AllInAmong(1, 2, 3, 4));
+        await session.DealAsync(2);
+
+        // Table 1 is three players larger, so its next big blind moves to table 2.
+        await session.PlayHandAsync(1, FoldToTheBigBlind);
+        var balanced = await session.DealAsync(1);
+        var moving = balanced.Entries.Single(entry => entry.State == TournamentEntryState.Moving);
+        moving.TableNo.Should().Be(2);
+
+        // One more bust at table 3, and two at table 2 leave 12 players, who fit at two tables.
+        await session.PlayHandAsync(3, AllInAmong(1, 2));
+        await session.DealAsync(3);
+        await session.PlayHandAsync(2, AllInAmong(1, 5, 6));
+        var broken = await session.DealAsync(2);
+
+        broken.Entries.Count(entry => entry.Place is null).Should().Be(12);
+        broken.Tables.Single(table => table.TableNo == 2).IsBroken.Should().BeTrue();
+        broken.Entries.Where(entry => entry.Place is null).Select(entry => entry.TableNo).Should().NotContain(2, "nobody is left at, or on the way to, a broken table");
+        var stillMoving = broken.Entries.Where(entry => entry.State == TournamentEntryState.Moving).ToList();
+        stillMoving.Should().HaveCount(2).And.Contain(entry => entry.EntryNo == moving.EntryNo);
+        stillMoving.Select(entry => entry.TableNo).Should().BeEquivalentTo(new int?[] { 1, 3 }, "each goes to the table with the lowest count");
+
+        var carried = await session.LoadCarriedStacksAsync();
+        carried.Should().HaveCount(2);
+        await session.PlayHandAsync(1, FoldToTheBigBlind);
+        await session.DealAsync(1);
+        await session.AssertJoinedWithTheirStacksAsync(1, carried);
+        await session.PlayHandAsync(3, FoldToTheBigBlind);
+        await session.DealAsync(3);
+        await session.AssertJoinedWithTheirStacksAsync(3, carried);
+    }
+
+    [TestMethod]
+    public void BreakOrBalance_TableOfOneSeatedPlayerAndFiveArrivals_RedirectsArrivalsToTheShortestTable()
+    {
+        // Table 1 holds one seated player, so no big blind can be given away, and five arrivals; table 2 holds two.
+        var tournament = new Tournament
+        {
+            Id = _tournamentId,
+            MaxPlayersPerTable = MaxPlayersPerTable,
+            StartingStack = StartingStack,
+            Entries =
+            [
+                Entry(1, tableNo: 1, seatNo: 1),
+                Entry(2, tableNo: 1, seatNo: 2, carried: 1500),
+                Entry(3, tableNo: 1, seatNo: 3, carried: 1500),
+                Entry(4, tableNo: 1, seatNo: 4, carried: 1500),
+                Entry(5, tableNo: 1, seatNo: 5, carried: 1500),
+                Entry(6, tableNo: 1, seatNo: 6, carried: 1500),
+                Entry(7, tableNo: 2, seatNo: 1),
+                Entry(8, tableNo: 2, seatNo: 2),
+            ],
+            Tables =
+            [
+                new TournamentTable { TournamentId = _tournamentId, TableNo = 1 },
+                new TournamentTable { TournamentId = _tournamentId, TableNo = 2 },
+            ],
+        };
+        var moves = new List<TournamentBalancer.Move>();
+
+        var broke = TournamentBalancer.BreakOrBalance(tournament, tournament.Tables[0], new Game(), moves);
+
+        broke.Should().BeFalse();
+        // The arrivals reserved the last seats go, one at a time, until the tables differ by one.
+        moves.Select(move => (move.EntryNo, move.ToTableNo, move.SeatNo, move.Stack)).Should().Equal((6, 2, (byte)3, 1500m), (5, 2, (byte)4, 1500m));
+        tournament.Entries.Count(entry => entry.TableNo == 1).Should().Be(4);
+        tournament.Entries.Count(entry => entry.TableNo == 2).Should().Be(4);
+        tournament.Entries.Single(entry => entry.EntryNo == 1).Should().Match<TournamentEntry>(entry => entry.TableNo == 1 && entry.CarriedStack == null,
+            "the seated player stays where it is");
+    }
+
+    private static TournamentEntry Entry(int entryNo, int tableNo, byte seatNo, decimal? carried = null)
+        => new() { TournamentId = _tournamentId, EntryNo = entryNo, Name = $"Player {entryNo}", TableNo = tableNo, SeatNo = seatNo, CarriedStack = carried };
+
     /// <summary>Every seat in <paramref name="seats"/> goes all in, or calls once raising is closed; everyone else folds.</summary>
     private static Func<HandData, byte, PlayerActionType> AllInAmong(params byte[] seats)
         => (hand, seatNo) => seats.Contains(seatNo)

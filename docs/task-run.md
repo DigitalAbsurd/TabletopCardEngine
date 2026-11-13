@@ -145,8 +145,11 @@ satisfied and the four gates are green — not when the code compiles and looks 
   says it is unfinished, push the branch (`git push -u origin <branch>`), open no pull request, and
   name the branch in the comment. Never stash, reset or discard it instead: a stash stays on one
   machine, and neither the runner's report nor the next attempt at the issue can see it. That next
-  attempt starts from a fresh `main` (the runner deletes the local copy of a fully pushed branch)
-  and may read the pushed branch for context; it picks another slug if the name is taken. When
+  attempt continues on the pushed branch: the runner finds it on `origin` (the most recently
+  committed one when there are several) and names it in the prompt, the agent checks it out, merges
+  the current `main` into it and opens the pull request from it, so the squash merge deletes it. The
+  task text still decides the scope, so whatever the branch holds that the task does not ask for is
+  dropped. When
   what blocks the task is a follow-up you filed (a defect the task exposed), also add it to the
   `**Depends on:**` line of the task's own issue (adding the line after the first paragraph if it
   is missing) and change nothing else in that body. This is the only edit you make to the task's
