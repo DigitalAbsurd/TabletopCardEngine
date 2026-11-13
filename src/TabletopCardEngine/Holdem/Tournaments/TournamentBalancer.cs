@@ -18,7 +18,7 @@ internal static class TournamentBalancer
     /// Breaks <paramref name="table"/> or balances it, between two of its hands and after the ended hand's eliminations.
     /// A table's count is its seated players plus the players moving to it. With <c>P</c> players left, <c>S</c> seats a
     /// table and <c>T</c> tables not broken, the table breaks when <c>T &gt; ceil(P / S)</c>: every seated player
-    /// moves, in ascending seat order. Otherwise, while its count is at least the lowest count of the other tables plus
+    /// moves, in ascending seat order, and then every player moving to it. Otherwise, while its count is at least the lowest count of the other tables plus
     /// two, the player due for its next big blind moves. Every move goes to the table with the lowest count (ties: the
     /// lowest table number), into its lowest seat neither held nor reserved.
     /// </summary>
@@ -31,6 +31,12 @@ internal static class TournamentBalancer
         if (others.Count + 1 > tablesNeeded)
         {
             foreach (var entry in SeatedAt(remaining, table.TableNo).ToList())
+            {
+                moves.Add(MoveOut(tournament, remaining, others, table, game, entry));
+            }
+
+            // A player already moving to the table keeps its carried stack and only changes the reservation.
+            foreach (var entry in MovingTo(remaining, table.TableNo).ToList())
             {
                 moves.Add(MoveOut(tournament, remaining, others, table, game, entry));
             }
@@ -69,17 +75,26 @@ internal static class TournamentBalancer
 
     /// <summary>
     /// Takes <paramref name="entry"/> off its seat at <paramref name="from"/> with the stack it ended the last hand
-    /// with, and reserves it a seat at the target. The game at <paramref name="from"/> loses the player after its current
+    /// with (or off its reservation there, keeping the stack it carries), and reserves it a seat at the target. The game at <paramref name="from"/> loses the player after its current
     /// hand, exactly as <c>LeaveSeat</c> has it; the target's game is not loaded.
     /// </summary>
     private static Move MoveOut(Tournament tournament, List<TournamentEntry> remaining, List<TournamentTable> targets, TournamentTable from, Game game,
         TournamentEntry entry)
     {
         var fromSeatNo = entry.SeatNo!.Value;
-        var stack = StackOf(tournament, game, fromSeatNo);
-        if (game.GetSeatedPlayer(fromSeatNo) is { } player)
+        decimal stack;
+        if (entry.CarriedStack is { } carried)
         {
-            game.LeaveSeat(player);
+            // Moving to <from>: the player has no seat in its game yet, so there is nothing to leave.
+            stack = carried;
+        }
+        else
+        {
+            stack = StackOf(tournament, game, fromSeatNo);
+            if (game.GetSeatedPlayer(fromSeatNo) is { } player)
+            {
+                game.LeaveSeat(player);
+            }
         }
 
         var target = targets.OrderBy(candidate => Count(remaining, candidate.TableNo)).ThenBy(candidate => candidate.TableNo).First();
