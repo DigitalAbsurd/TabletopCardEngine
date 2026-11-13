@@ -47,6 +47,14 @@
     ("feature/mls-7/issue-<n>-..."), or "feature/issue-<n>-..." when it has none; the agent
     picks the feature/fix/doc type (see docs/task-run.md).
 
+.PARAMETER Issue
+    Optional. One or more issue numbers (-Issue 758, 759): only those issues are candidates,
+    taken in ascending order, and within -Milestone when that is given too. It narrows the
+    choice and nothing else: a listed issue is still picked only when it is vetted, its
+    "**Depends on:**" issues are closed and it is not held as closing work. A listed number
+    that is not an open issue in the scope is named in the report printed when nothing is
+    ready.
+
 .PARAMETER Model
     Auto (default) routes each issue by its size label, using the "modelBySizeLabel" map of
     the agent settings file (7b -> Haiku, 35b -> Sonnet, 70b -> Opus for Claude Code). An
@@ -130,6 +138,8 @@ param(
     [string]$Repo = 'DigitalAbsurd/TabletopCardEngine',
     [string]$Agent = 'claude',
     [string]$Milestone,
+    [ValidateRange(1, [int]::MaxValue)]
+    [int[]]$Issue = @(),
     [string]$Model = 'Auto',
     [ValidateRange(0, 100)]
     [int]$TaskCount = 1,
@@ -382,11 +392,17 @@ function Get-BranchPrefix($Issue) {
 }
 
 function Get-Scope {
-    if ([string]::IsNullOrWhiteSpace($Milestone)) {
-        return 'the repository'
+    $scope = if ([string]::IsNullOrWhiteSpace($Milestone)) {
+        'the repository'
+    } else {
+        "milestone '$Milestone'"
     }
 
-    return "milestone '$Milestone'"
+    if (@($Issue).Count -gt 0) {
+        $scope += ", issues $((@($Issue) | Sort-Object -Unique | ForEach-Object { "#$_" }) -join ', ')"
+    }
+
+    return $scope
 }
 
 function Get-InFlightAutomatedPrs {
@@ -534,22 +550,36 @@ function Get-ReadyIssue {
     $openIssues = @($allIssues | Where-Object { $_.state -eq 'OPEN' } | Sort-Object { [int]$_.number })
     $skipped = @()
 
-    foreach ($issue in $openIssues) {
+    # -Issue narrows the candidates and nothing else: a listed issue still has to pass every
+    # check below. The loop variable is $candidate, not $issue: PowerShell ignores case, so
+    # $issue would shadow $Issue here and in Get-Scope, which the skip report calls.
+    $requested = @($Issue)
+    if ($requested.Count -gt 0) {
+        $openNumbers = @($openIssues | ForEach-Object { [int]$_.number })
+        foreach ($number in ($requested | Sort-Object -Unique)) {
+            if ($openNumbers -notcontains $number) {
+                $skipped += "  #$number is listed in -Issue but is not open (closed, missing, or outside -Milestone)"
+            }
+        }
+        $openIssues = @($openIssues | Where-Object { $requested -contains [int]$_.number })
+    }
+
+    foreach ($candidate in $openIssues) {
         # The cheap check first: without the label the issue is not a candidate at all,
         # and its body is not even parsed.
-        $labelNames = @($issue.labels | ForEach-Object { $_.name })
+        $labelNames = @($candidate.labels | ForEach-Object { $_.name })
         if ($labelNames -notcontains $ReadyLabel) {
-            $skipped += "  #$($issue.number) is not vetted: it has no '$ReadyLabel' label"
+            $skipped += "  #$($candidate.number) is not vetted: it has no '$ReadyLabel' label"
             continue
         }
 
-        $unfinishedWork = @(Get-UnfinishedMilestoneWork -Issue $issue -AllIssues $allIssues -ClosingLabel $ClosingLabel)
+        $unfinishedWork = @(Get-UnfinishedMilestoneWork -Issue $candidate -AllIssues $allIssues -ClosingLabel $ClosingLabel)
         if ($unfinishedWork.Count -gt 0) {
-            $skipped += "  #$($issue.number) is closing work and waits on the rest of its milestone: $((($unfinishedWork | ForEach-Object { "#$_" }) -join ', '))"
+            $skipped += "  #$($candidate.number) is closing work and waits on the rest of its milestone: $((($unfinishedWork | ForEach-Object { "#$_" }) -join ', '))"
             continue
         }
 
-        $dependsLine = [regex]::Match($issue.body, '(?m)^\*\*Depends on:?\*\*(.*)$')
+        $dependsLine = [regex]::Match($candidate.body, '(?m)^\*\*Depends on:?\*\*(.*)$')
         $depNumbers = @()
         if ($dependsLine.Success) {
             $depNumbers = @([regex]::Matches($dependsLine.Groups[1].Value, '#(\d+)') |
@@ -573,25 +603,25 @@ function Get-ReadyIssue {
         $unmet = @($depNumbers | Where-Object { $stateByNumber[$_] -ne 'CLOSED' })
         if ($unmet.Count -gt 0) {
             $detail = ($unmet | ForEach-Object { "#$_ ($($stateByNumber[$_]))" }) -join ', '
-            $skipped += "  #$($issue.number) waits on $detail"
+            $skipped += "  #$($candidate.number) waits on $detail"
             continue
         }
 
         # Last, because it costs API calls: only an issue that would otherwise run is
         # checked for who labelled it and whether it changed since. The body parsed above
         # is safe to have used - if it changed after vetting, this check rejects the issue.
-        $vetting = Get-IssueVetting -Number ([int]$issue.number)
+        $vetting = Get-IssueVetting -Number ([int]$candidate.number)
         if ($vetting.Reason) {
-            $skipped += "  #$($issue.number) is not vetted: $($vetting.Reason)"
+            $skipped += "  #$($candidate.number) is not vetted: $($vetting.Reason)"
             continue
         }
 
         return [pscustomobject]@{
-            number = [int]$issue.number
+            number = [int]$candidate.number
             title  = $vetting.Snapshot.Title
             body   = $vetting.Snapshot.Body
-            labels    = $issue.labels
-            milestone = $issue.milestone
+            labels    = $candidate.labels
+            milestone = $candidate.milestone
         }
     }
 
