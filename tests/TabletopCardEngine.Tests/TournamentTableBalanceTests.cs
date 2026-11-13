@@ -177,6 +177,45 @@ public sealed class TournamentTableBalanceTests
         await session.AssertJoinedWithTheirStacksAsync(2, carried);
     }
 
+    [TestMethod]
+    public async Task DealTable_TableBreaksWhileAPlayerIsMovingToIt_MovesThatPlayerToo()
+    {
+        using var session = Session.Start(entryCount: 18);
+        await session.StartAsync();
+
+        // Table 2 loses three players and deals on with three.
+        await session.PlayHandAsync(2, AllInAmong(1, 2, 3, 4));
+        await session.DealAsync(2);
+
+        // Table 1 is three players larger, so its next big blind moves to table 2.
+        await session.PlayHandAsync(1, FoldToTheBigBlind);
+        var balanced = await session.DealAsync(1);
+        var moving = balanced.Entries.Single(entry => entry.State == TournamentEntryState.Moving);
+        moving.TableNo.Should().Be(2);
+
+        // One more bust at table 3, and two at table 2 leave 12 players, who fit at two tables.
+        await session.PlayHandAsync(3, AllInAmong(1, 2));
+        await session.DealAsync(3);
+        await session.PlayHandAsync(2, AllInAmong(1, 5, 6));
+        var broken = await session.DealAsync(2);
+
+        broken.Entries.Count(entry => entry.Place is null).Should().Be(12);
+        broken.Tables.Single(table => table.TableNo == 2).IsBroken.Should().BeTrue();
+        broken.Entries.Where(entry => entry.Place is null).Select(entry => entry.TableNo).Should().NotContain(2, "nobody is left at, or on the way to, a broken table");
+        var stillMoving = broken.Entries.Where(entry => entry.State == TournamentEntryState.Moving).ToList();
+        stillMoving.Should().HaveCount(2).And.Contain(entry => entry.EntryNo == moving.EntryNo);
+        stillMoving.Select(entry => entry.TableNo).Should().BeEquivalentTo(new int?[] { 1, 3 }, "each goes to the table with the lowest count");
+
+        var carried = await session.LoadCarriedStacksAsync();
+        carried.Should().HaveCount(2);
+        await session.PlayHandAsync(1, FoldToTheBigBlind);
+        await session.DealAsync(1);
+        await session.AssertJoinedWithTheirStacksAsync(1, carried);
+        await session.PlayHandAsync(3, FoldToTheBigBlind);
+        await session.DealAsync(3);
+        await session.AssertJoinedWithTheirStacksAsync(3, carried);
+    }
+
     /// <summary>Every seat in <paramref name="seats"/> goes all in, or calls once raising is closed; everyone else folds.</summary>
     private static Func<HandData, byte, PlayerActionType> AllInAmong(params byte[] seats)
         => (hand, seatNo) => seats.Contains(seatNo)
