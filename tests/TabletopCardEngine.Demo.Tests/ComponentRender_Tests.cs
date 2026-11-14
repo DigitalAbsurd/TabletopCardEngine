@@ -74,6 +74,7 @@ public sealed class ComponentRender_Tests
         services.AddScoped<SqliteBrowser>();
         services.AddScoped<DemoDatabase>();
         services.AddScoped<DemoGameSession>();
+        services.AddScoped<DemoTournamentSession>();
         services.AddScoped<EngineCallSnippetWriter>();
         services.AddSingleton<PhhCardShuffler>();
         services.AddSingleton(serviceProvider =>

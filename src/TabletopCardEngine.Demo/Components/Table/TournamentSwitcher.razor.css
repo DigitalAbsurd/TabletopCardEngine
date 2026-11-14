@@ -1,0 +1,46 @@
+.tournament-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+}
+
+.tournament-tables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tournament-table-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--demo-outline);
+    border-radius: 2px;
+    background: var(--ant-bg-container);
+    color: var(--ant-text-color);
+    cursor: pointer;
+}
+
+.tournament-table-btn-active {
+    border-color: var(--ant-primary-color, #1677ff);
+    color: var(--ant-primary-color, #1677ff);
+    font-weight: 600;
+}
+
+.tournament-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    font-size: 12px;
+}
+
+.tournament-seed {
+    font-family: monospace;
+}
+
+.tournament-finished {
+    padding: 8px 12px;
+    border: 1px solid var(--demo-outline);
+    border-radius: 2px;
+    font-weight: 600;
+}

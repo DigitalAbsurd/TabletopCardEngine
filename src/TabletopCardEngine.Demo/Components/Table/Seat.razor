@@ -35,7 +35,7 @@
             }
         }
 
-        @if (!SeatData.HasLeft)
+        @if (AllowKick && !SeatData.HasLeft)
         {
             @* Kick is the host's action and works mid-hand too, so it is outside the between-hands group above. *@
             <button type="button"
@@ -160,6 +160,13 @@
     /// <summary>Raised with the seat number when Stand up is pressed.</summary>
     [Parameter]
     public EventCallback<byte> OnStandUp { get; set; }
+
+    /// <summary>
+    /// Whether the seat offers Kick. A tournament table switches it off: the tournament owns who sits
+    /// there, and the engine refuses a kick on one.
+    /// </summary>
+    [Parameter]
+    public bool AllowKick { get; set; } = true;
 
     /// <summary>Raised with the seat number when a kick is confirmed.</summary>
     [Parameter]

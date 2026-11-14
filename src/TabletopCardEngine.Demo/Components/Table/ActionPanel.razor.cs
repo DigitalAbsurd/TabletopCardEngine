@@ -42,6 +42,10 @@ public partial class ActionPanel : ComponentBase
     [Parameter]
     public bool CanSeat { get; set; }
 
+    /// <summary>Whether a finished hand offers Next Hand. A finished tournament has no next hand to deal.</summary>
+    [Parameter]
+    public bool CanDealNext { get; set; } = true;
+
     /// <summary>How many seats the table has.</summary>
     [Parameter]
     public int MaxPlayers { get; set; }
