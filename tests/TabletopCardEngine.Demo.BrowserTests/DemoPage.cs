@@ -158,6 +158,18 @@ internal sealed class DemoPage : IAsyncDisposable
     /// </summary>
     public const string NewGameButtonSelector = ".new-game-btn";
 
+    /// <summary>The New Tournament button beside New Game on the settings summary.</summary>
+    public const string NewTournamentButtonSelector = ".new-tournament-btn";
+
+    /// <summary>The side panel of a tournament: level, standings, payouts and tables.</summary>
+    public const string TournamentPanelSelector = ".tournament-panel";
+
+    /// <summary>The second table's button in the strip above a tournament's table.</summary>
+    public const string SecondTableButtonSelector = ".tournament-table-btn[data-table-no='2']";
+
+    /// <summary>The name of every seat on the viewed table.</summary>
+    public const string SeatNameSelector = ".poker-table .seat-name";
+
     /// <summary>The tabs on the horizontal tab bar under the header.</summary>
     public const string TabSelector = ".demo-tab-bar .demo-tab";
 
@@ -575,6 +587,29 @@ internal sealed class DemoPage : IAsyncDisposable
         await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
         await DismissNotificationsAsync();
+    }
+
+    /// <summary>
+    /// Starts a tournament through the New Tournament form the way a visitor would: open the modal, keep
+    /// the defaults (12 players at 6 per table), press Start, and wait for the first hand's action bar.
+    /// </summary>
+    public async Task StartTournamentAsync()
+    {
+        await _page.Locator(NewTournamentButtonSelector).First.ClickAsync();
+        await _page.Locator(GameSetupSelector).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+
+        await _page.Locator(".ant-modal-footer .ant-btn-primary").ClickAsync();
+        await WaitForGameSetupToCloseAsync();
+        await _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        await DismissNotificationsAsync();
+    }
+
+    /// <summary>The names on the seats of the viewed table, in document order.</summary>
+    public async Task<IReadOnlyList<string>> ReadSeatNamesAsync()
+    {
+        return await _page.Locator(SeatNameSelector).AllInnerTextsAsync();
     }
 
     /// <summary>
