@@ -5,6 +5,20 @@
   "args": [
     "-p",
     "{prompt}",
+    "--session-id",
+    "{sessionId}",
+    "--model",
+    "{model}",
+    "--permission-mode",
+    "bypassPermissions",
+    "--disallowedTools",
+    "ScheduleWakeup CronCreate Monitor"
+  ],
+  "resumeArgs": [
+    "-p",
+    "{prompt}",
+    "--resume",
+    "{sessionId}",
     "--model",
     "{model}",
     "--permission-mode",
@@ -26,5 +40,7 @@
   "contextFiles": [
     "AGENTS.md"
   ],
-  "env": {}
+  "env": {},
+  "connectionErrorPattern": "^API Error: (Can't reach the API server|Connection error|Request timed out|5\\d\\d\\b|Repeated 529)",
+  "connectivityProbeUrl": "https://api.anthropic.com"
 }
