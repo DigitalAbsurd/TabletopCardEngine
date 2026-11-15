@@ -51,6 +51,9 @@ sort_commits = "oldest"
 commit_preprocessors = [
     # Squash merges carry the pull request description after the subject: keep the subject only.
     { pattern = '(?s)\n.*$', replace = "" },
+    # PR #770 was squash-merged without --subject, so 4e7636c took the runner's WIP commit subject, which
+    # the parsers below skip. main is not rewritten; its changelog line is restored here (#771).
+    { pattern = '^WIP: unfinished task #727 \(#770\)$', replace = "feat(demo): create and play a tournament hot-seat, table by table (#770)" },
     { pattern = '\(#([0-9]+)\)\s*$', replace = "([#${1}](https://github.com/DigitalAbsurd/TabletopCardEngine/pull/${1}))" },
 ]
 # The prose verbs below exist for the history that predates mandatory Conventional Commits.
