@@ -138,12 +138,18 @@ A client that hard-coded the old minimum must read the raise window from `HandDa
 
 ### 1.3 to 1.4
 
-Version 1.4 applies two migrations, `AddAntes` and `AddTournaments`, and `MigrateAsync` applies them by itself. No data is lost and no manual steps are required.
+Version 1.4 applies two migrations, `AddAntes` and `AddTournaments`, and `MigrateAsync` applies them by itself. No data is lost and no manual steps are required. Like every migration they are one-way: [Upgrading the package](#upgrading-the-package) above says what that means for old instances and for going back.
 
-- **`AddAntes`** adds the antes. `Game` gets `Ante` (`NULL` for every game that exists, which is no ante) and `AnteType` (`Classic`), and `Hand` gets `Ante`. The schema version is incremented from 5 to 6, and the engine version is updated to `1.4.0`.
-- **`AddTournaments`** adds the three tables a tournament keeps its state in: `Tournament`, `TournamentEntry` and `TournamentTable`. No existing table changes. The schema version is incremented from 6 to 7.
+- **`AddAntes`** adds the antes. `Game` gets `Ante` (`NULL` for every game that exists, which is no ante) and `AnteType` (`Classic`), and `Hand` gets `Ante` (`NULL`). The schema version is incremented from 5 to 6, and the engine version is updated to `1.4.0`.
+- **`AddTournaments`** adds the three tables a tournament keeps its state in: `Tournament`, `TournamentEntry` and `TournamentTable`, in the schema `tce_holdem` on PostgreSQL and SQL Server and named `tce_holdem_Tournament`, `tce_holdem_TournamentEntry` and `tce_holdem_TournamentTable` on SQLite. No existing table changes. The schema version is incremented from 6 to 7, and the engine version stays `1.4.0`.
 
 When you upgrade from 1.3 to 1.4, follow the same four steps as above: back up, stop every 1.3 instance, deploy 1.4, migrate.
+
+Existing games keep playing without antes. A game's options cannot be changed after it is created, so a game that should use antes needs a new game.
+
+**New error codes.** `HoldemErrorCode` gets the values `18` to `27`, appended after `17`, for the tournaments. A client `switch` over `HoldemErrorCode` keeps compiling, but one with no default arm should add them.
+
+**New routes.** A host that calls `MapHoldemApi` gets the tournament routes under `/tournaments`. A reverse proxy that allow-lists routes needs `/tournaments` and the paths below it.
 
 **Rule changes.** From 1.4.0 on, these apply to existing games too, because the rules are in the engine and not in the database:
 
