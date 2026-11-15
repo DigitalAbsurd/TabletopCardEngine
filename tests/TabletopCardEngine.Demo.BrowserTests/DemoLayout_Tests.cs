@@ -885,6 +885,48 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
+    /// <summary>
+    /// Engine fact 21 for the tournament view: a 12-player tournament at 6 per table, with its panel beside
+    /// the table and the table switcher above it, must not push the page sideways, cover the action
+    /// controls or the switcher, and the switcher must change the viewed table.
+    /// </summary>
+    [TestMethod]
+    [DataRow(WideViewportWidth)]
+    [DataRow(NarrowViewportWidth)]
+    public async Task DemoLayout_TournamentView_FitsAndSwitchesTables(int viewportWidth)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth);
+        await page.StartTournamentAsync();
+
+        (await page.CountAsync(DemoPage.TournamentPanelSelector)).Should().Be(1, "a started tournament shows its panel");
+        foreach (string selector in _overflowScrollers)
+        {
+            ScrollMetrics metrics = await page.ReadScrollMetricsAsync(selector);
+            metrics.ScrollWidth.Should().BeLessOrEqualTo(
+                metrics.ClientWidth,
+                $"the tournament view must not overflow horizontally at {viewportWidth}px ({metrics})");
+        }
+
+        await page.ScrollActionPanelIntoViewAsync();
+        IReadOnlyList<HitProbe> actions = await page.ProbeHitTargetsAsync(DemoPage.ActionButtonSelectors);
+        actions.Should().HaveCountGreaterOrEqualTo(
+            MinimumActionButtons,
+            "the first seat to act pre-flop is offered Fold, Call and Raise");
+        AssertOwnHitTargets(actions);
+
+        IReadOnlyList<HitProbe> secondTable = await page.ProbeHitTargetsAsync(DemoPage.SecondTableButtonSelector);
+        secondTable.Should().HaveCount(1, "12 players at 6 per table fill two tables");
+        AssertOwnHitTargets(secondTable);
+
+        IReadOnlyList<string> tableOne = await page.ReadSeatNamesAsync();
+        await page.ClickAsync(DemoPage.SecondTableButtonSelector);
+        IReadOnlyList<string> tableTwo = await page.ReadSeatNamesAsync();
+
+        tableTwo.Should().NotBeEmpty("table 2 has seated players");
+        tableTwo.Should().NotIntersectWith(tableOne);
+        AssertNoConsoleErrors(page);
+    }
+
     [TestMethod]
     [DataRow(WideViewportWidth)]
     [DataRow(NarrowViewportWidth)]
