@@ -18,11 +18,12 @@ public record PlayerActionData(
 }
 ```
 
-- **`No`**: Position in the hand, ascending from 1. Action 1 is always the small blind.
+- **`No`**: Position in the hand, ascending from 1. Action 1 is the small blind, or the first ante when the game has a classic ante.
 - **`SeatNo`**: The seat that took the action (1-based; 0 means "no seat").
 - **`Street`**: The betting round (PreFlop=0, Flop=3, Turn=4, River=5, Showdown=6, Finished=7).
 - **`ActionType`**: What the seat did. The ledger records `HandActionType`, which is what the caller asked for plus the two forced blind posts:
   - `SmallBlind` and `BigBlind` (engine places these, never requested)
+  - `Ante` (engine places these too, when the game has an [ante](buy-ins-and-blinds.md#antes))
   - `Fold`, `Check`, `Call`, `Raise`, `Bet`, `AllIn` (caller may request)
 - **`Size`**: What the caller asked for. For blinds, this is the nominal blind amount. For a raise, it is the street total to raise to. For calls, checks, and folds, it is 0.
 - **`Amount`**: The seat's **cumulative** wager on this street **after** the action. This is the key field for calculating pots.
@@ -36,7 +37,13 @@ The `Amount` field is cumulative per (SeatNo, Street) pair. It is:
 - For a raise or bet: the new street total
 - For a fold: 0 (the seat is no longer contesting the pot)
 
-To find how much a seat wagered on a street, take the maximum `Amount` for that seat and street.
+To find how much a seat wagered on a street, take the maximum `Amount` for that seat and street, leaving the `Ante` rows out.
+
+## Ante rows
+
+When the game has an ante, each ante posted is one row with `ActionType` `Ante` and `Street` `PreFlop`. `Amount` is what was posted, which is less than the nominal ante when the stack was short, and `Size` is the hand's nominal ante (`HandData.Ante`). A seat that has nothing left to post gets no row. The rows come before the blinds for a classic ante, so `No` 1 is then an ante and not the small blind, and right after the big blind row for a big blind ante.
+
+An ante is dead money, so ante rows are **excluded from the per-street maximum**: counting one would raise the seat's street wager and lower what it must call. `HandData.Pot` includes the antes from the deal on, `HandData.StreetPot` and `SeatData.BetSize` never do, and a seat's `LastAction` skips an ante row.
 
 ## From ledger to pots
 
