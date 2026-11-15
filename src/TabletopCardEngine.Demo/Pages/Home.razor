@@ -7,6 +7,7 @@
 @using TabletopCardEngine.Demo.Components
 @using TabletopCardEngine.Demo.Components.EngineCalls
 @using TabletopCardEngine.Demo.Components.Table
+@using TabletopCardEngine.Demo.Components.Tournaments
 @using TabletopCardEngine.Holdem.Dto
 @implements IAsyncDisposable
 @inject INotificationService Notice
@@ -86,18 +87,28 @@
 
                     @* The table is the whole pane: the street, the hand's outcome and the action bar
                        are all drawn on it, so nothing about the hand is shown twice. *@
-                    <div class="main-region">
-                        <PokerTable
-                            GameData="@Session.CurrentGame"
-                            IsTournamentTable="@TournamentSession.IsActive"
-                            CanDealNext="@(!TournamentSession.IsFinished)"
-                            PendingJoins="@_pendingJoins"
-                            OnQueueJoin="@OnQueueJoin"
-                            OnUnqueueJoin="@OnUnqueueJoin"
-                            OnStandUp="@OnStandUpAsync"
-                            OnTopUp="@OnTopUpAsync"
-                            OnKick="@OnKickAsync"
-                            OnNextHand="@OnNextHandAsync" />
+                    <div class="table-with-panel">
+                        <div class="main-region">
+                            <PokerTable
+                                GameData="@Session.CurrentGame"
+                                IsTournamentTable="@TournamentSession.IsActive"
+                                CanDealNext="@(!TournamentSession.IsFinished)"
+                                PendingJoins="@_pendingJoins"
+                                OnQueueJoin="@OnQueueJoin"
+                                OnUnqueueJoin="@OnUnqueueJoin"
+                                OnStandUp="@OnStandUpAsync"
+                                OnTopUp="@OnTopUpAsync"
+                                OnKick="@OnKickAsync"
+                                OnNextHand="@OnNextHandAsync" />
+                        </div>
+
+                        @if (TournamentSession.IsActive)
+                        {
+                            <TournamentPanel
+                                Tournament="@TournamentSession.Tournament"
+                                ViewedTableNo="@TournamentSession.ViewedTableNo"
+                                OnSelectTable="@OnSelectTableAsync" />
+                        }
                     </div>
                 </ChildContent>
                 <ErrorContent Context="ex">
