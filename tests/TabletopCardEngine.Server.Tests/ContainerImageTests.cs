@@ -34,13 +34,13 @@ public sealed class ContainerImageTests
 
     private static readonly string[] _targets = ["sqlite", "postgres", "mssql"];
 
-    // The previous stable release (1.2.1), pulled from Docker Hub by digest: a tag can be re-pushed, a digest
+    // The previous stable release (1.3.0), pulled from Docker Hub by digest: a tag can be re-pushed, a digest
     // cannot. Raised together with the package validation baseline after each stable minor.
     private static readonly Dictionary<string, string> _previousStableImages = new()
     {
-        ["sqlite"] = "digitalabsurd/tabletopcardengine:1.2.1-sqlite@sha256:460f8d5bd2a1eda05b1d42e23fba413bee6e988ace37c29a42babef7d389e785",
-        ["postgres"] = "digitalabsurd/tabletopcardengine:1.2.1-postgres@sha256:96415c539f5f09f13361892f7d70329c805abde1595466c2ba9e11159a10e144",
-        ["mssql"] = "digitalabsurd/tabletopcardengine:1.2.1-mssql@sha256:77bb14fc685b7a80cef70a2f671dd5537c9ec4acac28b970f24ce46bfcc556e5",
+        ["sqlite"] = "digitalabsurd/tabletopcardengine:1.3.0-sqlite@sha256:28997bdccdab78db2fc5b2508e7715fbce6abdbb460581ffd64d44796b4c871e",
+        ["postgres"] = "digitalabsurd/tabletopcardengine:1.3.0-postgres@sha256:58e9aaf301a9d7d8036ed1cbefd002376f19c3066f03dc6ea1a84e36d9aa4ad8",
+        ["mssql"] = "digitalabsurd/tabletopcardengine:1.3.0-mssql@sha256:95587c73ce8d8db17aa1fb3797a9ed51894b46f154fa7f8d7c07a7e64d803f00",
     };
 
     // Built one after another in one task: the targets share the builder stage, and three builds
@@ -220,14 +220,20 @@ public sealed class ContainerImageTests
             .ToList();
         operationIds.Should().Equal(
             "HoldemCreateGame",
+            "HoldemCreateTournament",
+            "HoldemDealTable",
             "HoldemFinishGame",
             "HoldemGetGame",
+            "HoldemGetTournament",
             "HoldemKickSeat",
             "HoldemLeaveSeat",
             "HoldemPlay",
+            "HoldemRegisterEntry",
             "HoldemStartGame",
             "HoldemStartHand",
-            "HoldemTopUpSeat");
+            "HoldemStartTournament",
+            "HoldemTopUpSeat",
+            "HoldemUnregisterEntry");
     });
 
     [TestMethod]
@@ -332,7 +338,9 @@ public sealed class ContainerImageTests
                 read.StatusCode.Should().Be(HttpStatusCode.OK);
                 etag = read.Headers.ETag!.Tag;
                 before = await GameScenario.ReadJsonAsync(read);
-                before.GetProperty("options").TryGetProperty("raiseCap", out _).Should().BeFalse("1.2.1 has no raise cap option");
+                before.GetProperty("options").GetProperty("bettingStructure").GetString().Should().Be("NoLimit");
+                before.GetProperty("options").GetProperty("raiseCap").GetInt32().Should().Be(4, "1.3.0 stores the default raise cap");
+                before.GetProperty("options").TryGetProperty("ante", out _).Should().BeFalse("1.3.0 has no ante option");
             }
 
             await using var upgraded = await StartServerAsync(current, network, environment, dataVolume);
@@ -345,9 +353,14 @@ public sealed class ContainerImageTests
             var afterBody = await GameScenario.ReadJsonAsync(after);
             afterBody.GetProperty("options").GetProperty("tableFormat").GetString().Should().Be("SixMax");
             afterBody.GetProperty("options").GetProperty("allowTopUp").GetBoolean().Should().BeFalse();
-            RaiseOf(before).GetProperty("minValue").GetDecimal().Should().Be(3, "1.2.1 offers the old minimum raise (#649)");
-            RaiseOf(afterBody).GetProperty("minValue").GetDecimal().Should().Be(4, "1.3.0 offers a raise of at least two big blinds");
-            WithoutFieldsChangedIn13(afterBody).Should().Be(WithoutFieldsChangedIn13(before), "the rest of the game survives the upgrade");
+            afterBody.GetProperty("options").GetProperty("bettingStructure").GetString().Should().Be("NoLimit");
+            afterBody.GetProperty("options").GetProperty("raiseCap").GetInt32().Should().Be(4, "1.3.0 stores the default raise cap");
+            afterBody.GetProperty("options").GetProperty("ante").ValueKind.Should().Be(JsonValueKind.Null);
+            afterBody.GetProperty("options").GetProperty("anteType").GetString().Should().Be("Classic");
+            afterBody.GetProperty("handData").GetProperty("ante").GetDecimal().Should().Be(0);
+            RaiseOf(before).GetProperty("minValue").GetDecimal().Should().Be(4, "1.3.0 offers a raise of at least two big blinds");
+            RaiseOf(afterBody).GetProperty("minValue").GetDecimal().Should().Be(4, "the upgrade keeps the minimum raise");
+            WithoutFieldsNewIn14(afterBody).Should().Be(WithoutFieldsNewIn14(before), "the rest of the game survives the upgrade");
 
             var version = GameScenario.VersionOf(after);
             var played = await PlayOneActionAsync(upgradedClient, gameUrl, afterBody);
@@ -617,7 +630,7 @@ public sealed class ContainerImageTests
             after.Headers.ETag!.Tag.Should().Be(etag, "the migration does not bump Game.Version");
             var options = (await GameScenario.ReadJsonAsync(after)).GetProperty("options");
             options.GetProperty("bettingStructure").GetString().Should().Be("NoLimit");
-            options.GetProperty("raiseCap").ValueKind.Should().Be(JsonValueKind.Null);
+            options.GetProperty("raiseCap").GetInt32().Should().Be(4, "1.3.0 stores the default raise cap");
             var bigBlind = options.GetProperty("initialSmallBlind").GetDecimal() * 2;
             var version = GameScenario.VersionOf(after);
 
@@ -683,6 +696,174 @@ public sealed class ContainerImageTests
         }
     }
 
+    [TestMethod]
+    [DataRow("sqlite")]
+    [DataRow("postgres")]
+    [DataRow("mssql")]
+    public async Task Image_UpgradedServerPlaysAntesAndATournament(string target)
+    {
+        var current = await ImageAsync(target);
+        var previous = new DockerImage(_previousStableImages[target]);
+
+        await using var network = new NetworkBuilder().Build();
+        await network.CreateAsync();
+
+        // A named volume is filled from the image's /data on first mount, so the old image must mount it first.
+        await using var volume = new VolumeBuilder().Build();
+        await volume.CreateAsync();
+
+        IContainer? database = null;
+        try
+        {
+            Dictionary<string, string> environment;
+            (database, environment) = await StartDatabaseAsync(target, network);
+            var dataVolume = target == "sqlite" ? volume : null;
+
+            string gameUrl;
+            string etag;
+            await using (var old = await StartServerAsync(previous, network, environment, dataVolume))
+            {
+                using var client = ClientFor(old);
+                (await HealthDataAsync(client)).GetProperty("state").GetString().Should().Be("UpToDate");
+
+                gameUrl = await CreateAsync(client, "{\"options\":{\"maxPlayersCount\":3}}");
+                var started = await client.SendAsync(GameScenario.Post($"{gameUrl}/start", GameScenario.HeadsUpStartBody));
+                started.StatusCode.Should().Be(HttpStatusCode.OK);
+                await FoldToTheEndAsync(client, gameUrl, started);
+
+                var read = await client.GetAsync(gameUrl);
+                read.StatusCode.Should().Be(HttpStatusCode.OK);
+                etag = read.Headers.ETag!.Tag;
+            }
+
+            // Only the server container goes: the database container and the volume keep the game.
+            await using var upgraded = await StartServerAsync(current, network, environment, dataVolume);
+            using var upgradedClient = ClientFor(upgraded);
+            (await HealthDataAsync(upgradedClient)).GetProperty("state").GetString().Should().Be("UpToDate");
+
+            var after = await upgradedClient.GetAsync(gameUrl);
+            after.StatusCode.Should().Be(HttpStatusCode.OK);
+            after.Headers.ETag!.Tag.Should().Be(etag, "the migrations do not bump Game.Version");
+            var options = (await GameScenario.ReadJsonAsync(after)).GetProperty("options");
+            options.GetProperty("ante").ValueKind.Should().Be(JsonValueKind.Null);
+            options.GetProperty("anteType").GetString().Should().Be("Classic");
+            var version = GameScenario.VersionOf(after);
+
+            // The old game has no antes.
+            var hand = await upgradedClient.SendAsync(GameScenario.Post($"{gameUrl}/hands", null));
+            hand.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(hand).Should().Be(version + 1);
+            var handBody = await GameScenario.ReadJsonAsync(hand);
+            handBody.GetProperty("handData").GetProperty("ante").GetDecimal().Should().Be(0);
+            ActionTypesOf(handBody).Should().NotContain("Ante");
+
+            // A new game with an ante: every seat dealt in posts it before the blinds.
+            var anteUrl = await CreateAsync(upgradedClient, "{\"options\":{\"maxPlayersCount\":3,\"ante\":1}}");
+            var anteStart = await upgradedClient.SendAsync(GameScenario.Post($"{anteUrl}/start", ThreeSeatsStartBody));
+            anteStart.StatusCode.Should().Be(HttpStatusCode.OK);
+            var anteHand = (await GameScenario.ReadJsonAsync(anteStart)).GetProperty("handData");
+            anteHand.GetProperty("actions").EnumerateArray().Take(3)
+                .Select(action => action.GetProperty("actionType").GetString()).Should().Equal("Ante", "Ante", "Ante");
+            anteHand.GetProperty("pot").GetDecimal().Should().Be(3);
+
+            await PlayTournamentAsync(upgradedClient);
+        }
+        finally
+        {
+            if (database is not null)
+            {
+                await database.DisposeAsync();
+            }
+        }
+    }
+
+    private const string TournamentCreateBody = "{\"options\":{\"maxPlayersPerTable\":2,\"startingStack\":100,\"buyIn\":10,\"levels\":[{\"smallBlind\":1,\"ante\":0,\"duration\":\"00:10:00\"}],\"payouts\":[70,30],\"minEntries\":4}}";
+
+    /// <summary>
+    /// Registers four players, starts a tournament on two tables of two and plays it to its end: at each table the seat
+    /// on the clock goes all in and the other calls, then the table is dealt. Every write must raise the ETag by one.
+    /// </summary>
+    private static async Task PlayTournamentAsync(HttpClient client)
+    {
+        const string tournaments = "/api/holdem/tournaments";
+
+        var created = await client.PostAsync(tournaments, GameScenario.Json(TournamentCreateBody));
+        created.StatusCode.Should().Be(HttpStatusCode.Created);
+        var tournamentUrl = $"{tournaments}/{(await GameScenario.ReadJsonAsync(created)).GetProperty("tournamentId").GetGuid()}";
+        var version = GameScenario.VersionOf(created);
+
+        async Task<JsonElement> WriteAsync(HttpRequestMessage request)
+        {
+            var response = await client.SendAsync(request);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(response).Should().Be(version + 1);
+            version = GameScenario.VersionOf(response);
+            return await GameScenario.ReadJsonAsync(response);
+        }
+
+        foreach (var name in new[] { "ann", "bob", "cy", "di" })
+        {
+            await WriteAsync(GameScenario.Post($"{tournamentUrl}/entries", $"{{\"name\":\"{name}\"}}"));
+        }
+
+        var tournament = await WriteAsync(GameScenario.Post($"{tournamentUrl}/start", "{\"seatDrawSeed\":7}"));
+        tournament.GetProperty("state").GetString().Should().Be("Running");
+        var tables = tournament.GetProperty("tables").EnumerateArray().ToList();
+        tables.Should().HaveCount(2);
+        tables.Select(table => table.GetProperty("playerCount").GetInt32()).Should().Equal(2, 2);
+        var tableGameId = tables[0].GetProperty("gameId").GetGuid();
+
+        var rounds = 0;
+        while (tournament.GetProperty("state").GetString() != "Finished")
+        {
+            (++rounds).Should().BeLessOrEqualTo(60, "all-in against a call ends a heads-up table's hand, so a few rounds finish four players");
+            foreach (var tableNo in tournament.GetProperty("tables").EnumerateArray().Select(table => table.GetProperty("tableNo").GetInt32()).ToList())
+            {
+                var current = tournament.GetProperty("tables").EnumerateArray().Single(table => table.GetProperty("tableNo").GetInt32() == tableNo);
+                if (tournament.GetProperty("state").GetString() == "Finished" || current.GetProperty("isBroken").GetBoolean())
+                {
+                    continue;
+                }
+
+                await PlayHandAllInAsync(client, $"/api/holdem/games/{current.GetProperty("gameId").GetGuid()}");
+                tournament = await WriteAsync(GameScenario.Post($"{tournamentUrl}/tables/{tableNo}/deal", null));
+            }
+        }
+
+        var entries = tournament.GetProperty("entries").EnumerateArray().OrderBy(entry => entry.GetProperty("place").GetInt32()).ToList();
+        entries.Select(entry => entry.GetProperty("place").GetInt32()).Should().Equal(1, 2, 3, 4);
+        entries.Select(entry => entry.GetProperty("prize").GetDecimal()).Should().Equal(28m, 12m, 0m, 0m);
+
+        var refused = await client.SendAsync(GameScenario.Post($"/api/holdem/games/{tableGameId}/hands", null));
+        refused.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        (await GameScenario.ReadJsonAsync(refused)).GetProperty("code").GetString().Should().Be("ManagedByTournament");
+    }
+
+    /// <summary>The seat on the clock goes all in when it may raise and otherwise calls, until nobody is to act.</summary>
+    private static async Task PlayHandAllInAsync(HttpClient client, string gameUrl)
+    {
+        for (var steps = 0; ; steps++)
+        {
+            steps.Should().BeLessThan(10, "a heads-up hand of all-in and call is short");
+            var read = await client.GetAsync(gameUrl);
+            read.StatusCode.Should().Be(HttpStatusCode.OK);
+            var offered = OfferedActions(await GameScenario.ReadJsonAsync(read));
+            if (offered.Count == 0)
+            {
+                return;
+            }
+
+            var action = offered.Contains("Raise") ? "AllIn" : offered.Contains("Call") ? "Call" : "Check";
+            var played = await client.SendAsync(GameScenario.Post($"{gameUrl}/actions", $"{{\"actionType\":\"{action}\"}}"));
+            played.StatusCode.Should().Be(HttpStatusCode.OK);
+            GameScenario.VersionOf(played).Should().Be(GameScenario.VersionOf(read) + 1);
+        }
+    }
+
+    private static List<string?> ActionTypesOf(JsonElement game)
+        => game.GetProperty("handData").GetProperty("actions").EnumerateArray()
+            .Select(action => action.GetProperty("actionType").GetString()).ToList();
+
     private const string ThreeSeatsStartBody = "{\"joinSeats\":[{\"name\":\"a\",\"seatNo\":1,\"buyInAmount\":100},{\"name\":\"b\",\"seatNo\":2,\"buyInAmount\":100},{\"name\":\"c\",\"seatNo\":3,\"buyInAmount\":100}]}";
 
     private static string RaiseBody(decimal size) => $"{{\"actionType\":\"Raise\",\"size\":{size.ToString(CultureInfo.InvariantCulture)}}}";
@@ -736,20 +917,15 @@ public sealed class ContainerImageTests
     }
 
     /// <summary>
-    /// The game without what 1.3 adds or changes: the <c>raiseCap</c> option, and the minimum of the Raise evaluation,
-    /// which 1.3 raises to two big blinds (#649). What is left must be equal on both sides of the upgrade.
+    /// The game without what 1.4 adds: the <c>ante</c> and <c>anteType</c> options and the hand's <c>ante</c>, which a 1.3.0
+    /// server does not return. What is left must be equal on both sides of the upgrade.
     /// </summary>
-    private static string WithoutFieldsChangedIn13(JsonElement game)
+    private static string WithoutFieldsNewIn14(JsonElement game)
     {
         var node = JsonNode.Parse(game.GetRawText())!;
-        node["options"]!.AsObject().Remove("raiseCap");
-        foreach (var evaluation in node["handData"]!["evaluations"]!.AsArray())
-        {
-            if (evaluation!["playerActionType"]!.GetValue<string>() == "Raise")
-            {
-                evaluation.AsObject().Remove("minValue");
-            }
-        }
+        node["options"]!.AsObject().Remove("ante");
+        node["options"]!.AsObject().Remove("anteType");
+        node["handData"]!.AsObject().Remove("ante");
         return node.ToJsonString();
     }
 
