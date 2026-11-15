@@ -37,6 +37,17 @@
     took, and the whole run, in hh:mm:ss; the agent is asked to report each gate's duration
     the same way.
 
+    A dropped connection to the model's API is not a failed task. When the settings file
+    says how to resume a session ("resumeArgs", with "{sessionId}" in "args" too) and how to
+    recognise a dropped connection in the agent's output ("connectionErrorPattern"), an agent
+    that exits non-zero with such output is resumed in the same session once the network is
+    back, before anything is saved or synced (see -MaxResumes and -ConnectionWaitMinutes).
+    The session id is named in the failure report.
+
+    Before handing an issue over, it stops when a local branch of that issue has commits on
+    no remote branch, such as the WIP commit an earlier failed task left behind: the agent
+    would not see that work, and its "git checkout -b" of the same name would fail.
+
 .PARAMETER Agent
     Which AI code assistant to drive. Selects "agent.<Agent>.json" next to this script.
     Defaults to "claude".
@@ -65,6 +76,17 @@
 .PARAMETER TaskCount
     How many issues to work through in one invocation. 0 means "keep going until no ready
     issue is left".
+
+.PARAMETER MaxResumes
+    How many times one task's agent session is resumed after a dropped connection to the
+    model's API. Defaults to 3; 0 turns resuming off. Needs "resumeArgs" and
+    "connectionErrorPattern" in the agent settings file; without them a dropped connection
+    stops the run like any other failure.
+
+.PARAMETER ConnectionWaitMinutes
+    How long to wait for the network to come back before each resume, probing
+    "connectivityProbeUrl" of the agent settings file every 30 seconds. Defaults to 60. When
+    it runs out, the run stops as on any other failure.
 
 .PARAMETER ReadyLabel
     The label that marks an issue as vetted by a maintainer. Defaults to "agent-ready". It
@@ -148,6 +170,10 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$ClosingLabel = 'closing',
     [string[]]$TrustedAuthors = @(),
+    [ValidateRange(0, 10)]
+    [int]$MaxResumes = 3,
+    [ValidateRange(1, 1440)]
+    [int]$ConnectionWaitMinutes = 60,
     [switch]$AllowAgentVetting
 )
 
@@ -229,6 +255,38 @@ function Import-AgentSettings([string]$AgentName, [string]$Root) {
         Fail "Agent settings file '$path' names fallbackModel '$fallback', which is not in 'models'."
     }
 
+    # A session the runner names itself can be found again: in the failure report, and by
+    # "resumeArgs" after a dropped connection.
+    $usesSessionId = [bool]($agentArgs | Where-Object { $_ -like '*{sessionId}*' })
+
+    $resumeArgs = @($raw.resumeArgs | Where-Object { $null -ne $_ })
+    $connectionErrorPattern = $raw.connectionErrorPattern
+    if ($resumeArgs.Count -gt 0) {
+        if (-not $usesSessionId) {
+            Fail "Agent settings file '$path' has 'resumeArgs' but no '{sessionId}' placeholder in 'args', so there is no session to resume."
+        }
+        foreach ($placeholder in @('{prompt}', '{sessionId}')) {
+            if (-not ($resumeArgs | Where-Object { $_ -like "*$placeholder*" })) {
+                Fail "Agent settings file '$path' has no '$placeholder' placeholder in 'resumeArgs'."
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($connectionErrorPattern)) {
+            Fail "Agent settings file '$path' has 'resumeArgs' but no 'connectionErrorPattern', so a dropped connection cannot be told from a failed task."
+        }
+    }
+    if (-not [string]::IsNullOrWhiteSpace($connectionErrorPattern)) {
+        try {
+            [void][regex]::new($connectionErrorPattern)
+        } catch {
+            Fail "Agent settings file '$path' has a 'connectionErrorPattern' that is not a valid regular expression: $($_.Exception.Message)"
+        }
+    }
+
+    $probeUrl = $raw.connectivityProbeUrl
+    if (-not [string]::IsNullOrWhiteSpace($probeUrl) -and -not [uri]::IsWellFormedUriString($probeUrl, [UriKind]::Absolute)) {
+        Fail "Agent settings file '$path' has a 'connectivityProbeUrl' that is not an absolute URL: '$probeUrl'."
+    }
+
     return [pscustomobject]@{
         Path             = $path
         Name             = if ([string]::IsNullOrWhiteSpace($raw.name)) { $AgentName } else { $raw.name }
@@ -239,6 +297,10 @@ function Import-AgentSettings([string]$AgentName, [string]$Root) {
         FallbackModel    = $fallback
         ContextFiles     = @($raw.contextFiles | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
         Env              = ConvertTo-Map $raw.env
+        UsesSessionId    = $usesSessionId
+        ResumeArgs       = $resumeArgs
+        ConnectionErrorPattern = if ([string]::IsNullOrWhiteSpace($connectionErrorPattern)) { $null } else { $connectionErrorPattern }
+        ConnectivityProbeUrl   = if ([string]::IsNullOrWhiteSpace($probeUrl)) { $null } else { $probeUrl }
     }
 }
 
@@ -329,7 +391,7 @@ function Write-NewStashReport([string[]]$Before) {
 # A non-zero exit says nothing about where the task stopped: an agent can fail after its
 # pull request merged (as the run on issue #587 did), and then the work has landed and only
 # the end of the session is missing. Say which case it is before the run stops.
-function Write-AgentFailureReport([int]$IssueNumber, [string]$BranchPrefix, [datetime]$StartedAt) {
+function Write-AgentFailureReport([int]$IssueNumber, [string]$BranchPrefix, [datetime]$StartedAt, [string]$SessionId) {
     $pattern = "^[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
     $issue = (gh issue view $IssueNumber -R $Repo --json state) | ConvertFrom-Json
     $prs = @((gh pr list -R $Repo --state all --limit 100 --json number,state,headRefName,url) | ConvertFrom-Json |
@@ -345,7 +407,11 @@ function Write-AgentFailureReport([int]$IssueNumber, [string]$BranchPrefix, [dat
     if ($issue.state -eq 'CLOSED' -and @($prs | Where-Object { $_.state -eq 'MERGED' }).Count -gt 0) {
         Write-Host '  The work merged before the agent failed: check what the agent did after the merge, and whether its pull request reports every gate.'
     }
-    Write-Host "  The agent's session started at $($StartedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')); its transcript is the session that started then."
+    if ($SessionId) {
+        Write-Host "  The agent's session id is $SessionId (started at $($StartedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')))."
+    } else {
+        Write-Host "  The agent's session started at $($StartedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')); its transcript is the session that started then."
+    }
 }
 
 # The issue's task branches on origin, most recently committed first and without "origin/". A
@@ -741,9 +807,10 @@ Work in the repository $Repo (the gh CLI is already authenticated). Implement ex
 "@
 }
 
-function Invoke-Agent($Settings, [string]$Prompt, [string]$ModelId) {
-    $invocation = @($Settings.Args | ForEach-Object {
-            $_.Replace('{prompt}', $Prompt).Replace('{model}', $ModelId)
+function Invoke-Agent($Settings, [string]$Prompt, [string]$ModelId, [string]$SessionId, [switch]$Resume) {
+    $template = if ($Resume) { $Settings.ResumeArgs } else { $Settings.Args }
+    $invocation = @($template | ForEach-Object {
+            $_.Replace('{prompt}', $Prompt).Replace('{model}', $ModelId).Replace('{sessionId}', $SessionId)
         })
 
     $saved = @{}
@@ -754,12 +821,73 @@ function Invoke-Agent($Settings, [string]$Prompt, [string]$ModelId) {
 
     try {
         # Out-Host keeps the agent's output on the console and out of the return value,
-        # which would otherwise be that output with the exit code appended to it.
-        & $Settings.Command @invocation | Out-Host
-        return $LASTEXITCODE
+        # which would otherwise be that output with the exit code appended to it. The copy
+        # Tee-Object keeps is what Test-ConnectionFailure reads.
+        $agentOutput = $null
+        & $Settings.Command @invocation | Tee-Object -Variable agentOutput | Out-Host
+        return [pscustomobject]@{
+            ExitCode = $LASTEXITCODE
+            Output   = (@($agentOutput) -join [Environment]::NewLine)
+        }
     } finally {
         foreach ($name in $saved.Keys) {
             [Environment]::SetEnvironmentVariable($name, $saved[$name])
+        }
+    }
+}
+
+# A dropped connection to the model's API ends the agent with a non-zero exit, exactly like a
+# task that failed (as on issue #727, where the proxy stopped resolving with only the browser
+# gate left). Only the agent's own output tells the two apart.
+function Test-ConnectionFailure($Settings, [int]$ExitCode, [string]$Output) {
+    if ($ExitCode -eq 0 -or -not $Settings.ConnectionErrorPattern -or [string]::IsNullOrEmpty($Output)) {
+        return $false
+    }
+    return [regex]::IsMatch($Output, $Settings.ConnectionErrorPattern, [Text.RegularExpressions.RegexOptions]::Multiline)
+}
+
+# Any HTTP answer, an error status included, means the network is back; only a failure to
+# connect (DNS, proxy, TLS, timeout) keeps waiting. Without a probe URL there is nothing to
+# ask, so it waits one probe interval and lets the resumed agent find out.
+function Wait-ForConnection([string]$ProbeUrl, [int]$Minutes) {
+    $interval = 30
+    if (-not $ProbeUrl) {
+        Start-Sleep -Seconds $interval
+        return $true
+    }
+
+    $deadline = (Get-Date).AddMinutes($Minutes)
+    while ($true) {
+        try {
+            Invoke-WebRequest -Uri $ProbeUrl -Method Head -TimeoutSec 15 -SkipHttpErrorCheck -UseBasicParsing | Out-Null
+            return $true
+        } catch {
+            if ((Get-Date) -ge $deadline) {
+                return $false
+            }
+            Write-Host "  No connection yet ($($_.Exception.Message)). Next probe in $interval s."
+            Start-Sleep -Seconds $interval
+        }
+    }
+}
+
+function New-ResumePrompt([int]$IssueNumber) {
+    return "The connection to the model's API dropped and ended your session while you were working on issue #$IssueNumber; the network is back and this is the same session, resumed by run-next-task.ps1. Continue the task from where you stopped, under the same instructions. Every background command you had started was killed when the session ended, so before you go on, check the working tree, the branch and what has already been pushed or opened on GitHub, and run again any gate whose result you had not yet seen."
+}
+
+# A local branch of this issue with commits on no remote branch holds work the agent cannot
+# see (Get-PushedTaskBranches reads origin only), and its "git checkout -b" of the same name
+# would fail. Save-UnfinishedWork leaves exactly such a branch when a task fails.
+function Get-UnpushedTaskBranches([int]$IssueNumber, [string]$BranchPrefix) {
+    $pattern = "^[^/]+/$([regex]::Escape($BranchPrefix))$IssueNumber-"
+    foreach ($name in @(git for-each-ref --format='%(refname:short)' refs/heads/)) {
+        if ($name -notmatch $pattern) {
+            continue
+        }
+        $base = if (git for-each-ref --format='%(refname)' "refs/remotes/origin/$name") { "origin/$name" } else { 'origin/main' }
+        $ahead = [int](git rev-list --count "$base..$name")
+        if ($ahead -gt 0) {
+            [pscustomobject]@{ Name = $name; Ahead = $ahead; Base = $base }
         }
     }
 }
@@ -826,6 +954,14 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
 
     Write-Host "Next ready issue: #$issueNumber - $($readyIssue.title). Branch: '<type>/$branchPrefix$issueNumber-...'"
 
+    $unpushedBranches = @(Get-UnpushedTaskBranches -IssueNumber $issueNumber -BranchPrefix $branchPrefix)
+    if ($unpushedBranches.Count -gt 0) {
+        foreach ($branch in $unpushedBranches) {
+            Write-Host "  Local branch '$($branch.Name)' has $($branch.Ahead) commit(s) beyond '$($branch.Base)'."
+        }
+        Fail "Issue #$issueNumber has local work no remote branch holds, which the agent would not see. Push it (git push -u origin <branch>) so this attempt continues on it, delete it if it is not wanted, or leave the issue out of the run with -Issue. Not starting the task."
+    }
+
     $pushedBranches = @(Get-PushedTaskBranches -IssueNumber $issueNumber -BranchPrefix $branchPrefix)
     if ($pushedBranches.Count -gt 0) {
         Write-Host "An earlier attempt pushed '$($pushedBranches[0])': the agent continues on it."
@@ -841,8 +977,30 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
     # permission prompts: with no human review step, every command (git push,
     # gh pr create, gh pr merge) must run without approval that will never come.
     $stashBefore = Get-StashIds
+    $sessionId = if ($agentSettings.UsesSessionId) { [guid]::NewGuid().ToString() } else { $null }
+    if ($sessionId) {
+        Write-Host "Agent session id: $sessionId."
+    }
     try {
-        $agentExitCode = Invoke-Agent -Settings $agentSettings -Prompt $prompt -ModelId $modelId
+        $run = Invoke-Agent -Settings $agentSettings -Prompt $prompt -ModelId $modelId -SessionId $sessionId
+
+        # Resumed before anything is saved or synced, so the session finds the tree as it left it.
+        $resumes = 0
+        while (Test-ConnectionFailure -Settings $agentSettings -ExitCode $run.ExitCode -Output $run.Output) {
+            if ($agentSettings.ResumeArgs.Count -eq 0 -or $resumes -ge $MaxResumes) {
+                Write-Host "The agent lost its connection to the model's API; it is not resumed ($resumes of $MaxResumes resumes used, resumeArgs $(if ($agentSettings.ResumeArgs.Count -gt 0) { 'set' } else { 'not set' }))."
+                break
+            }
+            Write-Host "The agent lost its connection to the model's API. Waiting up to $ConnectionWaitMinutes min for the network..."
+            if (-not (Wait-ForConnection -ProbeUrl $agentSettings.ConnectivityProbeUrl -Minutes $ConnectionWaitMinutes)) {
+                Write-Host "The network did not come back within $ConnectionWaitMinutes min."
+                break
+            }
+            $resumes++
+            Write-Host "Resuming session $sessionId on issue #$issueNumber (resume $resumes of $MaxResumes)..."
+            $run = Invoke-Agent -Settings $agentSettings -Prompt (New-ResumePrompt -IssueNumber $issueNumber) -ModelId $modelId -SessionId $sessionId -Resume
+        }
+        $agentExitCode = $run.ExitCode
     } finally {
         Remove-Item -LiteralPath $taskFile -ErrorAction SilentlyContinue
     }
@@ -856,7 +1014,7 @@ for ($taskIndex = 1; $taskIndex -le $maxTasks; $taskIndex++) {
     Write-Host "Task on issue #$issueNumber took $(Format-Duration $taskClock.Elapsed)."
 
     if ($agentExitCode -ne 0) {
-        Write-AgentFailureReport -IssueNumber $issueNumber -BranchPrefix $branchPrefix -StartedAt $taskStartedAt
+        Write-AgentFailureReport -IssueNumber $issueNumber -BranchPrefix $branchPrefix -StartedAt $taskStartedAt -SessionId $sessionId
         Fail "$($agentSettings.Command) exited with code $agentExitCode while working on issue #$issueNumber. Not continuing to further tasks."
     }
 
