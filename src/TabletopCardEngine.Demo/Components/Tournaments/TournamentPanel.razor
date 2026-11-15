@@ -1,0 +1,222 @@
+@using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Holdem.Tournaments
+@inject DemoClock Clock
+
+@* The side panel of a tournament: the level and its clock, who is in and who is out, what the places pay and
+   the tables. Everything it shows is read from TournamentData; the only thing it changes is the demo's clock. *@
+@if (Tournament is { } tournament)
+{
+    <aside class="tournament-panel" aria-label="Tournament">
+        <section class="tournament-panel-section tournament-level">
+            <h3>Level</h3>
+            @if (CurrentLevel is { } level)
+            {
+                <div class="tournament-level-now">Level @(tournament.LevelIndex + 1) · Blinds @BlindsText(level)@AnteText(level)</div>
+            }
+            @if (tournament.State == TournamentState.Finished)
+            {
+                <div class="tournament-level-next">Finished</div>
+            }
+            else if (tournament.LevelEndsAt is { } endsAt)
+            {
+                <div class="tournament-level-countdown">
+                    Ends in <TournamentLevelClock @ref="_levelClock" LevelEndsAt="@endsAt" />
+                </div>
+                @if (NextLevel is { } next)
+                {
+                    <div class="tournament-level-next">Next: @BlindsText(next)@AnteText(next)</div>
+                }
+                <button type="button" class="tournament-skip-level" @onclick="SkipToNextLevel">Skip to next level</button>
+            }
+            else
+            {
+                <div class="tournament-level-next">Final level</div>
+            }
+        </section>
+
+        <section class="tournament-panel-section tournament-standings">
+            <h3>Standings</h3>
+            <div class="tournament-standings-summary">
+                <span>Players left @PlayersLeft/@tournament.Entries.Count</span>
+                @if (PlayersLeft > 0)
+                {
+                    <span>Average stack @AmountFormat.Format(AverageStack)</span>
+                }
+            </div>
+            <table class="tournament-standings-table">
+                <tbody>
+                    @foreach (var entry in StandingsOrder(tournament.Entries))
+                    {
+                        <tr class="@(entry.Place is null ? "tournament-entry-in" : "tournament-entry-out")" data-entry-no="@entry.EntryNo">
+                            <td class="tournament-entry-name">@entry.Name</td>
+                            <td class="tournament-entry-where">@WhereText(entry)</td>
+                            <td class="tournament-entry-prize">@(entry.Prize > 0 ? AmountFormat.Format(entry.Prize) : "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <section class="tournament-panel-section tournament-payouts">
+            <h3>Payouts</h3>
+            <div class="tournament-prize-pool">Prize pool @AmountFormat.Format(tournament.PrizePool)</div>
+            <table class="tournament-payouts-table">
+                <tbody>
+                    @foreach (var row in PayoutRows(tournament.Options.Payouts, tournament.PrizePool))
+                    {
+                        <tr>
+                            <td>@PlaceText(row.Place)</td>
+                            <td>@AmountFormat.Format(row.Percent)%</td>
+                            <td>@AmountFormat.Format(row.Amount)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+
+        <section class="tournament-panel-section tournament-panel-tables">
+            <h3>Tables</h3>
+            <div class="tournament-panel-table-list">
+                @foreach (var table in tournament.Tables)
+                {
+                    var isViewed = table.TableNo == ViewedTableNo;
+                    <button type="button"
+                        class="@TableClass(table, isViewed)"
+                        data-table-no="@table.TableNo"
+                        disabled="@table.IsBroken"
+                        @onclick="@(() => OnSelectTable.InvokeAsync(table.TableNo))">
+                        Table @table.TableNo · @(table.IsBroken ? "broken" : $"{table.PlayerCount} {(table.PlayerCount == 1 ? "player" : "players")}")
+                    </button>
+                }
+            </div>
+        </section>
+    </aside>
+}
+
+@code {
+    private TournamentLevelClock? _levelClock;
+
+    /// <summary>One row of the payout table.</summary>
+    /// <param name="Place">The finishing place, from 1.</param>
+    /// <param name="Percent">The share of the prize pool, in percent.</param>
+    /// <param name="Amount">What the share comes to in chips, to the cent.</param>
+    public sealed record PayoutRow(int Place, decimal Percent, decimal Amount);
+
+    /// <summary>The tournament, or null before one has started; the panel draws nothing without it.</summary>
+    [Parameter]
+    public TournamentData? Tournament { get; set; }
+
+    /// <summary>The number of the table on screen.</summary>
+    [Parameter]
+    public int ViewedTableNo { get; set; }
+
+    /// <summary>Raised with the number of the table the visitor picks.</summary>
+    [Parameter]
+    public EventCallback<int> OnSelectTable { get; set; }
+
+    private TournamentLevelData? CurrentLevel => LevelAt(Tournament?.LevelIndex ?? -1);
+
+    private TournamentLevelData? NextLevel => LevelAt((Tournament?.LevelIndex ?? -1) + 1);
+
+    private int PlayersLeft => Tournament?.Entries.Count(entry => entry.State != TournamentEntryState.Eliminated) ?? 0;
+
+    /// <summary>The chips in play over the players left: every entry started with the same stack.</summary>
+    private decimal AverageStack => PlayersLeft == 0 ? 0 : Tournament!.Options.StartingStack * Tournament.Entries.Count / PlayersLeft;
+
+    private TournamentLevelData? LevelAt(int index)
+    {
+        var levels = Tournament?.Options.Levels;
+        return levels is not null && index >= 0 && index < levels.Count ? levels[index] : null;
+    }
+
+    /// <summary>
+    /// Moves the clock to the end of the level the tournament shows. The tournament is read back only when a hand is
+    /// dealt, so a second skip before that finds the shown level already over: it moves on through the levels after
+    /// it, so each press is one more level for the next hand to pick up.
+    /// </summary>
+    private void SkipToNextLevel()
+    {
+        if (Tournament is not { LevelEndsAt: { } target } tournament)
+        {
+            return;
+        }
+
+        var now = Clock.GetUtcNow();
+        var index = tournament.LevelIndex;
+        while (target <= now && index + 1 < tournament.Options.Levels.Count - 1)
+        {
+            index++;
+            target += tournament.Options.Levels[index].Duration;
+        }
+
+        if (target > now)
+        {
+            Clock.Advance(target - now);
+        }
+
+        _levelClock?.Refresh();
+    }
+
+    /// <summary>Orders the entries for the standings: those still in by table and seat, then those out by place, best first.</summary>
+    /// <param name="entries">The tournament's entries.</param>
+    /// <returns>The entries in the order the panel lists them.</returns>
+    public static IEnumerable<TournamentEntryData> StandingsOrder(IEnumerable<TournamentEntryData> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        var all = entries.ToArray();
+        return all.Where(entry => entry.Place is null)
+            .OrderBy(entry => entry.TableNo ?? int.MaxValue)
+            .ThenBy(entry => entry.SeatNo ?? byte.MaxValue)
+            .ThenBy(entry => entry.EntryNo)
+            .Concat(all.Where(entry => entry.Place is not null).OrderBy(entry => entry.Place));
+    }
+
+    /// <summary>Works out what each paid place wins from the prize pool.</summary>
+    /// <param name="percents">The share of each place, first place first.</param>
+    /// <param name="prizePool">What the places share.</param>
+    /// <returns>One row per paid place.</returns>
+    public static IReadOnlyList<PayoutRow> PayoutRows(IReadOnlyList<decimal> percents, decimal prizePool)
+    {
+        ArgumentNullException.ThrowIfNull(percents);
+        return [.. percents.Select((percent, index) => new PayoutRow(index + 1, percent, Math.Round(prizePool * percent / 100m, 2, MidpointRounding.AwayFromZero)))];
+    }
+
+    private static string BlindsText(TournamentLevelData level)
+        => $"{AmountFormat.Format(level.SmallBlind)}/{AmountFormat.Format(level.SmallBlind * 2)}";
+
+    private static string AnteText(TournamentLevelData level)
+        => level.Ante > 0 ? $" · Ante {AmountFormat.Format(level.Ante)}" : "";
+
+    private static string WhereText(TournamentEntryData entry)
+    {
+        if (entry.Place is { } place)
+        {
+            return PlaceText(place);
+        }
+
+        return entry.State switch
+        {
+            TournamentEntryState.Moving => entry.TableNo is { } moveTo ? $"moving to table {moveTo}" : "moving",
+            TournamentEntryState.Seated => $"table {entry.TableNo}, seat {entry.SeatNo}",
+            _ => "registered",
+        };
+    }
+
+    private static string PlaceText(int place)
+    {
+        var suffix = place % 100 is >= 11 and <= 13
+            ? "th"
+            : (place % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" };
+        return $"{place}{suffix}";
+    }
+
+    private static string TableClass(TournamentTableData table, bool isViewed)
+    {
+        if (table.IsBroken)
+        {
+            return "tournament-panel-table-btn tournament-panel-table-broken";
+        }
+
+        return isViewed ? "tournament-panel-table-btn tournament-panel-table-active" : "tournament-panel-table-btn";
+    }
+}

@@ -322,6 +322,20 @@ code {
     box-sizing: border-box;
 }
 
+/* The table and, during a tournament, its side panel. The panel wraps below the table when the pane is
+   too narrow for both, so the pane never scrolls sideways. */
+.table-with-panel {
+    display: flex;
+    flex: 1 1 auto;
+    flex-flow: row wrap;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.table-with-panel > .main-region {
+    flex: 1 1 640px;
+}
+
 /* The table grows to the bottom of its pane. */
 .main-region {
     display: flex;

@@ -1,0 +1,46 @@
+@using System.Globalization
+@using TabletopCardEngine.Demo.Services
+@implements IDisposable
+@inject DemoClock Clock
+
+@* The countdown to the end of the level, and nothing else. It owns the one-second timer, so only this
+   element re-renders every second and the table next to it never does. *@
+<span class="tournament-level-clock" title="Time left in the level">@RemainingText</span>
+
+@code {
+    private Timer? _timer;
+
+    /// <summary>When the level ends, on the demo's clock; null on the last level, which has no countdown.</summary>
+    [Parameter]
+    public DateTimeOffset? LevelEndsAt { get; set; }
+
+    /// <summary>The time left, as <c>mm:ss</c> (<c>h:mm:ss</c> from an hour up), rounded up to a whole second and never below zero.</summary>
+    public string RemainingText => Format(LevelEndsAt is { } endsAt ? endsAt - Clock.GetUtcNow() : TimeSpan.Zero);
+
+    /// <summary>Draws the countdown again now, for a caller that has just moved the clock.</summary>
+    public void Refresh()
+    {
+        StateHasChanged();
+    }
+
+    /// <summary>Writes a time left as the panel shows it.</summary>
+    /// <param name="remaining">The time left; zero or less is shown as <c>00:00</c>.</param>
+    public static string Format(TimeSpan remaining)
+    {
+        var seconds = remaining <= TimeSpan.Zero ? 0 : (long)Math.Ceiling(remaining.TotalSeconds);
+        var span = TimeSpan.FromSeconds(seconds);
+        return span.TotalHours >= 1
+            ? string.Create(CultureInfo.InvariantCulture, $"{(int)span.TotalHours}:{span.Minutes:00}:{span.Seconds:00}")
+            : string.Create(CultureInfo.InvariantCulture, $"{span.Minutes:00}:{span.Seconds:00}");
+    }
+
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(_ => _ = InvokeAsync(StateHasChanged), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    void IDisposable.Dispose()
+    {
+        _timer?.Dispose();
+    }
+}
