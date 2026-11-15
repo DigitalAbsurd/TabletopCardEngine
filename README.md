@@ -5,7 +5,7 @@
 
 # TabletopCardEngine
 
-A .NET 10 engine for Texas Hold'em cash games (No-Limit, Pot-Limit and Fixed-Limit). One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`. There is no in-memory game object: the database is the state.
+A .NET 10 engine for Texas Hold'em cash games and tournaments (No-Limit, Pot-Limit and Fixed-Limit). One method, `IHoldemTable.ApplyAsync`, takes a command and returns the whole game as `GameData`; tournaments have one too, `IHoldemTournament.ApplyAsync`. There is no in-memory game object: the database is the state.
 
 [![Release](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml/badge.svg)](https://github.com/DigitalAbsurd/TabletopCardEngine/actions/workflows/release.yml) [![NuGet](https://img.shields.io/nuget/v/TabletopCardEngine)](https://www.nuget.org/packages/TabletopCardEngine) [![Docker pulls](https://img.shields.io/docker/pulls/digitalabsurd/tabletopcardengine)](https://hub.docker.com/r/digitalabsurd/tabletopcardengine) [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE) [![Docs](https://readthedocs.org/projects/tabletopcardengine/badge/?version=stable)](https://tabletopcardengine.readthedocs.io/en/stable/)
 
@@ -17,7 +17,7 @@ Try the [interactive Blazor WebAssembly demo](https://digitalabsurd.github.io/Ta
 
 ## Features and limits
 
-The engine deals and runs Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1.4 supports: No-Limit, Pot-Limit and Fixed-Limit Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seats, optional buy-in limits, top-up and rebuy between hands, kicking a player, and optional blind schedules that raise the blinds by level, optional antes (classic or big blind ante), no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
+The engine deals and runs Texas Hold'em cash games: blinds, betting rounds, side pots, showdown, optimistic concurrency, deterministic dealing for replays, and logs, traces and metrics. Version 1.4 supports: No-Limit, Pot-Limit and Fixed-Limit Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seats, optional buy-in limits, top-up and rebuy between hands, kicking a player, and optional blind schedules that raise the blinds by level, optional antes (classic or big blind ante), and freezeout tournaments, sit-and-go or multi-table, with blind levels on a clock, balanced tables, places and prizes, no rake. It targets .NET 10 (LTS). What comes next is in the [roadmap](https://tabletopcardengine.readthedocs.io/en/stable/roadmap/).
 
 | Package | Use it for |
 |---|---|
@@ -118,6 +118,34 @@ The [getting started guide](https://tabletopcardengine.readthedocs.io/en/stable/
 ### The command and `GameData` loop
 
 Every call sends a `HoldemAction` and gets the whole game back. `HandData.Evaluations` lists what the player on the clock may do, `HandData.NextPlayerSeatNo` names that player (`0` when nobody acts), and an optional `ExpectedVersion` on the action turns a stale write into a `Conflict`. See [Key concepts](https://tabletopcardengine.readthedocs.io/en/stable/concepts/).
+
+### Tournaments
+
+A tournament is run by `IHoldemTournament.ApplyAsync`. Its tables are ordinary games that the players act on through `IHoldemTable`, and the host calls `DealTable` between two hands of a table:
+
+```csharp
+var tournaments = provider.GetRequiredService<IHoldemTournament>();
+
+var created = await tournaments.ApplyAsync(TournamentAction.CreateTournament(new TournamentOptionData
+{
+    StartingStack = 1000,
+    BuyIn = 10,
+    Payouts = [65, 35],
+    Levels = [new TournamentLevelData { SmallBlind = 25, Duration = TimeSpan.FromMinutes(10) }],
+}));
+var tournamentId = created.Value!.TournamentId;
+
+await tournaments.ApplyAsync(TournamentAction.Register(tournamentId, "Alice"));
+await tournaments.ApplyAsync(TournamentAction.Register(tournamentId, "Bob"));
+
+// Closes registration, seats the players and deals the first hand of every table.
+var data = (await tournaments.ApplyAsync(TournamentAction.StartTournament(tournamentId))).Value!;
+
+// Play each table's game with IHoldemTable (data.Tables[i].GameId), then, between hands:
+data = (await tournaments.ApplyAsync(TournamentAction.DealTable(tournamentId, tableNo: 1))).Value!;
+```
+
+See [Tournaments](https://tabletopcardengine.readthedocs.io/en/stable/concepts/tournaments/) for the lifecycle and a complete host loop.
 
 ### REST API
 

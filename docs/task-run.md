@@ -450,7 +450,7 @@ renumber.
     `InvalidAction = 4` (the action type is not a defined `PlayerActionType`), and the three scope codes
     of fact 23: `UnsupportedGameOptions = 5`, `InvalidGameOptions = 6` (which also covers an undefined table
     format and a seat count outside the format's range), `InvalidSeat = 7`, and the four lifecycle codes of fact 2:
-    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, `IllegalAction = 13` of fact 29, `InvalidBuyIn = 15` of fact 23, and the two top-up codes of fact 23: `TopUpNotAllowed = 16` and `RebuyNotAllowed = 17`. The tournament codes of `IHoldemTournament` follow, with resource strings keyed `HoldemValidation_Tournament*`: `TournamentNotFound = 18`, `TournamentAlreadyExists = 19`, `InvalidTournamentOptions = 20`, `TournamentAlreadyStarted = 21`, `TournamentFull = 22` and `InvalidEntry = 23`, and `ManagedByTournament = 24` (`HoldemValidation_ManagedByTournament`), which `IHoldemTable` returns for every action but `Play` and `GetGame` on a game that is a tournament table, and the three `DealTable` codes: `TournamentNotStarted = 25`, `TournamentFinished = 26` and `InvalidTable = 27` (a table number the tournament does not have, or a broken table).
+    `GameAlreadyStarted = 8`, `GameNotStarted = 9`, `GameFinished = 10`, `NotEnoughPlayers = 14`, `Conflict = 11` of fact 24, `GameNotFound = 12` of fact 2, `IllegalAction = 13` of fact 29, `InvalidBuyIn = 15` of fact 23, and the two top-up codes of fact 23: `TopUpNotAllowed = 16` and `RebuyNotAllowed = 17`. The tournament codes of `IHoldemTournament` follow, with resource strings keyed `HoldemValidation_Tournament*`: `TournamentNotFound = 18`, `TournamentAlreadyExists = 19`, `InvalidTournamentOptions = 20`, `TournamentAlreadyStarted = 21`, `TournamentFull = 22` and `InvalidEntry = 23`, and `ManagedByTournament = 24` (`HoldemValidation_ManagedByTournament`), which `IHoldemTable` returns for every action but `Play` and `GetGame` on a game that is a tournament table, and the three `DealTable` codes: `TournamentNotStarted = 25`, `TournamentFinished = 26` and `InvalidTable = 27` (a table number the tournament does not have, or a broken table). Facts 23 and 33 say when each one fires. Codes 1 to 27 are all assigned, so the next one is 28.
 18. **Heads-up changes the positions, not just the ring size.** With two funded seats the button
     posts the small blind, acts *first* pre-flop and *last* on every street after it. A blind post is
     also capped at the stack, so `HandAction.Amount` on a blind row is what was actually posted while
@@ -507,7 +507,8 @@ renumber.
     `.razor.css`. The same rewriter is why a class written on a wrapper element in a *parent*
     component is never matched by the child's own stylesheet, and why `::deep` exists.
 23. **The v1 scope is enforced, and each rule has its own code.** No-Limit, Pot-Limit and Fixed-Limit Hold'em cash games at 2 to 10
-    seats, with optional buy-in limits, top-up, rebuy and kick, optional blind schedules, and optional antes posted per `AnteType` (fact 32); no rake. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
+    seats, with optional buy-in limits, top-up, rebuy and kick, optional blind schedules, and optional antes posted per `AnteType` (fact 32); no rake.
+    Freezeout tournaments (sit-and-go and multi-table) run over the same games through `IHoldemTournament` (fact 33): no rebuys, add-ons, late registration or bounties. The table format caps the seats: `HeadsUp` exactly 2, `SixMax` (the default) 2 to 6,
     `FullRing` 7 to 10 (`Holdem/ActionHandlers/HoldemTableFormatExtensions.cs`). `CreateGame` returns `UnsupportedGameOptions = 5` when the `GameType` and
     `BettingStructure` pair is not listed in `SupportedGameVariants` (`Holdem/ActionHandlers/SupportedGameVariants.cs`),
     and `InvalidGameOptions = 6` when `TableFormat` is not a defined `HoldemTableFormat`, `MaxPlayersCount` is
@@ -540,6 +541,20 @@ renumber.
     `HoldemOptionsBuilder.WithSettings` throws `ArgumentOutOfRangeException` when the settings end up
     with a minimum below 2, a maximum above 10 or a minimum above the maximum: a configuration error, not a
     game result. `GameOptionData` has no positional constructor; build it with an object initializer.
+    The tournament validation codes (resource strings `HoldemValidation_Tournament*`, `Holdem/Tournaments/`), in the order of the enum:
+    `TournamentNotFound = 18` (every tournament action but `CreateTournament` on an id nobody created), `TournamentAlreadyExists = 19`
+    (`CreateTournament` on an existing id), `InvalidTournamentOptions = 20` (`TournamentOptionsValidation`: a table format that is not defined
+    or `MaxPlayersPerTable` outside its range, `RaiseCap < 1`, an undefined `AnteType`, `StartingStack <= 0`, `BuyIn < 0`, an amount with more
+    than two decimal places, `MinEntries < 2`, `MaxEntries < MinEntries`, no levels or more than 100, a level with a small blind that is
+    not positive or is below the previous one, a negative ante, a duration under one minute or not a whole number of seconds, levels or
+    payouts whose JSON exceeds the 4 000-character column, or payouts that are empty, more than `MinEntries`, not positive, increasing,
+    or not adding up to exactly 100; a structure the engine does not play is `UnsupportedGameOptions = 5` instead),
+    `TournamentAlreadyStarted = 21` (`Register`, `Unregister` or `StartTournament` after the start), `TournamentFull = 22`
+    (`Register` past `MaxEntries`), `InvalidEntry = 23` (a name that is empty, over 64 characters or already registered ignoring case, or
+    an `EntryNo` not registered), `ManagedByTournament = 24` (`IHoldemTable` on a tournament table with anything but `Play` or `GetGame`),
+    and the `DealTable` codes `TournamentNotStarted = 25`, `TournamentFinished = 26` and `InvalidTable = 27` (a table number the
+    tournament does not have, a table that has been broken, or a game that is gone). `StartTournament` with fewer than `MinEntries`
+    entries is `NotEnoughPlayers = 14`, and `DealTable` while the table's hand is running is `PreviousHandNotEnded = 3`.
 24. **`Game.Version` is the concurrency token, and `Conflict = 11` reports a lost race.** `CreateGame`
     starts it at `1`; every other call that saves increments it, so the `UPDATE Game ... WHERE Version`
     check runs even when only child rows changed; `GetGame` does not save and does not increment. It is
@@ -642,6 +657,39 @@ renumber.
     `HandData.Pot` includes the antes from the deal on, `StreetPot` and `SeatData.BetSize` never do, so `Pot +
     StreetPot` is always the whole pot; `SeatData.LastAction` skips an ante row. A seat whose only row is its ante
     rehydrates all in when the ante emptied it.
+33. **Tournaments orchestrate ordinary games; the rules an implementer can trip over** (ADR-0011, `Holdem/Tournaments/`, user view in
+    `docs/concepts/tournaments.md`).
+    - *The guard.* A table of a tournament is a `Game` with a `TournamentTable` row. `HoldemTable.ApplyWithHookAsync` fails every action
+      on it but `Play` and `GetGame` with `ManagedByTournament = 24`, after the game is found (so `GameNotFound` wins) and before the
+      `ExpectedVersion` check. The tournament never goes through `IHoldemTable`: `TournamentStarter` and `TournamentDealer` run the
+      game's own handlers (`StartGameActionHandler`, `StartHandActionHandler`, `FinishGameActionHandler`) directly on the tournament's
+      `HoldemDbContext`, so the tournament row and the table's game are saved in one transaction by `VersionedSave`.
+    - *Who writes the tournament row.* `CreateTournament`, `Register`, `Unregister`, `StartTournament` and `DealTable`, each bumping
+      `Tournament.Version` (the concurrency token, fact 24's rules). `Play` saves the game and never the tournament, so tables never
+      block each other. Two `DealTable`s on one tournament, whatever the tables, make the loser `Conflict`; `GetTournament` saves nothing.
+    - *The clock override.* The handlers take an optional `DealLevel(BlindLevel, SmallBlind, Ante)` through their constructors, and
+      `HandDealer.DealAsync` uses it instead of the game's own `BlindSchedule` (fact 31): the hand's `SmallBlind`, `BlindLevel` and
+      `Ante` come from `TournamentClock.DealLevelAt` at the deal, and a hand never changes level afterwards. `TournamentClock.LevelIndex`
+      is a pure function of `StartedAt` and the `TimeProvider` (`HoldemOptionsBuilder.WithTimeProvider`), and the last level lasts
+      forever. A cash game passes no level and deals exactly as before.
+    - *Eliminations are recorded at `DealTable` only.* A bust is the seat whose hand ended with `GetSeatFinishStack` below `0.0001`; the
+      hand ending does not place anybody, and a host that never calls `DealTable` leaves the player `Seated` with no chips. The
+      places go to `remaining - busted + 1` and up, by start stack of that hand, descending; equal start stacks tie and share the
+      prizes of the places they cover, to the cent, extra cents to the lower `EntryNo` (`TournamentDealer.SplitPrize`). The seat leaves
+      through `EntityExtensions.LeaveSeat` (`HandNoEnd`), so it frees after that hand. The prizes are `PrizeTable`: each paid place
+      rounded to the cent, first place the rest of the pool. With one player left `DealTable` places the winner, sets `Finished` and
+      finishes every table's game through `FinishGame`'s handler.
+    - *Moving players are tournament rows until the target deals.* Breaking or balancing at `DealTable(A)` changes `TournamentEntry`
+      rows only: `State` `Moving`, `TableNo` and `SeatNo` the target's reserved seat, `CarriedStack` the chips; no target game is
+      touched, nobody is seated into a running hand. The target's own `DealTable` joins the arrivals through `JoinSeats` of its
+      `StartHand` (or of `StartGame` when the table has no hand yet) with the carried stack as `BuyInAmount`, then sets that `BuyIn`
+      row's `Kind` to `BuyInKind.Transfer` (set only after the deal, because the deal reads every kind but `Join` as a top-up still to
+      add) and clears `CarriedStack`. A table with fewer than two players deals nothing, succeeds, and waits. A table that breaks has its game
+      finished and `IsBroken` set, and a later `DealTable` on it is `InvalidTable`. A player's stack in a game never changes by a write: it is
+      the ledger's.
+    - *Tests.* `TournamentSessionTests` plays whole events with invariants as the oracle (chips conserved, every player in one place,
+      tables within one player, levels as the clock gives at each deal); `TournamentDocsExampleTests` runs the host loop of the
+      concept page. A change to either the loop or the page changes the other.
 
 ## A known, deliberate duplication
 

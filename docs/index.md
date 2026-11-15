@@ -4,9 +4,9 @@ TabletopCardEngine is a .NET 10 class library for Texas Hold'em cash games. It i
 
 ## What's included
 
-**v1.3 scope**: No-Limit, Pot-Limit and Fixed-Limit Texas Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seated players, no antes, no rake.
+**v1.4 scope**: No-Limit, Pot-Limit and Fixed-Limit Texas Hold'em cash games in three table formats (Heads-Up (2-Max), 6-Max, Full Ring), 2 to 10 seated players, optional antes, and freezeout [tournaments](concepts/tournaments.md) (sit-and-go and multi-table), no rake.
 
-The [roadmap](roadmap.md) covers other structures, more seats, antes and tournaments in later releases.
+The [roadmap](roadmap.md) covers what is planned next.
 
 ## Try the interactive demo
 

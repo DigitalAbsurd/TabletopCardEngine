@@ -192,4 +192,4 @@ With `AnteType.BigBlind` and an ante of 2 the ledger is the small blind of 1, th
 
 Under the blind schedule `IncreaseEveryHands = 1, Multiplier = 2` and a classic ante of 1 at blinds 1/2, hand 1 has an ante of 1, and hand 2, at blinds 2/4, an ante of 2.
 
-Tournaments are still to come, see the [roadmap](../roadmap.md).
+A tournament sets its blinds and ante per level on a clock instead, see [Tournaments](tournaments.md).

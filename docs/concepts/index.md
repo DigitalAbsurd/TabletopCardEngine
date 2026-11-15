@@ -137,6 +137,10 @@ A game can limit what players sit down with (`MinBuyIn`, `MaxBuyIn`), let them a
 
 A game plays No-Limit (the default), Pot-Limit or Fixed-Limit, chosen once with `GameOptionData.BettingStructure`. The structure sets the window of every `Raise` evaluation, the rule for an incomplete all-in raise is shared, and Fixed-Limit adds a raise cap. See [Betting structures](betting-structures.md).
 
+## Tournaments
+
+A tournament, a sit-and-go or a multi-table event, is run by `IHoldemTournament.ApplyAsync` as an orchestrator of ordinary games: its tables are games the players act on through `IHoldemTable`, while the tournament registers the players, seats them, sets the blinds and the ante on a clock, breaks and balances the tables, places the busts and pays the prizes. See [Tournaments](tournaments.md).
+
 ## The database is the state
 
 The engine has no in-memory game object. Every call to `ApplyAsync` does this:
@@ -217,3 +221,4 @@ The engine never retries and takes no locks. It is the caller's job to reload an
 - **[Heads-up play](heads-up.md)** — Two-player poker: position rules, the big blind's option, and how stacks below a blind are handled.
 - **[Buy-ins, top-ups and blind schedules](buy-ins-and-blinds.md)** — The buy-in window, top-up and rebuy, kicking a player, and blinds that rise by level.
 - **[Betting structures](betting-structures.md)** — No-Limit, Pot-Limit and Fixed-Limit: the minimum raise, the pot-limit maximum, the fixed bet sizes and the raise cap, and incomplete all-in raises.
+- **[Tournaments](tournaments.md)** — Sit-and-gos and multi-table tournaments: the lifecycle, the options, the level clock, seating and balancing, places and prizes, and a host loop.
