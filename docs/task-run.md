@@ -251,8 +251,11 @@ of this applies.
    so the merge closes the issue.
 4. Merge it yourself right after opening the pull request — squash, and delete the branch. No workflow
    runs on a pull request or on `main` by design; CI runs only on release tags (see `release-process.md`).
-   Merge with `gh pr merge <number> --squash --delete-branch`. Say in the pull request that the local
-   gates were its only checks. GitHub enforces no required checks, and auto-merge is off.
+   Merge with `gh pr merge <number> --squash --delete-branch --subject "<pull request title> (#<number>)"`.
+   Without `--subject`, GitHub takes the subject of a branch's commit instead of the title, as it did
+   for #770, whose commit on `main` reads `WIP: unfinished task #727` and is skipped by the changelog.
+   Say in the pull request that the local gates were its only checks. GitHub enforces no required
+   checks, and auto-merge is off.
 
 5. Confirm the issue actually closed (`gh issue view <number> --json state`). If it did not, close
    it explicitly with a comment saying why.
