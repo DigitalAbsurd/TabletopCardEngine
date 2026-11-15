@@ -46,6 +46,8 @@ MaxValue = StandingWager + (Pot + StreetPot + MoreToCall)   // then capped at Be
 
 `Pot + StreetPot` is every chip committed this hand, blinds and the wagers of seats that have since folded included. At blinds 1/2 with three seats of 200, the first seat to act may raise to `2 + (3 + 2) = 7`; after it raises to 7, the small blind may raise to `7 + (10 + 6) = 23`. The minimum is the same as in No-Limit.
 
+Antes do not change any `Call` or `Raise` amount, except that under Pot-Limit they are part of the pot: at blinds 1/2 with six seats and a classic ante of 1 the first seat to act may raise to 13, not 7.
+
 Under Pot-Limit an all-in raise is offered on its own (`[stack-stack]`) only when the stack cannot reach the minimum raise. An `AllIn` whose total is above `MaxValue` fails with `IllegalAction`, as does a `Raise` above it.
 
 ### Raise under Fixed-Limit: one fixed total

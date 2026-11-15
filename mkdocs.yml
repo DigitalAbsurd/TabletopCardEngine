@@ -55,7 +55,7 @@ nav:
       - The hand ledger: concepts/hand-ledger.md
       - Legal actions and bet sizing: concepts/evaluations.md
       - Heads-up play: concepts/heads-up.md
-      - Buy-ins, top-ups and blind schedules: concepts/buy-ins-and-blinds.md
+      - Buy-ins, top-ups, blinds and antes: concepts/buy-ins-and-blinds.md
       - Betting structures: concepts/betting-structures.md
   - Guides:
       - ASP.NET Core: aspnetcore.md

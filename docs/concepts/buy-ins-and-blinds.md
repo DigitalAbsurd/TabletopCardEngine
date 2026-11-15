@@ -1,6 +1,6 @@
-# Buy-ins, top-ups and blind schedules
+# Buy-ins, top-ups, blinds and antes
 
-A cash game is more than the hands: players sit down with money, add to it, buy back in after a bust and get removed, and the stakes may rise as the game goes on. This page covers the options and actions that control money in and out of a seat, and the blind schedule. Every option has a default that gives the plain game of 1.1, so a caller that sets none of them sees no change.
+A cash game is more than the hands: players sit down with money, add to it, buy back in after a bust and get removed, and the stakes may rise as the game goes on. This page covers the options and actions that control money in and out of a seat, the blind schedule and the antes. Every option has a default that gives the plain game of 1.1, so a caller that sets none of them sees no change.
 
 All of them are set once, when the game is created, on [`GameOptionData`](../api/TabletopCardEngine/TabletopCardEngine.Holdem.Dto.GameOptionData.md).
 
@@ -135,4 +135,61 @@ var created = await engine.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
 
 The same schedule in `Levels` mode would be `Mode = BlindIncreaseMode.Levels, SmallBlindLevels = [2, 4, 8]`, with no `Multiplier` or `MaxSmallBlind`.
 
-Antes and tournaments are still to come, see the [roadmap](../roadmap.md).
+## Antes
+
+An ante is a forced payment made before the cards are played, on top of the blinds. Set `GameOptionData.Ante` to a positive amount with at most two decimal places (`null`, the default, means no ante) and `GameOptionData.AnteType` to say who posts it. Without an ante a game plays as in 1.3.
+
+| `AnteType` | Who posts the ante | When |
+|---|---|---|
+| `Classic` (the default) | every seat dealt into the hand | at the deal, before the blinds |
+| `BigBlind` | the big blind seat alone, heads-up included | right after its big blind |
+
+An ante is **dead money**. It goes into the pot and into the seat's total contribution, so it counts in the side pots, but it is never part of a street wager: it does not raise the amount to call, it does not move the minimum raise, and the big blind's option is unchanged. Under Pot-Limit it is part of the pot a raise is measured against, see [Legal actions and bet sizing](evaluations.md).
+
+### Short stacks
+
+The button and the blind seats are fixed by position before any chip is posted, whatever the seats can cover.
+
+- **Classic**: every seat posts `min(ante, stack)` before the blinds. A blind seat that its ante leaves all in keeps its place and posts a blind of `0`. A small blind that holds the standing wager because the big blind posted no more has an option, as the big blind would.
+- **Big blind ante**: the big blind seat posts its blind first, then `min(ante, stack left)`. Nobody else posts an ante.
+- **Side pots**: a classic ante counts in the seat's level, so a seat short on its ante wins only what it matched of the others. A big blind ante sets no level and is dead money in the lowest pot, so a big blind all in with its ante on top of a called wager loses the ante to the caller. That is the TDA treatment of the big blind ante; other rooms rule differently.
+
+### Reading the ante
+
+`HandData.Ante` is the hand's ante, or `0` when the hand has none. Under a blind schedule it follows the small blind: the engine works it out once, when the hand is dealt, as `round(Ante × SmallBlind / InitialSmallBlind, 2)` (rounded to the cent away from zero). Each ante is also a row of the [hand ledger](hand-ledger.md), with `ActionType` `Ante`.
+
+`HandData.Pot` includes the antes from the deal on, and `HandData.StreetPot` and `SeatData.BetSize` never do, so `Pot + StreetPot` is always the whole pot.
+
+### A worked example
+
+Six seats of 100 at blinds 1/2, the button on seat 6 and a classic ante of 1:
+
+```csharp
+var created = await engine.ApplyAsync(HoldemAction.CreateGame(new GameOptionData
+{
+    InitialSmallBlind = 1,
+    Ante = 1,
+    AnteType = AnteType.Classic,
+}), ct);
+```
+
+After the deal:
+
+| What | Value |
+|---|---|
+| Ledger | six `Ante` rows of 1 (seats 1 to 6), then the small blind of 1 (seat 1) and the big blind of 2 (seat 2) |
+| `HandData.Pot` | 6, the six antes |
+| `HandData.StreetPot` | 3, the two blinds |
+| Seat 3 to call | 2, as without an ante |
+| Seat 3's minimum raise | to 4, as without an ante |
+| Seat 3's stack | 99 |
+
+If seats 3 to 6 and the small blind fold, the big blind wins the 9 in the pot. Its net is +6: the 9 it wins less the 3 it put in itself, its ante of 1 and its blind of 2. The small blind nets −2 and each of seats 3 to 6 nets −1.
+
+Under Pot-Limit the same deal lets seat 3 raise to at most 13, where the same game without the ante allows 7: the standing wager of 2 plus the pot once it has called, 6 antes, 3 of blinds and its call of 2.
+
+With `AnteType.BigBlind` and an ante of 2 the ledger is the small blind of 1, the big blind of 2 and an `Ante` row of 2 for seat 2, which then has 96. `Pot` is 2 and `StreetPot` 3. The big blind still has its option when everyone else calls, and a raise is still to at least 4.
+
+Under the blind schedule `IncreaseEveryHands = 1, Multiplier = 2` and a classic ante of 1 at blinds 1/2, hand 1 has an ante of 1, and hand 2, at blinds 2/4, an ante of 2.
+
+Tournaments are still to come, see the [roadmap](../roadmap.md).
