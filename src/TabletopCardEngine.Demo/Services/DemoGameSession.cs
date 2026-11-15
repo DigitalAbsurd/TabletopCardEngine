@@ -218,6 +218,19 @@ public sealed class DemoGameSession
     }
 
     /// <summary>
+    /// Makes an existing game the current one by reading it back, without changing it. A tournament
+    /// uses it to switch the table the visitor looks at: the table is an ordinary game, and every
+    /// hot-seat action goes to whichever game is current.
+    /// </summary>
+    /// <param name="gameId">The game to show.</param>
+    /// <param name="cancellationToken">Cancellation token for the database operation.</param>
+    /// <returns><c>true</c> if the game was read, <c>false</c> on validation error.</returns>
+    public async Task<bool> ViewGameAsync(Guid gameId, CancellationToken cancellationToken = default)
+    {
+        return await ApplyActionInternalAsync(HoldemAction.GetGame(gameId), cancellationToken);
+    }
+
+    /// <summary>
     /// Resets the session state and clears the call journal.
     /// </summary>
     public void Reset()

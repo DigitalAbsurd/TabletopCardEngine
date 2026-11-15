@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using TabletopCardEngine.Demo.Phh;
+using TabletopCardEngine.Demo.Services;
 using TabletopCardEngine.Holdem;
 using TabletopCardEngine.Sqlite;
 
@@ -26,9 +27,14 @@ internal static class DemoEngineHost
         var keepAliveConnection = new SqliteConnection("DataSource=:memory:");
         keepAliveConnection.Open();
 
+        // The play engine reads its tournament levels from the demo's clock, which the demo can advance.
+        // IHoldemTournament comes with AddHoldem, next to IHoldemTable.
+        var clock = new DemoClock();
+        services.AddSingleton(clock);
+
         services.AddTabletopCardEngine(tce => tce.AddHoldem(
             dbOptionsAction: opts => opts.UseHoldemSqlite(keepAliveConnection),
-            configure: _ => { }
+            configure: options => options.WithTimeProvider(clock)
         ));
 
         // One shuffler for the whole tab: the replay controller registers decks with the same

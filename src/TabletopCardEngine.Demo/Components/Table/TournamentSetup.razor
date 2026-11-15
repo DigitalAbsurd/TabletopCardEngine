@@ -1,0 +1,191 @@
+@using AntDesign
+@using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Holdem
+
+<Card Title="Tournament Setup" Class="game-setup-card">
+    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <Alert
+                Message="Error"
+                Description="@_errorMessage"
+                Type="@AlertType.Error"
+                Closable="true"
+                OnClose="@ClearErrorMessage"
+                ShowIcon="true" />
+        }
+
+        <div class="game-options">
+            <div class="form-group">
+                <label for="tournament-players">Players (@DemoTournamentDefaults.MinPlayerCount to @DemoTournamentDefaults.MaxPlayerCount)</label>
+                <input
+                    id="tournament-players"
+                    type="number"
+                    step="1"
+                    min="@DemoTournamentDefaults.MinPlayerCount"
+                    max="@DemoTournamentDefaults.MaxPlayerCount"
+                    disabled="@_isLoading"
+                    @bind="_playerCount"
+                    class="setup-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-table-format">Table format</label>
+                <Select
+                    Id="tournament-table-format"
+                    Value="@_tableFormat"
+                    ValueChanged="@OnTableFormatChanged"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="HoldemTableFormat"
+                    TItem="HoldemTableFormat">
+                    <SelectOptions>
+                        <SelectOption TItemValue="HoldemTableFormat" TItem="HoldemTableFormat" Value="@HoldemTableFormat.HeadsUp" Label="@HoldemTableFormatLabels.GetLabel(HoldemTableFormat.HeadsUp)" />
+                        <SelectOption TItemValue="HoldemTableFormat" TItem="HoldemTableFormat" Value="@HoldemTableFormat.SixMax" Label="@HoldemTableFormatLabels.GetLabel(HoldemTableFormat.SixMax)" />
+                        <SelectOption TItemValue="HoldemTableFormat" TItem="HoldemTableFormat" Value="@HoldemTableFormat.FullRing" Label="@HoldemTableFormatLabels.GetLabel(HoldemTableFormat.FullRing)" />
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-players-per-table">Players per table</label>
+                <Select
+                    Id="tournament-players-per-table"
+                    Value="@_playersPerTable"
+                    ValueChanged="@OnPlayersPerTableChanged"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="int"
+                    TItem="int">
+                    <SelectOptions>
+                        @for (var seats = MinSeatsOf(_tableFormat); seats <= MaxSeatsOf(_tableFormat); seats++)
+                        {
+                            <SelectOption TItemValue="int" TItem="int" Value="@seats" Label="@seats.ToString()" />
+                        }
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-betting-structure">Betting structure</label>
+                <Select
+                    Id="tournament-betting-structure"
+                    @bind-Value="_bettingStructure"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="BettingStructure"
+                    TItem="BettingStructure">
+                    <SelectOptions>
+                        <SelectOption TItemValue="BettingStructure" TItem="BettingStructure" Value="@BettingStructure.NoLimit" Label="@BettingStructureLabels.GetLabel(BettingStructure.NoLimit)" />
+                        <SelectOption TItemValue="BettingStructure" TItem="BettingStructure" Value="@BettingStructure.PotLimit" Label="@BettingStructureLabels.GetLabel(BettingStructure.PotLimit)" />
+                        <SelectOption TItemValue="BettingStructure" TItem="BettingStructure" Value="@BettingStructure.FixedLimit" Label="@BettingStructureLabels.GetLabel(BettingStructure.FixedLimit)" />
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            @if (_bettingStructure == BettingStructure.FixedLimit)
+            {
+                <div class="form-group">
+                    <label for="tournament-raise-cap">Raise cap</label>
+                    <input
+                        id="tournament-raise-cap"
+                        type="number"
+                        step="1"
+                        min="1"
+                        disabled="@(_isLoading || _noRaiseCap)"
+                        placeholder="No cap"
+                        @bind="_raiseCap"
+                        class="setup-input" />
+                </div>
+
+                <div class="form-group">
+                    <label for="tournament-no-raise-cap">No cap</label>
+                    <input
+                        id="tournament-no-raise-cap"
+                        type="checkbox"
+                        disabled="@_isLoading"
+                        @bind="_noRaiseCap" />
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="tournament-starting-stack">Starting stack</label>
+                <input
+                    id="tournament-starting-stack"
+                    type="number"
+                    step="1"
+                    min="1"
+                    disabled="@_isLoading"
+                    @bind="_startingStack"
+                    class="setup-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-buy-in">Buy-in</label>
+                <input
+                    id="tournament-buy-in"
+                    type="number"
+                    step="1"
+                    min="0"
+                    disabled="@_isLoading"
+                    @bind="_buyIn"
+                    class="setup-input" />
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-levels">Blind levels</label>
+                <Select
+                    Id="tournament-levels"
+                    @bind-Value="_levelPresetIndex"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="int"
+                    TItem="int">
+                    <SelectOptions>
+                        @for (var index = 0; index < DemoTournamentDefaults.LevelPresets.Count; index++)
+                        {
+                            <SelectOption TItemValue="int" TItem="int" Value="@index" Label="@DemoTournamentDefaults.LevelPresets[index].Label" />
+                        }
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-ante-type">Ante type</label>
+                <Select
+                    Id="tournament-ante-type"
+                    @bind-Value="_anteType"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="AnteType"
+                    TItem="AnteType">
+                    <SelectOptions>
+                        <SelectOption TItemValue="AnteType" TItem="AnteType" Value="@AnteType.Classic" Label="Classic (every seat)" />
+                        <SelectOption TItemValue="AnteType" TItem="AnteType" Value="@AnteType.BigBlind" Label="Big blind ante" />
+                    </SelectOptions>
+                </Select>
+            </div>
+
+            <div class="form-group">
+                <label for="tournament-payouts">Payouts</label>
+                <Select
+                    Id="tournament-payouts"
+                    Value="@PayoutIndex"
+                    ValueChanged="@OnPayoutChanged"
+                    Disabled="@_isLoading"
+                    Style="width: 100%;"
+                    TItemValue="int"
+                    TItem="int">
+                    <SelectOptions>
+                        @foreach (var offered in OfferedPayouts)
+                        {
+                            <SelectOption TItemValue="int" TItem="int" Value="@offered.Index" Label="@offered.Preset.Label" />
+                        }
+                    </SelectOptions>
+                </Select>
+            </div>
+        </div>
+
+        <span class="field-hint">Players are named Player 1 to Player @_playerCount and take their seats by a random draw; the seed is shown above the table, so a run can be repeated.</span>
+    </Space>
+</Card>

@@ -12,6 +12,23 @@ public class NewGameState
     public event Func<Task>? ShowRequested;
 
     /// <summary>
+    /// Raised when the New Tournament modal should be opened.
+    /// </summary>
+    public event Func<Task>? ShowTournamentRequested;
+
+    /// <summary>
+    /// Requests that the New Tournament modal be opened.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task RequestShowTournamentAsync()
+    {
+        if (ShowTournamentRequested is not null)
+        {
+            await ShowTournamentRequested.Invoke();
+        }
+    }
+
+    /// <summary>
     /// Requests that the New Game modal be opened.
     /// </summary>
     /// <returns>A task representing the asynchronous operation.</returns>

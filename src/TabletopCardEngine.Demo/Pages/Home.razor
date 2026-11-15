@@ -11,6 +11,7 @@
 @implements IAsyncDisposable
 @inject INotificationService Notice
 @inject DemoGameSession Session
+@inject DemoTournamentSession TournamentSession
 @inject PhhReplayController ReplayController
 @inject NewGameState NewGameState
 
@@ -73,11 +74,23 @@
 
             <ErrorBoundary @ref="_tableErrorBoundary">
                 <ChildContent>
+                    @if (TournamentSession.IsActive)
+                    {
+                        <TournamentSwitcher
+                            Tournament="@TournamentSession.Tournament"
+                            ViewedTableNo="@TournamentSession.ViewedTableNo"
+                            SeatDrawSeed="@TournamentSession.SeatDrawSeed"
+                            WinnerName="@TournamentSession.WinnerName"
+                            OnSelectTable="@OnSelectTableAsync" />
+                    }
+
                     @* The table is the whole pane: the street, the hand's outcome and the action bar
                        are all drawn on it, so nothing about the hand is shown twice. *@
                     <div class="main-region">
                         <PokerTable
                             GameData="@Session.CurrentGame"
+                            IsTournamentTable="@TournamentSession.IsActive"
+                            CanDealNext="@(!TournamentSession.IsFinished)"
                             PendingJoins="@_pendingJoins"
                             OnQueueJoin="@OnQueueJoin"
                             OnUnqueueJoin="@OnUnqueueJoin"
@@ -152,6 +165,20 @@
     <GameSetup @ref="_gameSetup" />
 </Modal>
 
+@* A tournament is set up the same way: a modal over the running game, applied in one go. *@
+<Modal Visible="_newTournamentVisible"
+    Title="New Tournament"
+    OkText="@StartLabel"
+    CancelText="@CancelLabel"
+    OnOk="OnNewTournamentOkAsync"
+    OnCancel="OnNewTournamentCancelAsync"
+    ConfirmLoading="_isApplying"
+    Width="720"
+    MaskClosable="false"
+    Closable="true">
+    <TournamentSetup @ref="_tournamentSetup" />
+</Modal>
+
 @code {
     private HandHistoryImport.HandHistoryItem? _selectedHistoryHand;
     private ErrorBoundary? _tableErrorBoundary;
@@ -160,13 +187,16 @@
     private ErrorBoundary? _walkthroughErrorBoundary;
     private EngineCalls? _engineCallsComponent;
     private GameSetup? _gameSetup;
+    private TournamentSetup? _tournamentSetup;
     private bool _newGameVisible;
+    private bool _newTournamentVisible;
     private bool _isApplying;
     private string? _bootErrorMessage;
     private string? _seatingErrorMessage;
     private readonly List<PlayerJoinData> _pendingJoins = [];
 
     private const string ApplyLabel = "Apply";
+    private const string StartLabel = "Start";
     private const string CancelLabel = "Cancel";
 
     /// <summary>
@@ -251,7 +281,9 @@
     {
         Session.StateChanged += OnSessionStateChanged;
         Session.EngineError += OnBootEngineError;
+        TournamentSession.StateChanged += OnSessionStateChanged;
         NewGameState.ShowRequested += OpenNewGameModalAsync;
+        NewGameState.ShowTournamentRequested += OpenNewTournamentModalAsync;
 
         await StartDefaultGameIfNeededAsync();
 
@@ -287,9 +319,18 @@
         StateHasChanged();
     }
 
-    /// <summary>Deals the next hand, seating the queued players with it.</summary>
+    /// <summary>
+    /// Deals the next hand. A cash game seats the queued players with it; a tournament table is dealt through
+    /// the tournament, which first records who the last hand eliminated and owns who sits where.
+    /// </summary>
     private async Task OnNextHandAsync()
     {
+        if (TournamentSession.IsActive)
+        {
+            await RunSeatingCallAsync(() => TournamentSession.DealTableAsync(TournamentSession.ViewedTableNo));
+            return;
+        }
+
         var succeeded = await RunSeatingCallAsync(
             () => Session.StartNextHandAsync(_pendingJoins.Count > 0 ? [.. _pendingJoins] : null));
 
@@ -299,6 +340,11 @@
         {
             _pendingJoins.Clear();
         }
+    }
+
+    private async Task OnSelectTableAsync(int tableNo)
+    {
+        await RunSeatingCallAsync(() => TournamentSession.ViewTableAsync(tableNo));
     }
 
     private async Task OnStandUpAsync(byte seatNo)
@@ -336,6 +382,7 @@
         void Capture(object? sender, EngineErrorEventArgs e) => error = e.Message;
 
         Session.EngineError += Capture;
+        TournamentSession.EngineError += Capture;
         try
         {
             return await call();
@@ -343,6 +390,7 @@
         finally
         {
             Session.EngineError -= Capture;
+            TournamentSession.EngineError -= Capture;
             _seatingErrorMessage = error;
         }
     }
@@ -353,6 +401,48 @@
         _gameSetup?.ResetToDefaults();
         _newGameVisible = true;
         StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    /// <summary>Opens the New Tournament modal on a form that starts from the defaults every time.</summary>
+    private Task OpenNewTournamentModalAsync()
+    {
+        _tournamentSetup?.ResetToDefaults();
+        _newTournamentVisible = true;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task OnNewTournamentOkAsync(MouseEventArgs args)
+    {
+        if (_tournamentSetup is null)
+        {
+            return;
+        }
+
+        _isApplying = true;
+        try
+        {
+            // A failed start keeps the modal open: the form is where the reason is shown.
+            if (await _tournamentSetup.ApplyAsync())
+            {
+                _bootErrorMessage = null;
+                _seatingErrorMessage = null;
+                _pendingJoins.Clear();
+                _selectedHistoryHand = null;
+                _newTournamentVisible = false;
+                _activeTab = GameTableTab;
+            }
+        }
+        finally
+        {
+            _isApplying = false;
+        }
+    }
+
+    private Task OnNewTournamentCancelAsync(MouseEventArgs args)
+    {
+        _newTournamentVisible = false;
         return Task.CompletedTask;
     }
 
@@ -422,7 +512,9 @@
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
         Session.StateChanged -= OnSessionStateChanged;
+        TournamentSession.StateChanged -= OnSessionStateChanged;
         NewGameState.ShowRequested -= OpenNewGameModalAsync;
+        NewGameState.ShowTournamentRequested -= OpenNewTournamentModalAsync;
         await Task.CompletedTask;
     }
 }

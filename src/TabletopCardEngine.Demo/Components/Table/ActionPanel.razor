@@ -12,16 +12,19 @@
         {
             @* New Game is in the page header, so the finished bar offers only what continues the
                session. *@
-            <div class="action-bar-buttons">
-                <Button
-                    Type="primary"
-                    Size="large"
-                    OnClick="@OnNextHandAsync"
-                    Loading="_isSubmitting"
-                    Class="action-bar-btn next-hand-btn">
-                    Next Hand
-                </Button>
-            </div>
+            @if (CanDealNext)
+            {
+                <div class="action-bar-buttons">
+                    <Button
+                        Type="primary"
+                        Size="large"
+                        OnClick="@OnNextHandAsync"
+                        Loading="_isSubmitting"
+                        Class="action-bar-btn next-hand-btn">
+                        Next Hand
+                    </Button>
+                </div>
+            }
 
             @if (CanSeat && HandData is not null)
             {

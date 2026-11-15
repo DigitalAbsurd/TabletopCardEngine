@@ -33,7 +33,7 @@
                 </div>
                 @* The running session's settings are in the header rather than on the table, so the
                    table's height goes to the seats, the board and the action bar. *@
-                <GameSummary GameData="@Session.CurrentGame" OnNewGame="RequestNewGame" />
+                <GameSummary GameData="@Session.CurrentGame" OnNewGame="RequestNewGame" OnNewTournament="RequestNewTournament" />
                 <div class="layout-header-actions">
                     <Switch
                         Checked="@_isDark"
@@ -127,6 +127,11 @@
     private async Task RequestNewGame()
     {
         await NewGameState.RequestShowAsync();
+    }
+
+    private async Task RequestNewTournament()
+    {
+        await NewGameState.RequestShowTournamentAsync();
     }
 
     private async Task ShowWalkthrough()

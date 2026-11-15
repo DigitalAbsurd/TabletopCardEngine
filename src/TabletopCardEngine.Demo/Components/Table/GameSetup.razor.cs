@@ -18,6 +18,10 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
     [Inject]
     public required DemoGameSession Session { get; set; }
 
+    /// <summary>The tournament session, which a new cash game replaces.</summary>
+    [Inject]
+    public required DemoTournamentSession TournamentSession { get; set; }
+
     /// <summary>The replay controller, whose card shuffler has to be uninstalled before a normal game.</summary>
     [Inject]
     public required PhhReplayController ReplayController { get; set; }
@@ -406,6 +410,7 @@ public partial class GameSetup : ComponentBase, IAsyncDisposable
             // game dealt through the replay engine would deal the replayed hand's cards again.
             ReplayController.Unload();
             Session.Reset();
+            TournamentSession.Reset();
             Database.ClearAllData();
 
             // The engine answers for the limits: nothing is clamped or corrected here. A Max rebuys

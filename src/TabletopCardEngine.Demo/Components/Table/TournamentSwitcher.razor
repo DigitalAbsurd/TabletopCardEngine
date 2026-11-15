@@ -1,0 +1,66 @@
+@using TabletopCardEngine.Demo.Services
+@using TabletopCardEngine.Holdem.Tournaments
+
+@* The strip above a tournament's table: one button per table that is still open, each with its player
+   count, the seed of the seat draw so a run can be repeated, and, once it is over, who won. The table
+   itself is the ordinary table view of the viewed table's game. *@
+<div class="tournament-switcher">
+    <div class="tournament-tables" role="tablist" aria-label="Tournament tables">
+        @foreach (var table in OpenTables)
+        {
+            var isViewed = table.TableNo == ViewedTableNo;
+            <button type="button"
+                class="@(isViewed ? "tournament-table-btn tournament-table-btn-active" : "tournament-table-btn")"
+                role="tab"
+                data-table-no="@table.TableNo"
+                aria-selected="@(isViewed ? "true" : "false")"
+                @onclick="@(() => OnSelectTable.InvokeAsync(table.TableNo))">
+                Table @table.TableNo · @table.PlayerCount @(table.PlayerCount == 1 ? "player" : "players")
+            </button>
+        }
+    </div>
+
+    <span class="tournament-info">
+        @if (Tournament is { } tournament)
+        {
+            <span class="tournament-info-item">Level @(tournament.LevelIndex + 1)/@tournament.Options.Levels.Count</span>
+            <span class="tournament-info-item">Prize pool @AmountFormat.Format(tournament.PrizePool)</span>
+        }
+        @if (SeatDrawSeed is { } seed)
+        {
+            <span class="tournament-info-item" title="Start a tournament with the same entries and this seed to repeat the seat draw">Seed <span class="tournament-seed">@seed</span></span>
+        }
+    </span>
+</div>
+
+@if (WinnerName is { } winner)
+{
+    <div class="tournament-finished" role="status">
+        Tournament finished: @winner won.
+    </div>
+}
+
+@code {
+    /// <summary>The tournament, or null before one has started.</summary>
+    [Parameter]
+    public TournamentData? Tournament { get; set; }
+
+    /// <summary>The number of the table on screen.</summary>
+    [Parameter]
+    public int ViewedTableNo { get; set; }
+
+    /// <summary>The seed the seat draw used.</summary>
+    [Parameter]
+    public int? SeatDrawSeed { get; set; }
+
+    /// <summary>The winner's name once the tournament has finished, otherwise null.</summary>
+    [Parameter]
+    public string? WinnerName { get; set; }
+
+    /// <summary>Raised with the number of the table the visitor picks.</summary>
+    [Parameter]
+    public EventCallback<int> OnSelectTable { get; set; }
+
+    private IEnumerable<TournamentTableData> OpenTables
+        => Tournament?.Tables.Where(table => !table.IsBroken) ?? [];
+}

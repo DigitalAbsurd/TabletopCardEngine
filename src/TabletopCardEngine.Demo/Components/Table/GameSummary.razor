@@ -35,6 +35,9 @@
     <Button Type="@ButtonType.Primary" Size="large" OnClick="OnNewGameClickedAsync" Class="new-game-btn">
         New Game
     </Button>
+    <Button Size="large" OnClick="OnNewTournamentClickedAsync" Class="new-tournament-btn">
+        New Tournament
+    </Button>
 </div>
 
 @code {
@@ -45,6 +48,10 @@
     /// <summary>Raised when the visitor asks for a new game; the host opens the settings modal.</summary>
     [Parameter]
     public EventCallback OnNewGame { get; set; }
+
+    /// <summary>Raised when the visitor asks for a new tournament; the host opens the tournament form.</summary>
+    [Parameter]
+    public EventCallback OnNewTournament { get; set; }
 
     /// <summary>
     /// How many seats are in play. The dealt hand is the truth once there is one; before that the
@@ -69,6 +76,11 @@
         GameData?.Options is { } options
             ? BettingStructureLabels.GetLabel(options.BettingStructure, options.RaiseCap)
             : string.Empty;
+
+    private async Task OnNewTournamentClickedAsync()
+    {
+        await OnNewTournament.InvokeAsync();
+    }
 
     private async Task OnNewGameClickedAsync()
     {

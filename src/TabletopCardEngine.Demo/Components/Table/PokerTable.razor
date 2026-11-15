@@ -20,6 +20,7 @@
                     Options="@GameData?.Options"
                     OnTopUp="@OnTopUp"
                     OnKick="@OnKick"
+                    AllowKick="@(!IsTournamentTable)"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -105,6 +106,7 @@
                     Options="@GameData?.Options"
                     OnTopUp="@OnTopUp"
                     OnKick="@OnKick"
+                    AllowKick="@(!IsTournamentTable)"
                     IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
                     IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                     IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
@@ -118,6 +120,7 @@
             RaiseStep="@SmallBlind"
             BettingStructure="@(GameData?.Options.BettingStructure ?? BettingStructure.NoLimit)"
             CanSeat="@CanSeat"
+            CanDealNext="@CanDealNext"
             MaxPlayers="@(GameData?.Options.MaxPlayersCount ?? 0)"
             PendingJoins="@PendingJoins"
             OnQueueJoin="@OnQueueJoin"
@@ -130,6 +133,17 @@
     /// <summary>The game to display, or null before the first successful engine call.</summary>
     [Parameter]
     public GameData? GameData { get; set; }
+
+    /// <summary>
+    /// Whether the game is a table of a tournament. The tournament owns who sits there, so the seat controls
+    /// the engine refuses on such a table (stand up, top-up, kick, join) are not offered.
+    /// </summary>
+    [Parameter]
+    public bool IsTournamentTable { get; set; }
+
+    /// <summary>Whether a finished hand offers Next Hand; a finished tournament switches it off.</summary>
+    [Parameter]
+    public bool CanDealNext { get; set; } = true;
 
     /// <summary>Raised from the action bar once a hand is finished, to deal the next one.</summary>
     [Parameter]
@@ -162,7 +176,7 @@
     /// <summary>
     /// Whether players may sit down or stand up: only between hands, of a game that is not finished.
     /// </summary>
-    private bool CanSeat => IsHandFinished && GameData is { IsFinished: false };
+    private bool CanSeat => IsHandFinished && GameData is { IsFinished: false } && !IsTournamentTable;
 
     /// <summary>
     /// The dealt hand, or null. GameData.HandData is null
