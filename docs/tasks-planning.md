@@ -336,6 +336,20 @@ closing-label rule.
 `-TaskCount 0` works through every ready issue until none is left. It stops at the first task that
 fails to close cleanly rather than piling more work on a broken state.
 
+A dropped connection to the model's API is not such a failure. The runner names each agent session
+itself (`{sessionId}` in the settings file's `args`), and when the agent exits with output that
+matches `connectionErrorPattern`, it waits for `connectivityProbeUrl` to answer and resumes the
+same session with `resumeArgs`, before it saves or syncs anything. `-MaxResumes` (default 3, `0`
+turns it off) caps the resumes of one task, and `-ConnectionWaitMinutes` (default 60) how long
+each wait lasts. `agent.claude.json.example` carries all four settings; an older copy of it
+without them still works and stops on a dropped connection as before. The failure report names the
+session id, so `claude --resume <id>` finds the transcript.
+
+When a task fails anyway, the runner commits what the agent left as a local WIP branch. The next
+run stops before it hands that issue over again, because the agent would not see a local branch
+and its `git checkout -b` of the same name would fail: push the branch so the attempt continues
+on it, delete it, or leave the issue out with `-Issue`.
+
 ## Anti-patterns
 
 Each of these has cost this project a batch.
