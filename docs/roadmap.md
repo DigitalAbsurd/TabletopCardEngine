@@ -13,7 +13,7 @@ Every feature below is planned as a **minor** 1.x release: each one adds members
 Five features are in:
 
 - Pot-Limit and Fixed-Limit (✓ **Shipped in 1.3.0**)
-- Tournaments (SNG/MTT, blind levels, antes)
+- Tournaments (SNG/MTT, blind levels, antes) (✓ **Shipped in 1.4.0**)
 - Rebuy, buy-in and kick-off
 - 9 to 10 seats (✓ **Shipped in 1.1.0**)
 - Hand history export (PHH)
@@ -40,7 +40,7 @@ All five are open source under Apache-2.0 (ADR-0001), in this repository; none i
 | 2 | Hand history export (PHH) | Medium | Low | Low | Built on the v1.0 ledger (#325); the vendored PHH corpora give a round-trip oracle. |
 | 3 | Rebuy, buy-in and kick-off | High | Medium | Medium | Real cash games need seats to be vacated and stacks topped up; touches seat lifecycle and rehydration. |
 | 4 | Pot-Limit and Fixed-Limit (✓ Shipped in 1.3.0) | Medium | Medium | High | New betting rules; wrong sizing is a silent rules bug. Needs its own oracle. |
-| 5 | Tournaments: antes and blind levels, then SNG, then MTT | High | High | High | The largest feature; split into three steps, each its own release. Builds on 1, 3 and the per-hand blinds of #323. |
+| 5 | Tournaments: antes and blind levels, then SNG, then MTT (✓ Shipped in 1.4.0) | High | High | High | The largest feature; split into three steps, shipped together. Builds on 1, 3 and the per-hand blinds of #323. |
 
 ## 9 to 10 seats
 
@@ -131,21 +131,23 @@ See [Betting structures](concepts/betting-structures.md).
 
 - `HandData.SmallBlind`/`BigBlind` (#323), so clients read the hand's blinds instead of deriving them from `GameOptionData`
 
-**Shipped in 1.2.0:** blind levels for cash games: `GameOptionData.BlindSchedule` (`BlindScheduleData`) and the per-hand blinds on `Hand`, read as `HandData.SmallBlind`, `BigBlind` and `BlindLevel`. Antes, SNG and MTT are still to come.
+**Shipped in 1.2.0:** blind levels for cash games: `GameOptionData.BlindSchedule` (`BlindScheduleData`) and the per-hand blinds on `Hand`, read as `HandData.SmallBlind`, `BigBlind` and `BlindLevel`.
 
-**Comes with the feature:**
+**Shipped in 1.4.0** (milestone [`1.4.0 - holdem-tournaments`](https://github.com/DigitalAbsurd/TabletopCardEngine/milestone/22)), in three steps released together:
 
-Three steps:
+1. *Antes* — `GameOptionData.Ante` and `AnteType` (`Classic`, `BigBlind`), `HandActionType.Ante` and `HandData.Ante`, antes posted as dead money in the ledger and the side pots, for cash games and tournaments alike. See [Buy-ins, blinds and antes](concepts/buy-ins-and-blinds.md).
 
-1. *Antes and blind levels* — `HandActionType.Ante`, per-hand blind and ante values on `Hand`, `PostBlinds`/`ExcludeShortOfMoneySeats` posting antes, the ledger and pot maths treating antes as dead money
+2. *Sit-and-go* — `IHoldemTournament` with `CreateTournament`, `GetTournament`, `Register`, `Unregister`, `StartTournament` and `DealTable`: blind levels on a clock (`HoldemOptionsBuilder.WithTimeProvider`), eliminations, places, ties and prizes. Each table is an ordinary game played through `IHoldemTable`, which refuses everything but `Play` and `GetGame` on it (`ManagedByTournament`).
 
-2. *SNG* — elimination order and payouts on top of a game
+3. *Multi-table tournaments* — seating over several tables, and breaking and balancing them at `DealTable`. No new package: the tournament lives in the core, in `TabletopCardEngine.Holdem.Tournaments` ([ADR-0011](adr/0011-tournaments-orchestrate-holdem-games.md)). The ASP.NET Core package maps the routes (see [Tournaments in the ASP.NET Core guide](aspnetcore.md#tournaments)) and the demo plays a tournament table by table.
 
-3. *MTT* — several tables, balancing and a tournament aggregate, likely its own package
+See [Tournaments](concepts/tournaments.md). Freezeout only: rebuys, add-ons, late registration, bounties, breaks, hand-for-hand play, deal-making, disqualification and satellites are out of scope.
 
 **Oracle:**
 
-- PHH hands with antes, which `PhhSupport.IsSupported` rejects today
+- PHH hands with antes: the WSOP 2023 no-limit big blind ante hands and the synthetic pokerkit ante corpora (classic and big blind), replayed exactly
+- The hand-built ante suite and the multi-hand session oracle with antes
+- The tournament session oracle: whole sit-and-gos and multi-table tournaments played to the end, with chip conservation, balanced tables, levels and prizes as the invariants
 
 ## Extension points already in v1.0
 
