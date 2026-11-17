@@ -14,6 +14,12 @@
       but this app never calls those overloads, so the warning is noise.
     -->
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);WASM0001</MSBuildWarningsAsMessages>
+    <!--
+      AntDesign 1.6.2 is not trim-safe: with the default full trim mode the published app throws
+      TypeLoadException ("Invalid generic instantiation") in AntDesign.Tooltip and the first render dies.
+      Partial mode trims only the assemblies that declare themselves trimmable, and leaves AntDesign whole.
+    -->
+    <TrimMode>partial</TrimMode>
   </PropertyGroup>
 
   <ItemGroup>
