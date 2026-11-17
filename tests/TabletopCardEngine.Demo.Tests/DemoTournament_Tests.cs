@@ -279,10 +279,12 @@ public sealed class DemoTournament_Tests
         // Act
         var component = ctx.Render<Pages.Home>();
 
-        // Assert - between hands, where a cash game offers all four
-        component.FindAll(".seat-stand-up").Should().BeEmpty();
-        component.FindAll(".seat-buy-in").Should().BeEmpty();
-        component.FindAll(".seat-kick").Should().BeEmpty();
+        // Assert - between hands, where a cash game offers all four: the menu is there, every item disabled
+        component.FindAll(".seat-menu-trigger").Should().HaveCount(DemoGameDefaults.MaxPlayers);
+        component.FindAll(".seat-menu-trigger")[0].Click();
+        var items = component.FindAll(".seat-menu-item");
+        items.Select(i => i.TextContent.Trim()).Should().Equal("Top up", "Rebuy", "Stand up", "Kick");
+        items.Should().OnlyContain(i => i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
         component.FindAll(".seat-join-toggle").Should().BeEmpty();
         component.FindAll(".next-hand-btn").Should().HaveCount(1);
     }
@@ -304,8 +306,10 @@ public sealed class DemoTournament_Tests
         var component = ctx.Render<Pages.Home>();
 
         // Assert
-        component.FindAll(".seat-stand-up").Should().HaveCount(DemoGameDefaults.MaxPlayers);
-        component.FindAll(".seat-kick").Should().HaveCount(DemoGameDefaults.MaxPlayers);
+        component.FindAll(".seat-menu-trigger").Should().HaveCount(DemoGameDefaults.MaxPlayers);
+        component.FindAll(".seat-menu-trigger")[0].Click();
+        component.FindAll(".seat-menu-item").Where(i => i.TextContent.Trim() is "Stand up" or "Kick")
+            .Should().OnlyContain(i => !i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
     }
 
     [TestMethod]

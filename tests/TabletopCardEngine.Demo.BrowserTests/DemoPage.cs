@@ -129,8 +129,17 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The scrolling list of engine calls.</summary>
     public const string EngineCallListSelector = ".engine-calls-list";
 
-    /// <summary>The Top up or Rebuy button a seat offers between hands.</summary>
-    public const string SeatBuyInButtonSelector = ".seat-buy-in";
+    /// <summary>The round button on a seat's corner that opens its action menu.</summary>
+    public const string SeatMenuTriggerSelector = ".seat-menu-trigger";
+
+    /// <summary>The popconfirm that is open (the overlay renders outside the seat).</summary>
+    public const string OpenPopconfirmSelector = ".ant-popover:not(.ant-popover-hidden)";
+
+    /// <summary>The OK button of the popconfirm that is open.</summary>
+    public const string OpenPopconfirmOkSelector = ".ant-popover:not(.ant-popover-hidden) .ant-popover-buttons .ant-btn-primary";
+
+    /// <summary>The items of the action menu that is open (the overlay renders outside the seat).</summary>
+    public const string OpenSeatMenuItemSelector = ".ant-dropdown:not(.ant-dropdown-hidden) .seat-menu-item";
 
     /// <summary>The amount form a seat opens when Top up or Rebuy is pressed.</summary>
     public const string SeatAmountFormSelector = ".seat-amount-form";
@@ -417,6 +426,14 @@ internal sealed class DemoPage : IAsyncDisposable
 
         return JsonSerializer.Deserialize<ElementBox[]>(json, _jsonOptions)
             ?? throw new InvalidOperationException("The element box probe returned nothing.");
+    }
+
+    /// <summary>Reads the computed <c>color</c> and <c>background-color</c> of the first element matching one selector.</summary>
+    public async Task<(string Color, string Background)> ReadColorsAsync(string selector)
+    {
+        string[] colors = await _page.Locator(selector).First.EvaluateAsync<string[]>(
+            "(element) => { const style = window.getComputedStyle(element); return [style.color, style.backgroundColor]; }");
+        return (colors[0], colors[1]);
     }
 
     /// <summary>Counts the elements matching one selector.</summary>
@@ -754,6 +771,20 @@ internal sealed class DemoPage : IAsyncDisposable
         ILocator input = _page.Locator(selector).First;
         await input.FillAsync(string.Empty);
         await input.PressSequentiallyAsync(text);
+        await _page.WaitForTimeoutAsync(SettleMilliseconds);
+    }
+
+    /// <summary>Opens a seat's action menu and chooses one of its items, then waits for the re-render.</summary>
+    public async Task ChooseSeatMenuItemAsync(int seatNo, string label)
+    {
+        await ClickAsync($"{SeatMenuTriggerSelector}[data-seat-no='{seatNo}']");
+        await ChooseOpenSeatMenuItemAsync(label);
+    }
+
+    /// <summary>Chooses an item of the seat menu that is already open, then waits for the re-render.</summary>
+    public async Task ChooseOpenSeatMenuItemAsync(string label)
+    {
+        await _page.Locator(OpenSeatMenuItemSelector).GetByText(label, new() { Exact = true }).ClickAsync();
         await _page.WaitForTimeoutAsync(SettleMilliseconds);
     }
 

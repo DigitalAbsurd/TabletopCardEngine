@@ -1,0 +1,36 @@
+﻿/* On the seat's top-right corner, over its edge rather than in a row of its own: the seat keeps the
+   height the browser gate pins. The wrapper is what is absolutely positioned, so the popconfirm
+   and the menu anchor to the button's own box. */
+.seat-menu {
+    position: absolute;
+    top: -10px;
+    right: 6px;
+    line-height: 0;
+}
+
+.seat-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    background: #141414;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.seat-menu-trigger:hover {
+    background: #262626;
+    border-color: #fff;
+}
+
+.seat-menu-trigger:focus-visible {
+    outline: 2px solid #ffd700;
+    outline-offset: 1px;
+}

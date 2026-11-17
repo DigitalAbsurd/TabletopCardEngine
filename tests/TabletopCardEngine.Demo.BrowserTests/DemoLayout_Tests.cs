@@ -80,6 +80,14 @@ public sealed class DemoLayout_Tests
     /// <summary>The most seats a table has: the widest seat rows and the longest list of results.</summary>
     private const int FullRingSeatCount = 10;
 
+    /// <summary>The viewport of the maintainer's screenshots, where the inline kick confirmation pushed the action bar off the screen.</summary>
+    private const int SeatMenuViewportWidth = 1536;
+
+    private const int SeatMenuViewportHeight = 725;
+
+    /// <summary>WCAG 2 AA for normal text.</summary>
+    private const double MinimumTextContrast = 4.5;
+
     /// <summary>A check or call for each of ten seats on four streets, with room to spare.</summary>
     private const int MaximumCheckCallActions = 80;
 
@@ -668,14 +676,14 @@ public sealed class DemoLayout_Tests
         int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
         actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
 
-        (await page.CountAsync(DemoPage.SeatBuyInButtonSelector)).Should().Be(FullRingSeatCount, "every seat has chips and the game allows a top-up");
-        await page.ClickAsync(DemoPage.SeatBuyInButtonSelector);
+        (await page.CountAsync(DemoPage.SeatMenuTriggerSelector)).Should().Be(FullRingSeatCount, "every seat has a menu, and every seat has chips and the game allows a top-up");
+        await page.ChooseSeatMenuItemAsync(1, "Top up");
         await page.FillAsync(".seat-amount-input", "25");
         await page.ClickAsync(".seat-amount-confirm");
         (await page.CountAsync(DemoPage.SeatPendingLabelSelector)).Should().Be(1, "the confirmed top-up shows as pending on its seat");
         (await page.ReadTextAsync(DemoPage.SeatPendingLabelSelector)).Should().Contain("next hand");
 
-        await page.ClickAsync(".seat-buy-in[data-seat-no='2']");
+        await page.ChooseSeatMenuItemAsync(2, "Top up");
         (await page.CountAsync(DemoPage.SeatAmountFormSelector)).Should().Be(1, "the amount form is open on the second seat");
 
         IReadOnlyList<HitProbe> controls = await page.ProbeHitTargetsAsync(DemoPage.SeatAmountFormControlSelectors);
@@ -699,6 +707,51 @@ public sealed class DemoLayout_Tests
         tableBottom.Should().BeLessOrEqualTo(contentBottom, $"the table must fit at {viewportWidth}x{viewportHeight} (table bottom: {tableBottom}px; content bottom: {contentBottom}px)");
         barBottom.Should().BeLessOrEqualTo(contentBottom, $"the action bar must stay on screen (bar bottom: {barBottom}px; content bottom: {contentBottom}px)");
         AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Kick is asked for in a popconfirm anchored to the seat's menu, not inside the seat: opening it
+    /// must not grow the page (the inline confirmation it replaced added 49px and pushed the action bar
+    /// off a 1536x725 screen), and the menu's trigger must be readable (issue #785).
+    /// </summary>
+    [TestMethod]
+    public async Task DemoLayout_SeatMenuKick_AsksInAPopconfirmWithoutGrowingThePage()
+    {
+        await using DemoPage page = await OpenDemoAsync(SeatMenuViewportWidth, SeatMenuViewportHeight);
+        int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
+        actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
+
+        ScrollMetrics before = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        (string color, string background) = await page.ReadColorsAsync($"{DemoPage.SeatMenuTriggerSelector}[data-seat-no='6']");
+        ContrastRatio(color, background).Should().BeGreaterOrEqualTo(MinimumTextContrast, $"the menu trigger must be readable (color {color} on {background})");
+
+        await page.ChooseSeatMenuItemAsync(6, "Kick");
+
+        (await page.CountAsync(DemoPage.OpenPopconfirmSelector)).Should().Be(1, "choosing Kick asks for confirmation in a popconfirm");
+        ScrollMetrics during = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        during.ScrollHeight.Should().Be(before.ScrollHeight, $"the confirmation must not grow the page ({before} then {during})");
+
+        await page.ClickAsync(DemoPage.OpenPopconfirmOkSelector);
+        (await page.CountAsync(".seat.seat-left[data-seat-no='6'] .badge-left")).Should().Be(1, "confirming the kick leaves seat 6 marked Left");
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>The contrast ratio of two <c>rgb()</c> or <c>rgba()</c> colours, as WCAG 2 defines it.</summary>
+    private static double ContrastRatio(string foreground, string background)
+    {
+        static double Luminance(string color)
+        {
+            double[] channels = [.. color[(color.IndexOf('(', StringComparison.Ordinal) + 1)..color.IndexOf(')', StringComparison.Ordinal)]
+                .Split(',')
+                .Take(3)
+                .Select(part => double.Parse(part, System.Globalization.CultureInfo.InvariantCulture) / 255)
+                .Select(value => value <= 0.03928 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4))];
+            return (0.2126 * channels[0]) + (0.7152 * channels[1]) + (0.0722 * channels[2]);
+        }
+
+        double a = Luminance(foreground);
+        double b = Luminance(background);
+        return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
     }
 
     /// <summary>
