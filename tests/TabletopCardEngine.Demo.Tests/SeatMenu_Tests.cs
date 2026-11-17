@@ -89,11 +89,45 @@ public sealed class SeatMenu_Tests
         states.Should().Be(default(SeatMenu.ItemStates));
     }
 
+    [TestMethod]
+    public void GetItemStates_FreePositionBetweenHands_OffersOnlySitDown()
+    {
+        var placeholder = SeatMenu.GetItemStates(null, Options(topUp: true, rebuy: true), canStandUp: true, allowKick: true, canSitDown: true);
+        var left = SeatMenu.GetItemStates(Seat(hasLeft: true), Options(topUp: true, rebuy: true), canStandUp: true, allowKick: true, canSitDown: true);
+
+        placeholder.Should().Be(new SeatMenu.ItemStates(false, false, false, false, SitDown: true));
+        left.Should().Be(placeholder);
+    }
+
+    [TestMethod]
+    public void GetItemStates_FreePositionWithAQueuedPlayer_OffersOnlyCancelSitDown()
+    {
+        var states = SeatMenu.GetItemStates(null, Options(), canStandUp: true, allowKick: true, canSitDown: true, queued: true);
+
+        states.Should().Be(new SeatMenu.ItemStates(false, false, false, false, CancelSitDown: true));
+    }
+
+    [TestMethod]
+    public void GetItemStates_FreePositionWhereNoOneMaySit_DisablesEverything()
+    {
+        SeatMenu.GetItemStates(null, Options(), canStandUp: false, allowKick: false, canSitDown: false).Should().Be(default(SeatMenu.ItemStates));
+    }
+
+    [TestMethod]
+    public void GetItemStates_OccupiedSeat_DisablesSitDown()
+    {
+        var states = SeatMenu.GetItemStates(Seat(), Options(), canStandUp: true, allowKick: true, canSitDown: true);
+
+        states.SitDown.Should().BeFalse();
+        states.CancelSitDown.Should().BeFalse();
+    }
+
     private static IRenderedComponent<SeatMenu> RenderMenu(BunitContext ctx, List<byte> stoodUp, List<byte> kicked)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddAntDesign();
         return ctx.Render<SeatMenu>(parameters => parameters
+            .Add(p => p.SeatNo, (byte)6)
             .Add(p => p.SeatData, Seat())
             .Add(p => p.CanStandUp, true)
             .Add(p => p.OnStandUp, stoodUp.Add)
@@ -107,7 +141,7 @@ public sealed class SeatMenu_Tests
     private static void ChooseItem(IRenderedComponent<SeatMenu> menu, string label)
     {
         menu.Find(".seat-menu-trigger").Click();
-        menu.WaitForAssertion(() => menu.FindAll(".seat-menu-item").Should().HaveCount(4));
+        menu.WaitForAssertion(() => menu.FindAll(".seat-menu-item").Should().HaveCount(6));
         menu.FindAll(".seat-menu-item").Single(i => i.TextContent.Trim() == label).Click();
     }
 
@@ -117,12 +151,12 @@ public sealed class SeatMenu_Tests
         using var ctx = new BunitContext();
         var component = RenderMenu(ctx, [], []);
         component.Find(".seat-menu-trigger").Click();
-        component.WaitForAssertion(() => component.FindAll(".seat-menu-item").Should().HaveCount(4));
+        component.WaitForAssertion(() => component.FindAll(".seat-menu-item").Should().HaveCount(6));
 
         var items = component.FindAll(".seat-menu-item");
 
-        items.Select(i => i.TextContent.Trim()).Should().Equal("Top up", "Rebuy", "Stand up", "Kick");
-        items.Select(i => i.ClassList.Contains("ant-dropdown-menu-item-disabled")).Should().Equal(true, true, false, false);
+        items.Select(i => i.TextContent.Trim()).Should().Equal("Sit down", "Top up", "Rebuy", "Stand up", "Kick", "Cancel sit-down");
+        items.Select(i => i.ClassList.Contains("ant-dropdown-menu-item-disabled")).Should().Equal(true, true, true, false, false, true);
         component.Find(".seat-menu-trigger").GetAttribute("aria-label").Should().Be("Actions for Player 6");
         component.Find(".seat-menu-trigger").GetAttribute("data-seat-no").Should().Be("6");
     }

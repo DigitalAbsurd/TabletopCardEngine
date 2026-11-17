@@ -1,4 +1,4 @@
-@using AntDesign
+﻿@using AntDesign
 @using TabletopCardEngine.Demo.Services
 @implements IAsyncDisposable
 @inject BrowserStorage Storage
@@ -25,6 +25,7 @@
                     <li><strong>Size a raise:</strong> Drag the slider, click its <em>Min</em> or <em>All-in</em> mark, press <em>½ Pot</em> or <em>Pot</em> beside the amount (a pot-limit raise: call first, then raise by the pot as it stands after the call — hover a button to see the sum), step by one small blind with −/+, or type the amount — an amount that is not a legal raise turns red, and the round button next to it corrects it. None of these submits anything; Raise does</li>
                     <li><strong>Follow the hand:</strong> The seats show cards, stacks and the dealer and blind buttons, the street steps and the board move from pre-flop to the river, and the pot is shown with the current street's bets</li>
                     <li><strong>See who won:</strong> After the showdown, hover or click a player's result to light up the cards that make the combination</li>
+                    <li><strong>Manage the seats:</strong> Every seat, a free one too, has a <em>⋯</em> menu: Sit down (between hands, on a free seat), Top up, Rebuy, Stand up and Kick. A player who sits down joins with the next hand</li>
                     <li><strong>Carry on:</strong> Next Hand deals the next one with the stacks carried over. New Game, in the header, opens the settings — players, seats, buy-ins, blinds, dealer — and applying them clears the database and deals a fresh game</li>
                 </ul>
                 <p class="step-note">

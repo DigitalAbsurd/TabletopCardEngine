@@ -18,6 +18,9 @@
                     <Seat
                         SeatData="seat"
                         CanStandUp="@CanSeat"
+                        Queued="@QueuedAt(seat.SeatNo)"
+                        OnQueueJoin="@OnQueueJoin"
+                        OnUnqueueJoin="@OnUnqueueJoin"
                         OnStandUp="@OnStandUp"
                         Options="@GameData?.Options"
                         OnTopUp="@OnTopUp"
@@ -31,7 +34,12 @@
                 }
                 else
                 {
-                    <EmptySeat SeatNo="seatNo" />
+                    <EmptySeat
+                        SeatNo="seatNo"
+                        CanSitDown="@CanSeat"
+                        Queued="@QueuedAt(seatNo)"
+                        OnQueueJoin="@OnQueueJoin"
+                        OnUnqueueJoin="@OnUnqueueJoin" />
                 }
             }
         </div>
@@ -111,6 +119,9 @@
                     <Seat
                         SeatData="seat"
                         CanStandUp="@CanSeat"
+                        Queued="@QueuedAt(seat.SeatNo)"
+                        OnQueueJoin="@OnQueueJoin"
+                        OnUnqueueJoin="@OnUnqueueJoin"
                         OnStandUp="@OnStandUp"
                         Options="@GameData?.Options"
                         OnTopUp="@OnTopUp"
@@ -124,7 +135,12 @@
                 }
                 else
                 {
-                    <EmptySeat SeatNo="seatNo" />
+                    <EmptySeat
+                        SeatNo="seatNo"
+                        CanSitDown="@CanSeat"
+                        Queued="@QueuedAt(seatNo)"
+                        OnQueueJoin="@OnQueueJoin"
+                        OnUnqueueJoin="@OnUnqueueJoin" />
                 }
             }
         </div>
@@ -133,12 +149,7 @@
             HandData="@Hand"
             RaiseStep="@SmallBlind"
             BettingStructure="@(GameData?.Options.BettingStructure ?? BettingStructure.NoLimit)"
-            CanSeat="@CanSeat"
             CanDealNext="@CanDealNext"
-            MaxPlayers="@(GameData?.Options.MaxPlayersCount ?? 0)"
-            PendingJoins="@PendingJoins"
-            OnQueueJoin="@OnQueueJoin"
-            OnUnqueueJoin="@OnUnqueueJoin"
             OnNextHand="@OnNextHand" />
     }
 </div>
@@ -333,6 +344,9 @@
 
     /// <summary>The dealt seat with this number, or null when the position is free.</summary>
     private static SeatData? SeatAt(HandData handData, byte seatNo) => handData.Seats.FirstOrDefault(s => s.SeatNo == seatNo);
+
+    /// <summary>The player queued to sit down at this position with the next hand, or null for none.</summary>
+    private PlayerJoinData? QueuedAt(byte seatNo) => PendingJoins.FirstOrDefault(p => p.SeatNo == seatNo);
 
     private static string ResultClass(decimal net)
         => net > 0 ? "result-winner" : net < 0 ? "result-loser" : "result-neutral";

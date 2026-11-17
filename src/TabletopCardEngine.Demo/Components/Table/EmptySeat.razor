@@ -1,12 +1,45 @@
-﻿@* A free position of the table: drawn so the seats around it keep their places and the table shows
-   it has a seat there. It carries no controls; sitting down is the action bar's business. *@
-<div class="seat seat-empty" data-seat-no="@SeatNo">
-    <div class="seat-name">Seat @SeatNo</div>
-    <div class="seat-empty-label">Empty</div>
+﻿@using TabletopCardEngine.Holdem.Dto
+@using TabletopCardEngine.Demo.Services
+
+@* A free position of the table: drawn so the seats around it keep their places and the table shows
+   it has a seat there. Its menu is where a player sits down, and where a queued one is taken back
+   out; a queued player is shown here until the next Deal seats them. *@
+<div class="seat seat-empty @(Queued is not null ? "seat-queued" : "")" data-seat-no="@SeatNo">
+    <SeatMenu SeatNo="SeatNo"
+        CanSitDown="CanSitDown"
+        Queued="Queued"
+        OnQueueJoin="OnQueueJoin"
+        OnUnqueueJoin="OnUnqueueJoin" />
+    @if (Queued is { } queued)
+    {
+        <div class="seat-name">@queued.Name</div>
+        <div class="seat-empty-label">Joins next hand · <span class="seat-queued-buyin">@AmountFormat.Format(queued.BuyInAmount)</span></div>
+    }
+    else
+    {
+        <div class="seat-name">Seat @SeatNo</div>
+        <div class="seat-empty-label">Empty</div>
+    }
 </div>
 
 @code {
     /// <summary>The 1-based number of the free seat.</summary>
     [Parameter, EditorRequired]
     public byte SeatNo { get; set; }
+
+    /// <summary>Whether a player may sit down here: between hands of a game that is not finished, off a tournament table.</summary>
+    [Parameter]
+    public bool CanSitDown { get; set; }
+
+    /// <summary>The player queued to sit down here with the next hand, or null for none.</summary>
+    [Parameter]
+    public PlayerJoinData? Queued { get; set; }
+
+    /// <summary>Raised with a player to queue for the next hand.</summary>
+    [Parameter]
+    public EventCallback<PlayerJoinData> OnQueueJoin { get; set; }
+
+    /// <summary>Raised with the seat number of the queued player to take back out.</summary>
+    [Parameter]
+    public EventCallback<byte> OnUnqueueJoin { get; set; }
 }

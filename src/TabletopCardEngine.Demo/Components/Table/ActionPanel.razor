@@ -25,16 +25,6 @@
                     </Button>
                 </div>
             }
-
-            @if (CanSeat && HandData is not null)
-            {
-                <SeatJoinForm
-                    Hand="@HandData"
-                    MaxPlayers="@MaxPlayers"
-                    Pending="@PendingJoins"
-                    OnQueue="@OnQueueJoin"
-                    OnUnqueue="@OnUnqueueJoin" />
-            }
         }
         else if (HasActions)
         {
