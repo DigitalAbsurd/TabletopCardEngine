@@ -41,6 +41,6 @@
     "AGENTS.md"
   ],
   "env": {},
-  "connectionErrorPattern": "^API Error: (Can't reach the API server|Connection error|Request timed out|5\\d\\d\\b|Repeated 529)",
+  "connectionErrorPattern": "^API Error: (Can't reach the API server|Connection error|Connection refused|Request timed out|5\\d\\d\\b|Repeated 529|.*\\b(ECONNREFUSED|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN)\\b)",
   "connectivityProbeUrl": "https://api.anthropic.com"
 }

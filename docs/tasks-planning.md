@@ -342,7 +342,10 @@ matches `connectionErrorPattern`, it waits for `connectivityProbeUrl` to answer 
 same session with `resumeArgs`, before it saves or syncs anything. `-MaxResumes` (default 3, `0`
 turns it off) caps the resumes of one task, and `-ConnectionWaitMinutes` (default 60) how long
 each wait lasts. `agent.claude.json.example` carries all four settings; an older copy of it
-without them still works and stops on a dropped connection as before. The failure report names the
+without them still works and stops on a dropped connection as before. The pattern also matches
+the `Connection refused` wording and the socket error codes (`ECONNREFUSED`, `ENOTFOUND`, ...)
+since #795, when the run on #783 stopped on `ECONNREFUSED` instead of resuming: a local
+`agent.claude.json` copied before that keeps the narrower pattern until it takes the new one. The failure report names the
 session id, so `claude --resume <id>` finds the transcript.
 
 When a task fails anyway, the runner commits what the agent left as a local WIP branch. The next
