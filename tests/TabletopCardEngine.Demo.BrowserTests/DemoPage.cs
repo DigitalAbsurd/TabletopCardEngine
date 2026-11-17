@@ -141,12 +141,16 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The items of the action menu that is open (the overlay renders outside the seat).</summary>
     public const string OpenSeatMenuItemSelector = ".ant-dropdown:not(.ant-dropdown-hidden) .seat-menu-item";
 
-    /// <summary>The amount form a seat opens when Top up or Rebuy is pressed.</summary>
-    public const string SeatAmountFormSelector = ".seat-amount-form";
+    /// <summary>The question and amount field of the popconfirm a seat opens when Top up or Rebuy is chosen.</summary>
+    public const string SeatAmountFormSelector = ".ant-popover:not(.ant-popover-hidden) .seat-amount-title";
 
-    /// <summary>The amount field, Confirm and Cancel of that form.</summary>
+    /// <summary>The amount field, OK and Cancel of that popconfirm.</summary>
     public static readonly string[] SeatAmountFormControlSelectors =
-        [".seat-amount-input", ".seat-amount-confirm", ".seat-amount-cancel"];
+    [
+        ".ant-popover:not(.ant-popover-hidden) .seat-amount-input",
+        OpenPopconfirmOkSelector,
+        ".ant-popover:not(.ant-popover-hidden) .ant-popover-buttons .ant-btn:not(.ant-btn-primary)",
+    ];
 
     /// <summary>The "+amount next hand" label of a seat with chips pending.</summary>
     public const string SeatPendingLabelSelector = ".seat-pending";
