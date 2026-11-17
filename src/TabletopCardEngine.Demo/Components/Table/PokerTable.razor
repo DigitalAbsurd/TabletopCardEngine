@@ -32,7 +32,8 @@
                         IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                         IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
                         IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)"
-                        HighlightedCards="@SeatHighlight(seat)" />
+                        HighlightedCards="@SeatHighlight(seat)"
+                        IsHandFinished="@IsHandFinished" />
                 }
                 else
                 {
@@ -142,7 +143,8 @@
                         IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
                         IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
                         IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)"
-                        HighlightedCards="@SeatHighlight(seat)" />
+                        HighlightedCards="@SeatHighlight(seat)"
+                        IsHandFinished="@IsHandFinished" />
                 }
                 else
                 {
