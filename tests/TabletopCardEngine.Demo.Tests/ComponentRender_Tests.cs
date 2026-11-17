@@ -1015,6 +1015,66 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
+    public void PokerTable_FinishedHand_MarksOnlyTheSeatWithPositiveNet()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildWinnerGameData(Street.Finished, (1, -5m), (2, 10m), (3, -5m))));
+
+        // Assert
+        component.FindAll(".seat-winner").Select(seat => seat.GetAttribute("data-seat-no"))
+            .Should().Equal("2");
+    }
+
+    [TestMethod]
+    public void PokerTable_FinishedHandWithSplitPot_MarksEveryWinningSeat()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act - seat 3 got its own money back, which is not a win
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildWinnerGameData(Street.Finished, (1, 5m), (2, 5m), (3, 0m), (4, -10m))));
+
+        // Assert
+        component.FindAll(".seat-winner").Select(seat => seat.GetAttribute("data-seat-no"))
+            .Should().Equal("1", "2");
+    }
+
+    [TestMethod]
+    public void PokerTable_HandInProgress_MarksNoWinner()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildWinnerGameData(Street.River, (1, -5m), (2, 10m), (3, -5m))));
+
+        // Assert
+        component.FindAll(".seat-winner").Should().BeEmpty();
+    }
+
+    private static GameData BuildWinnerGameData(Street street, params (byte SeatNo, decimal Net)[] nets)
+    {
+        var hand = BuildHandDataWithSeats(6) with { Street = street };
+        var seats = hand.Seats.Select(seat => nets.Any(n => n.SeatNo == seat.SeatNo)
+            ? seat with { HandResult = new HandResultData(nets.First(n => n.SeatNo == seat.SeatNo).Net, 1u, HandRankType.Pair) }
+            : seat).ToArray();
+
+        return BuildGameData(hand with { Seats = seats });
+    }
+
+    [TestMethod]
     public void PokerTable_WithSixSeats_RendersRowsClockwise()
     {
         // Arrange

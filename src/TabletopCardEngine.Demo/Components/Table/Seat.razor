@@ -9,6 +9,11 @@
     <div class="seat-content">
         <div class="seat-name">@SeatData.Name</div>
 
+        @if (IsWinner)
+        {
+            <span class="badge-winner" title="Won this hand">Winner</span>
+        }
+
         @if (SeatData.HasLeft)
         {
             <span class="badge-left" title="This player has stood up; the seat is free for the next hand">Left</span>
@@ -156,6 +161,12 @@
     [Parameter]
     public EventCallback<byte> OnUnqueueJoin { get; set; }
 
+    /// <summary>Whether the hand is over, which is when a positive net marks a seat as a winner.</summary>
+    [Parameter]
+    public bool IsHandFinished { get; set; }
+
+    private bool IsWinner => IsHandFinished && SeatData.HandResult is { Net: > 0 };
+
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
 
     private string GetSeatClasses()
@@ -164,6 +175,9 @@
 
         if (IsActing)
             classes.Add("seat-acting");
+
+        if (IsWinner)
+            classes.Add("seat-winner");
 
         if (SeatData.IsFolded)
             classes.Add("seat-folded");
