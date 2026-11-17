@@ -11,21 +11,28 @@
     @if (Hand is not null)
     {
         <div class="table-seats-row">
-            @foreach (var seat in TopRowSeats(Hand))
+            @foreach (var seatNo in TopRowSeatNos())
             {
-                <Seat
-                    SeatData="seat"
-                    CanStandUp="@CanSeat"
-                    OnStandUp="@OnStandUp"
-                    Options="@GameData?.Options"
-                    OnTopUp="@OnTopUp"
-                    OnKick="@OnKick"
-                    AllowKick="@(!IsTournamentTable)"
-                    IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
-                    IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
-                    IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
-                    IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)"
-                    HighlightedCards="@SeatHighlight(seat)" />
+                @if (SeatAt(Hand, seatNo) is { } seat)
+                {
+                    <Seat
+                        SeatData="seat"
+                        CanStandUp="@CanSeat"
+                        OnStandUp="@OnStandUp"
+                        Options="@GameData?.Options"
+                        OnTopUp="@OnTopUp"
+                        OnKick="@OnKick"
+                        AllowKick="@(!IsTournamentTable)"
+                        IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
+                        IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
+                        IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
+                        IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)"
+                        HighlightedCards="@SeatHighlight(seat)" />
+                }
+                else
+                {
+                    <EmptySeat SeatNo="seatNo" />
+                }
             }
         </div>
 
@@ -97,21 +104,28 @@
     @if (Hand is not null)
     {
         <div class="table-seats-row">
-            @foreach (var seat in BottomRowSeats(Hand))
+            @foreach (var seatNo in BottomRowSeatNos())
             {
-                <Seat
-                    SeatData="seat"
-                    CanStandUp="@CanSeat"
-                    OnStandUp="@OnStandUp"
-                    Options="@GameData?.Options"
-                    OnTopUp="@OnTopUp"
-                    OnKick="@OnKick"
-                    AllowKick="@(!IsTournamentTable)"
-                    IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
-                    IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
-                    IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
-                    IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)"
-                    HighlightedCards="@SeatHighlight(seat)" />
+                @if (SeatAt(Hand, seatNo) is { } seat)
+                {
+                    <Seat
+                        SeatData="seat"
+                        CanStandUp="@CanSeat"
+                        OnStandUp="@OnStandUp"
+                        Options="@GameData?.Options"
+                        OnTopUp="@OnTopUp"
+                        OnKick="@OnKick"
+                        AllowKick="@(!IsTournamentTable)"
+                        IsDealer="@(seat.SeatNo == Hand.DealerSeatNo)"
+                        IsSmallBlind="@(seat.SeatNo == Hand.SmallBlindSeatNo)"
+                        IsBigBlind="@(seat.SeatNo == Hand.BigBlindSeatNo)"
+                        IsActing="@(seat.SeatNo == Hand.NextPlayerSeatNo)"
+                        HighlightedCards="@SeatHighlight(seat)" />
+                }
+                else
+                {
+                    <EmptySeat SeatNo="seatNo" />
+                }
             }
         </div>
 
@@ -220,7 +234,7 @@
     /// ten of them no longer fit two lines of the default centre, so the centre widens
     /// (PokerTable.razor.css) instead of the table growing a third line.
     /// </summary>
-    private bool IsLargeTable => Hand?.Seats.Count > SixMaxSeatCount;
+    private bool IsLargeTable => PositionCount > SixMaxSeatCount;
 
     private string TableClass => IsLargeTable ? "poker-table poker-table-large" : "poker-table";
 
@@ -296,20 +310,29 @@
     private IReadOnlySet<DataCard>? SeatHighlight(SeatData seat) => seat.SeatNo == FocusedSeatNo ? HighlightedCards : null;
 
     /// <summary>
-    /// The top row, read left to right: the first half of the seats (rounded up), ascending by seat
-    /// number. Paired with <see cref="BottomRowSeats"/>, reading the two rows in order is clockwise.
+    /// The seat numbers of the top row, read left to right: the first half of the table's positions
+    /// (rounded up), ascending. They come from the table's size, not from who is seated, so a free
+    /// seat keeps its place and the seats around it stay where they are. Paired with
+    /// <see cref="BottomRowSeatNos"/>, reading the two rows in order is clockwise.
     /// </summary>
-    private static IEnumerable<SeatData> TopRowSeats(HandData handData)
-        => handData.Seats.Take(TopRowCount(handData));
+    private IEnumerable<byte> TopRowSeatNos() => Enumerable.Range(1, TopRowCount).Select(n => (byte)n);
 
     /// <summary>
-    /// The bottom row, read left to right: the remaining seats, descending by seat number, so the seat
-    /// after the top-right one is the next one clockwise rather than a jump back across the table.
+    /// The seat numbers of the bottom row, read left to right: the remaining positions, descending, so
+    /// the seat after the top-right one is the next one clockwise rather than a jump back across the table.
     /// </summary>
-    private static IEnumerable<SeatData> BottomRowSeats(HandData handData)
-        => handData.Seats.Skip(TopRowCount(handData)).Reverse();
+    private IEnumerable<byte> BottomRowSeatNos() => Enumerable.Range(TopRowCount + 1, PositionCount - TopRowCount).Reverse().Select(n => (byte)n);
 
-    private static int TopRowCount(HandData handData) => (handData.Seats.Count + 1) / 2;
+    /// <summary>
+    /// How many positions the table draws: the game's seat count, or the dealt seats when that is more
+    /// (never in practice, but a seat must not be dropped from the table).
+    /// </summary>
+    private int PositionCount => Math.Max(GameData?.Options.MaxPlayersCount ?? 0, Hand?.Seats.Max(s => (int?)s.SeatNo) ?? 0);
+
+    private int TopRowCount => (PositionCount + 1) / 2;
+
+    /// <summary>The dealt seat with this number, or null when the position is free.</summary>
+    private static SeatData? SeatAt(HandData handData, byte seatNo) => handData.Seats.FirstOrDefault(s => s.SeatNo == seatNo);
 
     private static string ResultClass(decimal net)
         => net > 0 ? "result-winner" : net < 0 ? "result-loser" : "result-neutral";

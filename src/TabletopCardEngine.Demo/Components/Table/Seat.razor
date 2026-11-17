@@ -5,7 +5,7 @@
 
 @* The badges share the stack's row rather than a row of their own: most seats carry none, and a
    reserved badge row was empty space in every one of them. *@
-<div class="seat @GetSeatClasses()">
+<div class="seat @GetSeatClasses()" data-seat-no="@SeatData.SeatNo">
     <div class="seat-content">
         <div class="seat-name">@SeatData.Name</div>
 
