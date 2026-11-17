@@ -3,7 +3,7 @@
 @using TabletopCardEngine.Demo.Services
 
 <Card Title="Hand History Import" Class="hand-history-import-card">
-    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+    <Space Direction="@SpaceDirection.Vertical" Style="width: 100%;">
         @if (!_hasImported)
         {
             <!-- File Upload Area -->
@@ -23,9 +23,9 @@
             <!-- Loading State -->
             @if (_isLoading)
             {
-                <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+                <Space Direction="@SpaceDirection.Vertical" Style="width: 100%;">
                     <div style="text-align: center;">
-                        <Spin Size="@AntSizeLDSType.Large" />
+                        <Spin Size="@SpinSize.Large" />
                         <p style="margin-top: 16px; color: var(--demo-muted-text);">Parsing hand histories...</p>
                         @if (!string.IsNullOrEmpty(_progressMessage))
                         {
@@ -96,12 +96,12 @@
                                     <td style="padding: 8px;">
                                         @if (hand.IsSupported)
                                         {
-                                            <Tag Color="green">Supported</Tag>
+                                            <Tag Color="@TagColor.Green">Supported</Tag>
                                         }
                                         else
                                         {
                                             <Popover Title="Not Supported" Content="@hand.SupportReason">
-                                                <Tag Color="red">Not Supported</Tag>
+                                                <Tag Color="@TagColor.Red">Not Supported</Tag>
                                             </Popover>
                                         }
                                     </td>

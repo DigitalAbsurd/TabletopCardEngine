@@ -481,13 +481,20 @@ renumber.
     `InvalidOperationException` thrown when parameters are set at render time — legal C#, legal Razor,
     all gates green, application dead. Reflect over `AntDesign.dll` before adding an attribute;
     guessing is what put two dead parameters into shipped markup.
-    <br>Related traps in the same package: `ButtonType`, `ButtonShape` and `AlertType` are static
-    classes of `string` constants rather than enums, so `Type="primary"` and
-    `Type="@ButtonType.Primary"` both bind. `Modal`'s `Footer`, `OkText` and `CancelText` are
-    `OneOf<string, RenderFragment>?` (AntDesign 0.17.0 depends on `OneOf` 2.1.155), which a plain
-    string binds to through a compiler-inserted conversion, while `Drawer`'s `Width` and `Height` are
-    plain `int`. And a `Select`'s options must go in its `SelectOptions` fragment, not in
-    `ChildContent`, which `Select` never renders — the symptom is a dropdown showing `No Data`.
+    <br>Related traps in the same package (AntDesign 1.6.2, read off `lib/net10.0/AntDesign.dll`):
+    `ButtonType`, `ButtonShape`, `ButtonSize`, `AlertType`, `SpaceDirection`, `SpinSize`, `StepsSize`,
+    `TagColor`, `InputSize` and `IconThemeType` are enums, so a markup string such as `Type="primary"`
+    does not bind: Razor reads it as a C# expression and the build fails. `AntDesign.CardType`
+    collides with `TabletopCardEngine.CardType`, so `PlayingCard.razor` aliases the engine's. `Modal`'s
+    `Footer`, `OkText` and `CancelText` are still `OneOf<string, RenderFragment>?` (AntDesign 1.6.2
+    depends on `OneOf` 3.0.271), which a plain string binds to through a compiler-inserted conversion,
+    while `Drawer`'s `Width` and `Height` are plain `string`s now (`int` in 0.17). `Input` has no error
+    `Status`, and unlike the base chain it does capture unmatched attributes (`AdditionalAttributes`),
+    which is how `aria-label` reaches its `<input>`. `Select` still renders its options from the
+    `SelectOptions` fragment, and the demo puts them there; a `Select` showing `No Data` has them
+    somewhere else. AntDesign 1.6.2 is not trim-safe either: the published demo throws TypeLoadException
+    ("Invalid generic instantiation") in Tooltip under the default full trim mode, so the demo sets
+    <TrimMode>partial</TrimMode>; dotnet build and bUnit never see it, only the published app does.
 21. **The gates cannot see the browser.** `dotnet build`,
     `dotnet format TabletopCardEngine.sln --verify-no-changes` and `dotnet test` are the only checks the
     task runner has, and each sees less than the last layer of defect needs:

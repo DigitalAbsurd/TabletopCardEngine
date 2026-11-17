@@ -5,7 +5,7 @@
    repeat it. Styles live in app.css: Steps is AntDesign markup, which a scoped stylesheet cannot
    reach (fact 22). *@
 <div class="street-indicator">
-    <Steps Size="small" Current="@CurrentIndex" Class="street-steps">
+    <Steps Size="@StepsSize.Small" Current="@CurrentIndex" Class="street-steps">
         @foreach (var title in _stepTitles)
         {
             <Step Title="@title" />

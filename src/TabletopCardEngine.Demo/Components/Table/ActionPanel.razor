@@ -16,8 +16,8 @@
             {
                 <div class="action-bar-buttons">
                     <Button
-                        Type="primary"
-                        Size="large"
+                        Type="@ButtonType.Primary"
+                        Size="@ButtonSize.Large"
                         OnClick="@OnNextHandAsync"
                         Loading="_isSubmitting"
                         Class="action-bar-btn next-hand-btn">
@@ -42,9 +42,9 @@
                 @if (HasAction(PlayerActionType.Fold))
                 {
                     <Button
-                        Type="primary"
+                        Type="@ButtonType.Primary"
                         Danger="true"
-                        Size="large"
+                        Size="@ButtonSize.Large"
                         OnClick="@OnFoldAsync"
                         Loading="_isSubmitting"
                         Class="action-btn fold-btn">
@@ -55,8 +55,8 @@
                 @if (HasAction(PlayerActionType.Check))
                 {
                     <Button
-                        Type="primary"
-                        Size="large"
+                        Type="@ButtonType.Primary"
+                        Size="@ButtonSize.Large"
                         OnClick="@OnCheckAsync"
                         Loading="_isSubmitting"
                         Class="action-btn check-btn">
@@ -67,8 +67,8 @@
                 @if (HasAction(PlayerActionType.Call))
                 {
                     <Button
-                        Type="primary"
-                        Size="large"
+                        Type="@ButtonType.Primary"
+                        Size="@ButtonSize.Large"
                         OnClick="@OnCallAsync"
                         Loading="_isSubmitting"
                         Class="action-btn call-btn">
@@ -81,8 +81,8 @@
                     @if (IsAllInRaise())
                     {
                         <Button
-                            Type="primary"
-                            Size="large"
+                            Type="@ButtonType.Primary"
+                            Size="@ButtonSize.Large"
                             OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
                             Loading="_isSubmitting"
                             Class="action-btn allin-btn">
@@ -93,8 +93,8 @@
                     {
                         @* The window is one amount, so there is nothing to size: one button, no slider. *@
                         <Button
-                            Type="primary"
-                            Size="large"
+                            Type="@ButtonType.Primary"
+                            Size="@ButtonSize.Large"
                             OnClick="@(async () => await OnRaiseAsync(GetAllInAmount()))"
                             Loading="_isSubmitting"
                             Class="action-btn raise-btn">
@@ -104,8 +104,8 @@
                     else
                     {
                         <Button
-                            Type="primary"
-                            Size="large"
+                            Type="@ButtonType.Primary"
+                            Size="@ButtonSize.Large"
                             OnClick="@(async () => await OnRaiseAsync(_raiseAmount))"
                             Loading="_isSubmitting"
                             Disabled="@(!_raiseInput.IsValid)"
@@ -125,8 +125,8 @@
                 <div class="raise-controls">
                     <div class="raise-slider-row">
                         <Button
-                            Size="small"
-                            Shape="circle"
+                            Size="@ButtonSize.Small"
+                            Shape="@ButtonShape.Circle"
                             OnClick="@(() => StepRaiseAmount(-1))"
                             Class="raise-step-btn raise-decrease-btn">
                             −
@@ -141,19 +141,19 @@
                             TipFormatter="@FormatSliderTip"
                             Marks="@Marks" />
                         <Button
-                            Size="small"
-                            Shape="circle"
+                            Size="@ButtonSize.Small"
+                            Shape="@ButtonShape.Circle"
                             OnClick="@(() => StepRaiseAmount(1))"
                             Class="raise-step-btn raise-increase-btn">
                             +
                         </Button>
-                        @* AntDesign's Input has no error status in 0.17 and does not put Class on its
+                        @* AntDesign's Input has no error status in 1.6.2 and does not put Class on its
                            <input>, so the box is styled through a span of ours (app.css), and the
                            reason an amount is illegal is the tooltip's. *@
                         <Tooltip Title="@(_raiseInput.Error ?? string.Empty)" Disabled="@_raiseInput.IsValid">
                             <span class="@(_raiseInput.IsValid ? "raise-input" : "raise-input raise-input-invalid")">
                                 <Input TValue="string"
-                                    Size="large"
+                                    Size="@InputSize.Large"
                                     Value="@_raiseText"
                                     OnInput="@OnRaiseInput"
                                     OnPressEnter="@OnRaisePressEnterAsync"
@@ -165,8 +165,8 @@
                         @if (!_raiseInput.IsValid)
                         {
                             <Button
-                                Size="small"
-                                Shape="circle"
+                                Size="@ButtonSize.Small"
+                                Shape="@ButtonShape.Circle"
                                 Icon="thunderbolt"
                                 AriaLabel="@($"Correct the amount to {AmountFormat.Format(CorrectedAmount)}")"
                                 OnClick="@CorrectRaiseAmount"
@@ -179,8 +179,8 @@
                                 {
                                     <Tooltip Title="@(preset.Formula ?? string.Empty)">
                                         <Button
-                                            Size="small"
-                                            Shape="round"
+                                            Size="@ButtonSize.Small"
+                                            Shape="@ButtonShape.Round"
                                             AriaLabel="@($"{preset.Label}: raise to {AmountFormat.Format(preset.Amount)}. {preset.Formula}")"
                                             OnClick="@(() => SetRaiseAmount(preset.Amount))"
                                             Class="raise-preset-btn">

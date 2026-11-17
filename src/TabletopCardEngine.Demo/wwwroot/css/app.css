@@ -556,7 +556,7 @@ code {
 }
 
 /* The raise amount box, an AntDesign Input: large and bold, on the dark felt in either theme.
-   AntDesign 0.17 has no error status on Input, so the invalid state is this class of ours. */
+   AntDesign 1.6.2 has no error status on Input (it has only a Size), so the invalid state is this class of ours. */
 .action-bar .raise-input {
     display: inline-block;
     flex: 0 0 auto;

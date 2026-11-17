@@ -11,18 +11,18 @@
 
 <p>This page verifies that the engine is correctly configured and the database is operational.</p>
 
-<Button Type="primary" OnClick="RunDiagnostics">Run Diagnostics</Button>
+<Button Type="@ButtonType.Primary" OnClick="RunDiagnostics">Run Diagnostics</Button>
 
 @if (diagnosticsRun)
 {
     <div style="margin-top: 20px;">
         @if (errorMessage != null)
         {
-            <Alert Message="Error" Description="@errorMessage" Type="error" ShowIcon="true"></Alert>
+            <Alert Message="Error" Description="@errorMessage" Type="@AlertType.Error" ShowIcon="true"></Alert>
         }
         else if (gameId != Guid.Empty && tableNames.Count > 0)
         {
-            <Alert Message="Success" Description="@($"Game created with ID {gameId}. Database is operational.")" Type="success" ShowIcon="true"></Alert>
+            <Alert Message="Success" Description="@($"Game created with ID {gameId}. Database is operational.")" Type="@AlertType.Success" ShowIcon="true"></Alert>
             <div style="margin-top: 20px;">
                 <h3>Engine Tables</h3>
                 <p>Total tables: @tableNames.Count</p>

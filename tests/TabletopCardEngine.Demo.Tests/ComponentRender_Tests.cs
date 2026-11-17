@@ -32,7 +32,7 @@ public sealed class ComponentRender_Tests
     /// Loose JS interop hands each of them back as null, which the components then dereference: that
     /// NullReferenceException is what the older tests here caught and ignored, and with it whatever
     /// else was wrong with the render. Only <c>GetWindow</c> is a public constant in AntDesign
-    /// 0.17.0; the other two identifiers are built inside the library, so they are spelled out.
+    /// 1.6.2; the other two identifiers are built inside the library, so they are spelled out.
     /// </remarks>
     private static void SetupBrowserGeometryInterop(BunitContext ctx)
     {
