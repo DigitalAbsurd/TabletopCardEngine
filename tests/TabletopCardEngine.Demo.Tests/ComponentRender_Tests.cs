@@ -1311,7 +1311,7 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void PokerTable_BetweenHands_OffersStandUpOnEverySeatAndSitDown()
+    public void PokerTable_BetweenHands_OffersAMenuOnEverySeatAndSitDown()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1320,13 +1320,14 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, BuildSeatingGameData(3));
 
         // Assert
-        component.FindAll(".seat-stand-up").Should().HaveCount(3);
+        component.FindAll(".seat-menu-trigger").Should().HaveCount(3);
+        ItemStatesOf(component, 1).Should().Equal(new Dictionary<string, bool> { ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = true, ["Kick"] = true });
         component.FindAll(".seat-join-toggle").Should().HaveCount(1);
         component.Find(".seat-join-toggle").TextContent.Trim().Should().Be("Sit down");
     }
 
     [TestMethod]
-    public void PokerTable_HandInProgress_HidesStandUpAndSitDown()
+    public void PokerTable_HandInProgress_DisablesStandUpAndHidesSitDown()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1335,12 +1336,12 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, street: Street.Flop));
 
         // Assert
-        component.FindAll(".seat-stand-up").Should().BeEmpty();
+        ItemStatesOf(component, 1).Should().Equal(new Dictionary<string, bool> { ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = true });
         component.FindAll(".seat-join").Should().BeEmpty();
     }
 
     [TestMethod]
-    public void PokerTable_FinishedGame_HidesStandUpAndSitDown()
+    public void PokerTable_FinishedGame_DisablesStandUpAndHidesSitDown()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1349,12 +1350,12 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, isGameFinished: true));
 
         // Assert
-        component.FindAll(".seat-stand-up").Should().BeEmpty();
+        ItemStatesOf(component, 1)["Stand up"].Should().BeFalse();
         component.FindAll(".seat-join").Should().BeEmpty();
     }
 
     [TestMethod]
-    public void PokerTable_SeatThatLeft_IsDimmedWithLeftBadgeAndNoControls()
+    public void PokerTable_SeatThatLeft_IsDimmedWithLeftBadgeAndEveryItemDisabled()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1366,12 +1367,12 @@ public sealed class ComponentRender_Tests
         var left = component.FindAll(".seat").Single(s => s.TextContent.Contains("Player 2", StringComparison.Ordinal));
         left.ClassList.Should().Contain("seat-left");
         left.QuerySelector(".badge-left")!.TextContent.Should().Be("Left");
-        left.QuerySelector(".seat-stand-up").Should().BeNull();
-        component.FindAll(".seat-stand-up").Should().HaveCount(2);
+        ItemStatesOf(component, 2).Should().Equal(new Dictionary<string, bool> { ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = false });
+        ItemStatesOf(component, 1)["Stand up"].Should().BeTrue();
     }
 
     [TestMethod]
-    public void PokerTable_KickButton_RendersMidHandAndBetweenHandsButNotForASeatThatLeft()
+    public void PokerTable_SeatMenu_RendersOnEverySeatMidHandAndBetweenHands()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1382,35 +1383,55 @@ public sealed class ComponentRender_Tests
         var midHand = RenderSeatingTable(ctx, BuildSeatingGameData(3, street: Street.Flop));
         var betweenHands = RenderSeatingTable(ctx2, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s));
 
-        // Assert
-        midHand.FindAll(".seat-kick").Should().HaveCount(3);
-        midHand.Find(".seat-kick[data-seat-no='1']").GetAttribute("aria-label").Should().Be("Kick Player 1");
-        betweenHands.FindAll(".seat-kick").Should().HaveCount(2);
-        betweenHands.FindAll(".seat-kick[data-seat-no='2']").Should().BeEmpty();
+        // Assert - one trigger per seat, so the seat's height never changes
+        midHand.FindAll(".seat-menu-trigger").Should().HaveCount(3);
+        midHand.Find(".seat-menu-trigger[data-seat-no='1']").GetAttribute("aria-label").Should().Be("Actions for Player 1");
+        betweenHands.FindAll(".seat-menu-trigger").Should().HaveCount(3);
+        ItemStatesOf(midHand, 1)["Kick"].Should().BeTrue();
+        ItemStatesOf(betweenHands, 2)["Kick"].Should().BeFalse();
+    }
+
+    private static IRenderedComponent<PokerTable> RenderMidHandTable(BunitContext ctx, List<byte> kicked)
+    {
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        return ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildSeatingGameData(3, street: Street.Flop))
+            .Add(p => p.OnKick, kicked.Add));
     }
 
     [TestMethod]
-    public void PokerTable_KickButton_AsksForConfirmationBeforeRaisingTheSeat()
+    public void PokerTable_Kick_RaisesTheSeatOnlyOnceConfirmed()
     {
         // Arrange
         using var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        RegisterDemoServices(ctx.Services);
         var kicked = new List<byte>();
-        var component = ctx.Render<PokerTable>(parameters => parameters
-            .Add(p => p.GameData, BuildSeatingGameData(3, street: Street.Flop))
-            .Add(p => p.OnKick, kicked.Add));
+        var component = RenderMidHandTable(ctx, kicked);
 
         // Act
-        component.Find(".seat-kick[data-seat-no='2']").Click();
+        ChooseSeatItem(component, 2, "Kick");
 
         // Assert - nothing happens until the confirmation
         kicked.Should().BeEmpty();
-        component.Find(".seat-kick-no").Click();
-        component.FindAll(".seat-kick-yes").Should().BeEmpty();
-        component.Find(".seat-kick[data-seat-no='2']").Click();
-        component.Find(".seat-kick-yes").Click();
+        component.WaitForAssertion(() => SeatMenuOf(component, 2).InnerHtml.Should().Contain("Kick Player 2?"));
+        AnswerConfirmation(component, 2, ok: true);
         kicked.Should().Equal((byte)2);
+    }
+
+    [TestMethod]
+    public void PokerTable_Kick_CancelledConfirmationRaisesNothing()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var kicked = new List<byte>();
+        var component = RenderMidHandTable(ctx, kicked);
+
+        // Act
+        ChooseSeatItem(component, 2, "Kick");
+        AnswerConfirmation(component, 2, ok: false);
+
+        // Assert
+        kicked.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -1423,7 +1444,7 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, seat: s => s.SeatNo == 1 ? s with { Stack = 0m } : s));
 
         // Assert - standing up is how a busted seat is freed
-        component.FindAll(".seat-stand-up[data-seat-no='1']").Should().HaveCount(1);
+        ItemStatesOf(component, 1)["Stand up"].Should().BeTrue();
     }
 
     [TestMethod]
@@ -1462,7 +1483,7 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void PokerTable_StandUp_RaisesTheSeatNumber()
+    public void PokerTable_StandUp_RaisesTheSeatNumberOnceConfirmed()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1474,10 +1495,62 @@ public sealed class ComponentRender_Tests
             .Add(p => p.OnStandUp, stoodUp.Add));
 
         // Act
-        component.Find(".seat-stand-up[data-seat-no='2']").Click();
+        ChooseSeatItem(component, 2, "Stand up");
+        stoodUp.Should().BeEmpty();
+        AnswerConfirmation(component, 2, ok: true);
 
         // Assert
         stoodUp.Should().Equal((byte)2);
+    }
+
+    /// <summary>
+    /// A seat's menu. Without the <c>AntContainer</c> of the demo's layout, which bUnit does not render,
+    /// the dropdown and the popconfirm draw their overlays inside the menu, so the tests find them there.
+    /// </summary>
+    private static AngleSharp.Dom.IElement SeatMenuOf(IRenderedComponent<PokerTable> component, byte seatNo)
+        => component.FindAll(".seat").Single(s => s.GetAttribute("data-seat-no") == seatNo.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            .QuerySelector(".seat-menu")!;
+
+    /// <summary>
+    /// Opens a seat's menu, which renders its items a moment after the click (the overlay waits on an
+    /// asynchronous step), and returns them.
+    /// </summary>
+    private static List<AngleSharp.Dom.IElement> OpenSeatMenu(IRenderedComponent<PokerTable> component, byte seatNo)
+    {
+        if (SeatMenuOf(component, seatNo).QuerySelector(".seat-menu-item") is null)
+        {
+            SeatMenuOf(component, seatNo).QuerySelector(".seat-menu-trigger")!.Click();
+        }
+
+        component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelectorAll(".seat-menu-item").Should().HaveCount(4));
+        return SeatMenuOf(component, seatNo).QuerySelectorAll(".seat-menu-item").ToList();
+    }
+
+    /// <summary>Opens a seat's menu and chooses one item.</summary>
+    private static void ChooseSeatItem(IRenderedComponent<PokerTable> component, byte seatNo, string label)
+        => OpenSeatMenu(component, seatNo).Single(i => i.TextContent.Trim() == label).Click();
+
+    /// <summary>Presses the popconfirm's OK (or its Cancel) on a seat, once it is up.</summary>
+    private static void AnswerConfirmation(IRenderedComponent<PokerTable> component, byte seatNo, bool ok)
+    {
+        var selector = ok ? ".ant-popover-buttons .ant-btn-primary" : ".ant-popover-buttons .ant-btn:not(.ant-btn-primary)";
+        component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelector(selector).Should().NotBeNull());
+        SeatMenuOf(component, seatNo).QuerySelector(selector)!.Click();
+    }
+
+    /// <summary>Opens a seat's menu and reads each item, in order, as whether it is enabled.</summary>
+    private static Dictionary<string, bool> ItemStatesOf(IRenderedComponent<PokerTable> component, byte seatNo)
+    {
+        var items = OpenSeatMenu(component, seatNo);
+        items.Select(i => i.TextContent.Trim()).Should().Equal("Top up", "Rebuy", "Stand up", "Kick");
+        return items.ToDictionary(i => i.TextContent.Trim(), i => !i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
+    }
+
+    /// <summary>Whether a seat's Top up and Rebuy items are enabled, in that order.</summary>
+    private static bool[] BuyInItemsOf(IRenderedComponent<PokerTable> component, byte seatNo)
+    {
+        var states = ItemStatesOf(component, seatNo);
+        return [states["Top up"], states["Rebuy"]];
     }
 
     private static GameData BuildBuyInGameData(
@@ -1502,9 +1575,9 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, game);
 
         // Assert
-        component.FindAll(".seat-buy-in").Select(b => b.GetAttribute("aria-label"))
-            .Should().BeEquivalentTo("Top up Player 1", "Top up Player 2", "Rebuy Player 3");
-        component.Find(".seat-buy-in[data-seat-no='3']").TextContent.Trim().Should().Be("Rebuy");
+        BuyInItemsOf(component, 1).Should().Equal(true, false);
+        BuyInItemsOf(component, 2).Should().Equal(true, false);
+        BuyInItemsOf(component, 3).Should().Equal(false, true);
     }
 
     [TestMethod]
@@ -1525,8 +1598,8 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, game);
 
         // Assert
-        component.Find(".seat-buy-in[data-seat-no='1']").TextContent.Trim().Should().Be("Top up");
-        component.Find(".seat-buy-in[data-seat-no='2']").TextContent.Trim().Should().Be("Rebuy");
+        BuyInItemsOf(component, 1).Should().Equal(true, false);
+        BuyInItemsOf(component, 2).Should().Equal(false, true);
     }
 
     [TestMethod]
@@ -1540,8 +1613,9 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, game);
 
         // Assert
-        component.FindAll(".seat-buy-in").Should().BeEmpty();
-        component.FindAll(".seat-stand-up").Should().HaveCount(3);
+        BuyInItemsOf(component, 1).Should().Equal(false, false);
+        BuyInItemsOf(component, 3).Should().Equal(false, false);
+        ItemStatesOf(component, 3)["Stand up"].Should().BeTrue();
     }
 
     [TestMethod]
@@ -1555,7 +1629,7 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, game);
 
         // Assert
-        component.FindAll(".seat-buy-in").Should().BeEmpty();
+        BuyInItemsOf(component, 1).Should().Equal(false, false);
     }
 
     [TestMethod]
@@ -1576,8 +1650,8 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, game);
 
         // Assert
-        component.FindAll(".seat-buy-in").Should().ContainSingle()
-            .Which.GetAttribute("aria-label").Should().Be("Rebuy Player 2");
+        BuyInItemsOf(component, 1).Should().Equal(false, false);
+        BuyInItemsOf(component, 2).Should().Equal(false, true);
         component.FindAll(".seat-rebuys").Select(r => r.TextContent).Should().Equal("Rebuys 2/2", "Rebuys 1/2", "Rebuys 0/2");
     }
 
@@ -1617,7 +1691,7 @@ public sealed class ComponentRender_Tests
             .Add(p => p.OnTopUp, raised.Add));
 
         // Act
-        component.Find(".seat-buy-in[data-seat-no='1']").Click();
+        ChooseSeatItem(component, 1, "Top up");
 
         // Assert - 150 - 100 - 20
         component.Find(".seat-amount-input").GetAttribute("value").Should().Be("30");
@@ -1640,7 +1714,7 @@ public sealed class ComponentRender_Tests
         var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, BuildBuyInGameData(o => o with { AllowTopUp = true }))
             .Add(p => p.OnTopUp, raised.Add));
-        component.Find(".seat-buy-in[data-seat-no='2']").Click();
+        ChooseSeatItem(component, 2, "Top up");
 
         // Act / Assert
         component.Find(".seat-amount-input").GetAttribute("value").Should().Be(DemoGameDefaults.BuyIn.ToString(System.Globalization.CultureInfo.InvariantCulture));

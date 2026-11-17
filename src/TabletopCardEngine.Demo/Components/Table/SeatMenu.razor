@@ -1,0 +1,175 @@
+﻿@using TabletopCardEngine.Holdem.Dto
+
+@* One entry point for everything a seat can do: Top up, Rebuy, Stand up and Kick, always in that
+   order. An action the seat cannot take right now is disabled rather than hidden, so the list never
+   reshuffles. It is a component of its own because the empty seat's placeholder gets the same menu.
+   The popconfirm is anchored to the trigger and opened from the item's click, because the menu
+   closes with the click and a popconfirm wrapped around an item would go with it. *@
+<div class="seat-menu">
+    <Popconfirm Title="@ConfirmTitle"
+        OkText="@ConfirmLabel"
+        CancelText="Cancel"
+        Trigger="@(Array.Empty<Trigger>())"
+        Visible="@(_confirming is not null)"
+        VisibleChanged="OnConfirmVisibleChange"
+        OnConfirm="ConfirmAsync"
+        OnCancel="CancelConfirm">
+        <Dropdown Trigger="@(new[] { Trigger.Click })" Placement="Placement.BottomRight">
+            <Overlay>
+                <Menu>
+                    <MenuItem Key="top-up" Class="seat-menu-item" Disabled="!_states.TopUp" OnClick="() => OnBuyIn.InvokeAsync(TopUpLabel)">@TopUpLabel</MenuItem>
+                    <MenuItem Key="rebuy" Class="seat-menu-item" Disabled="!_states.Rebuy" OnClick="() => OnBuyIn.InvokeAsync(RebuyLabel)">@RebuyLabel</MenuItem>
+                    <MenuItem Key="stand-up" Class="seat-menu-item" Disabled="!_states.StandUp" OnClick="() => Ask(StandUpLabel)">@StandUpLabel</MenuItem>
+                    <MenuItem Key="kick" Class="seat-menu-item seat-menu-item-danger" Disabled="!_states.Kick" OnClick="() => Ask(KickLabel)">@KickLabel</MenuItem>
+                </Menu>
+            </Overlay>
+            <ChildContent>
+                <button type="button"
+                    class="seat-menu-trigger"
+                    data-seat-no="@SeatData.SeatNo"
+                    aria-label="@($"Actions for {SeatData.Name}")"
+                    aria-haspopup="menu">
+                    &#8943;
+                </button>
+            </ChildContent>
+        </Dropdown>
+    </Popconfirm>
+</div>
+
+@code {
+    /// <summary>Which of the seat's actions are available right now.</summary>
+    public readonly record struct ItemStates(bool TopUp, bool Rebuy, bool StandUp, bool Kick);
+
+    /// <summary>The seat the menu belongs to.</summary>
+    [Parameter]
+    public required SeatData SeatData { get; set; }
+
+    /// <summary>Whether the table is between hands, the only time a seat may stand up, top up or rebuy.</summary>
+    [Parameter]
+    public bool CanStandUp { get; set; }
+
+    /// <summary>
+    /// Whether the seat may be kicked. A tournament table switches it off: the tournament owns who sits
+    /// there, and the engine refuses a kick on one.
+    /// </summary>
+    [Parameter]
+    public bool AllowKick { get; set; } = true;
+
+    /// <summary>The game's options, which say whether the seat may top up or rebuy and how far; null before a game exists.</summary>
+    [Parameter]
+    public GameOptionData? Options { get; set; }
+
+    /// <summary>Raised with the seat number when Stand up is confirmed.</summary>
+    [Parameter]
+    public EventCallback<byte> OnStandUp { get; set; }
+
+    /// <summary>Raised with the seat number when a kick is confirmed.</summary>
+    [Parameter]
+    public EventCallback<byte> OnKick { get; set; }
+
+    /// <summary>Raised with <c>Top up</c> or <c>Rebuy</c> when that item is chosen; the seat opens the amount form.</summary>
+    [Parameter]
+    public EventCallback<string> OnBuyIn { get; set; }
+
+    /// <summary>The label of the Top up item.</summary>
+    internal const string TopUpLabel = "Top up";
+
+    /// <summary>The label of the Rebuy item.</summary>
+    internal const string RebuyLabel = "Rebuy";
+
+    /// <summary>The label of the Stand up item.</summary>
+    internal const string StandUpLabel = "Stand up";
+
+    /// <summary>The label of the Kick item.</summary>
+    internal const string KickLabel = "Kick";
+
+    /// <summary>Below this a stack is empty, the demo's reading of a busted seat (the engine's own constant is private).</summary>
+    private const decimal DecimalMinPrecision = 0.0001M;
+
+    /// <summary>The item awaiting confirmation, <c>Stand up</c> or <c>Kick</c>, or null for none.</summary>
+    private string? _confirming;
+
+    private ItemStates _states;
+
+    private string ConfirmTitle => $"{_confirming ?? StandUpLabel} {SeatData.Name}?";
+
+    private string ConfirmLabel => _confirming ?? StandUpLabel;
+
+    /// <summary>
+    /// What the seat holds once the hand is over. <c>SeatData.Stack</c> is what is left after the
+    /// wagers, before the pot is paid, so an all-in winner reads zero there: the engine's own figure,
+    /// which decides top-up against rebuy, is the start stack plus the hand's net.
+    /// </summary>
+    public static decimal FinishedStack(SeatData seat)
+        => seat.HandResult is { } result ? seat.StartHandStack + result.Net : seat.Stack;
+
+    /// <summary>
+    /// The state of each item. Top up and Rebuy follow the engine's own rule: a seat that would start
+    /// the next hand with chips tops up, one that would not rebuys, so a busted seat that already has
+    /// chips pending tops up again. Both, like Stand up, are between hands only; Kick works at any time.
+    /// A seat that has left offers nothing.
+    /// </summary>
+    public static ItemStates GetItemStates(SeatData seat, GameOptionData? options, bool canStandUp, bool allowKick)
+    {
+        if (seat.HasLeft)
+        {
+            return default;
+        }
+
+        var topUp = false;
+        var rebuy = false;
+        if (canStandUp && options is not null)
+        {
+            if (FinishedStack(seat) + seat.PendingBuyIn >= DecimalMinPrecision)
+            {
+                topUp = options.AllowTopUp;
+            }
+            else
+            {
+                var hasRebuysLeft = options.MaxRebuys is not { } max || seat.Rebuys < max;
+                rebuy = options.AllowRebuy && hasRebuysLeft;
+            }
+        }
+
+        // Busted seats may stand up too: that is how a seat with no chips is freed.
+        return new ItemStates(topUp, rebuy, canStandUp, allowKick);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _states = GetItemStates(SeatData, Options, CanStandUp, AllowKick);
+
+        // A confirmation for an action the seat no longer offers goes with it.
+        if ((_confirming == StandUpLabel && !_states.StandUp) || (_confirming == KickLabel && !_states.Kick))
+        {
+            _confirming = null;
+        }
+    }
+
+    private void Ask(string label) => _confirming = label;
+
+    private void CancelConfirm() => _confirming = null;
+
+    private void OnConfirmVisibleChange(bool visible)
+    {
+        if (!visible)
+        {
+            _confirming = null;
+        }
+    }
+
+    private async Task ConfirmAsync()
+    {
+        var label = _confirming;
+        _confirming = null;
+        if (label == StandUpLabel)
+        {
+            await OnStandUp.InvokeAsync(SeatData.SeatNo);
+        }
+        else if (label == KickLabel)
+        {
+            await OnKick.InvokeAsync(SeatData.SeatNo);
+        }
+    }
+}

@@ -36,15 +36,11 @@
     border-style: dashed;
 }
 
-/* Overlaid on the seat's top edge rather than a row of its own: the seat keeps the height the
-   browser gate pins, and the control is there only between hands. */
-.seat-stand-up,
-.seat-buy-in,
-.seat-kick,
+/* On the top edge's left corner: the menu trigger has the right one. */
 .badge-left {
     position: absolute;
     top: -10px;
-    right: 6px;
+    left: 6px;
     padding: 0 0.5rem;
     border-radius: 9px;
     font-size: 10px;
@@ -52,69 +48,6 @@
     line-height: 18px;
     white-space: nowrap;
 }
-
-.seat-stand-up,
-.seat-buy-in {
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    background: rgba(0, 0, 0, 0.65);
-    color: #fff;
-    cursor: pointer;
-}
-
-.seat-stand-up:hover,
-.seat-kick:hover {
-    background: #cf1322;
-    border-color: #cf1322;
-}
-
-/* Kick is on the bottom edge's right corner: the top edge has no room for a third button, and the
-   buy-in note, centred there, is pushed to the left corner to make room. */
-.seat-kick {
-    top: auto;
-    bottom: -10px;
-}
-
-.seat-kick-confirm {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-    font-size: 11px;
-}
-
-.seat-kick-buttons {
-    display: flex;
-    gap: 0.25rem;
-}
-
-.seat-kick-yes,
-.seat-kick-no {
-    height: 24px;
-    padding: 0 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.45);
-    color: #fff;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-.seat-kick-yes {
-    border-color: #cf1322;
-    background: #cf1322;
-}
-
-/* Top up / Rebuy take the top edge's left corner, Stand up its right one. */
-.seat-buy-in {
-    right: auto;
-    left: 6px;
-}
-
-.seat-buy-in:hover {
-    background: #237804;
-    border-color: #237804;
-}
-
 /* Laid on the seat's bottom edge, the mirror of the buttons on its top edge: a full-ring table at
    1366x768 has no height to spare, so a line in the seat's flow would push the table off the screen
    (the browser gate pins it). */

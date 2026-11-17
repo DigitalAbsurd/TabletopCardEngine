@@ -634,3 +634,10 @@ code {
         padding: 0.5rem 8px;
     }
 }
+
+/* The seat menu and its popconfirm render into AntContainer, outside any scoped stylesheet (fact 22).
+   Kick is the one destructive item; a disabled item keeps AntDesign's own grey. */
+.ant-dropdown-menu-item.seat-menu-item-danger:not(.ant-dropdown-menu-item-disabled),
+.ant-menu-item.seat-menu-item-danger:not(.ant-menu-item-disabled) {
+    color: #cf1322;
+}
