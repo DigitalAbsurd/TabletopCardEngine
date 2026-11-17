@@ -1,11 +1,12 @@
-@using AntDesign
+﻿@using AntDesign
 @using TabletopCardEngine.Holdem
 
 @* The table's only statement of which street is being played, so the centre and the summary never
    repeat it. Styles live in app.css: Steps is AntDesign markup, which a scoped stylesheet cannot
-   reach (fact 22). *@
+   reach (fact 22). It is vertical, for the side column of a wide table; below 768px
+   app.css lays the same steps out in a row above the centre, where there is no felt beside it. *@
 <div class="street-indicator">
-    <Steps Size="@StepsSize.Small" Current="@CurrentIndex" Class="street-steps">
+    <Steps Size="@StepsSize.Small" Direction="StepsDirection.Vertical" Current="@CurrentIndex" Class="street-steps">
         @foreach (var title in _stepTitles)
         {
             <Step Title="@title" />

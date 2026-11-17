@@ -384,12 +384,56 @@ code {
     font-weight: 600;
 }
 
-/* The street, as small AntDesign Steps between the top seat row and the board. AntDesign draws
-   Steps for a light background; on the green table its grey titles and tails would disappear. */
+/* The street, as small AntDesign Steps beside the board: vertical on a wide table, a row above
+   it below 768px. AntDesign draws Steps for a light background; on the green table its grey titles
+   and tails would disappear. */
 .street-indicator {
     width: 100%;
     min-width: 0;
     max-width: 640px;
+}
+
+@media (min-width: 769px) {
+    .street-indicator {
+        width: auto;
+    }
+}
+
+/* Five steps must not make the band taller than the board and pot beside them, so a vertical step
+   is as tall as its 24px icon plus a small gap instead of AntDesign's 48px minimum. */
+.street-steps.ant-steps-vertical .ant-steps-item-content {
+    min-height: 28px;
+}
+
+/* A step has no description, but AntDesign still pads its empty element by 12px. */
+.street-steps.ant-steps-vertical .ant-steps-item-description {
+    padding-bottom: 0;
+}
+
+.street-steps.ant-steps-vertical .ant-steps-item-tail {
+    padding: 28px 0 4px;
+}
+
+/* A narrow table has no felt beside the centre, so the street goes above it, in a row. */
+@media (max-width: 768px) {
+    .street-steps.ant-steps-vertical {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        column-gap: 1rem;
+    }
+
+    .street-steps.ant-steps-vertical > .ant-steps-item {
+        flex: 0 0 auto;
+    }
+
+    .street-steps.ant-steps-vertical .ant-steps-item-content {
+        min-height: 0;
+    }
+
+    .street-steps.ant-steps-vertical .ant-steps-item-tail {
+        display: none;
+    }
 }
 
 /* AntDesign styles each state through the full child path (item > container > icon, item >
