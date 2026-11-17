@@ -1,0 +1,12 @@
+﻿@* A free position of the table: drawn so the seats around it keep their places and the table shows
+   it has a seat there. It carries no controls; sitting down is the action bar's business. *@
+<div class="seat seat-empty" data-seat-no="@SeatNo">
+    <div class="seat-name">Seat @SeatNo</div>
+    <div class="seat-empty-label">Empty</div>
+</div>
+
+@code {
+    /// <summary>The 1-based number of the free seat.</summary>
+    [Parameter, EditorRequired]
+    public byte SeatNo { get; set; }
+}

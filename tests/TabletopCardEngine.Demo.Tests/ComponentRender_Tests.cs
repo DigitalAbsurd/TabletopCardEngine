@@ -1053,6 +1053,67 @@ public sealed class ComponentRender_Tests
             .Should().Equal("Player 5", "Player 4");
     }
 
+    [TestMethod]
+    public void PokerTable_WithAFreeSeat_DrawsAPlaceholderInPlace()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var hand = BuildHandDataWithSeats(6);
+        hand = hand with { Seats = hand.Seats.Where(s => s.SeatNo != 5).ToArray() };
+        var game = BuildGameData(hand) with { Options = BuildGameData(hand).Options with { MaxPlayersCount = 6 } };
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters.Add(p => p.GameData, game));
+
+        // Assert
+        component.FindAll(".seat").Should().HaveCount(6);
+        component.FindAll(".seat-empty[data-seat-no='5']").Should().ContainSingle();
+        component.FindAll(".seat-empty").Should().ContainSingle();
+        SeatNumbersByRow(component).Should().Equal("1,2,3", "6,5,4");
+    }
+
+    [TestMethod]
+    public void PokerTable_FullRingWithSevenPlayers_DrawsTenPositions()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        var game = BuildGameData(BuildHandDataWithSeats(7));
+        game = game with { Options = game.Options with { MaxPlayersCount = 10 } };
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters.Add(p => p.GameData, game));
+
+        // Assert
+        component.FindAll(".seat").Should().HaveCount(10);
+        component.FindAll(".seat-empty").Should().HaveCount(3);
+        SeatNumbersByRow(component).Should().Equal("1,2,3,4,5", "10,9,8,7,6");
+    }
+
+    [TestMethod]
+    public void PokerTable_HeadsUp_DrawsOneSeatPerRow()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildGameData(BuildHandDataWithSeats(2))));
+
+        // Assert
+        SeatNumbersByRow(component).Should().Equal("1", "2");
+    }
+
+    private static string[] SeatNumbersByRow(IRenderedComponent<PokerTable> component)
+        => component.FindAll("div.table-seats-row")
+            .Select(row => string.Join(",", row.QuerySelectorAll(".seat").Select(s => s.GetAttribute("data-seat-no"))))
+            .ToArray();
+
     private static GameData WithBlinds(GameData game, int handNo, decimal smallBlind, int level, bool schedule)
         => game with
         {
