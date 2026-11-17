@@ -3,11 +3,13 @@
 @using DataCard = TabletopCardEngine.Card
 @using TabletopCardEngine.Demo.Services
 
-@* The whole game area in one piece: the seats around the board, the street between the top row
-   and the board, and the action bar along the bottom. The session's settings are in the page
+@* The whole game area in one piece: the seats around the board, the action bar along the bottom, and
+   between the two seat rows one band of three columns: the street (vertical) on the left, the board
+   and pot in the middle and, once the hand is finished, the result chips (one per line) on the right,
+   on felt that is otherwise empty. The session's settings are in the page
    header, so every pixel of the table's height goes to the hand. Nothing about the running hand
    is shown anywhere else on the page, so nothing here is shown twice. *@
-<div class="@TableClass">
+<div class="poker-table">
     @if (Hand is not null)
     {
         <div class="table-seats-row">
@@ -43,45 +45,54 @@
                 }
             }
         </div>
-
-        <StreetIndicator Street="@Hand.Street" />
     }
 
-    <div class="table-center">
-        <div class="community-cards">
-            @if (Hand?.CommunityCards is not null && Hand.CommunityCards.Count > 0)
+    <div class="table-band">
+        <div class="band-street">
+            @if (Hand is not null)
             {
-                @foreach (var card in Hand.CommunityCards)
-                {
-                    <PlayingCard Card="card" IsHighlighted="@HighlightedCards.Contains(card)" />
-                }
-            }
-            else
-            {
-                <div class="empty-board">No community cards</div>
+                <StreetIndicator Street="@Hand.Street" />
             }
         </div>
 
-        @if (Hand is not null)
-        {
-            <div class="pot-info">
-                <div class="pot-row">
-                    <span class="pot-label">Pot:</span>
-                    <span class="pot-value">@AmountFormat.Format(Hand.Pot + Hand.StreetPot)</span>
-                </div>
-                <div class="pot-breakdown">
-                    <span class="pot-small blinds-value">Blinds @AmountFormat.Format(Hand.SmallBlind)/@AmountFormat.Format(Hand.BigBlind)@AnteSuffix@(HasBlindSchedule ? $" · Level {Hand.BlindLevel + 1}" : "")</span>
-                    @if (BlindLevelRaised)
+        <div class="table-center">
+            <div class="community-cards">
+                @if (Hand?.CommunityCards is not null && Hand.CommunityCards.Count > 0)
+                {
+                    @foreach (var card in Hand.CommunityCards)
                     {
-                        <span class="blind-raised" title="The blinds rose for this hand">Blinds up</span>
+                        <PlayingCard Card="card" IsHighlighted="@HighlightedCards.Contains(card)" />
                     }
-                    <span class="pot-small">Prior: @AmountFormat.Format(Hand.Pot)</span>
-                    <span class="pot-small">Street: @AmountFormat.Format(Hand.StreetPot)</span>
-                    <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Count</span>
-                </div>
+                }
+                else
+                {
+                    <div class="empty-board">No community cards</div>
+                }
             </div>
 
-            @if (IsHandFinished)
+            @if (Hand is not null)
+            {
+                <div class="pot-info">
+                    <div class="pot-row">
+                        <span class="pot-label">Pot:</span>
+                        <span class="pot-value">@AmountFormat.Format(Hand.Pot + Hand.StreetPot)</span>
+                    </div>
+                    <div class="pot-breakdown">
+                        <span class="pot-small blinds-value">Blinds @AmountFormat.Format(Hand.SmallBlind)/@AmountFormat.Format(Hand.BigBlind)@AnteSuffix@(HasBlindSchedule ? $" · Level {Hand.BlindLevel + 1}" : "")</span>
+                        @if (BlindLevelRaised)
+                        {
+                            <span class="blind-raised" title="The blinds rose for this hand">Blinds up</span>
+                        }
+                        <span class="pot-small">Prior: @AmountFormat.Format(Hand.Pot)</span>
+                        <span class="pot-small">Street: @AmountFormat.Format(Hand.StreetPot)</span>
+                        <span class="pot-small active-count">Active: @Hand.Seats.Count(s => s.IsActive)/@Hand.Seats.Count</span>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="band-results">
+            @if (IsHandFinished && Hand is not null)
             {
                 <div class="hand-results">
                     @foreach (var seat in Hand.Seats.Where(s => s.HandResult is not null).OrderBy(s => s.SeatNo))
@@ -106,7 +117,7 @@
                     }
                 </div>
             }
-        }
+        </div>
     </div>
 
     @if (Hand is not null)
@@ -239,17 +250,6 @@
     private bool BlindLevelRaised => Hand is not null && _previousLevel is { } previous && Hand.BlindLevel > previous;
 
     private bool IsHandFinished => Hand?.Street == Street.Finished;
-
-    /// <summary>
-    /// More seats than a six-max table has. The finished hand lists one result chip per seat, and
-    /// ten of them no longer fit two lines of the default centre, so the centre widens
-    /// (PokerTable.razor.css) instead of the table growing a third line.
-    /// </summary>
-    private bool IsLargeTable => PositionCount > SixMaxSeatCount;
-
-    private string TableClass => IsLargeTable ? "poker-table poker-table-large" : "poker-table";
-
-    private const int SixMaxSeatCount = 6;
 
     private static readonly IReadOnlySet<DataCard> _noCards = new HashSet<DataCard>();
 

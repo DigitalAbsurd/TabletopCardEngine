@@ -1,5 +1,6 @@
 ﻿/* The table, action bar included, has to fit the space under the header in a 1366x768 viewport
-   with the first-visit banner above it (the browser gate asserts it), so the vertical rhythm is
+   with the first-visit banner above it (the browser gate asserts it) and in the 1536x725 viewport
+   of Chrome on a 1920x1080 screen at 125% scaling (main.layout-content is 661px high there), so the vertical rhythm is
    deliberately tight: every rem here is paid for twice, once per seat row.
    On a taller screen the table grows to the bottom of its tab pane, and the spare height goes
    between the rows, so the action bar stays on the table's bottom edge. */
@@ -27,6 +28,7 @@
 }
 
 .table-center {
+    grid-column: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -39,11 +41,28 @@
     max-width: 600px;
 }
 
-/* Seven to ten seats: the finished hand's ten result chips take three lines of a 600px centre, a
-   line more than the six-seat table pays, and at 1366x768 that pushes the action bar off the
-   screen. 900px holds five chips a line, so the chips stay on two. */
-.poker-table-large .table-center {
-    max-width: 900px;
+/* The band between the two seat rows: street on the left, board and pot in the middle, the
+   finished hand's result chips on the right. The side columns are the felt beside the centre that
+   used to be empty, so neither the street nor the chips cost any height, and ten chips need no
+   wider centre. Below 768px there is no felt to spare and the band is one column again. */
+.table-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 600px) minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.75rem;
+    width: 100%;
+}
+
+.band-street {
+    justify-self: end;
+}
+
+/* The column does not size the band: the list is laid over it and scrolls inside itself when ten
+   chips are taller than the centre, never the page. */
+.band-results {
+    position: relative;
+    align-self: stretch;
+    min-width: 0;
 }
 
 .community-cards {
@@ -102,13 +121,19 @@
     opacity: 0.8;
 }
 
-/* The finished hand's outcome, one chip per seat that reached the result, in seat order. Chips
-   wrap rather than stack so six seats cost two lines of the centre, not six. */
+/* The finished hand's outcome, one chip per seat that reached the result, in seat order, one per
+   line and towards the centre. */
 .hand-results {
+    position: absolute;
+    inset: 0 auto 0 0;
+    max-width: 100%;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.35rem 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: safe center;
+    gap: 0.25rem;
+    overflow-y: auto;
+    padding: 3px;
 }
 
 .hand-result {
@@ -178,5 +203,33 @@
 
     .table-center {
         padding: 0.5rem;
+    }
+
+    .table-band {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: 0.4rem;
+    }
+
+    .band-street {
+        justify-self: center;
+        width: 100%;
+    }
+
+    .table-center {
+        grid-column: 1;
+    }
+
+    .band-results {
+        position: static;
+    }
+
+    .hand-results {
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: baseline;
+        gap: 0.35rem 0.5rem;
+        overflow: visible;
     }
 }

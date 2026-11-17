@@ -855,16 +855,18 @@ public sealed class ComponentRender_Tests
         var component = ctx.Render<PokerTable>(parameters => parameters
             .Add(p => p.GameData, session.CurrentGame));
 
-        // Assert - both seats, the street between the top row and the board, and the action bar on
-        // the table; the session's summary is in the page header, not here
+        // Assert - both seats, the street in the band between the rows beside the board, and the action
+        // bar on the table; the session's summary is in the page header, not here
         component.Markup.Should().Contain("Player 1");
         component.Markup.Should().Contain("Player 2");
         component.FindAll(".table-top-bar").Should().BeEmpty();
         component.FindAll(".game-summary").Should().BeEmpty();
         component.FindAll(".street-indicator").Should().HaveCount(1);
-        var street = component.Find(".poker-table > .street-indicator");
-        street.PreviousElementSibling!.ClassList.Should().Contain("table-seats-row");
-        street.NextElementSibling!.ClassList.Should().Contain("table-center");
+        var band = component.Find(".poker-table > .table-band");
+        band.PreviousElementSibling!.ClassList.Should().Contain("table-seats-row");
+        band.NextElementSibling!.ClassList.Should().Contain("table-seats-row");
+        band.Children.Select(c => c.ClassList[0]).Should().Equal("band-street", "table-center", "band-results");
+        band.QuerySelector(".band-street > .street-indicator").Should().NotBeNull();
         component.FindAll(".poker-table > .action-bar").Should().HaveCount(1);
     }
 
@@ -919,7 +921,8 @@ public sealed class ComponentRender_Tests
 
         // Assert - the outcome is on the table itself, not in an overlay over the page
         component.FindAll(".hand-result-container").Should().BeEmpty();
-        var results = component.FindAll(".table-center .hand-result");
+        component.FindAll(".table-center .hand-result").Should().BeEmpty();
+        var results = component.FindAll(".table-band > .band-results .hand-result");
         results.Should().HaveCount(2);
         results[0].ClassList.Should().Contain("result-winner");
         results[0].TextContent.Should().Contain("Test Player 1").And.Contain("Pair");
