@@ -663,14 +663,41 @@ internal sealed class DemoPage : IAsyncDisposable
         ILocator buttons = _page.Locator(".action-bar .check-btn, .action-bar .call-btn");
         ILocator entries = _page.Locator(EngineCallEntrySelector);
 
+        // The hand is over when its result chips are on the table, not when the action bar has no
+        // button for a moment: the bar is empty while the page re-renders after an action, and under
+        // load that gap outlasts the settle delay (issue #777).
+        ILocator results = _page.Locator(HandResultChipSelector);
         int actions = 0;
-        while (actions < maximumActions && await buttons.CountAsync() > 0)
+        while (actions < maximumActions)
         {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            while (await buttons.CountAsync() == 0 && await results.CountAsync() == 0)
+            {
+                if (clock.ElapsedMilliseconds > BootTimeoutMilliseconds)
+                {
+                    throw new TimeoutException($"Neither an action button nor a hand result appeared {BootTimeoutMilliseconds} ms after the last action.");
+                }
+
+                await _page.WaitForTimeoutAsync(SettleMilliseconds);
+            }
+
+            if (await buttons.CountAsync() == 0)
+            {
+                break;
+            }
+
             int before = await entries.CountAsync();
             await buttons.First.ClickAsync();
             await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
             await _page.WaitForTimeoutAsync(SettleMilliseconds);
             actions++;
+        }
+
+        // The last action's chips render after its engine call is logged, so wait for them too.
+        if (actions < maximumActions)
+        {
+            await results.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
+            await _page.WaitForTimeoutAsync(SettleMilliseconds);
         }
 
         return actions;
