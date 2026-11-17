@@ -283,9 +283,8 @@ public sealed class DemoTournament_Tests
         component.FindAll(".seat-menu-trigger").Should().HaveCount(DemoGameDefaults.MaxPlayers);
         component.FindAll(".seat-menu-trigger")[0].Click();
         var items = component.FindAll(".seat-menu-item");
-        items.Select(i => i.TextContent.Trim()).Should().Equal("Top up", "Rebuy", "Stand up", "Kick");
+        items.Select(i => i.TextContent.Trim()).Should().Equal("Sit down", "Top up", "Rebuy", "Stand up", "Kick", "Cancel sit-down");
         items.Should().OnlyContain(i => i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
-        component.FindAll(".seat-join-toggle").Should().BeEmpty();
         component.FindAll(".next-hand-btn").Should().HaveCount(1);
     }
 

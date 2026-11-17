@@ -10,8 +10,19 @@
     border: 2px dashed rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     min-width: 124px;
-    opacity: 0.4;
     color: #fff;
+    position: relative;
+}
+
+/* The placeholder is faint, not its menu: only what says the position is empty is dimmed, so a
+   queued player, who is about to sit here, reads at full strength. */
+.seat-empty:not(.seat-queued) .seat-name,
+.seat-empty:not(.seat-queued) .seat-empty-label {
+    opacity: 0.4;
+}
+
+.seat-queued {
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
 .seat-name {

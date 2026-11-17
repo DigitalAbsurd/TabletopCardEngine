@@ -1,22 +1,43 @@
 ﻿@using TabletopCardEngine.Holdem.Dto
 @using TabletopCardEngine.Demo.Services
 
-@* One entry point for everything a seat can do: Top up, Rebuy, Stand up and Kick, always in that
-   order. An action the seat cannot take right now is disabled rather than hidden, so the list never
-   reshuffles. It is a component of its own because the empty seat's placeholder gets the same menu.
+@* One entry point for everything a seat can do: Sit down, Top up, Rebuy, Stand up, Kick and Cancel
+   sit-down, always in that order. An action the seat cannot take right now is disabled rather than hidden, so the list never
+   reshuffles. It is a component of its own because the empty seat's placeholder gets the same menu,
+   and the position the menu is opened on is the seat a player sits down at.
    The popconfirm is anchored to the trigger and opened from the item's click, because the menu
    closes with the click and a popconfirm wrapped around an item would go with it. *@
 <div class="seat-menu">
     <Popconfirm OkText="@ConfirmLabel"
         CancelText="Cancel"
-        OkButtonProps="@(new ButtonProps { Disabled = IsAmountConfirm && _amount <= 0 })"
+        OkButtonProps="@(new ButtonProps { Disabled = (IsAmountConfirm || _confirming == SitDownLabel) && _amount <= 0 })"
         Trigger="@(Array.Empty<Trigger>())"
         Visible="@(_confirming is not null)"
         VisibleChanged="OnConfirmVisibleChange"
         OnConfirm="ConfirmAsync"
         OnCancel="CancelConfirm">
         <TitleTemplate>
-            @if (IsAmountConfirm)
+            @if (_confirming == SitDownLabel)
+            {
+                <div class="seat-amount-title seat-join-title">
+                    <span>Sit down at seat @SeatNo</span>
+                    <input class="seat-join-name"
+                        type="text"
+                        maxlength="64"
+                        placeholder="@DefaultName"
+                        aria-label="@($"Name of the player at seat {SeatNo}")"
+                        @bind="_name"
+                        @bind:event="oninput" />
+                    <input class="seat-join-buyin"
+                        type="number"
+                        min="0"
+                        step="any"
+                        aria-label="@($"Buy-in of the player at seat {SeatNo}")"
+                        @bind="_amount"
+                        @bind:event="oninput" />
+                </div>
+            }
+            else if (IsAmountConfirm)
             {
                 <div class="seat-amount-title">
                     <span>@ConfirmTitle</span>
@@ -24,7 +45,7 @@
                         type="number"
                         min="0.01"
                         step="0.01"
-                        aria-label="@($"{_confirming} amount for {SeatData.Name}")"
+                        aria-label="@($"{_confirming} amount for {DisplayName}")"
                         @bind="_amount"
                         @bind:event="oninput" />
                 </div>
@@ -38,17 +59,19 @@
             <Dropdown Trigger="@(new[] { Trigger.Click })" Placement="Placement.BottomRight">
                 <Overlay>
                     <Menu>
+                        <MenuItem Key="sit-down" Class="seat-menu-item" Disabled="!_states.SitDown" OnClick="() => Ask(SitDownLabel)">@SitDownLabel</MenuItem>
                         <MenuItem Key="top-up" Class="seat-menu-item" Disabled="!_states.TopUp" OnClick="() => Ask(TopUpLabel)">@TopUpLabel</MenuItem>
                         <MenuItem Key="rebuy" Class="seat-menu-item" Disabled="!_states.Rebuy" OnClick="() => Ask(RebuyLabel)">@RebuyLabel</MenuItem>
                         <MenuItem Key="stand-up" Class="seat-menu-item" Disabled="!_states.StandUp" OnClick="() => Ask(StandUpLabel)">@StandUpLabel</MenuItem>
                         <MenuItem Key="kick" Class="seat-menu-item seat-menu-item-danger" Disabled="!_states.Kick" OnClick="() => Ask(KickLabel)">@KickLabel</MenuItem>
+                        <MenuItem Key="cancel-sit-down" Class="seat-menu-item" Disabled="!_states.CancelSitDown" OnClick="() => OnUnqueueJoin.InvokeAsync(SeatNo)">@CancelSitDownLabel</MenuItem>
                     </Menu>
                 </Overlay>
                 <ChildContent>
                     <button type="button"
                         class="seat-menu-trigger"
-                        data-seat-no="@SeatData.SeatNo"
-                        aria-label="@($"Actions for {SeatData.Name}")"
+                        data-seat-no="@SeatNo"
+                        aria-label="@($"Actions for {DisplayName}")"
                         aria-haspopup="menu">
                         &#8943;
                     </button>
@@ -60,11 +83,34 @@
 
 @code {
     /// <summary>Which of the seat's actions are available right now.</summary>
-    public readonly record struct ItemStates(bool TopUp, bool Rebuy, bool StandUp, bool Kick);
+    public readonly record struct ItemStates(bool TopUp, bool Rebuy, bool StandUp, bool Kick, bool SitDown = false, bool CancelSitDown = false);
 
-    /// <summary>The seat the menu belongs to.</summary>
+    /// <summary>The 1-based number of the position the menu belongs to, which is the seat Sit down takes.</summary>
+    [Parameter, EditorRequired]
+    public byte SeatNo { get; set; }
+
+    /// <summary>The player dealt into the position, or null when no hand has ever had one there.</summary>
     [Parameter]
-    public required SeatData SeatData { get; set; }
+    public SeatData? SeatData { get; set; }
+
+    /// <summary>
+    /// Whether a player may sit down: between hands of a game that is not finished, and not on a
+    /// tournament table.
+    /// </summary>
+    [Parameter]
+    public bool CanSitDown { get; set; }
+
+    /// <summary>The player queued to sit down at this position with the next hand, or null for none.</summary>
+    [Parameter]
+    public PlayerJoinData? Queued { get; set; }
+
+    /// <summary>Raised with the player to queue for the next hand when Sit down is confirmed.</summary>
+    [Parameter]
+    public EventCallback<PlayerJoinData> OnQueueJoin { get; set; }
+
+    /// <summary>Raised with the seat number when Cancel sit-down is chosen; nothing has reached the engine yet.</summary>
+    [Parameter]
+    public EventCallback<byte> OnUnqueueJoin { get; set; }
 
     /// <summary>Whether the table is between hands, the only time a seat may stand up, top up or rebuy.</summary>
     [Parameter]
@@ -93,6 +139,12 @@
     [Parameter]
     public EventCallback<(byte SeatNo, decimal Amount)> OnTopUp { get; set; }
 
+    /// <summary>The label of the Sit down item.</summary>
+    internal const string SitDownLabel = "Sit down";
+
+    /// <summary>The label of the Cancel sit-down item.</summary>
+    internal const string CancelSitDownLabel = "Cancel sit-down";
+
     /// <summary>The label of the Top up item.</summary>
     internal const string TopUpLabel = "Top up";
 
@@ -108,17 +160,24 @@
     /// <summary>Below this a stack is empty, the demo's reading of a busted seat (the engine's own constant is private).</summary>
     private const decimal DecimalMinPrecision = 0.0001M;
 
-    /// <summary>The item awaiting confirmation, <c>Top up</c>, <c>Rebuy</c>, <c>Stand up</c> or <c>Kick</c>, or null for none.</summary>
+    /// <summary>The item awaiting confirmation, <c>Sit down</c>, <c>Top up</c>, <c>Rebuy</c>, <c>Stand up</c> or <c>Kick</c>, or null for none.</summary>
     private string? _confirming;
 
-    /// <summary>The chips typed into the amount input of a Top up or Rebuy confirmation.</summary>
+    /// <summary>The chips typed into the amount input of a Top up or Rebuy confirmation, or the buy-in of a Sit down.</summary>
     private decimal _amount;
+
+    /// <summary>The name typed into a Sit down confirmation; empty means the placeholder name.</summary>
+    private string _name = string.Empty;
 
     private ItemStates _states;
 
     private bool IsAmountConfirm => _confirming is TopUpLabel or RebuyLabel;
 
-    private string ConfirmTitle => IsAmountConfirm ? $"{_confirming} {SeatData.Name}" : $"{_confirming ?? StandUpLabel} {SeatData.Name}?";
+    private string DisplayName => SeatData?.Name ?? $"Seat {SeatNo}";
+
+    private string DefaultName => $"Player {SeatNo}";
+
+    private string ConfirmTitle => IsAmountConfirm ? $"{_confirming} {DisplayName}" : $"{_confirming ?? StandUpLabel} {DisplayName}?";
 
     private string ConfirmLabel => _confirming ?? StandUpLabel;
 
@@ -127,8 +186,8 @@
     /// the demo's default buy-in.
     /// </summary>
     private decimal SuggestedAmount
-        => Options?.MaxBuyIn is { } maxBuyIn
-            ? Math.Max(0m, maxBuyIn - FinishedStack(SeatData) - SeatData.PendingBuyIn)
+        => SeatData is { } seat && Options?.MaxBuyIn is { } maxBuyIn
+            ? Math.Max(0m, maxBuyIn - FinishedStack(seat) - seat.PendingBuyIn)
             : DemoGameDefaults.BuyIn;
 
     /// <summary>
@@ -143,13 +202,14 @@
     /// The state of each item. Top up and Rebuy follow the engine's own rule: a seat that would start
     /// the next hand with chips tops up, one that would not rebuys, so a busted seat that already has
     /// chips pending tops up again. Both, like Stand up, are between hands only; Kick works at any time.
-    /// A seat that has left offers nothing.
+    /// A free position (no seat, or a seat whose player has left) offers Sit down, between hands and
+    /// while no one is queued there, and Cancel sit-down while someone is; nothing else.
     /// </summary>
-    public static ItemStates GetItemStates(SeatData seat, GameOptionData? options, bool canStandUp, bool allowKick)
+    public static ItemStates GetItemStates(SeatData? seat, GameOptionData? options, bool canStandUp, bool allowKick, bool canSitDown = false, bool queued = false)
     {
-        if (seat.HasLeft)
+        if (seat is null || seat.HasLeft)
         {
-            return default;
+            return new ItemStates(false, false, false, false, SitDown: canSitDown && !queued, CancelSitDown: canSitDown && queued);
         }
 
         var topUp = false;
@@ -174,11 +234,12 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _states = GetItemStates(SeatData, Options, CanStandUp, AllowKick);
+        _states = GetItemStates(SeatData, Options, CanStandUp, AllowKick, CanSitDown, Queued is not null);
 
         // A confirmation for an action the seat no longer offers goes with it.
         var offered = _confirming switch
         {
+            SitDownLabel => _states.SitDown,
             TopUpLabel => _states.TopUp,
             RebuyLabel => _states.Rebuy,
             StandUpLabel => _states.StandUp,
@@ -194,7 +255,8 @@
     private void Ask(string label)
     {
         _confirming = label;
-        _amount = SuggestedAmount;
+        _amount = label == SitDownLabel ? DemoGameDefaults.BuyIn : SuggestedAmount;
+        _name = string.Empty;
     }
 
     private void CancelConfirm() => _confirming = null;
@@ -213,15 +275,20 @@
         _confirming = null;
         if (label == StandUpLabel)
         {
-            await OnStandUp.InvokeAsync(SeatData.SeatNo);
+            await OnStandUp.InvokeAsync(SeatNo);
         }
         else if (label == KickLabel)
         {
-            await OnKick.InvokeAsync(SeatData.SeatNo);
+            await OnKick.InvokeAsync(SeatNo);
         }
         else if (label is TopUpLabel or RebuyLabel && _amount > 0)
         {
-            await OnTopUp.InvokeAsync((SeatData.SeatNo, _amount));
+            await OnTopUp.InvokeAsync((SeatNo, _amount));
+        }
+        else if (label == SitDownLabel && _amount > 0 && _name.Length <= 64)
+        {
+            var name = string.IsNullOrWhiteSpace(_name) ? DefaultName : _name.Trim();
+            await OnQueueJoin.InvokeAsync(new PlayerJoinData(name, SeatNo, _amount));
         }
     }
 }

@@ -14,8 +14,18 @@
             <span class="badge-left" title="This player has stood up; the seat is free for the next hand">Left</span>
         }
 
-        <SeatMenu SeatData="SeatData"
+        @if (Queued is { } queued)
+        {
+            <div class="seat-queued-info">@queued.Name · Joins next hand · @AmountFormat.Format(queued.BuyInAmount)</div>
+        }
+
+        <SeatMenu SeatNo="SeatData.SeatNo"
+            SeatData="SeatData"
             CanStandUp="CanStandUp"
+            CanSitDown="CanStandUp"
+            Queued="Queued"
+            OnQueueJoin="OnQueueJoin"
+            OnUnqueueJoin="OnUnqueueJoin"
             AllowKick="AllowKick"
             Options="Options"
             OnStandUp="OnStandUp"
@@ -133,6 +143,18 @@
     /// <summary>Raised with the seat number and the chips when a top-up or rebuy is confirmed.</summary>
     [Parameter]
     public EventCallback<(byte SeatNo, decimal Amount)> OnTopUp { get; set; }
+
+    /// <summary>The player queued to take this seat with the next hand, once its player has left; null for none.</summary>
+    [Parameter]
+    public PlayerJoinData? Queued { get; set; }
+
+    /// <summary>Raised with a player to queue for the next hand when Sit down is confirmed on a seat that was left.</summary>
+    [Parameter]
+    public EventCallback<PlayerJoinData> OnQueueJoin { get; set; }
+
+    /// <summary>Raised with the seat number of the queued player to take back out.</summary>
+    [Parameter]
+    public EventCallback<byte> OnUnqueueJoin { get; set; }
 
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
 

@@ -1311,7 +1311,7 @@ public sealed class ComponentRender_Tests
     }
 
     [TestMethod]
-    public void PokerTable_BetweenHands_OffersAMenuOnEverySeatAndSitDown()
+    public void PokerTable_BetweenHands_OffersAMenuOnEverySeatAndSitDownOnAFreeOne()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1320,14 +1320,13 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, BuildSeatingGameData(3));
 
         // Assert
-        component.FindAll(".seat-menu-trigger").Should().HaveCount(3);
-        ItemStatesOf(component, 1).Should().Equal(new Dictionary<string, bool> { ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = true, ["Kick"] = true });
-        component.FindAll(".seat-join-toggle").Should().HaveCount(1);
-        component.Find(".seat-join-toggle").TextContent.Trim().Should().Be("Sit down");
+        component.FindAll(".seat-menu-trigger").Should().HaveCount(6);
+        ItemStatesOf(component, 1).Should().Equal(new Dictionary<string, bool> { ["Sit down"] = false, ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = true, ["Kick"] = true, ["Cancel sit-down"] = false });
+        ItemStatesOf(component, 5).Should().Equal(new Dictionary<string, bool> { ["Sit down"] = true, ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = false, ["Cancel sit-down"] = false });
     }
 
     [TestMethod]
-    public void PokerTable_HandInProgress_DisablesStandUpAndHidesSitDown()
+    public void PokerTable_HandInProgress_DisablesStandUpAndSitDown()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1336,12 +1335,12 @@ public sealed class ComponentRender_Tests
         var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, street: Street.Flop));
 
         // Assert
-        ItemStatesOf(component, 1).Should().Equal(new Dictionary<string, bool> { ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = true });
-        component.FindAll(".seat-join").Should().BeEmpty();
+        ItemStatesOf(component, 1).Should().Equal(new Dictionary<string, bool> { ["Sit down"] = false, ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = true, ["Cancel sit-down"] = false });
+        ItemStatesOf(component, 5)["Sit down"].Should().BeFalse();
     }
 
     [TestMethod]
-    public void PokerTable_FinishedGame_DisablesStandUpAndHidesSitDown()
+    public void PokerTable_FinishedGame_DisablesStandUpAndSitDown()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1351,11 +1350,11 @@ public sealed class ComponentRender_Tests
 
         // Assert
         ItemStatesOf(component, 1)["Stand up"].Should().BeFalse();
-        component.FindAll(".seat-join").Should().BeEmpty();
+        ItemStatesOf(component, 5)["Sit down"].Should().BeFalse();
     }
 
     [TestMethod]
-    public void PokerTable_SeatThatLeft_IsDimmedWithLeftBadgeAndEveryItemDisabled()
+    public void PokerTable_SeatThatLeft_IsDimmedWithLeftBadgeAndOnlySitDownEnabled()
     {
         // Arrange
         using var ctx = new BunitContext();
@@ -1367,7 +1366,7 @@ public sealed class ComponentRender_Tests
         var left = component.FindAll(".seat").Single(s => s.TextContent.Contains("Player 2", StringComparison.Ordinal));
         left.ClassList.Should().Contain("seat-left");
         left.QuerySelector(".badge-left")!.TextContent.Should().Be("Left");
-        ItemStatesOf(component, 2).Should().Equal(new Dictionary<string, bool> { ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = false });
+        ItemStatesOf(component, 2).Should().Equal(new Dictionary<string, bool> { ["Sit down"] = true, ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = false, ["Cancel sit-down"] = false });
         ItemStatesOf(component, 1)["Stand up"].Should().BeTrue();
     }
 
@@ -1384,9 +1383,9 @@ public sealed class ComponentRender_Tests
         var betweenHands = RenderSeatingTable(ctx2, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s));
 
         // Assert - one trigger per seat, so the seat's height never changes
-        midHand.FindAll(".seat-menu-trigger").Should().HaveCount(3);
+        midHand.FindAll(".seat-menu-trigger").Should().HaveCount(6);
         midHand.Find(".seat-menu-trigger[data-seat-no='1']").GetAttribute("aria-label").Should().Be("Actions for Player 1");
-        betweenHands.FindAll(".seat-menu-trigger").Should().HaveCount(3);
+        betweenHands.FindAll(".seat-menu-trigger").Should().HaveCount(6);
         ItemStatesOf(midHand, 1)["Kick"].Should().BeTrue();
         ItemStatesOf(betweenHands, 2)["Kick"].Should().BeFalse();
     }
@@ -1447,39 +1446,132 @@ public sealed class ComponentRender_Tests
         ItemStatesOf(component, 1)["Stand up"].Should().BeTrue();
     }
 
-    [TestMethod]
-    public void PokerTable_SitDown_ListsOnlyTheFreeSeats()
+    private static IRenderedComponent<PokerTable> RenderSitDownTable(BunitContext ctx, GameData game, List<PlayerJoinData> queued)
     {
-        // Arrange
-        using var ctx = new BunitContext();
-        var component = RenderSeatingTable(ctx, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s));
-
-        // Act
-        component.Find(".seat-join-toggle").Click();
-
-        // Assert - 1 and 3 are taken, 2 left, and 4 to 6 were never occupied
-        component.FindAll(".seat-join-seat option").Select(o => o.TextContent).Should().Equal("2", "4", "5", "6");
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+        return ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, game)
+            .Add(p => p.OnQueueJoin, queued.Add));
     }
 
     [TestMethod]
-    public void PokerTable_SitDown_QueuesAPlayerWithTheBuyIn()
+    public void PokerTable_SitDown_RaisesTheQueuedPlayerOnTheSeatTheMenuIsOn()
     {
         // Arrange
         using var ctx = new BunitContext();
         var queued = new List<PlayerJoinData>();
+        var component = RenderSitDownTable(ctx, BuildSeatingGameData(4), queued);
+
+        // Act
+        ChooseSeatItem(component, 5, "Sit down");
+        queued.Should().BeEmpty();
+        WaitForSelector(component, 5, ".seat-join-buyin").GetAttribute("value").Should().Be(DemoGameDefaults.BuyIn.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        SeatMenuOf(component, 5).QuerySelector(".seat-join-name")!.GetAttribute("placeholder").Should().Be("Player 5");
+        SeatMenuOf(component, 5).QuerySelector(".seat-join-name")!.Input("Dana");
+        AnswerConfirmation(component, 5, ok: true);
+
+        // Assert
+        queued.Should().Equal(new PlayerJoinData("Dana", 5, 100m));
+    }
+
+    [TestMethod]
+    public void PokerTable_SitDown_WithoutANameUsesPlayerN()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var queued = new List<PlayerJoinData>();
+        var component = RenderSitDownTable(ctx, BuildSeatingGameData(3), queued);
+
+        // Act
+        ChooseSeatItem(component, 4, "Sit down");
+        AnswerConfirmation(component, 4, ok: true);
+
+        // Assert
+        queued.Should().Equal(new PlayerJoinData("Player 4", 4, DemoGameDefaults.BuyIn));
+    }
+
+    [TestMethod]
+    public void PokerTable_SitDown_WithABuyInThatIsNotPositive_RaisesNothing()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var queued = new List<PlayerJoinData>();
+        var component = RenderSitDownTable(ctx, BuildSeatingGameData(3), queued);
+
+        // Act
+        ChooseSeatItem(component, 4, "Sit down");
+        WaitForSelector(component, 4, ".seat-join-buyin").Input("0");
+
+        // Assert
+        AnswerConfirmation(component, 4, ok: true);
+        queued.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void PokerTable_SitDown_OnASeatThatLeftRaisesThatSeat()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var queued = new List<PlayerJoinData>();
+        var component = RenderSitDownTable(ctx, BuildSeatingGameData(3, seat: s => s.SeatNo == 2 ? s with { HasLeft = true } : s), queued);
+
+        // Act
+        ChooseSeatItem(component, 2, "Sit down");
+        AnswerConfirmation(component, 2, ok: true);
+
+        // Assert
+        queued.Should().Equal(new PlayerJoinData("Player 2", 2, DemoGameDefaults.BuyIn));
+    }
+
+    [TestMethod]
+    public void PokerTable_QueuedPlayer_IsShownOnItsPlaceholderAndCanBeCancelled()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        var cancelled = new List<byte>();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         RegisterDemoServices(ctx.Services);
         var component = ctx.Render<PokerTable>(parameters => parameters
-            .Add(p => p.GameData, BuildSeatingGameData(3))
-            .Add(p => p.OnQueueJoin, queued.Add));
-        component.Find(".seat-join-toggle").Click();
+            .Add(p => p.GameData, BuildSeatingGameData(4))
+            .Add(p => p.PendingJoins, [new PlayerJoinData("Dana", 5, 100m)])
+            .Add(p => p.OnUnqueueJoin, cancelled.Add));
 
         // Act
-        component.Find(".seat-join-name").Change("Dana");
-        component.Find(".seat-join-add").Click();
+        var states = ItemStatesOf(component, 5);
+        ChooseSeatItem(component, 5, "Cancel sit-down");
 
         // Assert
-        queued.Should().Equal(new PlayerJoinData("Dana", 4, DemoGameDefaults.BuyIn));
+        var placeholder = component.Find(".seat-empty[data-seat-no='5']");
+        placeholder.TextContent.Should().Contain("Dana").And.Contain("Joins next hand");
+        placeholder.ClassList.Should().Contain("seat-queued");
+        states.Should().Equal(new Dictionary<string, bool> { ["Sit down"] = false, ["Top up"] = false, ["Rebuy"] = false, ["Stand up"] = false, ["Kick"] = false, ["Cancel sit-down"] = true });
+        component.Find(".seat-empty[data-seat-no='6']").ClassList.Should().NotContain("seat-queued");
+        ItemStatesOf(component, 6)["Cancel sit-down"].Should().BeFalse();
+        cancelled.Should().Equal((byte)5);
+    }
+
+    [TestMethod]
+    public void PokerTable_TournamentTable_PlaceholderHasEveryItemDisabled()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildSeatingGameData(4))
+            .Add(p => p.IsTournamentTable, true));
+
+        // Assert
+        ItemStatesOf(component, 5).Values.Should().OnlyContain(enabled => !enabled);
+    }
+
+    private static AngleSharp.Dom.IElement WaitForSelector(IRenderedComponent<PokerTable> component, byte seatNo, string selector)
+    {
+        component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelector(selector).Should().NotBeNull());
+        return SeatMenuOf(component, seatNo).QuerySelector(selector)!;
     }
 
     [TestMethod]
@@ -1522,7 +1614,7 @@ public sealed class ComponentRender_Tests
             SeatMenuOf(component, seatNo).QuerySelector(".seat-menu-trigger")!.Click();
         }
 
-        component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelectorAll(".seat-menu-item").Should().HaveCount(4));
+        component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelectorAll(".seat-menu-item").Should().HaveCount(6));
         return SeatMenuOf(component, seatNo).QuerySelectorAll(".seat-menu-item").ToList();
     }
 
@@ -1551,7 +1643,7 @@ public sealed class ComponentRender_Tests
     private static Dictionary<string, bool> ItemStatesOf(IRenderedComponent<PokerTable> component, byte seatNo)
     {
         var items = OpenSeatMenu(component, seatNo);
-        items.Select(i => i.TextContent.Trim()).Should().Equal("Top up", "Rebuy", "Stand up", "Kick");
+        items.Select(i => i.TextContent.Trim()).Should().Equal("Sit down", "Top up", "Rebuy", "Stand up", "Kick", "Cancel sit-down");
         return items.ToDictionary(i => i.TextContent.Trim(), i => !i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
     }
 
