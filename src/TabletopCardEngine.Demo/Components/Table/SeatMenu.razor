@@ -1,4 +1,5 @@
 ﻿@using TabletopCardEngine.Holdem.Dto
+@using TabletopCardEngine.Demo.Services
 
 @* One entry point for everything a seat can do: Top up, Rebuy, Stand up and Kick, always in that
    order. An action the seat cannot take right now is disabled rather than hidden, so the list never
@@ -6,33 +7,54 @@
    The popconfirm is anchored to the trigger and opened from the item's click, because the menu
    closes with the click and a popconfirm wrapped around an item would go with it. *@
 <div class="seat-menu">
-    <Popconfirm Title="@ConfirmTitle"
-        OkText="@ConfirmLabel"
+    <Popconfirm OkText="@ConfirmLabel"
         CancelText="Cancel"
+        OkButtonProps="@(new ButtonProps { Disabled = IsAmountConfirm && _amount <= 0 })"
         Trigger="@(Array.Empty<Trigger>())"
         Visible="@(_confirming is not null)"
         VisibleChanged="OnConfirmVisibleChange"
         OnConfirm="ConfirmAsync"
         OnCancel="CancelConfirm">
-        <Dropdown Trigger="@(new[] { Trigger.Click })" Placement="Placement.BottomRight">
-            <Overlay>
-                <Menu>
-                    <MenuItem Key="top-up" Class="seat-menu-item" Disabled="!_states.TopUp" OnClick="() => OnBuyIn.InvokeAsync(TopUpLabel)">@TopUpLabel</MenuItem>
-                    <MenuItem Key="rebuy" Class="seat-menu-item" Disabled="!_states.Rebuy" OnClick="() => OnBuyIn.InvokeAsync(RebuyLabel)">@RebuyLabel</MenuItem>
-                    <MenuItem Key="stand-up" Class="seat-menu-item" Disabled="!_states.StandUp" OnClick="() => Ask(StandUpLabel)">@StandUpLabel</MenuItem>
-                    <MenuItem Key="kick" Class="seat-menu-item seat-menu-item-danger" Disabled="!_states.Kick" OnClick="() => Ask(KickLabel)">@KickLabel</MenuItem>
-                </Menu>
-            </Overlay>
-            <ChildContent>
-                <button type="button"
-                    class="seat-menu-trigger"
-                    data-seat-no="@SeatData.SeatNo"
-                    aria-label="@($"Actions for {SeatData.Name}")"
-                    aria-haspopup="menu">
-                    &#8943;
-                </button>
-            </ChildContent>
-        </Dropdown>
+        <TitleTemplate>
+            @if (IsAmountConfirm)
+            {
+                <div class="seat-amount-title">
+                    <span>@ConfirmTitle</span>
+                    <input class="seat-amount-input"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        aria-label="@($"{_confirming} amount for {SeatData.Name}")"
+                        @bind="_amount"
+                        @bind:event="oninput" />
+                </div>
+            }
+            else
+            {
+                @ConfirmTitle
+            }
+        </TitleTemplate>
+        <ChildContent>
+            <Dropdown Trigger="@(new[] { Trigger.Click })" Placement="Placement.BottomRight">
+                <Overlay>
+                    <Menu>
+                        <MenuItem Key="top-up" Class="seat-menu-item" Disabled="!_states.TopUp" OnClick="() => Ask(TopUpLabel)">@TopUpLabel</MenuItem>
+                        <MenuItem Key="rebuy" Class="seat-menu-item" Disabled="!_states.Rebuy" OnClick="() => Ask(RebuyLabel)">@RebuyLabel</MenuItem>
+                        <MenuItem Key="stand-up" Class="seat-menu-item" Disabled="!_states.StandUp" OnClick="() => Ask(StandUpLabel)">@StandUpLabel</MenuItem>
+                        <MenuItem Key="kick" Class="seat-menu-item seat-menu-item-danger" Disabled="!_states.Kick" OnClick="() => Ask(KickLabel)">@KickLabel</MenuItem>
+                    </Menu>
+                </Overlay>
+                <ChildContent>
+                    <button type="button"
+                        class="seat-menu-trigger"
+                        data-seat-no="@SeatData.SeatNo"
+                        aria-label="@($"Actions for {SeatData.Name}")"
+                        aria-haspopup="menu">
+                        &#8943;
+                    </button>
+                </ChildContent>
+            </Dropdown>
+        </ChildContent>
     </Popconfirm>
 </div>
 
@@ -67,9 +89,9 @@
     [Parameter]
     public EventCallback<byte> OnKick { get; set; }
 
-    /// <summary>Raised with <c>Top up</c> or <c>Rebuy</c> when that item is chosen; the seat opens the amount form.</summary>
+    /// <summary>Raised with the seat number and the chips when a top-up or rebuy is confirmed.</summary>
     [Parameter]
-    public EventCallback<string> OnBuyIn { get; set; }
+    public EventCallback<(byte SeatNo, decimal Amount)> OnTopUp { get; set; }
 
     /// <summary>The label of the Top up item.</summary>
     internal const string TopUpLabel = "Top up";
@@ -86,14 +108,28 @@
     /// <summary>Below this a stack is empty, the demo's reading of a busted seat (the engine's own constant is private).</summary>
     private const decimal DecimalMinPrecision = 0.0001M;
 
-    /// <summary>The item awaiting confirmation, <c>Stand up</c> or <c>Kick</c>, or null for none.</summary>
+    /// <summary>The item awaiting confirmation, <c>Top up</c>, <c>Rebuy</c>, <c>Stand up</c> or <c>Kick</c>, or null for none.</summary>
     private string? _confirming;
+
+    /// <summary>The chips typed into the amount input of a Top up or Rebuy confirmation.</summary>
+    private decimal _amount;
 
     private ItemStates _states;
 
-    private string ConfirmTitle => $"{_confirming ?? StandUpLabel} {SeatData.Name}?";
+    private bool IsAmountConfirm => _confirming is TopUpLabel or RebuyLabel;
+
+    private string ConfirmTitle => IsAmountConfirm ? $"{_confirming} {SeatData.Name}" : $"{_confirming ?? StandUpLabel} {SeatData.Name}?";
 
     private string ConfirmLabel => _confirming ?? StandUpLabel;
+
+    /// <summary>
+    /// What the amount input starts with: the room left under the maximum buy-in when there is one, else
+    /// the demo's default buy-in.
+    /// </summary>
+    private decimal SuggestedAmount
+        => Options?.MaxBuyIn is { } maxBuyIn
+            ? Math.Max(0m, maxBuyIn - FinishedStack(SeatData) - SeatData.PendingBuyIn)
+            : DemoGameDefaults.BuyIn;
 
     /// <summary>
     /// What the seat holds once the hand is over. <c>SeatData.Stack</c> is what is left after the
@@ -141,13 +177,25 @@
         _states = GetItemStates(SeatData, Options, CanStandUp, AllowKick);
 
         // A confirmation for an action the seat no longer offers goes with it.
-        if ((_confirming == StandUpLabel && !_states.StandUp) || (_confirming == KickLabel && !_states.Kick))
+        var offered = _confirming switch
+        {
+            TopUpLabel => _states.TopUp,
+            RebuyLabel => _states.Rebuy,
+            StandUpLabel => _states.StandUp,
+            KickLabel => _states.Kick,
+            _ => true,
+        };
+        if (!offered)
         {
             _confirming = null;
         }
     }
 
-    private void Ask(string label) => _confirming = label;
+    private void Ask(string label)
+    {
+        _confirming = label;
+        _amount = SuggestedAmount;
+    }
 
     private void CancelConfirm() => _confirming = null;
 
@@ -170,6 +218,10 @@
         else if (label == KickLabel)
         {
             await OnKick.InvokeAsync(SeatData.SeatNo);
+        }
+        else if (label is TopUpLabel or RebuyLabel && _amount > 0)
+        {
+            await OnTopUp.InvokeAsync((SeatData.SeatNo, _amount));
         }
     }
 }

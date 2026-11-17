@@ -20,7 +20,7 @@
             Options="Options"
             OnStandUp="OnStandUp"
             OnKick="OnKick"
-            OnBuyIn="OpenForm" />
+            OnTopUp="OnTopUp" />
 
         <div class="seat-stack">
             @if (IsDealer)
@@ -57,16 +57,6 @@
                     <span class="seat-rebuys">Rebuys @SeatData.Rebuys/@maxRebuys</span>
                 }
             </div>
-        }
-
-        @if (_form is { } form)
-        {
-            <SeatAmountForm
-                Title="@form"
-                SeatName="@SeatData.Name"
-                InitialAmount="@SuggestedAmount"
-                OnConfirm="ConfirmAsync"
-                OnCancel="CloseForm" />
         }
 
         @if (SeatData.Hole?.Count > 0)
@@ -144,46 +134,7 @@
     [Parameter]
     public EventCallback<(byte SeatNo, decimal Amount)> OnTopUp { get; set; }
 
-    /// <summary>The form that is open, <c>Top up</c> or <c>Rebuy</c>, or null for none.</summary>
-    private string? _form;
-
     private decimal StackDelta => SeatData.Stack - SeatData.StartHandStack;
-
-    /// <summary>
-    /// What the form starts with: the room left under the maximum buy-in when there is one, else the
-    /// demo's default buy-in.
-    /// </summary>
-    private decimal SuggestedAmount
-        => Options?.MaxBuyIn is { } maxBuyIn
-            ? Math.Max(0m, maxBuyIn - SeatMenu.FinishedStack(SeatData) - SeatData.PendingBuyIn)
-            : DemoGameDefaults.BuyIn;
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        // The table decides when it is between hands; once it is not, or the seat no longer offers the
-        // item that opened it, the form goes with it.
-        var states = SeatMenu.GetItemStates(SeatData, Options, CanStandUp, AllowKick);
-        var offered = _form switch
-        {
-            SeatMenu.TopUpLabel => states.TopUp,
-            SeatMenu.RebuyLabel => states.Rebuy,
-            _ => false,
-        };
-        if (!offered)
-        {
-            _form = null;
-        }
-    }
-
-    private void OpenForm(string label) => _form = label;
-
-    private void CloseForm() => _form = null;
-    private async Task ConfirmAsync(decimal amount)
-    {
-        _form = null;
-        await OnTopUp.InvokeAsync((SeatData.SeatNo, amount));
-    }
 
     private string GetSeatClasses()
     {

@@ -641,3 +641,15 @@ code {
 .ant-menu-item.seat-menu-item-danger:not(.ant-menu-item-disabled) {
     color: #cf1322;
 }
+
+/* The Top up and Rebuy popconfirm holds the question over an amount input, in the popover's own width. */
+.seat-amount-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.seat-amount-title .seat-amount-input {
+    box-sizing: border-box;
+    width: 100%;
+}

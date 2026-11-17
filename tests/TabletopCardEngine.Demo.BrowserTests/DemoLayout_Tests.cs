@@ -661,7 +661,7 @@ public sealed class DemoLayout_Tests
     }
 
     /// <summary>
-    /// Between hands a seat can top up. With a seat showing "+amount next hand" and the amount form
+    /// Between hands a seat can top up. With a seat showing "+amount next hand" and the amount popconfirm
     /// open on another, the full-ring table must still be one line per row, inside the viewport's width
     /// and height, with the form's controls hit-testable (issue #594).
     /// </summary>
@@ -678,13 +678,13 @@ public sealed class DemoLayout_Tests
 
         (await page.CountAsync(DemoPage.SeatMenuTriggerSelector)).Should().Be(FullRingSeatCount, "every seat has a menu, and every seat has chips and the game allows a top-up");
         await page.ChooseSeatMenuItemAsync(1, "Top up");
-        await page.FillAsync(".seat-amount-input", "25");
-        await page.ClickAsync(".seat-amount-confirm");
+        await page.FillAsync(DemoPage.SeatAmountFormControlSelectors[0], "25");
+        await page.ClickAsync(DemoPage.SeatAmountFormControlSelectors[1]);
         (await page.CountAsync(DemoPage.SeatPendingLabelSelector)).Should().Be(1, "the confirmed top-up shows as pending on its seat");
         (await page.ReadTextAsync(DemoPage.SeatPendingLabelSelector)).Should().Contain("next hand");
 
         await page.ChooseSeatMenuItemAsync(2, "Top up");
-        (await page.CountAsync(DemoPage.SeatAmountFormSelector)).Should().Be(1, "the amount form is open on the second seat");
+        (await page.CountAsync(DemoPage.SeatAmountFormSelector)).Should().Be(1, "the amount popconfirm is open on the second seat");
 
         IReadOnlyList<HitProbe> controls = await page.ProbeHitTargetsAsync(DemoPage.SeatAmountFormControlSelectors);
         controls.Should().HaveCount(DemoPage.SeatAmountFormControlSelectors.Length);
@@ -693,7 +693,7 @@ public sealed class DemoLayout_Tests
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
         layoutContent.ScrollWidth.Should().Be(
             layoutContent.ClientWidth,
-            $"the pending label and the open form must not overflow the page horizontally at {viewportWidth}px ({layoutContent})");
+            $"the pending label and the open popconfirm must not overflow the page horizontally at {viewportWidth}px ({layoutContent})");
 
         IReadOnlyList<IReadOnlyList<double>> rows = await page.ReadSeatRowTopsAsync();
         foreach (IReadOnlyList<double> tops in rows)

@@ -1530,6 +1530,15 @@ public sealed class ComponentRender_Tests
     private static void ChooseSeatItem(IRenderedComponent<PokerTable> component, byte seatNo, string label)
         => OpenSeatMenu(component, seatNo).Single(i => i.TextContent.Trim() == label).Click();
 
+    private static AngleSharp.Dom.IElement AmountInputOf(IRenderedComponent<PokerTable> component, byte seatNo)
+        => SeatMenuOf(component, seatNo).QuerySelector(".seat-amount-input")!;
+
+    private static AngleSharp.Dom.IElement WaitForAmountInput(IRenderedComponent<PokerTable> component, byte seatNo)
+    {
+        component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelector(".seat-amount-input").Should().NotBeNull());
+        return AmountInputOf(component, seatNo);
+    }
+
     /// <summary>Presses the popconfirm's OK (or its Cancel) on a seat, once it is up.</summary>
     private static void AnswerConfirmation(IRenderedComponent<PokerTable> component, byte seatNo, bool ok)
     {
@@ -1694,13 +1703,12 @@ public sealed class ComponentRender_Tests
         ChooseSeatItem(component, 1, "Top up");
 
         // Assert - 150 - 100 - 20
-        component.Find(".seat-amount-input").GetAttribute("value").Should().Be("30");
-        component.FindAll(".seat-amount-form").Should().ContainSingle();
+        WaitForAmountInput(component, 1).GetAttribute("value").Should().Be("30");
 
-        component.Find(".seat-amount-input").Input("12.5");
-        component.Find(".seat-amount-confirm").Click();
-        raised.Should().Equal(((byte)1, 12.5m));
-        component.FindAll(".seat-amount-form").Should().BeEmpty();
+        AmountInputOf(component, 1).Input("25");
+        AnswerConfirmation(component, 1, ok: true);
+        raised.Should().Equal(((byte)1, 25m));
+        component.WaitForAssertion(() => SeatMenuOf(component, 1).QuerySelectorAll(".seat-amount-input").Should().BeEmpty());
     }
 
     [TestMethod]
@@ -1717,10 +1725,11 @@ public sealed class ComponentRender_Tests
         ChooseSeatItem(component, 2, "Top up");
 
         // Act / Assert
-        component.Find(".seat-amount-input").GetAttribute("value").Should().Be(DemoGameDefaults.BuyIn.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        component.Find(".seat-amount-form").GetAttribute("aria-label").Should().Be("Top up Player 2");
-        component.Find(".seat-amount-cancel").Click();
-        component.FindAll(".seat-amount-form").Should().BeEmpty();
+        var input = WaitForAmountInput(component, 2);
+        input.GetAttribute("value").Should().Be(DemoGameDefaults.BuyIn.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        input.GetAttribute("aria-label").Should().Be("Top up amount for Player 2");
+        SeatMenuOf(component, 2).InnerHtml.Should().Contain("Top up Player 2");
+        AnswerConfirmation(component, 2, ok: false);
         raised.Should().BeEmpty();
     }
 
