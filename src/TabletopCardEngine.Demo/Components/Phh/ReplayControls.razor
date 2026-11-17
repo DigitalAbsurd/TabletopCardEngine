@@ -6,7 +6,7 @@
 @inject DemoGameSession Session
 
 <Card Title="Replay Controls" Class="replay-controls-card">
-    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+    <Space Direction="@SpaceDirection.Vertical" Style="width: 100%;">
         @if (ReplayController.CurrentHand == null)
         {
             <div style="text-align: center; padding: 20px; color: #999;">

@@ -3,7 +3,7 @@
 @using TabletopCardEngine.Holdem
 
 <Card Title="Tournament Setup" Class="game-setup-card">
-    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+    <Space Direction="@SpaceDirection.Vertical" Style="width: 100%;">
         @if (!string.IsNullOrEmpty(_errorMessage))
         {
             <Alert

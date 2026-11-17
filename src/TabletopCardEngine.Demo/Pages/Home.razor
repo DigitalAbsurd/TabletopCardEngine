@@ -45,7 +45,7 @@
                 aria-controls="demo-pane-@tab.Key"
                 title="@tab.Title"
                 @onclick="@(() => SelectTab(tab.Key))">
-                <Icon Type="@tab.Icon" Theme="outline" />
+                <Icon Type="@tab.Icon" Theme="@IconThemeType.Outline" />
                 <span class="demo-tab-label">@tab.Title</span>
             </button>
         }

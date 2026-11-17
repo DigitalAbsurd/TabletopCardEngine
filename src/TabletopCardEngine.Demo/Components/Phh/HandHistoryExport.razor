@@ -4,7 +4,7 @@
 @implements IAsyncDisposable
 
 <Card Title="Hand History Export" Class="hand-history-export-card">
-    <Space Direction="@DirectionVHType.Vertical" Style="width: 100%;">
+    <Space Direction="@SpaceDirection.Vertical" Style="width: 100%;">
         @if (_hasError)
         {
             <Alert
@@ -18,7 +18,7 @@
 
         <p>Export the current hand or session as PHH format for backup or sharing.</p>
 
-        <Space Direction="@DirectionVHType.Horizontal" Wrap="true" Style="width: 100%;">
+        <Space Direction="@SpaceDirection.Horizontal" Wrap="true" Style="width: 100%;">
             <SpaceItem>
                 <Button Type="@ButtonType.Primary"
                         Disabled="@(!_canExport)"

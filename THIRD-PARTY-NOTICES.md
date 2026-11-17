@@ -87,27 +87,16 @@ copies its dependencies into the site. On top of the library's closure it ships:
 
 | Component | Where it comes from | License |
 | --- | --- | --- |
-| Ant Design Blazor 0.17.0: assemblies, plus the JavaScript and CSS under `_content/AntDesign` | NuGet `AntDesign` | MIT |
-| OneOf 2.1.155 | NuGet `OneOf`, a dependency of AntDesign | MIT |
+| Ant Design Blazor 1.6.2: assemblies, plus the JavaScript and CSS under `_content/AntDesign` | NuGet `AntDesign` | MIT |
+| OneOf 3.0.271 | NuGet `OneOf`, a dependency of AntDesign | MIT |
 | Tomlyn 0.19.0 | NuGet `Tomlyn` | BSD-2-Clause |
 | ASP.NET Core Blazor components, `Microsoft.JSInterop`, `Microsoft.Data.Sqlite`, EF Core SQLite | NuGet, Microsoft | MIT |
-| `Microsoft.AspNetCore.Components.DataAnnotations.Validation` 3.2.0-rc1 | NuGet, Microsoft, a dependency of AntDesign | Apache-2.0 |
 | SQLitePCLRaw 2.1.13 | NuGet `SQLitePCLRaw.*`, SourceGear | Apache-2.0 |
 | SQLite, compiled into `dotnet.native.wasm` by `WasmBuildNative` | NuGet `SQLitePCLRaw.lib.e_sqlite3` | Public domain |
 | The .NET 10 WebAssembly runtime and base class library (`dotnet.*`, `System.*.wasm`) | The SDK's `Microsoft.NETCore.App.Runtime.Mono.browser-wasm` pack | MIT, plus the notices in [dotnet/runtime's THIRD-PARTY-NOTICES.TXT](https://github.com/dotnet/runtime/blob/release/10.0/THIRD-PARTY-NOTICES.TXT) |
 | PrismJS core, its C# grammar and its default theme | Vendored in `wwwroot/lib/prism` | MIT |
 | `favicon.png`, `icon-192.png`, and the loading indicator in `index.html` and `css/app.css` | The .NET 10 Blazor project templates; the icons are byte-identical | MIT |
 | `sample/sample.phhs` | The PHH dataset | MIT, see [PHH dataset](#phh-dataset) |
-
-The legacy `System.* 4.3.0`, `runtime.*`, `Microsoft.NETCore.*` 1.1.0 and `NETStandard.Library`
-1.6.1 packages carry the old Microsoft .NET Library License rather than an SPDX expression. They
-arrive transitively through AntDesign's `netstandard` dependencies, so they have no row in the
-inventory. The license gate accepts them as `MS-.NET-Library`, because **none of their assemblies
-ships**: the SDK's conflict resolution replaces each of them with the runtime
-pack's newer `8.0.0.0` assembly. A detailed build
-(`dotnet build src/TabletopCardEngine.Demo -c Release -v:d`) resolves no conflict in favour of a 4.x
-package, and no NuGet assembly wins over the runtime pack at all: since EF Core 10, nothing in the
-demo's graph brings a `System.*` package newer than the runtime pack's own.
 
 `Microsoft.AspNetCore.Components.WebAssembly.DevServer` is the development server, and nothing from
 it is published. The SDK also restores `Microsoft.NET.ILLink.Tasks` and
@@ -273,7 +262,7 @@ The inventory leaves out transitive packages. The ones the demo ships are named 
 
 | Package | Version | License |
 | --- | --- | --- |
-| AntDesign | 0.17.0 | MIT |
+| AntDesign | 1.6.2 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly | 10.0.12 | MIT |
 | Microsoft.AspNetCore.Components.WebAssembly.DevServer | 10.0.12 | MIT |
 | Tomlyn | 0.19.0 | BSD-2-Clause |
@@ -346,8 +335,7 @@ SOFTWARE.
 
 ### Apache License 2.0
 
-Used by SQLitePCLRaw (Copyright 2014-2024 SourceGear, LLC) and
-`Microsoft.AspNetCore.Components.DataAnnotations.Validation` (© Microsoft Corporation).
+Used by SQLitePCLRaw (Copyright 2014-2024 SourceGear, LLC).
 
 ```
                                  Apache License
@@ -638,12 +626,3 @@ License Terms (`file:LICENSE.txt` in the package). This project resolves the SNI
 transitively and accepts it as a single-package exception, documented in
 [ADR-0003](docs/adr/0003-database-provider-licences.md), for the restricted purpose of serving
 the SQL Server provider package.
-
-### Microsoft .NET Library License
-
-This license is carried by the legacy `System.* 4.3.0`, `runtime.*`, `Microsoft.NETCore.*` 1.1.0 and
-`NETStandard.Library` 1.6.1 packages that AntDesign pulls in transitively, and is published at
-<http://go.microsoft.com/fwlink/?LinkId=329770>. As
-[What ships](#what-ships-and-under-which-license) explains, the published demo contains no assembly
-from these packages. The .NET Foundation has since released the same code under MIT in
-[dotnet/runtime](https://github.com/dotnet/runtime).
