@@ -190,7 +190,7 @@
         }
     </div>
 
-    <div class="action-bar-info" aria-live="polite">@InfoText</div>
+    <div class="action-bar-info" aria-live="polite">@if (InfoActor is not null){<span class="action-bar-actor">@InfoActor</span>}@InfoText</div>
 </div>
 
 @code {

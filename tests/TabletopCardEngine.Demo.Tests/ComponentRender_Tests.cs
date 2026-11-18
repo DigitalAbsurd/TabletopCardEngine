@@ -2227,13 +2227,38 @@ public sealed class ComponentRender_Tests
         component.FindAll(".action-bar .raise-slider").Should().BeEmpty();
         component.FindAll(".action-bar .bar-new-game-btn").Should().BeEmpty();
         component.FindAll(".action-bar .ant-btn").Select(button => button.TextContent.Trim()).Should().Equal("Next Hand");
-        component.Find(".action-bar-info").TextContent.Should().Be("Hand complete");
+        component.Find(".action-bar-info").TextContent.Should().Be("Test Player 1 wins 100");
 
         // Act
         component.Find(".next-hand-btn").Click();
 
         // Assert
         nextHandRaised.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow(10, 0, -10, "Player 2 wins 10")]
+    [DataRow(6, 6, -12, "Player 2, Player 5 split 12")]
+    [DataRow(0, 0, 0, "Hand complete")]
+    public void ActionPanel_FinishedHand_NamesTheWinnersAndTheAmountWon(int net2, int net5, int net6, string expected)
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        SeatData Seat(byte no, int net) => new(no, $"Player {no}", 100m, 100m,
+            HandResult: new HandResultData(net, 1u, HandRankType.Pair));
+        var finished = CreateFinishedHandGameData().HandData! with
+        {
+            Seats = [Seat(2, net2), Seat(5, net5), Seat(6, net6)],
+        };
+
+        // Act
+        var component = ctx.Render<ActionPanel>(parameters => parameters.Add(p => p.HandData, finished));
+
+        // Assert
+        component.Find(".action-bar-info").TextContent.Should().Be(expected);
     }
 
     [TestMethod]

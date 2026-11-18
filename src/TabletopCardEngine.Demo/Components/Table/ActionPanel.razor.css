@@ -57,19 +57,25 @@
     min-width: 0;
 }
 
-/* The reference layout's text box: whose turn it is, in a panel of its own at the bar's right end. */
+/* A status, not a control: no fill, white text on the felt and a thin translucent border. The
+   acting player's name is in the acting seat's gold. */
 .action-bar-info {
     flex: 0 1 200px;
     min-width: 160px;
     padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.92);
-    color: #1f1f1f;
+    background: transparent;
+    color: #fff;
     font-weight: 600;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.action-bar-actor {
+    color: #ffd700;
 }
 
 .no-actions {
