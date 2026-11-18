@@ -66,13 +66,13 @@ A failed tag verification in CI (the tag is unsigned, lightweight, or signed by 
 | Stage | Workflow | Waits for | Runs | Attestations |
 |---|---|---|---|---|
 | `create-release` | `create-release.yml` | `build`, `providers`, `docker` | every tag | none |
-| `deploy-demo` | `deploy-demo.yml` | `build`, `providers` | a tag without `-` only; its job also skips itself while the repository is private | none |
+| `deploy-demo` | `deploy-demo.yml` | `build`, `providers` | a tag without `-` only (from `release.yml`); by hand also a `demo-YYYY.MM.N` tag (see [Deploying the demo between releases](#deploying-the-demo-between-releases)) | none |
 | `publish-nuget` | `publish-nuget.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` (see [Publishing](#publishing)) | `.nupkg`, `.snupkg`, and extracted DLLs |
 | `publish-docker` | `publish-docker.yml` | `create-release` | only when `TCE_PUBLISH` is `enabled` | pushed image digests |
 
 - `create-release.yml` writes the notes with `git-cliff --latest` and creates the GitHub Release with them. The release carries **no packages**: no `.nupkg`, `.snupkg` or image is attached, and `publish-nuget.yml` packs from the tag itself. If the release already exists, the workflow fails with an error; deleting it is the maintainer's decision.
 - A tag that contains `-` (`v1.0.0-preview.1`, `v1.0.0-rc.1`) makes a pre-release.
-- Each of the four workflows checks out `refs/tags/<tag>` with full history, because MinVer reads the version from the tag at `HEAD`, and rejects a `tag` that is not `vX.Y.Z` or `vX.Y.Z-suffix` or does not exist.
+- Each of the four workflows checks out `refs/tags/<tag>` with full history, because MinVer reads the version from the tag at `HEAD`, and rejects a `tag` that is not `vX.Y.Z` or `vX.Y.Z-suffix` (`deploy-demo.yml` also accepts `demo-YYYY.MM.N`) or does not exist.
 - A failure in `build`, `providers` or `docker` leaves no release. The fix is a new tag, never a moved one.
 
 ### Re-running one stage
@@ -87,6 +87,22 @@ gh workflow run publish-docker.yml -f tag=v1.0.0-preview.1
 ```
 
 The tag comes from the input, never from the branch the dispatch runs on. A manual run does not repeat the verification jobs of `release.yml`, so run a stage by hand only for a tag whose release run got past them.
+
+### Deploying the demo between releases
+
+When the demo changed and the change should go live before the next release, deploy it from a **demo tag** instead of a release tag. A `v*` tag would publish packages and images, which a demo-only change must not do.
+
+```bash
+git tag -s demo-2026.11.1 -m "Demo 2026.11.1" <commit on main>
+git push origin demo-2026.11.1
+gh workflow run deploy-demo.yml -f tag=demo-2026.11.1
+```
+
+- The name is `demo-YYYY.MM.N`: the year, the two-digit month and a counter within the month. `deploy-demo.yml` rejects any other name, a branch name and a SHA.
+- The tag is annotated and signed on the YubiKey like a release tag, and `deploy-demo.yml` runs the same signature check (`eng/verify-tag.sh`; see [Signing a release tag](#signing-a-release-tag)). It is never moved or re-signed: a bad deploy gets the next number.
+- Pushing the tag runs nothing, because `release.yml` triggers on `v*` only. The deploy is the manual dispatch. MinVer reads only `v` tags, so the demo's version is unchanged and its header badge shows the commit.
+- The next stable release deploys the demo again anyway.
+- The tag ruleset of the repository must protect `demo-*` the way it protects `v*` (a manual step by the maintainer).
 
 ### Publishing
 

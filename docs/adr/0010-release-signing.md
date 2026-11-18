@@ -73,6 +73,14 @@ The agent runner commits to the repository with the maintainer's configured git 
 repository or in the workflow (and a PIN prompt that a workflow cannot answer), and every commit
 would wait for a touch on a security key that is in the maintainer's possession offline. Impractical.
 
+## Addendum: demo deploy tags
+
+The demo can be deployed between releases from an annotated tag `demo-YYYY.MM.N`, dispatched by
+hand to `deploy-demo.yml`. Such a tag is signed and verified exactly like a release tag:
+`eng/verify-tag.sh` does not look at the tag's name, it requires an annotated tag signed by a key in
+`.github/allowed_signers` on `main`, and a failed verification is fatal and not overridable. A demo
+tag is never moved or re-signed either.
+
 ## Consequences
 
 - **The next issues of the milestone implement this record.** This issue adds the verification
