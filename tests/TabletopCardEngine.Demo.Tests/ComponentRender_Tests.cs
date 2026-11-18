@@ -907,6 +907,55 @@ public sealed class ComponentRender_Tests
         center.TextContent.Should().NotContain("Hand:");
     }
 
+    private static readonly string[] _fullBoard = ["ah", "kd", "2c", "7s", "9h"];
+
+    [TestMethod]
+    [DataRow(0, 0, 5)]
+    [DataRow(3, 3, 2)]
+    [DataRow(4, 4, 1)]
+    [DataRow(5, 5, 0)]
+    public void PokerTable_Board_AlwaysHasFiveSlots(int dealt, int expectedCards, int expectedSlots)
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        var hand = BuildHandDataWithSeats(6) with
+        {
+            CommunityCards = _fullBoard.Take(dealt).Select(Card.Parse).ToArray(),
+        };
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildGameData(hand)));
+
+        // Assert - the board keeps its shape; the slots are not card backs and are hidden from assistive technology
+        var board = component.Find(".community-cards");
+        board.QuerySelectorAll(".playing-card").Should().HaveCount(expectedCards);
+        board.QuerySelectorAll(".board-slot").Should().HaveCount(expectedSlots);
+        board.QuerySelectorAll(".board-slot").All(e => e.GetAttribute("aria-hidden") == "true").Should().BeTrue();
+        component.FindAll(".empty-board").Should().BeEmpty();
+        component.Markup.Should().NotContain("No community cards");
+    }
+
+    [TestMethod]
+    public void PokerTable_BeforeTheFirstHand_ShowsFiveBoardSlots()
+    {
+        // Arrange
+        using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        RegisterDemoServices(ctx.Services);
+
+        // Act
+        var component = ctx.Render<PokerTable>(parameters => parameters
+            .Add(p => p.GameData, BuildGameData(BuildHandDataWithSeats(6)) with { HandData = null }));
+
+        // Assert
+        component.FindAll(".community-cards .board-slot").Should().HaveCount(5);
+        component.FindAll(".community-cards .playing-card").Should().BeEmpty();
+    }
+
     [TestMethod]
     public void PokerTable_WithFinishedHand_ListsEachSeatsResult()
     {

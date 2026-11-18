@@ -74,10 +74,20 @@
     flex-wrap: wrap;
 }
 
-.empty-board {
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 14px;
-    font-style: italic;
+/* An empty place for a card not dealt yet. The size is PlayingCard.razor.css's: scoped CSS cannot reach
+   another component's classes, so the numbers are copied here and must change together. */
+.board-slot {
+    width: 46px;
+    height: 62px;
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+@media (max-width: 480px) {
+    .board-slot {
+        width: 50px;
+        height: 68px;
+    }
 }
 
 .pot-info {

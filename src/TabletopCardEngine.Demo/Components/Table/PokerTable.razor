@@ -58,16 +58,16 @@
 
         <div class="table-center">
             <div class="community-cards">
-                @if (Hand?.CommunityCards is not null && Hand.CommunityCards.Count > 0)
-                {
-                    @foreach (var card in Hand.CommunityCards)
-                    {
-                        <PlayingCard Card="card" IsHighlighted="@HighlightedCards.Contains(card)" />
-                    }
+                @{
+                    var dealt = Hand?.CommunityCards ?? [];
                 }
-                else
+                @foreach (var card in dealt)
                 {
-                    <div class="empty-board">No community cards</div>
+                    <PlayingCard Card="card" IsHighlighted="@HighlightedCards.Contains(card)" />
+                }
+                @for (var i = dealt.Count; i < BoardSlotCount; i++)
+                {
+                    <div class="board-slot" aria-hidden="true"></div>
                 }
             </div>
 
@@ -252,6 +252,9 @@
     private bool BlindLevelRaised => Hand is not null && _previousLevel is { } previous && Hand.BlindLevel > previous;
 
     private bool IsHandFinished => Hand?.Street == Street.Finished;
+
+    /// <summary>Community cards in a full board; the cards not dealt yet show as empty slots.</summary>
+    private const int BoardSlotCount = 5;
 
     private static readonly IReadOnlySet<DataCard> _noCards = new HashSet<DataCard>();
 
