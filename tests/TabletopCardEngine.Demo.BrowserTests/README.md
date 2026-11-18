@@ -92,7 +92,7 @@ appeared below 1366px and the horizontal overflow only mattered above it):
 ## Running it
 
 The gate is **off by default**, because the first run downloads a browser and publishes the
-WebAssembly app. `dotnet test` at the repository root reports its twenty-seven browser checks as skipped
+WebAssembly app. `dotnet test` at the repository root reports every browser check as skipped
 and runs only `DemoLayout_Fixture_FindsTheDemoProjectToPublish`, which needs no browser.
 
 ```bash
@@ -105,9 +105,14 @@ TCE_TEST_BROWSER_GATE=1 dotnet test tests/TabletopCardEngine.Demo.BrowserTests
 
 On Windows PowerShell, `$env:TCE_TEST_BROWSER_GATE = "1"` sets the variable.
 
-A run takes about **two minutes**: roughly one minute to `dotnet publish -c Release` the demo (the
-`wasm-tools` workload is required) and about three minutes for the thirty-four browser checks, plus the
-browser download on a cold machine.
+A run takes about **twenty to thirty minutes**: roughly one minute to `dotnet publish -c Release` the
+demo (the `wasm-tools` workload is required) and the rest for the browser checks, plus the browser
+download on a cold machine. The number of checks is not written down here, because most changes to
+the demo add some; list them with:
+
+```bash
+dotnet run --project tests/TabletopCardEngine.Demo.BrowserTests -- --list-tests
+```
 
 Environment variables:
 
