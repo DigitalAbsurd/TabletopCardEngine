@@ -67,6 +67,15 @@ appeared below 1366px and the horizontal overflow only mattered above it):
     "+ Add Player" is its own hit target. The probe finds fields and text without class names, so it
     reads the old markup too. There the Seat input ran into the "Buy-In:" caption, and the Engine
     Limitations alert sat over the button.
+15. **No vertical scroll through a hand** — at 1536×725 (Chrome on 1920×1080 at 125% scaling, the
+    maintainer's screen) and 1366×768, with 6 and 10 seats, `main.layout-content` has
+    `scrollHeight == clientHeight` and the action bar ends within the viewport on a fresh hand, on the
+    flop and on the finished hand. A finished 6-Max hand once overflowed there by 53px.
+16. **The seat menu** — at 1536×725 every seat's menu lists Sit down, Top up, Rebuy, Stand up, Kick and
+    Cancel sit-down in that order with the right items disabled (mid-hand on an occupied seat only Kick
+    is enabled, between hands on a free seat only Sit down), the trigger is a hit target of its own, and
+    the Kick and Sit down popconfirms do not grow the page.
+17. **The menu trigger is readable** — its text/background contrast is at least 4.5:1 in both themes.
 
 ## What it does not cover
 

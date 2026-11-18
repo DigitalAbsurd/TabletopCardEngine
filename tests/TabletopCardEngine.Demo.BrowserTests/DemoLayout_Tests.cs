@@ -80,10 +80,13 @@ public sealed class DemoLayout_Tests
     /// <summary>The most seats a table has: the widest seat rows and the longest list of results.</summary>
     private const int FullRingSeatCount = 10;
 
-    /// <summary>The viewport of the maintainer's screenshots, where the inline kick confirmation pushed the action bar off the screen.</summary>
-    private const int SeatMenuViewportWidth = 1536;
+    /// <summary>Chrome on 1920x1080 at Windows' 125% scaling is a CSS viewport of about 1536x725, the maintainer's screen, where a finished 6-Max hand once overflowed the container by 53px.</summary>
+    private const int ScaledLaptopViewportWidth = 1536;
 
-    private const int SeatMenuViewportHeight = 725;
+    private const int ScaledLaptopViewportHeight = 725;
+
+    /// <summary>The cards on the board once the flop is dealt.</summary>
+    private const int FlopCardCount = 3;
 
     /// <summary>WCAG 2 AA for normal text.</summary>
     private const double MinimumTextContrast = 4.5;
@@ -717,7 +720,7 @@ public sealed class DemoLayout_Tests
     [TestMethod]
     public async Task DemoLayout_SeatMenuKick_AsksInAPopconfirmWithoutGrowingThePage()
     {
-        await using DemoPage page = await OpenDemoAsync(SeatMenuViewportWidth, SeatMenuViewportHeight);
+        await using DemoPage page = await OpenDemoAsync(ScaledLaptopViewportWidth, ScaledLaptopViewportHeight);
         int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
         actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
 
@@ -734,6 +737,117 @@ public sealed class DemoLayout_Tests
         await page.ClickAsync(DemoPage.OpenPopconfirmOkSelector);
         (await page.CountAsync(".seat.seat-left[data-seat-no='6'] .badge-left")).Should().Be(1, "confirming the kick leaves seat 6 marked Left");
         AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// The container that holds the page must not scroll at all, and the action bar must be on screen,
+    /// at a fresh hand, on the flop (every seat carries a last-action row) and on the finished hand
+    /// (the result chips are beside the pot). The sizes include the maintainer's 1536x725 (1920x1080
+    /// at 125%), where a finished 6-Max hand overflowed by 53px and nothing measured it.
+    /// </summary>
+    [TestMethod]
+    [DataRow(ScaledLaptopViewportWidth, ScaledLaptopViewportHeight, DefaultSeatCount)]
+    [DataRow(ScaledLaptopViewportWidth, ScaledLaptopViewportHeight, FullRingSeatCount)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight, DefaultSeatCount)]
+    [DataRow(LaptopViewportWidth, LaptopViewportHeight, FullRingSeatCount)]
+    public async Task DemoLayout_GamePage_NoVerticalScrollThroughAHand(int viewportWidth, int viewportHeight, int seatCount)
+    {
+        await using DemoPage page = await OpenDemoAsync(viewportWidth, viewportHeight, seatCount: seatCount);
+
+        await AssertNoVerticalScrollAsync(page, "a fresh hand", viewportWidth, viewportHeight);
+
+        await page.PlayCheckCallUntilBoardAsync(FlopCardCount, MaximumCheckCallActions);
+        await AssertNoVerticalScrollAsync(page, "the flop", viewportWidth, viewportHeight);
+
+        int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
+        actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
+        (await page.CountAsync(DemoPage.HandResultChipSelector)).Should().Be(seatCount, "every seat reached the showdown");
+        await AssertNoVerticalScrollAsync(page, "the finished hand", viewportWidth, viewportHeight);
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Every seat has a menu with the same six items in the same order. Opening it, choosing Kick and
+    /// answering the popconfirm must not grow the table (the inline confirmation it replaced added 49px),
+    /// mid-hand on an occupied seat and between hands on a seat that has left, where it is Sit down.
+    /// </summary>
+    [TestMethod]
+    public async Task DemoLayout_SeatMenu_OpensWithEveryActionAndConfirmsWithoutGrowingTheTable()
+    {
+        await using DemoPage page = await OpenDemoAsync(ScaledLaptopViewportWidth, ScaledLaptopViewportHeight);
+        string[] labels = ["Sit down", "Top up", "Rebuy", "Stand up", "Kick", "Cancel sit-down"];
+        string trigger = $"{DemoPage.SeatMenuTriggerSelector}[data-seat-no='1']";
+
+        // Mid-hand, on an occupied seat: only Kick is available.
+        ScrollMetrics before = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        AssertOwnHitTargets(await page.ProbeHitTargetsAsync(trigger));
+        await page.OpenSeatMenuAsync(1);
+        IReadOnlyList<(string Label, bool Disabled)> items = await page.ReadOpenSeatMenuItemsAsync();
+        items.Select(item => item.Label).Should().Equal(labels, "the menu always lists the same six items in the same order");
+        items.Where(item => !item.Disabled).Select(item => item.Label).Should().Equal(["Kick"], "mid-hand only Kick is available on an occupied seat");
+
+        await page.ChooseOpenSeatMenuItemAsync("Kick");
+        (await page.CountAsync(DemoPage.OpenPopconfirmSelector)).Should().Be(1, "choosing Kick asks for confirmation in a popconfirm");
+        ScrollMetrics during = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        during.ScrollHeight.Should().Be(before.ScrollHeight, $"the confirmation must not grow the page ({before} then {during})");
+        await page.ClickAsync(DemoPage.OpenPopconfirmCancelSelector);
+        (await page.CountAsync(DemoPage.OpenPopconfirmSelector)).Should().Be(0, "Cancel closes the popconfirm");
+
+        // Between hands, on a seat that has left: Sit down.
+        int actions = await page.PlayCheckCallDownAsync(MaximumCheckCallActions);
+        actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
+        await page.ChooseSeatMenuItemAsync(6, "Kick");
+        await page.ClickAsync(DemoPage.OpenPopconfirmOkSelector);
+        (await page.CountAsync(".seat.seat-left[data-seat-no='6'] .badge-left")).Should().Be(1, "confirming the kick leaves seat 6 marked Left");
+
+        string freeTrigger = $"{DemoPage.SeatMenuTriggerSelector}[data-seat-no='6']";
+        before = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        AssertOwnHitTargets(await page.ProbeHitTargetsAsync(freeTrigger));
+        await page.OpenSeatMenuAsync(6);
+        items = await page.ReadOpenSeatMenuItemsAsync();
+        items.Select(item => item.Label).Should().Equal(labels);
+        items.Where(item => !item.Disabled).Select(item => item.Label).Should().Equal(["Sit down"], "a free seat between hands offers Sit down alone");
+
+        await page.ChooseOpenSeatMenuItemAsync("Sit down");
+        (await page.CountAsync(DemoPage.OpenPopconfirmSelector)).Should().Be(1, "choosing Sit down asks for a name and a buy-in in a popconfirm");
+        during = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        during.ScrollHeight.Should().Be(before.ScrollHeight, $"the sit-down form must not grow the page ({before} then {during})");
+        await page.ClickAsync(DemoPage.OpenPopconfirmCancelSelector);
+        AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>The seat menu's trigger is white-on-dark by its own colours, so it must read in both themes (issue #785).</summary>
+    [TestMethod]
+    public async Task DemoLayout_SeatMenuTrigger_IsReadableInBothThemes()
+    {
+        await using DemoPage page = await OpenDemoAsync(ScaledLaptopViewportWidth, ScaledLaptopViewportHeight);
+        string trigger = $"{DemoPage.SeatMenuTriggerSelector}[data-seat-no='1']";
+
+        for (int visit = 0; visit < 2; visit++)
+        {
+            (string theme, _) = await page.ReadThemeAsync();
+            (string color, string background) = await page.ReadColorsAsync(trigger);
+            ContrastRatio(color, background).Should().BeGreaterOrEqualTo(
+                MinimumTextContrast,
+                $"the menu trigger must be readable in the {theme} theme (color {color} on {background})");
+
+            await page.ToggleThemeAsync();
+        }
+
+        AssertNoConsoleErrors(page);
+    }
+
+    private static async Task AssertNoVerticalScrollAsync(DemoPage page, string moment, int viewportWidth, int viewportHeight)
+    {
+        ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
+        double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
+
+        layoutContent.ScrollHeight.Should().Be(
+            layoutContent.ClientHeight,
+            $"the container must not scroll at {moment} at {viewportWidth}x{viewportHeight} ({layoutContent})");
+        barBottom.Should().BeLessOrEqualTo(
+            viewportHeight,
+            $"the action bar must be on screen at {moment} at {viewportWidth}x{viewportHeight} (bar bottom: {barBottom}px)");
     }
 
     /// <summary>The contrast ratio of two <c>rgb()</c> or <c>rgba()</c> colours, as WCAG 2 defines it.</summary>
