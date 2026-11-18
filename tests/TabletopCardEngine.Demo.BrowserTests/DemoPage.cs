@@ -164,6 +164,9 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>A finished hand's result chip, one per seat.</summary>
     public const string HandResultChipSelector = ".hand-result";
 
+    /// <summary>The list of a finished hand's result chips, laid over the band's right column.</summary>
+    public const string HandResultsSelector = ".hand-results";
+
     /// <summary>Every card on the table: hole cards and the board.</summary>
     public const string TableCardSelector = ".poker-table .playing-card";
 
