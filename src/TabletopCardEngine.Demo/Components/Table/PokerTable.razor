@@ -111,7 +111,7 @@
                              @onfocus="@(() => _hoveredSeatNo = seatNo)"
                              @onblur="@(() => _hoveredSeatNo = 0)"
                              @onclick="@(() => TogglePin(seatNo))">
-                            <span class="hand-result-name">@seat.Name</span>
+                            <span class="hand-result-name" title="@seat.Name">@seat.Name</span>
                             <span class="hand-result-rank">@FormatRankType(seat.HandResult.RankType)</span>
                             <span class="hand-result-net">@(net > 0 ? "+" : "")@AmountFormat.Format(net)</span>
                         </div>

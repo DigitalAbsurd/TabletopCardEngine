@@ -303,6 +303,7 @@ public sealed class DemoLayout_Tests
         double tableHeight = await page.ReadElementHeightAsync(DemoPage.PokerTableSelector);
         double barBottom = await page.ReadElementBottomAsync(DemoPage.ActionBarSelector);
         double contentBottom = await page.ReadElementBottomAsync(DemoPage.LayoutContentSelector);
+        await AssertResultChipsFitAsync(page, viewportWidth, viewportHeight);
         ScrollMetrics layoutContent = await page.ReadScrollMetricsAsync(DemoPage.LayoutContentSelector);
 
         layoutContent.ScrollTop.Should().Be(0, $"nothing has been scrolled yet ({layoutContent})");
@@ -763,6 +764,7 @@ public sealed class DemoLayout_Tests
         actions.Should().BeLessThan(MaximumCheckCallActions, "the hand must reach its end rather than run out of the action budget");
         (await page.CountAsync(DemoPage.HandResultChipSelector)).Should().Be(seatCount, "every seat reached the showdown");
         await AssertNoVerticalScrollAsync(page, "the finished hand", viewportWidth, viewportHeight);
+        await AssertResultChipsFitAsync(page, viewportWidth, viewportHeight);
         AssertNoConsoleErrors(page);
     }
 
@@ -835,6 +837,21 @@ public sealed class DemoLayout_Tests
         }
 
         AssertNoConsoleErrors(page);
+    }
+
+    /// <summary>
+    /// Every result chip of a finished hand is whole: the list neither scrolls down nor sideways (issue #814).
+    /// </summary>
+    private static async Task AssertResultChipsFitAsync(DemoPage page, int viewportWidth, int viewportHeight)
+    {
+        ScrollMetrics results = await page.ReadScrollMetricsAsync(DemoPage.HandResultsSelector);
+
+        results.ScrollHeight.Should().Be(
+            results.ClientHeight,
+            $"the result chips must not scroll vertically at {viewportWidth}x{viewportHeight} ({results})");
+        results.ScrollWidth.Should().Be(
+            results.ClientWidth,
+            $"the result chips must not scroll sideways at {viewportWidth}x{viewportHeight} ({results})");
     }
 
     private static async Task AssertNoVerticalScrollAsync(DemoPage page, string moment, int viewportWidth, int viewportHeight)
