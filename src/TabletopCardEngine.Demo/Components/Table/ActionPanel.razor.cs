@@ -75,7 +75,26 @@ public partial class ActionPanel : ComponentBase
     private bool HasActions => HandData is not null && HandData.NextPlayerSeatNo != 0 && HandData.Evaluations.Count > 0;
 
     /// <summary>
-    /// The box on the right of the bar: whose decision is owed, or that the hand is over.
+    /// The acting seat's name while a decision is owed, otherwise null. The bar paints it in the
+    /// acting seat's gold.
+    /// </summary>
+    private string? InfoActor
+    {
+        get
+        {
+            if (IsHandFinished || HandData is null || HandData.NextPlayerSeatNo == 0)
+            {
+                return null;
+            }
+
+            var name = HandData.Seats.FirstOrDefault(s => s.SeatNo == HandData.NextPlayerSeatNo)?.Name;
+            return string.IsNullOrWhiteSpace(name) ? $"Seat {HandData.NextPlayerSeatNo}" : name;
+        }
+    }
+
+    /// <summary>
+    /// The box on the right of the bar: what follows the acting seat's name while a decision is owed,
+    /// or the whole text once the hand is over: who won and how much, from the winners' positive nets.
     /// </summary>
     private string InfoText
     {
@@ -83,16 +102,18 @@ public partial class ActionPanel : ComponentBase
         {
             if (IsHandFinished)
             {
-                return "Hand complete";
+                var winners = HandData!.Seats.Where(s => s.HandResult?.Net > 0).ToList();
+                if (winners.Count == 0)
+                {
+                    return "Hand complete";
+                }
+
+                var won = AmountFormat.Format(winners.Sum(s => s.HandResult!.Net));
+                var names = string.Join(", ", winners.Select(s => string.IsNullOrWhiteSpace(s.Name) ? $"Seat {s.SeatNo}" : s.Name));
+                return winners.Count == 1 ? $"{names} wins {won}" : $"{names} split {won}";
             }
 
-            if (HandData is null || HandData.NextPlayerSeatNo == 0)
-            {
-                return "Waiting for the next hand";
-            }
-
-            var name = HandData.Seats.FirstOrDefault(s => s.SeatNo == HandData.NextPlayerSeatNo)?.Name;
-            return $"{(string.IsNullOrWhiteSpace(name) ? $"Seat {HandData.NextPlayerSeatNo}" : name)} to act";
+            return InfoActor is null ? "Waiting for the next hand" : " to act";
         }
     }
 
