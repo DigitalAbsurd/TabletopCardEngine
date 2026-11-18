@@ -35,7 +35,7 @@ public sealed class DemoTournament_Tests
     /// <summary>The services of the demo, over the play engine with the demo's own clock, as Program wires them.</summary>
     private static void RegisterDemoServices(IServiceCollection services)
     {
-        services.AddAntDesign();
+        services.AddAntDesignForTests();
         services.AddScoped<BrowserStorage>();
         services.AddScoped<DemoTheme>();
         services.AddScoped<WalkthroughState>();
@@ -232,7 +232,7 @@ public sealed class DemoTournament_Tests
         var component = ctx.Render<Pages.Home>();
 
         // Act - StartHand on a tournament table is refused (ManagedByTournament), so a second hand means DealTable ran
-        component.Find(".next-hand-btn").Click();
+        component.Find(".next-hand-btn").ClickAndWait();
 
         // Assert
         component.WaitForAssertion(() => game.CurrentHand!.No.Should().Be(2));
@@ -255,7 +255,7 @@ public sealed class DemoTournament_Tests
         var component = ctx.Render<Pages.Home>();
 
         // Act
-        component.Find(".next-hand-btn").Click();
+        component.Find(".next-hand-btn").ClickAndWait();
 
         // Assert
         component.WaitForAssertion(() => game.CurrentHand!.No.Should().Be(2));
@@ -281,7 +281,7 @@ public sealed class DemoTournament_Tests
 
         // Assert - between hands, where a cash game offers all four: the menu is there, every item disabled
         component.FindAll(".seat-menu-trigger").Should().HaveCount(DemoGameDefaults.MaxPlayers);
-        component.FindAll(".seat-menu-trigger")[0].Click();
+        component.FindAll(".seat-menu-trigger")[0].ClickAndWait();
         var items = component.FindAll(".seat-menu-item");
         items.Select(i => i.TextContent.Trim()).Should().Equal("Sit down", "Top up", "Rebuy", "Stand up", "Kick", "Cancel sit-down");
         items.Should().OnlyContain(i => i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
@@ -306,7 +306,7 @@ public sealed class DemoTournament_Tests
 
         // Assert
         component.FindAll(".seat-menu-trigger").Should().HaveCount(DemoGameDefaults.MaxPlayers);
-        component.FindAll(".seat-menu-trigger")[0].Click();
+        component.FindAll(".seat-menu-trigger")[0].ClickAndWait();
         component.FindAll(".seat-menu-item").Where(i => i.TextContent.Trim() is "Stand up" or "Kick")
             .Should().OnlyContain(i => !i.ClassList.Contains("ant-dropdown-menu-item-disabled"));
     }
@@ -331,7 +331,7 @@ public sealed class DemoTournament_Tests
         component.Find(".tournament-table-btn-active").TextContent.Should().Contain("Table 1");
 
         // Act
-        component.Find(".tournament-table-btn[data-table-no='2']").Click();
+        component.Find(".tournament-table-btn[data-table-no='2']").ClickAndWait();
 
         // Assert
         component.WaitForAssertion(() => component.Find(".tournament-table-btn-active").TextContent.Should().Contain("Table 2"));

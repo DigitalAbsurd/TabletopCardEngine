@@ -32,7 +32,7 @@ public sealed class TournamentPanel_Tests
 
     private static void RegisterDemoServices(IServiceCollection services)
     {
-        services.AddAntDesign();
+        services.AddAntDesignForTests();
         services.AddScoped<BrowserStorage>();
         services.AddScoped<DemoTheme>();
         services.AddScoped<WalkthroughState>();
@@ -125,7 +125,7 @@ public sealed class TournamentPanel_Tests
         component.Find(".tournament-level-next").TextContent.Should().StartWith("Next: ");
 
         // Act
-        component.Find(".tournament-skip-level").Click();
+        component.Find(".tournament-skip-level").ClickAndWait();
 
         // Assert
         clock.GetUtcNow().Should().BeOnOrAfter(tournament.LevelEndsAt!.Value);
@@ -151,8 +151,8 @@ public sealed class TournamentPanel_Tests
         }
 
         // Act - the panel still holds the tournament as it was before the first skip, as it does until a hand is dealt
-        component.Find(".tournament-skip-level").Click();
-        component.Find(".tournament-skip-level").Click();
+        component.Find(".tournament-skip-level").ClickAndWait();
+        component.Find(".tournament-skip-level").ClickAndWait();
         (await session.DealTableAsync(1)).Should().BeTrue();
 
         // Assert
@@ -198,7 +198,7 @@ public sealed class TournamentPanel_Tests
             .Add(p => p.Tournament, tournament)
             .Add(p => p.ViewedTableNo, 1)
             .Add(p => p.OnSelectTable, tableNo => picked = tableNo));
-        component.Find(".tournament-panel-table-btn[data-table-no='2']").Click();
+        component.Find(".tournament-panel-table-btn[data-table-no='2']").ClickAndWait();
 
         // Assert
         component.FindAll(".tournament-entry-in").Should().HaveCount(12);
