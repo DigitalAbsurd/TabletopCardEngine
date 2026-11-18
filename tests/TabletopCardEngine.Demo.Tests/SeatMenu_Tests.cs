@@ -1,6 +1,5 @@
 ﻿using Bunit;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using TabletopCardEngine.Demo.Components.Table;
 using TabletopCardEngine.Holdem.Dto;
 
@@ -125,7 +124,7 @@ public sealed class SeatMenu_Tests
     private static IRenderedComponent<SeatMenu> RenderMenu(BunitContext ctx, List<byte> stoodUp, List<byte> kicked)
     {
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddAntDesign();
+        ctx.Services.AddAntDesignForTests();
         return ctx.Render<SeatMenu>(parameters => parameters
             .Add(p => p.SeatNo, (byte)6)
             .Add(p => p.SeatData, Seat())
@@ -140,9 +139,9 @@ public sealed class SeatMenu_Tests
     /// </summary>
     private static void ChooseItem(IRenderedComponent<SeatMenu> menu, string label)
     {
-        menu.Find(".seat-menu-trigger").Click();
+        menu.Find(".seat-menu-trigger").ClickAndWait();
         menu.WaitForAssertion(() => menu.FindAll(".seat-menu-item").Should().HaveCount(6));
-        menu.FindAll(".seat-menu-item").Single(i => i.TextContent.Trim() == label).Click();
+        menu.FindAll(".seat-menu-item").Single(i => i.TextContent.Trim() == label).ClickAndWait();
     }
 
     [TestMethod]
@@ -150,7 +149,7 @@ public sealed class SeatMenu_Tests
     {
         using var ctx = new BunitContext();
         var component = RenderMenu(ctx, [], []);
-        component.Find(".seat-menu-trigger").Click();
+        component.Find(".seat-menu-trigger").ClickAndWait();
         component.WaitForAssertion(() => component.FindAll(".seat-menu-item").Should().HaveCount(6));
 
         var items = component.FindAll(".seat-menu-item");
@@ -175,7 +174,7 @@ public sealed class SeatMenu_Tests
         stoodUp.Should().BeEmpty("nothing happens before the confirmation");
         kicked.Should().BeEmpty("nothing happens before the confirmation");
         component.WaitForAssertion(() => component.Markup.Should().Contain($"{label} Player 6?"));
-        component.FindAll(".ant-popover-buttons .ant-btn-primary").Single().Click();
+        component.FindAll(".ant-popover-buttons .ant-btn-primary").Single().ClickAndWait();
 
         (label == "Kick" ? kicked : stoodUp).Should().Equal((byte)6);
         (label == "Kick" ? stoodUp : kicked).Should().BeEmpty();
@@ -193,7 +192,7 @@ public sealed class SeatMenu_Tests
 
         ChooseItem(component, label);
         component.WaitForAssertion(() => component.FindAll(".ant-popover-buttons .ant-btn").Should().HaveCount(2));
-        component.FindAll(".ant-popover-buttons .ant-btn:not(.ant-btn-primary)").Single().Click();
+        component.FindAll(".ant-popover-buttons .ant-btn:not(.ant-btn-primary)").Single().ClickAndWait();
 
         stoodUp.Should().BeEmpty();
         kicked.Should().BeEmpty();

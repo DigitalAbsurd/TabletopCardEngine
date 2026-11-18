@@ -49,7 +49,7 @@ public sealed class ComponentRender_Tests
 
     private static void RegisterCommonServices(IServiceCollection services)
     {
-        services.AddAntDesign();
+        services.AddAntDesignForTests();
         services.AddScoped<BrowserStorage>();
         services.AddScoped<DemoTheme>();
         services.AddScoped<WalkthroughState>();
@@ -145,7 +145,7 @@ public sealed class ComponentRender_Tests
         ctx.JSInterop.Invocations.Where(i => i.Identifier == "demoTheme.set").Should().BeEmpty();
 
         // Act - the visitor turns it to Light
-        component.Find(".layout-theme-switch").Click();
+        component.Find(".layout-theme-switch").ClickAndWait();
 
         // Assert
         ctx.JSInterop.Invocations.Where(i => i.Identifier == "demoTheme.set")
@@ -209,15 +209,15 @@ public sealed class ComponentRender_Tests
 
         // Act and Assert - one step per tab, Next until the last, which says Done
         walkthrough.Markup.Should().Contain("Step 1: The Poker Table");
-        FooterButton("Next").Click();
+        FooterButton("Next").ClickAndWait();
         walkthrough.Markup.Should().Contain("Step 2: The Database Inspector");
-        FooterButton("Next").Click();
+        FooterButton("Next").ClickAndWait();
         walkthrough.Markup.Should().Contain("Step 3: The Engine Calls Log");
-        FooterButton("Next").Click();
+        FooterButton("Next").ClickAndWait();
         walkthrough.Markup.Should().Contain("Step 4: Hand History");
         walkthrough.Markup.Should().NotContain("On the left");
 
-        FooterButton("Done").Click();
+        FooterButton("Done").ClickAndWait();
 
         // Assert - Done dismisses; the modal keeps its content through the closing animation
         walkthrough.FindComponent<AntDesign.Modal>().Instance.Visible.Should().BeFalse();
@@ -354,10 +354,10 @@ public sealed class ComponentRender_Tests
         var playerRows = component.FindAll(".player-row");
         while (playerRows.Count > 2)
         {
-            playerRows[playerRows.Count - 1].QuerySelector("button")!.Click();
+            playerRows[playerRows.Count - 1].QuerySelector("button")!.ClickAndWait();
             playerRows = component.FindAll(".player-row");
         }
-        playerRows[0].QuerySelector("input")!.Change(string.Empty);
+        playerRows[0].QuerySelector("input")!.ChangeAndWait(string.Empty);
 
         var applied = await component.Instance.ApplyAsync();
 
@@ -430,7 +430,7 @@ public sealed class ComponentRender_Tests
         component.Find("#setup-max-rebuys").HasAttribute("disabled").Should().BeTrue();
 
         // Act
-        component.Find("#setup-allow-rebuy").Change(true);
+        component.Find("#setup-allow-rebuy").ChangeAndWait(true);
 
         // Assert
         component.Find("#setup-max-rebuys").HasAttribute("disabled").Should().BeFalse();
@@ -448,11 +448,11 @@ public sealed class ComponentRender_Tests
 
         var component = ctx.Render<GameSetup>();
         var session = ctx.Services.GetRequiredService<DemoGameSession>();
-        component.Find("#setup-allow-top-up").Change(true);
-        component.Find("#setup-allow-rebuy").Change(true);
-        component.Find("#setup-max-rebuys").Change("2");
-        component.Find("#setup-min-buy-in").Change("50");
-        component.Find("#setup-max-buy-in").Change("2000");
+        component.Find("#setup-allow-top-up").ChangeAndWait(true);
+        component.Find("#setup-allow-rebuy").ChangeAndWait(true);
+        component.Find("#setup-max-rebuys").ChangeAndWait("2");
+        component.Find("#setup-min-buy-in").ChangeAndWait("50");
+        component.Find("#setup-max-buy-in").ChangeAndWait("2000");
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -478,7 +478,7 @@ public sealed class ComponentRender_Tests
         CreateAndInitializeEngine(ctx.Services);
 
         var component = ctx.Render<GameSetup>();
-        component.Find("#setup-min-buy-in").Change((DemoGameDefaults.BuyIn + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        component.Find("#setup-min-buy-in").ChangeAndWait((DemoGameDefaults.BuyIn + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         // Act
         var applied = await component.InvokeAsync(() => component.Instance.ApplyAsync());
@@ -533,9 +533,9 @@ public sealed class ComponentRender_Tests
         // Arrange - a value typed into the block while the switch is on must not survive turning it off
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
-        component.Find("#setup-increase-every-hands").Change("3");
-        component.Find("#setup-increase-blinds").Change(false);
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.Find("#setup-increase-every-hands").ChangeAndWait("3");
+        component.Find("#setup-increase-blinds").ChangeAndWait(false);
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -552,8 +552,8 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
-        component.Find("#setup-increase-every-hands").Change("1");
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.Find("#setup-increase-every-hands").ChangeAndWait("1");
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -575,10 +575,10 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
-        component.FindAll(".setup-threshold")[3].Change(true);
-        component.FindAll(".setup-threshold")[1].Change(true);
-        component.Find("#setup-increase-on-elimination").Change(true);
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.FindAll(".setup-threshold")[3].ChangeAndWait(true);
+        component.FindAll(".setup-threshold")[1].ChangeAndWait(true);
+        component.Find("#setup-increase-on-elimination").ChangeAndWait(true);
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -599,10 +599,10 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
-        component.Find("#setup-increase-every-hands").Change("2");
-        component.Find("#setup-multiplier").Change("1.5");
-        component.Find("#setup-max-small-blind").Change("20");
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.Find("#setup-increase-every-hands").ChangeAndWait("2");
+        component.Find("#setup-multiplier").ChangeAndWait("1.5");
+        component.Find("#setup-max-small-blind").ChangeAndWait("20");
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -624,10 +624,10 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
-        component.Find("#setup-increase-every-hands").Change("2");
-        component.Find("#setup-mode-levels").Change(true);
-        component.Find("#setup-small-blind-levels").Change("2, 3, 5, 10");
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.Find("#setup-increase-every-hands").ChangeAndWait("2");
+        component.Find("#setup-mode-levels").ChangeAndWait(true);
+        component.Find("#setup-small-blind-levels").ChangeAndWait("2, 3, 5, 10");
 
         // Act
         var applied = await component.Instance.ApplyAsync();
@@ -650,10 +650,10 @@ public sealed class ComponentRender_Tests
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
         var session = ctx.Services.GetRequiredService<DemoGameSession>();
-        component.Find("#setup-increase-blinds").Change(true);
-        component.Find("#setup-increase-every-hands").Change("2");
-        component.Find("#setup-mode-levels").Change(true);
-        component.Find("#setup-small-blind-levels").Change("2, three, 5");
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.Find("#setup-increase-every-hands").ChangeAndWait("2");
+        component.Find("#setup-mode-levels").ChangeAndWait(true);
+        component.Find("#setup-small-blind-levels").ChangeAndWait("2, three, 5");
 
         // Act
         var applied = await component.InvokeAsync(() => component.Instance.ApplyAsync());
@@ -671,7 +671,7 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
 
         // Act
         var applied = await component.InvokeAsync(() => component.Instance.ApplyAsync());
@@ -687,7 +687,7 @@ public sealed class ComponentRender_Tests
         // Arrange
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-increase-blinds").Change(true);
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
 
         // Assert - Max Players 6 offers 2..5
         component.FindAll(".setup-threshold").Should().HaveCount(4);
@@ -695,8 +695,8 @@ public sealed class ComponentRender_Tests
             .Should().Equal("2", "3", "4", "5");
 
         // Act - tick 4 and 5, then shrink the table to 4 seats
-        component.FindAll(".setup-threshold")[2].Change(true);
-        component.FindAll(".setup-threshold")[3].Change(true);
+        component.FindAll(".setup-threshold")[2].ChangeAndWait(true);
+        component.FindAll(".setup-threshold")[3].ChangeAndWait(true);
         var onMaxPlayersChanged = typeof(GameSetup).GetMethod("OnMaxPlayersChangedAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
         component.InvokeAsync(() => (Task)onMaxPlayersChanged.Invoke(component.Instance, [4])!).GetAwaiter().GetResult();
         component.Render();
@@ -713,8 +713,8 @@ public sealed class ComponentRender_Tests
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
         var session = ctx.Services.GetRequiredService<DemoGameSession>();
-        component.Find("#setup-increase-blinds").Change(true);
-        component.Find("#setup-increase-every-hands").Change("1");
+        component.Find("#setup-increase-blinds").ChangeAndWait(true);
+        component.Find("#setup-increase-every-hands").ChangeAndWait("1");
         (await component.Instance.ApplyAsync()).Should().BeTrue();
         session.CurrentHand!.SmallBlind.Should().Be(DemoGameDefaults.SmallBlind);
 
@@ -993,16 +993,16 @@ public sealed class ComponentRender_Tests
         component.FindAll(".playing-card[data-highlighted]").Should().BeEmpty();
 
         // Act - Player 1's two pair: the tens and nines on the board, not the king or queen in hand
-        component.Find(".hand-result[data-seat-no='1']").TriggerEvent("onmouseenter", new MouseEventArgs());
+        component.Find(".hand-result[data-seat-no='1']").TriggerEventAndWait("onmouseenter", new MouseEventArgs());
 
         // Assert
         HighlightedCards(component).Should().BeEquivalentTo("td", "9d", "9h", "ts");
         component.Find(".hand-result[data-seat-no='1']").ClassList.Should().Contain("hand-result-selected");
 
         // Act - Player 6's full house uses a hole ten
-        component.Find(".hand-result[data-seat-no='1']").TriggerEvent("onmouseleave", new MouseEventArgs());
+        component.Find(".hand-result[data-seat-no='1']").TriggerEventAndWait("onmouseleave", new MouseEventArgs());
         HighlightedCards(component).Should().BeEmpty();
-        component.Find(".hand-result[data-seat-no='6']").TriggerEvent("onmouseenter", new MouseEventArgs());
+        component.Find(".hand-result[data-seat-no='6']").TriggerEventAndWait("onmouseenter", new MouseEventArgs());
 
         // Assert
         HighlightedCards(component).Should().BeEquivalentTo("th", "td", "9d", "9h", "ts");
@@ -1019,16 +1019,16 @@ public sealed class ComponentRender_Tests
             .Add(p => p.GameData, CreatePairedBoardShowdownGameData()));
 
         // Act - hover, click, leave: the click keeps the cards lit after the pointer has gone
-        component.Find(".hand-result[data-seat-no='6']").TriggerEvent("onmouseenter", new MouseEventArgs());
-        component.Find(".hand-result[data-seat-no='6']").Click();
-        component.Find(".hand-result[data-seat-no='6']").TriggerEvent("onmouseleave", new MouseEventArgs());
+        component.Find(".hand-result[data-seat-no='6']").TriggerEventAndWait("onmouseenter", new MouseEventArgs());
+        component.Find(".hand-result[data-seat-no='6']").ClickAndWait();
+        component.Find(".hand-result[data-seat-no='6']").TriggerEventAndWait("onmouseleave", new MouseEventArgs());
 
         // Assert
         HighlightedCards(component).Should().HaveCount(5);
         component.Find(".hand-result[data-seat-no='6']").GetAttribute("aria-pressed").Should().Be("true");
 
         // Act - a second click unpins
-        component.Find(".hand-result[data-seat-no='6']").Click();
+        component.Find(".hand-result[data-seat-no='6']").ClickAndWait();
 
         // Assert
         HighlightedCards(component).Should().BeEmpty();
@@ -1293,8 +1293,8 @@ public sealed class ComponentRender_Tests
     {
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-use-ante").Change(true);
-        component.Find("#setup-use-ante").Change(false);
+        component.Find("#setup-use-ante").ChangeAndWait(true);
+        component.Find("#setup-use-ante").ChangeAndWait(false);
 
         var applied = await component.Instance.ApplyAsync();
 
@@ -1308,9 +1308,9 @@ public sealed class ComponentRender_Tests
     {
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-use-ante").Change(true);
+        component.Find("#setup-use-ante").ChangeAndWait(true);
         component.Find("#setup-ante").GetAttribute("value").Should().Be("1");
-        component.Find("#setup-ante").Change("2");
+        component.Find("#setup-ante").ChangeAndWait("2");
 
         var applied = await component.Instance.ApplyAsync();
 
@@ -1325,8 +1325,8 @@ public sealed class ComponentRender_Tests
     {
         using var ctx = new BunitContext();
         var component = RenderGameSetup(ctx);
-        component.Find("#setup-use-ante").Change(true);
-        component.Find("#setup-ante").Change("");
+        component.Find("#setup-use-ante").ChangeAndWait(true);
+        component.Find("#setup-ante").ChangeAndWait("");
 
         var applied = await component.Instance.ApplyAsync();
 
@@ -1580,7 +1580,7 @@ public sealed class ComponentRender_Tests
         queued.Should().BeEmpty();
         WaitForSelector(component, 5, ".seat-join-buyin").GetAttribute("value").Should().Be(DemoGameDefaults.BuyIn.ToString(System.Globalization.CultureInfo.InvariantCulture));
         SeatMenuOf(component, 5).QuerySelector(".seat-join-name")!.GetAttribute("placeholder").Should().Be("Player 5");
-        SeatMenuOf(component, 5).QuerySelector(".seat-join-name")!.Input("Dana");
+        SeatMenuOf(component, 5).QuerySelector(".seat-join-name")!.InputAndWait("Dana");
         AnswerConfirmation(component, 5, ok: true);
 
         // Assert
@@ -1613,7 +1613,7 @@ public sealed class ComponentRender_Tests
 
         // Act
         ChooseSeatItem(component, 4, "Sit down");
-        WaitForSelector(component, 4, ".seat-join-buyin").Input("0");
+        WaitForSelector(component, 4, ".seat-join-buyin").InputAndWait("0");
 
         // Assert
         AnswerConfirmation(component, 4, ok: true);
@@ -1723,7 +1723,7 @@ public sealed class ComponentRender_Tests
     {
         if (SeatMenuOf(component, seatNo).QuerySelector(".seat-menu-item") is null)
         {
-            SeatMenuOf(component, seatNo).QuerySelector(".seat-menu-trigger")!.Click();
+            SeatMenuOf(component, seatNo).QuerySelector(".seat-menu-trigger")!.ClickAndWait();
         }
 
         component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelectorAll(".seat-menu-item").Should().HaveCount(6));
@@ -1732,7 +1732,7 @@ public sealed class ComponentRender_Tests
 
     /// <summary>Opens a seat's menu and chooses one item.</summary>
     private static void ChooseSeatItem(IRenderedComponent<PokerTable> component, byte seatNo, string label)
-        => OpenSeatMenu(component, seatNo).Single(i => i.TextContent.Trim() == label).Click();
+        => OpenSeatMenu(component, seatNo).Single(i => i.TextContent.Trim() == label).ClickAndWait();
 
     private static AngleSharp.Dom.IElement AmountInputOf(IRenderedComponent<PokerTable> component, byte seatNo)
         => SeatMenuOf(component, seatNo).QuerySelector(".seat-amount-input")!;
@@ -1748,7 +1748,7 @@ public sealed class ComponentRender_Tests
     {
         var selector = ok ? ".ant-popover-buttons .ant-btn-primary" : ".ant-popover-buttons .ant-btn:not(.ant-btn-primary)";
         component.WaitForAssertion(() => SeatMenuOf(component, seatNo).QuerySelector(selector).Should().NotBeNull());
-        SeatMenuOf(component, seatNo).QuerySelector(selector)!.Click();
+        SeatMenuOf(component, seatNo).QuerySelector(selector)!.ClickAndWait();
     }
 
     /// <summary>Opens a seat's menu and reads each item, in order, as whether it is enabled.</summary>
@@ -1909,7 +1909,7 @@ public sealed class ComponentRender_Tests
         // Assert - 150 - 100 - 20
         WaitForAmountInput(component, 1).GetAttribute("value").Should().Be("30");
 
-        AmountInputOf(component, 1).Input("25");
+        AmountInputOf(component, 1).InputAndWait("25");
         AnswerConfirmation(component, 1, ok: true);
         raised.Should().Equal(((byte)1, 25m));
         component.WaitForAssertion(() => SeatMenuOf(component, 1).QuerySelectorAll(".seat-amount-input").Should().BeEmpty());
@@ -2125,35 +2125,35 @@ public sealed class ComponentRender_Tests
         component.Find(".raise-input input").GetAttribute("value").Should().Be($"{raise.MinValue:0}");
 
         // Act - one small blind up
-        component.Find(".raise-increase-btn").Click();
+        component.Find(".raise-increase-btn").ClickAndWait();
 
         // Assert - the button and the box both follow
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue + 50m:0}");
         component.Find(".raise-input input").GetAttribute("value").Should().Be($"{raise.MinValue + 50m:0}");
 
         // Act - down twice: the second step would go under the window and is clamped
-        component.Find(".raise-decrease-btn").Click();
-        component.Find(".raise-decrease-btn").Click();
+        component.Find(".raise-decrease-btn").ClickAndWait();
+        component.Find(".raise-decrease-btn").ClickAndWait();
 
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
 
         // Act - the All-in mark on the slider sizes the raise to the top of the window
-        component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "All-in").Click();
+        component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "All-in").ClickAndWait();
 
         // Assert - sized, but nothing was sent to the engine
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MaxValue:0}");
         session.Journal.Entries.Should().HaveCount(callsBefore);
 
         // Act - the Pot preset beside the box
-        component.FindAll(".raise-preset-btn").Single(button => button.TextContent.Trim().StartsWith("Pot ·", StringComparison.Ordinal)).Click();
+        component.FindAll(".raise-preset-btn").Single(button => button.TextContent.Trim().StartsWith("Pot ·", StringComparison.Ordinal)).ClickAndWait();
 
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be("Raise to 300");
         session.Journal.Entries.Should().HaveCount(callsBefore);
 
         // Act - and back down to the Min mark
-        component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "Min").Click();
+        component.FindAll(".raise-mark").Single(mark => mark.TextContent.Trim() == "Min").ClickAndWait();
 
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be($"Raise to {raise.MinValue:0}");
@@ -2178,7 +2178,7 @@ public sealed class ComponentRender_Tests
         component.FindAll(".raise-fix-btn").Should().BeEmpty("a legal amount needs no correcting");
 
         // Act - an amount off the step
-        component.Find(".raise-input input").Input("333");
+        component.Find(".raise-input input").InputAndWait("333");
 
         // Assert - red, Raise disabled, and the fix button offers the nearest step
         component.FindAll(".raise-input.raise-input-invalid").Should().HaveCount(1);
@@ -2187,7 +2187,7 @@ public sealed class ComponentRender_Tests
         component.Find(".raise-fix-btn").GetAttribute("aria-label").Should().Be("Correct the amount to 350");
 
         // Act
-        component.Find(".raise-fix-btn").Click();
+        component.Find(".raise-fix-btn").ClickAndWait();
 
         // Assert - corrected, legal again, and still nothing sent to the engine
         component.Find(".raise-input input").GetAttribute("value").Should().Be("350");
@@ -2197,10 +2197,10 @@ public sealed class ComponentRender_Tests
         session.Journal.Entries.Should().HaveCount(callsBefore);
 
         // Act - not a number at all, then past the all-in
-        component.Find(".raise-input input").Input("abc");
+        component.Find(".raise-input input").InputAndWait("abc");
         component.Find(".raise-fix-btn").GetAttribute("aria-label").Should().Be("Correct the amount to 350", "a non-number goes back to the last legal amount");
-        component.Find(".raise-input input").Input("99999");
-        component.Find(".raise-fix-btn").Click();
+        component.Find(".raise-input input").InputAndWait("99999");
+        component.Find(".raise-fix-btn").ClickAndWait();
 
         // Assert
         component.Find(".raise-btn").TextContent.Trim().Should().Be("Raise to 1000");
@@ -2230,7 +2230,7 @@ public sealed class ComponentRender_Tests
         component.Find(".action-bar-info").TextContent.Should().Be("Test Player 1 wins 100");
 
         // Act
-        component.Find(".next-hand-btn").Click();
+        component.Find(".next-hand-btn").ClickAndWait();
 
         // Assert
         nextHandRaised.Should().BeTrue();
@@ -2554,7 +2554,7 @@ public sealed class ComponentRender_Tests
         component.FindAll(".object-dump").Should().BeEmpty();
 
         // Act - open the StartHand call's result
-        component.FindAll(".engine-call-entry")[1].QuerySelector(".ant-collapse-header")!.Click();
+        component.FindAll(".engine-call-entry")[1].QuerySelector(".ant-collapse-header")!.ClickAndWait();
 
         // Assert - a Name / Value / Type tree whose Value column holds values, not type names
         var dump = component.Find(".object-dump");
@@ -2567,7 +2567,7 @@ public sealed class ComponentRender_Tests
         valueRow.QuerySelector(".dump-value")!.TextContent.Should().StartWith("{ GameId = ");
 
         // Act - drill into Value
-        valueRow.QuerySelector(".dump-toggle")!.Click();
+        valueRow.QuerySelector(".dump-toggle")!.ClickAndWait();
 
         // Assert
         component.FindAll(".object-dump tbody tr").Select(row => row.QuerySelector(".dump-name-text")!.TextContent)
@@ -2594,7 +2594,7 @@ public sealed class ComponentRender_Tests
         component.FindAll(".object-dump").Should().BeEmpty();
 
         // Act - open availableActions only
-        startHand.QuerySelectorAll(".ant-collapse-header")[1].Click();
+        startHand.QuerySelectorAll(".ant-collapse-header")[1].ClickAndWait();
 
         // Assert - one tree, rooted at the evaluations, one row per action the seat on the clock has
         var dump = component.Find(".object-dump");
@@ -2825,7 +2825,7 @@ public sealed class ComponentRender_Tests
         component.WaitForElement(".action-bar .action-btn");
 
         // Act
-        component.Find(".demo-tab[data-tab=engine-calls]").Click();
+        component.Find(".demo-tab[data-tab=engine-calls]").ClickAndWait();
 
         // Assert - the boot's last continuation can still be queued on the renderer when the dealt
         // hand appears, and under load the click's render lands behind it, so wait for it
@@ -2837,7 +2837,7 @@ public sealed class ComponentRender_Tests
         component.FindAll(".poker-table").Should().HaveCount(1, "the hidden table stays mounted");
 
         // Act - the import, replay and export tools live together behind one tab
-        component.Find(".demo-tab[data-tab=hand-history]").Click();
+        component.Find(".demo-tab[data-tab=hand-history]").ClickAndWait();
 
         // Assert - wait for the render to complete before checking the active pane
         component.WaitForAssertion(() => component.Find(".demo-tab-pane-active")
@@ -2858,7 +2858,7 @@ public sealed class ComponentRender_Tests
         CreateAndInitializeEngine(ctx.Services);
         var component = ctx.Render<Pages.Home>();
         component.WaitForElement(".action-bar .action-btn");
-        component.Find(".demo-tab[data-tab=database]").Click();
+        component.Find(".demo-tab[data-tab=database]").ClickAndWait();
 
         // Act - the header's New Game button asks through NewGameState; Apply is the modal's OK
         await component.InvokeAsync(() => ctx.Services.GetRequiredService<NewGameState>().RequestShowAsync());
