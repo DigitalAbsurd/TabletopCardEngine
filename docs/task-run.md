@@ -506,7 +506,7 @@ renumber.
     <br>— CSS is not analysed at all, so a stylesheet can parse, ship and do nothing.
     <br>The honest gate for a layout defect is a real browser: `tests/TabletopCardEngine.Demo.BrowserTests`
     (Playwright + MSTest, behind `TCE_TEST_BROWSER_GATE`, wired into `release.yml`) covers horizontal
-    overflow, hit-testing of the action controls, the scroll container and console errors. It covers
+    overflow, vertical scroll through a hand at 1536×725 and 1366×768, hit-testing of the action controls and of the seat menu, the scroll container, the seat menu's contrast and console errors. It covers
     nothing else, so a Definition of done outside its reach must name a measurement — a console probe
     with the before-value quoted — never an impression.
 22. **A `:root` in a scoped stylesheet never matches.** Blazor's scoped-CSS rewriter appends the

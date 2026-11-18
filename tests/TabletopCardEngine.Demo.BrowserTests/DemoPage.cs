@@ -141,6 +141,12 @@ internal sealed class DemoPage : IAsyncDisposable
     /// <summary>The items of the action menu that is open (the overlay renders outside the seat).</summary>
     public const string OpenSeatMenuItemSelector = ".ant-dropdown:not(.ant-dropdown-hidden) .seat-menu-item";
 
+    /// <summary>The Cancel button of the popconfirm that is open.</summary>
+    public const string OpenPopconfirmCancelSelector = ".ant-popover:not(.ant-popover-hidden) .ant-popover-buttons .ant-btn:not(.ant-btn-primary)";
+
+    /// <summary>The cards dealt to the board; the empty slots are not cards.</summary>
+    public const string CommunityCardSelector = ".community-cards .playing-card";
+
     /// <summary>The question and amount field of the popconfirm a seat opens when Top up or Rebuy is chosen.</summary>
     public const string SeatAmountFormSelector = ".ant-popover:not(.ant-popover-hidden) .seat-amount-title";
 
@@ -704,6 +710,34 @@ internal sealed class DemoPage : IAsyncDisposable
     }
 
     /// <summary>
+    /// Checks or calls for every seat on the clock until the board holds at least
+    /// <paramref name="boardCards"/> cards: with every seat still in, one round of the pre-flop is
+    /// the flop, where every seat carries a last-action row.
+    /// </summary>
+    /// <param name="boardCards">How many community cards to wait for.</param>
+    /// <param name="maximumActions">A budget, so a hand that never gets there fails rather than hangs.</param>
+    public async Task PlayCheckCallUntilBoardAsync(int boardCards, int maximumActions)
+    {
+        ILocator buttons = _page.Locator(".action-bar .check-btn, .action-bar .call-btn");
+        ILocator entries = _page.Locator(EngineCallEntrySelector);
+        ILocator board = _page.Locator(CommunityCardSelector);
+
+        for (int actions = 0; await board.CountAsync() < boardCards; actions++)
+        {
+            if (actions >= maximumActions)
+            {
+                throw new InvalidOperationException($"The board still had fewer than {boardCards} cards after {maximumActions} actions.");
+            }
+
+            await buttons.First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+            int before = await entries.CountAsync();
+            await buttons.First.ClickAsync();
+            await entries.Nth(before).WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Attached, Timeout = BootTimeoutMilliseconds });
+            await _page.WaitForTimeoutAsync(SettleMilliseconds);
+        }
+    }
+
+    /// <summary>
     /// Waits for the New Game modal to close after Apply. A refused form keeps the modal open and
     /// says why in an alert, so that alert fails the wait at once with its text, rather than after the
     /// whole boot timeout with nothing to go on (issue #544).
@@ -810,6 +844,31 @@ internal sealed class DemoPage : IAsyncDisposable
     {
         await ClickAsync($"{SeatMenuTriggerSelector}[data-seat-no='{seatNo}']");
         await ChooseOpenSeatMenuItemAsync(label);
+    }
+
+    /// <summary>Opens a seat's action menu and waits for its items.</summary>
+    public async Task OpenSeatMenuAsync(int seatNo)
+    {
+        await _page.Locator($"{SeatMenuTriggerSelector}[data-seat-no='{seatNo}']").First.ClickAsync();
+        await _page.Locator(OpenSeatMenuItemSelector).First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+    }
+
+    /// <summary>The label of each item of the seat menu that is open, in order, and whether it is disabled.</summary>
+    public async Task<IReadOnlyList<(string Label, bool Disabled)>> ReadOpenSeatMenuItemsAsync()
+    {
+        string json = await _page.EvaluateAsync<string>(
+            """
+            (selector) => JSON.stringify(Array.from(document.querySelectorAll(selector)).map(item => ({
+                label: item.innerText.trim(),
+                disabled: item.classList.contains('ant-dropdown-menu-item-disabled') || item.classList.contains('ant-menu-item-disabled'),
+            })))
+            """,
+            OpenSeatMenuItemSelector);
+
+        return (JsonSerializer.Deserialize<SeatMenuItem[]>(json, _jsonOptions)
+            ?? throw new InvalidOperationException("The seat menu probe returned nothing."))
+            .Select(item => (item.Label, item.Disabled))
+            .ToList();
     }
 
     /// <summary>Chooses an item of the seat menu that is already open, then waits for the re-render.</summary>
