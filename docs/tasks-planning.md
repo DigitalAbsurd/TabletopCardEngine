@@ -42,10 +42,9 @@ needs Docker), and the documentation site build (needs Docker). The evidence for
 told to. The workflows are `Release` (`release.yml`, the only one a pushed `v*` tag triggers) and the four it calls,
 each of which can also be run by hand for an existing tag (`workflow_dispatch` with a `tag` input, see
 `release-process.md`): `Create GitHub Release` (`create-release.yml`), `Deploy demo to GitHub Pages`
-(`deploy-demo.yml`, stable releases only), `Publish to nuget.org` (`publish-nuget.yml`) and `Publish to
-Docker Hub` (`publish-docker.yml`); the last two are placeholders gated by `TCE_PUBLISH`. `gh workflow list --all` shows
-`Deploy demo to GitHub Pages` as `disabled_manually`, and its job skips itself while the repository is
-private; it is enabled again when the repository goes public. The old `CI` workflow is gone.
+(`deploy-demo.yml`, stable releases, or a signed `demo-YYYY.MM.N` tag dispatched by hand), `Publish to nuget.org` (`publish-nuget.yml`) and `Publish to
+Docker Hub` (`publish-docker.yml`); the last two are placeholders gated by `TCE_PUBLISH`. The repository is public, and
+`gh workflow list --all` shows `Deploy demo to GitHub Pages` as `active`. The old `CI` workflow is gone.
 The `Release` workflow is enabled and runs only on a pushed `v*` tag; each run spends the account's Actions minutes.
 
 ## 1. Establish the facts before writing a word
