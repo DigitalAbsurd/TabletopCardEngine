@@ -48,4 +48,19 @@
     <TrimmerRootAssembly Include="TabletopCardEngine.Sqlite" />
   </ItemGroup>
 
+  <!--
+    Reconvert the webcil after a restore that changed the packages. ConvertDllsToWebCil converts a DLL only
+    when it is newer than the existing webcil, and NuGet extracts a package's files with the timestamps they
+    were packed with, so a bumped package's DLL can be older than the webcil built from the previous version
+    and the stale one keeps being served (AntDesign 0.17.0 next to code compiled against 1.6.2: TypeLoadException
+    "Invalid generic instantiation"). NuGet rewrites project.assets.json only when the resolved packages change,
+    so a normal incremental build pays nothing. webcil/ also holds webcil/publish, so this covers dotnet publish.
+    Remove it once the SDK compares inputs rather than timestamps: https://github.com/dotnet/runtime/issues/137825
+    (diagnosis in #816). The target must run before _ResolveWasmOutputs, which does the conversion.
+  -->
+  <Target Name="_TceInvalidateWebcilOnRestore" BeforeTargets="_ResolveWasmOutputs" Inputs="$(ProjectAssetsFile)" Outputs="$(IntermediateOutputPath)webcil.assets.stamp">
+    <RemoveDir Directories="$(IntermediateOutputPath)webcil" />
+    <Touch Files="$(IntermediateOutputPath)webcil.assets.stamp" AlwaysCreate="true" />
+  </Target>
+
 </Project>

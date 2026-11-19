@@ -90,6 +90,12 @@ Get-NetTCPConnection -LocalPort 5170,7226 -State Listen -ErrorAction SilentlyCon
 
 An empty result means the ports are free and the server has stopped.
 
+### If only the header renders
+
+If the dev server shows only the header and the browser console logs `TypeLoadException: Invalid generic instantiation`, the build output holds an old copy of a package. Delete `src/TabletopCardEngine.Demo/obj/<Configuration>/net10.0/webcil` (or the whole `bin` and `obj` folders) and run again.
+
+The WebAssembly SDK converts a package's DLL again only when it is newer than the converted copy, and a bumped package's DLL can be older. The `_TceInvalidateWebcilOnRestore` target in the project file handles the usual case, a package bump, by deleting that folder whenever a restore has changed the packages. See [dotnet/runtime#137825](https://github.com/dotnet/runtime/issues/137825).
+
 ## Known limitations
 
 ### Database lives in memory only
