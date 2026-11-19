@@ -492,9 +492,11 @@ renumber.
     `Status`, and unlike the base chain it does capture unmatched attributes (`AdditionalAttributes`),
     which is how `aria-label` reaches its `<input>`. `Select` still renders its options from the
     `SelectOptions` fragment, and the demo puts them there; a `Select` showing `No Data` has them
-    somewhere else. AntDesign 1.6.2 is not trim-safe either: the published demo throws TypeLoadException
-    ("Invalid generic instantiation") in Tooltip under the default full trim mode, so the demo sets
-    <TrimMode>partial</TrimMode>; dotnet build and bUnit never see it, only the published app does.
+    somewhere else. Full trimming is not safe for the demo either: it removes constructors that EF Core
+    reaches by reflection, so the published app fails at start-up with `MissingConstructor_Name` for
+    `EntryCurrentValueComparer<Guid>`, and the demo sets `<TrimMode>partial</TrimMode>`, which trims only
+    the assemblies that declare themselves trimmable and leaves EF Core whole; dotnet build and bUnit
+    never see it, only the published app does.
 21. **The gates cannot see the browser.** `dotnet build`,
     `dotnet format TabletopCardEngine.sln --verify-no-changes` and `dotnet test` are the only checks the
     task runner has, and each sees less than the last layer of defect needs:
