@@ -94,6 +94,10 @@ public sealed class DemoLayout_Tests
     /// <summary>A check or call for each of ten seats on four streets, with room to spare.</summary>
     private const int MaximumCheckCallActions = 80;
 
+    private const string LoaderSelector = ".app-loading";
+
+    private const string LoaderMarkSelector = ".app-loading .app-loading-mark";
+
     /// <summary>The call list, the page's scroll container and the document: none may scroll sideways.</summary>
     private static readonly string[] _overflowScrollers =
         [DemoPage.EngineCallListSelector, DemoPage.LayoutContentSelector, DemoPage.DocumentScrollerSelector];
@@ -1154,6 +1158,46 @@ public sealed class DemoLayout_Tests
         AssertNoConsoleErrors(page);
     }
 
+
+    /// <summary>
+    /// While the demo boots, the page shows the project's mark, not the template's ring. Blazor
+    /// reports progress only for downloads, so once they are done the loader says the engine is
+    /// starting (js/loading.js) until the first render replaces it. The runtime's wasm is held back
+    /// to look at the first phase, and released to see the second.
+    /// </summary>
+    [TestMethod]
+    public async Task Loader_ShowsTheMarkThenTheStartingPhase_UntilTheFirstRender()
+    {
+        if (!DemoSite.IsEnabled)
+        {
+            Assert.Inconclusive(
+                "The browser gate is off. Set TCE_TEST_BROWSER_GATE=1 to publish the demo, "
+                + "serve it locally and drive it in headless Chromium.");
+        }
+
+        DemoSite site = _site ?? throw new InvalidOperationException("The demo site was not started.");
+        TaskCompletionSource release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        await using DemoPage page = await site.NewPageAsync(WideViewportWidth, ViewportHeight);
+        try
+        {
+            await page.OpenHoldingBackAsync("**/_framework/dotnet.native.*.wasm", release.Task);
+
+            await page.WaitForVisibleAsync(LoaderMarkSelector);
+            (await page.ReadHtmlAttributeAsync("data-load-phase")).Should().BeNull(
+                "the download is not finished while the runtime is held back");
+        }
+        finally
+        {
+            release.TrySetResult();
+        }
+
+        await page.WaitForActionBarAsync();
+
+        (await page.ReadHtmlAttributeAsync("data-load-phase")).Should().Be(
+            "starting", "the downloads finished before the first render");
+        (await page.CountAsync(LoaderSelector)).Should().Be(0, "the first render replaces the loader");
+    }
 
     private static async Task<DemoPage> OpenDemoAsync(
         int viewportWidth,

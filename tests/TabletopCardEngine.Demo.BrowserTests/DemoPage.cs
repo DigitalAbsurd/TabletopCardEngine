@@ -263,6 +263,34 @@ internal sealed class DemoPage : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Starts loading the demo with every request matching <paramref name="urlGlob"/> held back until
+    /// <paramref name="release"/> completes, and returns as soon as the page has committed, without
+    /// waiting for the first render. This is how the start-up screen is looked at before the app
+    /// replaces it.
+    /// </summary>
+    public async Task OpenHoldingBackAsync(string urlGlob, Task release)
+    {
+        await _page.RouteAsync(urlGlob, async route =>
+        {
+            await release;
+            await route.ContinueAsync();
+        });
+        await _page.GotoAsync(_baseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.Commit });
+    }
+
+    /// <summary>Waits for the first action button, the signal that the app has rendered and dealt.</summary>
+    public Task WaitForActionBarAsync()
+        => _page.Locator(ActionBarButtonSelector).First.WaitForAsync(new LocatorWaitForOptions { Timeout = BootTimeoutMilliseconds });
+
+    /// <summary>Waits until the first match of <paramref name="selector"/> is visible.</summary>
+    public Task WaitForVisibleAsync(string selector)
+        => _page.Locator(selector).First.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = BootTimeoutMilliseconds });
+
+    /// <summary>The value of an attribute of <c>&lt;html&gt;</c>, or <see langword="null"/> when it is not set.</summary>
+    public Task<string?> ReadHtmlAttributeAsync(string name)
+        => _page.EvaluateAsync<string?>("name => document.documentElement.getAttribute(name)", name);
+
     /// <summary>Closes every open AntDesign notification with its close button.</summary>
     public async Task DismissNotificationsAsync()
     {
