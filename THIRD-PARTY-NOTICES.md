@@ -95,7 +95,6 @@ copies its dependencies into the site. On top of the library's closure it ships:
 | SQLite, compiled into `dotnet.native.wasm` by `WasmBuildNative` | NuGet `SQLitePCLRaw.lib.e_sqlite3` | Public domain |
 | The .NET 10 WebAssembly runtime and base class library (`dotnet.*`, `System.*.wasm`) | The SDK's `Microsoft.NETCore.App.Runtime.Mono.browser-wasm` pack | MIT, plus the notices in [dotnet/runtime's THIRD-PARTY-NOTICES.TXT](https://github.com/dotnet/runtime/blob/release/10.0/THIRD-PARTY-NOTICES.TXT) |
 | PrismJS core, its C# grammar and its default theme | Vendored in `wwwroot/lib/prism` | MIT |
-| The loading indicator in `index.html` and `css/app.css` | The .NET 10 Blazor project templates; the icons are byte-identical | MIT |
 | `sample/sample.phhs` | The PHH dataset | MIT, see [PHH dataset](#phh-dataset) |
 
 `Microsoft.AspNetCore.Components.WebAssembly.DevServer` is the development server, and nothing from
@@ -185,6 +184,7 @@ DigitalAbsurd's branding repository (`brands/tabletopcardengine/exports/`) and a
 - `eng/icon.png`, packed into every NuGet package as `icon.png`;
 - `docs/assets/logo.svg` and `docs/assets/favicon-32.png`, the documentation site's logo and favicon;
 - `src/TabletopCardEngine.Demo/wwwroot/favicon.svg`, `favicon.png` and `apple-touch-icon.png`, the demo's favicon and home-screen icon;
+- the mark inlined in `src/TabletopCardEngine.Demo/wwwroot/index.html`, the demo's loading screen;
 - `docs/assets/wordmark-1200.png` and `docs/assets/wordmark-on-dark-1200.png`, the README header.
 
 ```
