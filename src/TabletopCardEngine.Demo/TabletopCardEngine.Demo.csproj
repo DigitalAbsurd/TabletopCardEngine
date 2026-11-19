@@ -15,9 +15,10 @@
     -->
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);WASM0001</MSBuildWarningsAsMessages>
     <!--
-      AntDesign 1.6.2 is not trim-safe: with the default full trim mode the published app throws
-      TypeLoadException ("Invalid generic instantiation") in AntDesign.Tooltip and the first render dies.
-      Partial mode trims only the assemblies that declare themselves trimmable, and leaves AntDesign whole.
+      Full trimming removes constructors that EF Core reaches by reflection, so the published app fails at
+      start-up: AggregateException_ctor_DefaultMessage (MissingConstructor_Name,
+      Microsoft.EntityFrameworkCore.ChangeTracking.EntryCurrentValueComparer`1[[System.Guid ...]]).
+      Partial mode trims only the assemblies that declare themselves trimmable, which leaves EF Core whole.
     -->
     <TrimMode>partial</TrimMode>
   </PropertyGroup>
