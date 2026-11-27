@@ -203,9 +203,11 @@ For the implementer this means:
     block when it is missing) with `gh api -X PATCH repos/<repo>/milestones/<number>`, and change
     nothing else there. Read the description into a new file whose name is unique to the run
     (`mktemp`, never a fixed name such as `/tmp/ms.md` that an earlier run may have left behind),
-    and read, edit and write that file with one shell: Git Bash and a native Windows program such
-    as `python` resolve `/tmp` to different folders. Before the PATCH, read the description again
-    and diff it against the file; write it back only when the diff shows exactly the added line. The mermaid graph and the closing issue's `**Depends on:**` line are the
+    and read, edit and write that file with the same tool chain: two programs can resolve a
+    temporary path such as `/tmp` to different folders (Git Bash and a native Windows program do),
+    so a file written by one may not be the file the other reads. Before the PATCH, read the
+    description again and diff it against the file; write it back only when the diff shows exactly
+    the added line. The mermaid graph and the closing issue's `**Depends on:**` line are the
     maintainer's, updated when they vet the issue; the runner already holds `closing` issues
     until every other open issue of the milestone, a follow-up included, is closed. Do not edit
     any other issue, apart from the `**Depends on:**` line of a task your follow-up blocks (see
