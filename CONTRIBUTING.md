@@ -76,7 +76,7 @@ A task that touches specific areas needs additional tests:
 - **Documentation site** (requires Docker):
   - Changes to `docs/`, `mkdocs.yml` or `.readthedocs.yaml`
   - ```
-    docker run --rm -v "${PWD}:/docs" squidfunk/mkdocs-material:9.7.7 build --strict --site-dir /tmp/site
+    tar -cf - mkdocs.yml docs | docker run --rm -i --entrypoint sh squidfunk/mkdocs-material:9.7.7 -c "mkdir -p /docs && cd /docs && tar -xf - && mkdocs build --strict --site-dir /tmp/site"
     git grep -nE "\]\([^):]*(task-run|tasks-planning)\.md" -- 'docs/*.md' 'docs/**/*.md' ':!docs/task-run.md' ':!docs/tasks-planning.md'
     ```
 
